@@ -12958,27 +12958,13 @@ snapshots:
 
   '@discoveryjs/json-ext@0.5.7': {}
     
-  /@elastic/elasticsearch@8.13.1:
+  '@elastic/elasticsearch@8.13.1':
+    resolution: {integrity: sha512-2G4Vu6OHw4+XTrp7AGIcOEezpPEoVrWg2JTK1v/exEKSLYquZkUdd+m4yOL3/UZ6bTj7hmXwrmYzW76BnLCkJQ==}
     engines: {node: '>=18'}
-    dependencies:
-      '@elastic/transport': 8.5.0
-      tslib: 2.6.2
-    transitivePeerDependencies:
-      - supports-color
-    dev: false
 
-  /@elastic/transport@8.5.0:
+  '@elastic/transport@8.4.1':
+    resolution: {integrity: sha512-/SXVuVnuU5b4dq8OFY4izG+dmGla185PcoqgK6+AJMpmOeY1QYVNbWtCwvSvoAANN5D/wV+EBU8+x7Vf9EphbA==}
     engines: {node: '>=16'}
-    dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
-      hpagent: 1.2.0
-      ms: 2.1.3
-      secure-json-parse: 2.7.0
-      tslib: 2.6.2
-      undici: 5.28.2
-    transitivePeerDependencies:
-      - supports-color
-    dev: false
 
   '@emnapi/runtime@1.1.1':
     dependencies:
