@@ -98,6 +98,9 @@ importers:
       '@elastic/elasticsearch':
         specifier: 8.13.1
         version: 8.13.1
+      '@elastic/transport':
+        specifier: 8.4.1
+        version: 8.4.1
       '@fastify/accepts':
         specifier: 4.3.0
         version: 4.3.0
