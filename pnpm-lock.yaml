@@ -12956,7 +12956,7 @@ snapshots:
       jsonfile: 5.0.0
       universalify: 0.1.2
 
- '@discoveryjs/json-ext@0.5.7': {}
+  '@discoveryjs/json-ext@0.5.7': {}
     
   /@elastic/elasticsearch@8.13.1:
     engines: {node: '>=18'}
