@@ -10,6 +10,7 @@ const koRegex1 = /[나-낳]/g;
 const koRegex2 = /(다$)|(다(?=\.))|(다(?= ))|(다(?=!))|(다(?=\?))/gm;
 const koRegex3 = /(야(?=\?))|(야$)|(야(?= ))/gm;
 
+/*
 export function nyaize(text: string): string {
 	return text
 		// ja-JP
@@ -24,4 +25,9 @@ export function nyaize(text: string): string {
 		))
 		.replace(koRegex2, '다냥')
 		.replace(koRegex3, '냥');
+}
+*/
+
+export function nyaize(text: string): string {
+	return text
 }
