@@ -6864,6 +6864,10 @@ export interface Locale extends ILocale {
              */
             "canUseTranslator": string;
             /**
+             * TTS機能の利用
+             */
+            "canUseTTS": string;
+            /**
              * アイコンデコレーションの最大取付個数
              */
             "avatarDecorationLimit": string;
@@ -7300,6 +7304,10 @@ export interface Locale extends ILocale {
          * Misskeyを翻訳
          */
         "translation": string;
+        /**
+         * Misskeyを変換
+         */
+        "convert": string;
         /**
          * Misskeyに寄付
          */

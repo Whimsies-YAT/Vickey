@@ -22,6 +22,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkButton primary @click="save_deepl">Save</MkButton>
 				</div>
 			</MkFolder>
+			<br />
+			<MkFolder>
+				<template #label>Text-To-Speech</template>
+				<div class="_gaps_m">
+					<MkInput v-model="hfAuthKey">
+						<template #prefix><i class="ti ti-key"></i></template>
+						<template #label>HuggingFace Auth Key</template>
+					</MkInput>
+					<MkButton primary @click="save_deepl">Save</MkButton>
+				</div>
+			</MkFolder>
 		</FormSuspense>
 	</MkSpacer>
 </MkStickyContainer>
@@ -43,17 +54,20 @@ import MkFolder from '@/components/MkFolder.vue';
 
 const deeplAuthKey = ref<string>('');
 const deeplIsPro = ref<boolean>(false);
+const hfAuthKey = ref<string>('');
 
 async function init() {
 	const meta = await misskeyApi('admin/meta');
 	deeplAuthKey.value = meta.deeplAuthKey;
 	deeplIsPro.value = meta.deeplIsPro;
+	hfAuthKey.value = meta.hfAuthkey;
 }
 
 function save_deepl() {
 	os.apiWithDialog('admin/update-meta', {
 		deeplAuthKey: deeplAuthKey.value,
 		deeplIsPro: deeplIsPro.value,
+		hfAuthKey: hfAuthKey.value,
 	}).then(() => {
 		fetchInstance(true);
 	});

@@ -92,6 +92,7 @@ export const paramDef = {
 		},
 		deeplAuthKey: { type: 'string', nullable: true },
 		deeplIsPro: { type: 'boolean' },
+		hfAuthKey: { type: 'string', nullable: true },
 		enableEmail: { type: 'boolean' },
 		email: { type: 'string', nullable: true },
 		smtpSecure: { type: 'boolean' },
@@ -515,6 +516,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (ps.deeplIsPro !== undefined) {
 				set.deeplIsPro = ps.deeplIsPro;
+			}
+
+			if (ps.hfAuthKey !== undefined) {
+				if (ps.hfAuthKey === '') {
+					set.hfAuthKey = null;
+				} else {
+					set.hfAuthKey = ps.hfAuthKey;
+				}
 			}
 
 			if (ps.enableIpLogging !== undefined) {
