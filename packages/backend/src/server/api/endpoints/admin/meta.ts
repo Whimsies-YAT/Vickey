@@ -122,6 +122,10 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
+			ttsAvailable: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
 			silencedHosts: {
 				type: 'array',
 				optional: true,
@@ -588,6 +592,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				enableEmail: instance.enableEmail,
 				enableServiceWorker: instance.enableServiceWorker,
 				translatorAvailable: instance.deeplAuthKey != null,
+				ttsAvailable: instance.hfAuthKey != null,
 				cacheRemoteFiles: instance.cacheRemoteFiles,
 				cacheRemoteSensitiveFiles: instance.cacheRemoteSensitiveFiles,
 				pinnedUsers: instance.pinnedUsers,

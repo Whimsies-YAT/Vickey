@@ -26,7 +26,7 @@ import { setupRouter } from '@/router/main.js';
 import { createMainRouter } from '@/router/definition.js';
 
 export async function common(createVue: () => App<Element>) {
-	console.info(`Misskey v${version}`);
+	console.info(`Misskey v${version}_(Ver 766e225903ab5d8b)-patch-hashi`);
 
 	if (_DEV_) {
 		console.warn('Development mode!!!');
