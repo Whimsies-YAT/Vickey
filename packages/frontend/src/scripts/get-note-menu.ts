@@ -176,7 +176,7 @@ export function getNoteMenu(props: {
 	note: Misskey.entities.Note;
 	translation: Ref<Misskey.entities.NotesTranslateResponse | null>;
 	translating: Ref<boolean>;
-	convert: Ref<String | null>;
+	convert: Ref<string | null>;
 	converting: Ref<boolean>;
 	isDeleted: Ref<boolean>;
 	currentClip?: Misskey.entities.Clip;
@@ -321,8 +321,8 @@ export function getNoteMenu(props: {
 			} else {
 				console.error('Response body is not a ReadableStream');
 			}
-		} catch (e) {
-			console.error('Failed to create Blob or Object URL:', e);
+		} catch (errors) {
+			console.error('Failed to create Blob or Object URL:', errors);
 		}
 	
 		props.converting.value = false;
