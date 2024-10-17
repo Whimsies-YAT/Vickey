@@ -66,6 +66,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private httpRequestService: HttpRequestService,
 		private roleService: RoleService,
 	) {
+		// @ts-expect-error: Functionality can be implemented here with minimal modifications.
 		super(meta, paramDef, async (ps, me) => {
 			const policies = await this.roleService.getUserPolicies(me.id);
 			if (!policies.canUseTTS) {
@@ -82,7 +83,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			if (note.text == null) {
-				return;
+				throw new ApiError(meta.errors.cannotConvertInvisibleNote);
 			}
 
 			const instance = await this.metaService.fetch();
@@ -102,7 +103,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				try {
 					const example = await fetch(instance.hfexampleAudioURL || '');
 					exampleAudio = await example.blob();
-				} catch {
+				} catch (e) {
 					throw new ApiError(meta.errors.unavailable);
 				}
 
@@ -112,7 +113,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 				try {
 					app = await Client.connect(instance.hfSpaceName, { hf_token: instance.hfAuthKey });
-				} catch {
+				} catch (e) {
 					throw new ApiError(meta.errors.unavailable);
 				}
 
@@ -135,19 +136,19 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						instance.hfdas,
 					]);
 				} catch (e) {
-					console.error("An error occurred during prediction:", e);
-
 					const responseMessage = (e as any).message || ((e as any).original_msg && (e as any).original_msg.message);
 
 					if (responseMessage && responseMessage.includes('You have exceeded your GPU quota')) {
 						outofQuota = true;
-						console.log("Fallback to Inference API");
+						console.info("Fallback to Inference API");
+						notcontinue = true;
+					} else {
+						throw new ApiError(meta.errors.unavailable);
 					}
-					notcontinue = true;
 				}
 
 				if (!notcontinue) {
-					let resurl = result.data[0].url;
+					const resurl = result.data[0].url;
 
 					const res = await this.httpRequestService.send(resurl, {
 						method: 'GET',
@@ -157,9 +158,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						timeout: 60000,
 					});
 
-					let contentType = res.headers.get('Content-Type') || 'application/octet-stream';
-
-					console.log(contentType);
+					const contentType = res.headers.get('Content-Type') || 'application/octet-stream';
 
 					if (contentType === 'audio/x-wav') {
 						return res.body;
@@ -185,7 +184,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
             	    timeout: 60000,
 				});
 
-				let contentType = res.headers.get('Content-Type') || 'application/octet-stream';
+				const contentType = res.headers.get('Content-Type') || 'application/octet-stream';
 
 				if (contentType === 'audio/flac') {
 					return res.body;
