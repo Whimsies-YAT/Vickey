@@ -101,6 +101,12 @@ importers:
       '@discordapp/twemoji':
         specifier: 15.1.0
         version: 15.1.0
+      '@elastic/elasticsearch':
+        specifier: 8.13.1
+        version: 8.13.1
+      '@elastic/transport':
+        specifier: 8.4.1
+        version: 8.4.1
       '@fastify/accepts':
         specifier: 5.0.1
         version: 5.0.1
@@ -12761,6 +12767,16 @@ snapshots:
       fs-extra: 8.1.0
       jsonfile: 5.0.0
       universalify: 0.1.2
+
+  '@discoveryjs/json-ext@0.5.7': {}
+    
+  '@elastic/elasticsearch@8.13.1':
+    resolution: {integrity: sha512-2G4Vu6OHw4+XTrp7AGIcOEezpPEoVrWg2JTK1v/exEKSLYquZkUdd+m4yOL3/UZ6bTj7hmXwrmYzW76BnLCkJQ==}
+    engines: {node: '>=18'}
+
+  '@elastic/transport@8.4.1':
+    resolution: {integrity: sha512-/SXVuVnuU5b4dq8OFY4izG+dmGla185PcoqgK6+AJMpmOeY1QYVNbWtCwvSvoAANN5D/wV+EBU8+x7Vf9EphbA==}
+    engines: {node: '>=16'}
 
   '@emnapi/runtime@1.2.0':
     dependencies:

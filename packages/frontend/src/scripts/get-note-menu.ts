@@ -322,7 +322,7 @@ export function getNoteMenu(props: {
 				console.error('Response body is not a ReadableStream');
 			}
 		} catch (errors) {
-			console.error('Failed to create Blob or Object URL:', e);
+			console.error('Failed to create Blob or Object URL:', errors);
 		}
 	
 		props.converting.value = false;
