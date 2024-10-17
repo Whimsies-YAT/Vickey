@@ -80,16 +80,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<option value="Slice by English punct">Slice by English punct</option>
 							<option value="Slice by every punct">Slice by every punct</option>
                         </MkSelect>
-                        <MkInput type="range" v-model.number="hftopK" :min="0" :max="100" :step="1">
+                        <MkInput v-model.number="hftopK" type="range" :min="0" :max="100" :step="1">
 							<template #label>Set top_k Value: {{ hftopK }}</template>
 						</MkInput>
-                        <MkInput type="range" v-model.number="hftopP" :min="0" :max="100" :step="5">
+                        <MkInput v-model.number="hftopP" type="range" :min="0" :max="100" :step="5">
 							<template #label>Set top_p Value: {{ hftopP }}</template>
 						</MkInput>
-                        <MkInput type="range" v-model.number="hfTemperature" :min="0" :max="100" :step="5">
+                        <MkInput v-model.number="hfTemperature" type="range" :min="0" :max="100" :step="5">
 							<template #label>Set Temperature Value: {{ hfTemperature }}</template>
 						</MkInput>
-                        <MkInput type="range" v-model.number="hfSpeedRate" :min="60" :max="165" :step="5">
+                        <MkInput v-model.number="hfSpeedRate" type="range" :min="60" :max="165" :step="5">
 							<template #label>Set Speed Rate Value: {{ hfSpeedRate }}</template>
 						</MkInput>
                     </div>
@@ -132,24 +132,23 @@ const hfnrm = ref<boolean>(false);
 const hfSpeedRate = ref<number>(125);
 const hfdas = ref<boolean>(false);
 
-
 async function init() {
     const meta = await misskeyApi('admin/meta');
     deeplAuthKey.value = meta.deeplAuthKey;
     deeplIsPro.value = meta.deeplIsPro;
-    hfAuthKey.value = meta.hfAuthkey;
-    hfSpace.value = meta.hfSpace,
-    hfSpaceName.value = meta.hfSpaceName,
-    hfexampleAudioURL.value = meta.hfexampleAudioURL,
-    hfexampleText.value = meta.hfexampleText,
-    hfexampleLang.value = meta.hfexampleLang,
-    hfslice.value = meta.hfslice,
-    hftopK.value = meta.hftopK,
-    hftopP.value = meta.hftopP,
-    hfTemperature.value = meta.hfTemperature,
-    hfnrm.value = meta.hfnrm,
-    hfSpeedRate.value = meta.hfSpeedRate,
-    hfdas.value = meta.hfdas
+    hfAuthKey.value = meta.hfAuthKey;
+    hfSpace.value = meta.hfSpace;
+    hfSpaceName.value = meta.hfSpaceName;
+    hfexampleAudioURL.value = meta.hfexampleAudioURL;
+    hfexampleText.value = meta.hfexampleText;
+    hfexampleLang.value = meta.hfexampleLang;
+    hfslice.value = meta.hfslice;
+    hftopK.value = meta.hftopK;
+    hftopP.value = meta.hftopP;
+    hfTemperature.value = meta.hfTemperature;
+    hfnrm.value = meta.hfnrm;
+    hfSpeedRate.value = meta.hfSpeedRate;
+    hfdas.value = meta.hfdas;
 }
 
 function save_deepl() {
