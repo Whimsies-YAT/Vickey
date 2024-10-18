@@ -195,6 +195,7 @@ export class ClientServerService {
 			infoImageUrl: meta.infoImageUrl ?? 'https://xn--931a.moe/assets/info.jpg',
 			notFoundImageUrl: meta.notFoundImageUrl ?? 'https://xn--931a.moe/assets/not-found.jpg',
 			instanceUrl: this.config.url,
+			randomMOTD: (await fetch('https://zenquotes.io/api/random').then((res: { json: () => any; }) => res.json()).then((data: { q: any; }[]) => data[0]?.q).catch(() => undefined)),
 			metaJson: htmlSafeJsonStringify(await this.metaEntityService.packDetailed(meta)),
 			now: Date.now(),
 		};
