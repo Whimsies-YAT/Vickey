@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-html {
+ html {
 	background-color: var(--MI_THEME-bg);
 	color: var(--MI_THEME-fg);
 }
@@ -60,18 +60,37 @@ html {
 	stroke-linejoin: round;
 	stroke-miterlimit: 1.5;
 }
+
 #splashSpinner > .spinner.bg {
 	opacity: 0.275;
 }
+
 #splashSpinner > .spinner.fg {
-	animation: splashSpinner 0.5s linear infinite;
+	animation: splashSpinnerHashi 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
 }
 
-@keyframes splashSpinner {
+@keyframes splashSpinnerHashi {
 	0% {
 		transform: rotate(0deg);
+	}
+	50% {
+		transform: rotate(180deg);
 	}
 	100% {
 		transform: rotate(360deg);
 	}
+}
+
+#splashText {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	margin: auto;
+	display: inline-block;
+	width: 70%;
+	height: 0;
+	text-align: center;
+	transform: translateY(40px);
 }
