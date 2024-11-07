@@ -1471,6 +1471,10 @@ export interface Locale extends ILocale {
      */
     "accept": string;
     /**
+     * 無視
+     */
+    "ignore": string;
+    /**
      * 拒否
      */
     "reject": string;

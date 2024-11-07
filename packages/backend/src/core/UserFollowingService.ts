@@ -657,6 +657,23 @@ export class UserFollowingService implements OnModuleInit {
 	}
 
 	/**
+	 * API following/request/ignore
+	 */
+	@bindThis
+	public async ignoreFollowRequest(followee: Both, follower: Both): Promise<void> {
+		const request = await this.followRequestsRepository.findOneBy({
+			followeeId: followee.id,
+			followerId: follower.id,
+		});
+
+		if (!request) return;
+
+		request.ignore = true;
+		await this.followRequestsRepository.save(request);
+	}
+
+
+	/**
 	 * API following/reject
 	 */
 	@bindThis

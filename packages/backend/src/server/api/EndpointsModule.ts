@@ -186,6 +186,7 @@ import * as ep___following_update_all from './endpoints/following/update-all.js'
 import * as ep___following_invalidate from './endpoints/following/invalidate.js';
 import * as ep___following_requests_accept from './endpoints/following/requests/accept.js';
 import * as ep___following_requests_cancel from './endpoints/following/requests/cancel.js';
+import * as ep___following_requests_ignore from './endpoints/following/requests/ignore.js';
 import * as ep___following_requests_list from './endpoints/following/requests/list.js';
 import * as ep___following_requests_reject from './endpoints/following/requests/reject.js';
 import * as ep___gallery_featured from './endpoints/gallery/featured.js';
@@ -574,6 +575,7 @@ const $following_update_all: Provider = { provide: 'ep:following/update-all', us
 const $following_invalidate: Provider = { provide: 'ep:following/invalidate', useClass: ep___following_invalidate.default };
 const $following_requests_accept: Provider = { provide: 'ep:following/requests/accept', useClass: ep___following_requests_accept.default };
 const $following_requests_cancel: Provider = { provide: 'ep:following/requests/cancel', useClass: ep___following_requests_cancel.default };
+const $following_requests_ignore: Provider = { provide: 'ep:following/requests/ignore', useClass: ep___following_requests_ignore.default };
 const $following_requests_list: Provider = { provide: 'ep:following/requests/list', useClass: ep___following_requests_list.default };
 const $following_requests_reject: Provider = { provide: 'ep:following/requests/reject', useClass: ep___following_requests_reject.default };
 const $gallery_featured: Provider = { provide: 'ep:gallery/featured', useClass: ep___gallery_featured.default };
@@ -966,6 +968,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$following_invalidate,
 		$following_requests_accept,
 		$following_requests_cancel,
+		$following_requests_ignore,
 		$following_requests_list,
 		$following_requests_reject,
 		$gallery_featured,
@@ -1352,6 +1355,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$following_invalidate,
 		$following_requests_accept,
 		$following_requests_cancel,
+		$following_requests_ignore,
 		$following_requests_list,
 		$following_requests_reject,
 		$gallery_featured,

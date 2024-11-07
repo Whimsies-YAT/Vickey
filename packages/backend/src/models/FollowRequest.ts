@@ -50,6 +50,11 @@ export class MiFollowRequest {
 	})
 	public withReplies: boolean;
 
+	@Column('boolean', {
+		default: false,
+	})
+	public ignore: boolean;
+
 	//#region Denormalized fields
 	@Column('varchar', {
 		length: 128, nullable: true,

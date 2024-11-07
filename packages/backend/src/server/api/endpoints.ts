@@ -192,6 +192,7 @@ import * as ep___following_update_all from './endpoints/following/update-all.js'
 import * as ep___following_invalidate from './endpoints/following/invalidate.js';
 import * as ep___following_requests_accept from './endpoints/following/requests/accept.js';
 import * as ep___following_requests_cancel from './endpoints/following/requests/cancel.js';
+import * as ep___following_requests_ignore from './endpoints/following/requests/ignore.js';
 import * as ep___following_requests_list from './endpoints/following/requests/list.js';
 import * as ep___following_requests_reject from './endpoints/following/requests/reject.js';
 import * as ep___gallery_featured from './endpoints/gallery/featured.js';
@@ -578,6 +579,7 @@ const eps = [
 	['following/invalidate', ep___following_invalidate],
 	['following/requests/accept', ep___following_requests_accept],
 	['following/requests/cancel', ep___following_requests_cancel],
+	['following/requests/ignore', ep___following_requests_ignore],
 	['following/requests/list', ep___following_requests_list],
 	['following/requests/reject', ep___following_requests_reject],
 	['gallery/featured', ep___gallery_featured],

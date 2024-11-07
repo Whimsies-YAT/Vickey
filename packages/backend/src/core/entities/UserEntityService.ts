@@ -362,9 +362,18 @@ export class UserEntityService implements OnModuleInit {
 			followeeId: userId,
 		});
 
-		return count > 0;
-	}
+		if (count === 0) {
+			return false;
+		}
 
+		const ignoredCount = await this.followRequestsRepository.countBy({
+			followeeId: userId,
+			ignore: true,
+		});
+
+		return ignoredCount < count;
+	}
+	
 	@bindThis
 	public getOnlineStatus(user: MiUser): 'unknown' | 'online' | 'active' | 'offline' {
 		if (user.hideOnlineStatus) return 'unknown';
