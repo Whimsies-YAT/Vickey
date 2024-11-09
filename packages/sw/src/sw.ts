@@ -124,6 +124,20 @@ globalThis.addEventListener('notificationclick', (ev: ServiceWorkerGlobalScopeEv
 								break;
 						}
 						break;
+					case 'ignore':
+						switch (data.body.type) {
+							case 'receiveFollowRequest':
+								await swos.api('following/requests/ignore', loginId, { userId: data.body.userId });
+								break;
+						}
+						break;
+					case 'display':
+						switch (data.body.type) {
+							case 'receiveFollowRequest':
+								await swos.api('following/requests/display', loginId, { userId: data.body.userId });
+								break;
+						}
+						break;
 					case 'reject':
 						switch (data.body.type) {
 							case 'receiveFollowRequest':

@@ -25,7 +25,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</div>
 							<div class="commands">
 								<MkButton class="command" rounded primary @click="accept(req.follower)"><i class="ti ti-check"/> {{ i18n.ts.accept }}</MkButton>
-								<MkButton v-if="!req.ignored" class="command" rounded danger @click="ignore(req.follower)"><i class="ti ti-volume-3"/> {{ i18n.ts.ignore }}</MkButton>
+								<MkButton v-if="req.ignored" class="command" rounded primary @click="display(req.follower)"><i class="ti ti-volume"/> {{ i18n.ts.display }}</MkButton>
+								<MkButton v-if="!req.ignored" class="command" rounded danger @click="ignore(req.follower)"><i class="ti ti-volume-3"/> Ignore</MkButton>
 								<MkButton class="command" rounded danger @click="reject(req.follower)"><i class="ti ti-x"/> {{ i18n.ts.reject }}</MkButton>
 							</div>
 						</div>
@@ -62,6 +63,12 @@ function accept(user) {
 
 function ignore(user) {
 	misskeyApi('following/requests/ignore', { userId: user.id }).then(() => {
+		paginationComponent.value?.reload();
+	});
+}
+
+function display(user) {
+	misskeyApi('following/requests/display', { userId: user.id }).then(() => {
 		paginationComponent.value?.reload();
 	});
 }

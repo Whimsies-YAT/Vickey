@@ -281,6 +281,7 @@ export type FollowingRequestsAcceptRequest = operations['following___requests___
 export type FollowingRequestsCancelRequest = operations['following___requests___cancel']['requestBody']['content']['application/json'];
 export type FollowingRequestsCancelResponse = operations['following___requests___cancel']['responses']['200']['content']['application/json'];
 export type FollowingRequestsIgnoreRequest = operations['following___requests___ignore']['requestBody']['content']['application/json'];
+export type FollowingRequestsDisplayRequest = operations['following___requests___display']['requestBody']['content']['application/json'];
 export type FollowingRequestsListRequest = operations['following___requests___list']['requestBody']['content']['application/json'];
 export type FollowingRequestsListResponse = operations['following___requests___list']['responses']['200']['content']['application/json'];
 export type FollowingRequestsRejectRequest = operations['following___requests___reject']['requestBody']['content']['application/json'];

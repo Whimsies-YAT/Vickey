@@ -668,7 +668,25 @@ export class UserFollowingService implements OnModuleInit {
 
 		if (!request) return;
 
+		await this.removeFollowRequest(followee, follower);
+
 		request.ignore = true;
+		await this.followRequestsRepository.save(request);
+	}
+
+	/**
+	 * API following/request/display
+	 */
+	@bindThis
+	public async displayFollowRequest(followee: Both, follower: Both): Promise<void> {
+		const request = await this.followRequestsRepository.findOneBy({
+			followeeId: followee.id,
+			followerId: follower.id,
+		});
+
+		if (!request) return;
+
+		request.ignore = false;
 		await this.followRequestsRepository.save(request);
 	}
 
@@ -712,6 +730,7 @@ export class UserFollowingService implements OnModuleInit {
 		if (!request) return;
 
 		await this.followRequestsRepository.delete(request.id);
+		this.cacheService.userFollowingsCache.refresh(follower.id);
 	}
 
 	/**

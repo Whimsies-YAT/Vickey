@@ -278,6 +278,7 @@ import type {
 	FollowingRequestsCancelRequest,
 	FollowingRequestsCancelResponse,
 	FollowingRequestsIgnoreRequest,
+	FollowingRequestsDisplayRequest,
 	FollowingRequestsListRequest,
 	FollowingRequestsListResponse,
 	FollowingRequestsRejectRequest,
@@ -764,6 +765,7 @@ export type Endpoints = {
 	'following/requests/accept': { req: FollowingRequestsAcceptRequest; res: EmptyResponse };
 	'following/requests/cancel': { req: FollowingRequestsCancelRequest; res: FollowingRequestsCancelResponse };
 	'following/requests/ignore': { req: FollowingRequestsIgnoreRequest; res: EmptyResponse };
+	'following/requests/display': { req: FollowingRequestsDisplayRequest; res: EmptyResponse };
 	'following/requests/list': { req: FollowingRequestsListRequest; res: FollowingRequestsListResponse };
 	'following/requests/reject': { req: FollowingRequestsRejectRequest; res: EmptyResponse };
 	'gallery/featured': { req: GalleryFeaturedRequest; res: GalleryFeaturedResponse };

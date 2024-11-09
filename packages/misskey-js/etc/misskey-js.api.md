@@ -1503,6 +1503,7 @@ declare namespace entities {
         FollowingRequestsCancelRequest,
         FollowingRequestsCancelResponse,
         FollowingRequestsIgnoreRequest,
+        FollowingRequestsDisplayRequest,
         FollowingRequestsListRequest,
         FollowingRequestsListResponse,
         FollowingRequestsRejectRequest,
@@ -2011,6 +2012,9 @@ type FollowingRequestsCancelRequest = operations['following___requests___cancel'
 
 // @public (undocumented)
 type FollowingRequestsCancelResponse = operations['following___requests___cancel']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type FollowingRequestsDisplayRequest = operations['following___requests___display']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type FollowingRequestsIgnoreRequest = operations['following___requests___ignore']['requestBody']['content']['application/json'];
