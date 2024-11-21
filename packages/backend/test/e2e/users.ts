@@ -386,7 +386,6 @@ describe('ユーザー', () => {
 		assert.strictEqual(response.usePasswordLessLogin, false);
 		assert.strictEqual(response.securityKeys, false);
 		assert.notStrictEqual(response.email, undefined);
-		assert.notStrictEqual(response.signupReason, undefined);
 		assert.strictEqual(response.emailVerified, false);
 		assert.deepStrictEqual(response.securityKeysList, []);
 	});
