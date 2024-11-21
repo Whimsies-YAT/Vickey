@@ -10,7 +10,7 @@ import { QueueLoggerService } from '../QueueLoggerService.js';
 import { bindThis } from '@/decorators.js';
 
 @Injectable()
-export class CheckSecurityReleaseProcessorService{
+export class CheckSecurityReleaseProcessorService {
 	private logger: Logger;
 	constructor(
 		private checkSecurityUpdateService: CheckSecurityUpdateService,

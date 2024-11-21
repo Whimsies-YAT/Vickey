@@ -24,7 +24,7 @@ import { AppLockService } from './AppLockService.js';
 import { AchievementService } from './AchievementService.js';
 import { AvatarDecorationService } from './AvatarDecorationService.js';
 import { CaptchaService } from './CaptchaService.js';
-import {CheckSecurityUpdateService} from "@/core/CheckSecurityUpdateService.js";
+import { CheckSecurityUpdateService } from "@/core/CheckSecurityUpdateService.js";
 import { CreateSystemUserService } from './CreateSystemUserService.js';
 import { CustomEmojiService } from './CustomEmojiService.js';
 import { DeleteAccountService } from './DeleteAccountService.js';

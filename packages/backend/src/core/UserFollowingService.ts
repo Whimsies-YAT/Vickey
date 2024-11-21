@@ -690,7 +690,6 @@ export class UserFollowingService implements OnModuleInit {
 		await this.followRequestsRepository.save(request);
 	}
 
-
 	/**
 	 * API following/reject
 	 */

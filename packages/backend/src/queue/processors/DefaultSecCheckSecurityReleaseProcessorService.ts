@@ -3,20 +3,19 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import {Inject, Injectable} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type Logger from '@/logger.js';
 import { MetaService } from '@/core/MetaService.js';
 import { QueueLoggerService } from '../QueueLoggerService.js';
 import type { MiMeta } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
-import {DI} from "@/di-symbols.js";
+import { DI } from "@/di-symbols.js";
 
 @Injectable()
-export class DefaultSecCheckSecurityReleaseProcessorService{
+export class DefaultSecCheckSecurityReleaseProcessorService {
 	private logger: Logger;
 	constructor(
 		@Inject(DI.meta)
-		private meta: MiMeta,
 
 		private metaService: MetaService,
 		private queueLoggerService: QueueLoggerService
