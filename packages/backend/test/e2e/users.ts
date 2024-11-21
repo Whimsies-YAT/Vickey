@@ -151,7 +151,6 @@ describe('ユーザー', () => {
 			securityKeys: user.securityKeys,
 			...(security ? {
 				email: user.email,
-				signupReason: user.signupReason,
 				emailVerified: user.emailVerified,
 				securityKeysList: user.securityKeysList,
 			} : {}),
