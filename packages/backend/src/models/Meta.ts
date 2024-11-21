@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {Entity, Column, PrimaryColumn, ManyToOne, JoinColumn} from 'typeorm';
 import { id } from './util/id.js';
 import { MiUser } from './User.js';
 
@@ -730,4 +730,9 @@ export class MiMeta {
 		default: '{}',
 	})
 	public federationHosts: string[];
+
+	@Column('boolean', {
+		default: true,
+	})
+	public security: boolean;
 }

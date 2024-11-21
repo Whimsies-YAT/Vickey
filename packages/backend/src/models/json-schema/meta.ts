@@ -265,6 +265,10 @@ export const packedMetaLiteSchema = {
 			type: 'number',
 			optional: false, nullable: false,
 		},
+		security: {
+			type: 'boolean',
+			optional: false, nullable: false,
+		},
 	},
 } as const;
 

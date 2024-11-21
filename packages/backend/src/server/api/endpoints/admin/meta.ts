@@ -578,6 +578,10 @@ export const meta = {
 					optional: false, nullable: false,
 				},
 			},
+			security: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
 		},
 	},
 } as const;
@@ -732,6 +736,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				urlPreviewSummaryProxyUrl: instance.urlPreviewSummaryProxyUrl,
 				federation: instance.federation,
 				federationHosts: instance.federationHosts,
+				security: instance.security,
 			};
 		});
 	}

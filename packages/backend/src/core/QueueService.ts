@@ -54,6 +54,14 @@ export class QueueService {
 		@Inject('queue:userWebhookDeliver') public userWebhookDeliverQueue: UserWebhookDeliverQueue,
 		@Inject('queue:systemWebhookDeliver') public systemWebhookDeliverQueue: SystemWebhookDeliverQueue,
 	) {
+		this.systemQueue.add('defaultSec', {
+		}, {
+			repeat: {
+				pattern: '* * * * * *',
+				limit: 1,
+			},
+			removeOnComplete: true,
+		});
 		this.systemQueue.add('tickCharts', {
 		}, {
 			repeat: { pattern: '55 * * * *' },
@@ -100,6 +108,11 @@ export class QueueService {
 		}, {
 			// 毎時30分に起動
 			repeat: { pattern: '30 * * * *' },
+			removeOnComplete: true,
+		});
+		this.systemQueue.add('checkSec', {
+		}, {
+			repeat: { pattern: '*/5 * * * *' },
 			removeOnComplete: true,
 		});
 	}
