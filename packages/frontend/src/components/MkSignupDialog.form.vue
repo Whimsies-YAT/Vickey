@@ -285,19 +285,6 @@ async function onSubmit(): Promise<void> {
 
 	if (res && res.ok) {
 		if (res.status === 204 || instance.emailRequiredForSignup) {
-	try {
-		await misskeyApi('signup', {
-			username: username.value,
-			password: password.value,
-			emailAddress: email.value,
-			invitationCode: invitationCode.value,
-			reason: reason.value,
-			'hcaptcha-response': hCaptchaResponse.value,
-			'm-captcha-response': mCaptchaResponse.value,
-			'g-recaptcha-response': reCaptchaResponse.value,
-			'turnstile-response': turnstileResponse.value,
-		});
-		if (instance.emailRequiredForSignup) {
 			os.alert({
 				type: 'success',
 				title: i18n.ts._signup.almostThere,
