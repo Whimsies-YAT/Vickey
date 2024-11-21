@@ -95,13 +95,6 @@ type AdminAdDeleteRequest = operations['admin___ad___delete']['requestBody']['co
 type AdminAdListRequest = operations['admin___ad___list']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type AdminApproveUserRequest = operations['admin/approve-user']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type AdminAvatarDecorationsCreateRequest = operations['admin/avatar-decorations/create']['requestBody']['content']['application/json'];
-
-
-// @public (undocumented)
 type AdminAdListResponse = operations['admin___ad___list']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
@@ -124,6 +117,9 @@ type AdminAnnouncementsListResponse = operations['admin___announcements___list']
 
 // @public (undocumented)
 type AdminAnnouncementsUpdateRequest = operations['admin___announcements___update']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminApproveUserRequest = operations['admin___approve-user']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type AdminAvatarDecorationsCreateRequest = operations['admin___avatar-decorations___create']['requestBody']['content']['application/json'];
