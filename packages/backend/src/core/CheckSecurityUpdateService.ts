@@ -12,10 +12,10 @@ import { HttpRequestService } from '@/core/HttpRequestService.js';
 import type { MiMeta } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import type { Config } from '@/config.js';
-import {DI} from "@/di-symbols.js";
+import { DI } from "@/di-symbols.js";
 
 @Injectable()
-export class CheckSecurityUpdateService{
+export class CheckSecurityUpdateService {
 	private logger: Logger;
 	constructor(
 		@Inject(DI.config)
@@ -39,7 +39,7 @@ export class CheckSecurityUpdateService{
 		if (repoUrl.includes('github.com')) {
 			const githubApiUrl = this.convertToGitHubApiUrl(repoUrl);
 
-			try{
+			try {
 				const res = await this.httpRequestService.send(githubApiUrl, {
 					method: 'GET',
 					headers: {
@@ -91,7 +91,7 @@ export class CheckSecurityUpdateService{
 												"New Security Release Detected",
 												sanitizeHtml(`Version ${release.tag_name} contains security updates!`),
 												sanitizeHtml(`Version ${release.tag_name} contains security updates!`)
-											)
+											);
 										}
 										const set = { security: false } as Partial<MiMeta>;
 										await this.metaService.update(set);
