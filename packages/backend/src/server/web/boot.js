@@ -164,13 +164,13 @@
 			<button class="button-big" onclick="location.reload(true);">
 				<span class="button-label-big">Reload / リロード</span>
 			</button>
-			<p><b>The following actions may solve the problem. / 以下を行うと解決する可能性があります。</b></p>
-			<p>Update your os and browser / ブラウザおよびOSを最新バージョンに更新する</p>
-			<p>Disable an adblocker / アドブロッカーを無効にする</p>
-			<p>Clear the browser cache / ブラウザのキャッシュをクリアする</p>
-			<p>&#40;Tor Browser&#41; Set dom.webaudio.enabled to true / dom.webaudio.enabledをtrueに設定する</p>
+			<p><b>The following actions may solve the problem.</b></p>
+			<p>Update your os and browser</p>
+			<p>Disable an adblocker</p>
+			<p>Clear the browser cache</p>
+			<p>&#40;Tor Browser&#41; Set dom.webaudio.enabled to true</p>
 			<details style="color: #86b300;">
-				<summary>Other options / その他のオプション</summary>
+				<summary>Other options</summary>
 				<a href="/flush">
 					<button class="button-small">
 						<span class="button-label-small">Clear preferences and cache</span>
