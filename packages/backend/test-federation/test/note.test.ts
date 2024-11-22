@@ -242,7 +242,7 @@ describe('Note', () => {
 
 				const reactions = await alice.client.request('notes/reactions', { noteId: note.id });
 				strictEqual(reactions.length, 1);
-				strictEqual(reactions[0].type, '❤');
+				strictEqual(reactions[0].type, '⭐');
 			});
 
 			/**
