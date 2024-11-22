@@ -73,8 +73,6 @@ import type { MenuItem } from '@/types/menu.js';
 
 const stats = ref<Misskey.entities.StatsResponse | null>(null);
 
-console.log("APSU的属性是", instance.approvalRequiredForSignup);
-
 misskeyApi('stats', {}).then((res) => {
 	stats.value = res;
 });
