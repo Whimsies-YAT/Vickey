@@ -5014,6 +5014,7 @@ export type components = {
       defaultLightTheme: string | null;
       disableRegistration: boolean;
       emailRequiredForSignup: boolean;
+      approvalRequiredForSignup: boolean;
       enableHcaptcha: boolean;
       hcaptchaSiteKey: string | null;
       enableMcaptcha: boolean;
@@ -5075,6 +5076,7 @@ export type components = {
       features?: {
         registration: boolean;
         emailRequiredForSignup: boolean;
+        approvalRequiredForSignup: boolean;
         localTimeline: boolean;
         globalTimeline: boolean;
         hcaptcha: boolean;
