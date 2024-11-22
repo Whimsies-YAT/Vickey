@@ -38,6 +38,7 @@ export class FollowRequestEntityService {
 			id: request.id,
 			follower: hint?.packedFollower ?? await this.userEntityService.pack(request.followerId, me),
 			followee: hint?.packedFollowee ?? await this.userEntityService.pack(request.followeeId, me),
+			ignored: request.ignore ?? false
 		};
 	}
 

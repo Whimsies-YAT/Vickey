@@ -42,22 +42,35 @@ SPDX-License-Identifier: AGPL-3.0-only
 <div v-if="dev" id="devTicker"><span style="animation: dev-ticker-blink 2s infinite;">DEV BUILD</span></div>
 
 <div v-if="$i && $i.isBot" id="botWarn"><span style="animation: dev-ticker-blink 2s infinite;">{{ i18n.ts.loggedInAsBot }}</span></div>
+<div v-if="iAmAdmin && !state.security" id="secWarn"><span style="animation: dev-ticker-blink 2s infinite;">Perform a security update immediately!</span></div>
 </template>
 
 <script lang="ts" setup>
-import { defineAsyncComponent, ref } from 'vue';
+import { defineAsyncComponent, ref, reactive, onMounted } from 'vue';
 import * as Misskey from 'misskey-js';
 import { swInject } from './sw-inject.js';
 import XNotification from './notification.vue';
+import { misskeyApi } from '@/scripts/misskey-api.js';
 import { popups } from '@/os.js';
 import { pendingApiRequestsCount } from '@/scripts/misskey-api.js';
 import { uploads } from '@/scripts/upload.js';
 import * as sound from '@/scripts/sound.js';
-import { $i } from '@/account.js';
+import { $i, iAmAdmin } from '@/account.js';
 import { useStream } from '@/stream.js';
 import { i18n } from '@/i18n.js';
 import { defaultStore } from '@/store.js';
 import { globalEvents } from '@/events.js';
+
+let state = reactive({
+	security: true as boolean | null,
+});
+
+async function fetchSec() {
+	if (iAmAdmin) {
+		const meta = await misskeyApi('admin/meta');
+		state.security = meta.security ?? true;
+	}
+}
 
 const XStreamIndicator = defineAsyncComponent(() => import('./stream-indicator.vue'));
 const XUpload = defineAsyncComponent(() => import('./upload.vue'));
@@ -96,6 +109,11 @@ if ($i) {
 		swInject();
 	}
 }
+
+onMounted(() => {
+	fetchSec();
+});
+
 </script>
 
 <style lang="scss" module>
@@ -253,6 +271,24 @@ if ($i) {
 	text-align: center;
 	z-index: 2147483647;
 	color: #ff0;
+	background: rgba(0, 0, 0, 0.5);
+	padding: 4px 7px;
+	font-size: 14px;
+	pointer-events: none;
+	user-select: none;
+}
+
+#secWarn {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	margin: 0;
+	width: 100%;
+	height: max-content;
+	text-align: center;
+	z-index: 2147483647;
+	color: #ff0000;
 	background: rgba(0, 0, 0, 0.5);
 	padding: 4px 7px;
 	font-size: 14px;

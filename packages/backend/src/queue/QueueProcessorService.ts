@@ -44,6 +44,8 @@ import { BakeBufferedReactionsProcessorService } from './processors/BakeBuffered
 import { CleanProcessorService } from './processors/CleanProcessorService.js';
 import { AggregateRetentionProcessorService } from './processors/AggregateRetentionProcessorService.js';
 import { QueueLoggerService } from './QueueLoggerService.js';
+import { CheckSecurityReleaseProcessorService } from "./processors/CheckSecurityReleaseProcessorService.js";
+import { DefaultSecCheckSecurityReleaseProcessorService } from "@/queue/processors/DefaultSecCheckSecurityReleaseProcessorService.js";
 import { QUEUE, baseQueueOptions } from './const.js';
 
 // ref. https://github.com/misskey-dev/misskey/pull/7635#issue-971097019
@@ -123,6 +125,8 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		private bakeBufferedReactionsProcessorService: BakeBufferedReactionsProcessorService,
 		private checkModeratorsActivityProcessorService: CheckModeratorsActivityProcessorService,
 		private cleanProcessorService: CleanProcessorService,
+		private checkSecurityReleaseProcessorService: CheckSecurityReleaseProcessorService,
+		private defaultSecCheckSecurityReleaseProcessorService: DefaultSecCheckSecurityReleaseProcessorService,
 	) {
 		this.logger = this.queueLoggerService.logger;
 
@@ -164,6 +168,8 @@ export class QueueProcessorService implements OnApplicationShutdown {
 					case 'bakeBufferedReactions': return this.bakeBufferedReactionsProcessorService.process();
 					case 'checkModeratorsActivity': return this.checkModeratorsActivityProcessorService.process();
 					case 'clean': return this.cleanProcessorService.process();
+					case 'checkSec': return this.checkSecurityReleaseProcessorService.process();
+					case 'defaultSec': return this.defaultSecCheckSecurityReleaseProcessorService.process();
 					default: throw new Error(`unrecognized job type ${job.name} for system`);
 				}
 			};

@@ -81,7 +81,7 @@ describe('Emoji', () => {
 		await sleep();
 
 		const noteInB = (await bob.client.request('notes/timeline', {}))[0];
-		deepStrictEqual({ ...noteInB.reactions }, { '❤': 1 });
+		deepStrictEqual({ ...noteInB.reactions }, { '⭐': 1 });
 		deepStrictEqual({ ...noteInB.reactionEmojis }, {});
 	});
 

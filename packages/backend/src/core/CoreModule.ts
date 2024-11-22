@@ -24,6 +24,7 @@ import { AppLockService } from './AppLockService.js';
 import { AchievementService } from './AchievementService.js';
 import { AvatarDecorationService } from './AvatarDecorationService.js';
 import { CaptchaService } from './CaptchaService.js';
+import { CheckSecurityUpdateService } from "@/core/CheckSecurityUpdateService.js";
 import { CreateSystemUserService } from './CreateSystemUserService.js';
 import { CustomEmojiService } from './CustomEmojiService.js';
 import { DeleteAccountService } from './DeleteAccountService.js';
@@ -167,6 +168,7 @@ const $AppLockService: Provider = { provide: 'AppLockService', useExisting: AppL
 const $AchievementService: Provider = { provide: 'AchievementService', useExisting: AchievementService };
 const $AvatarDecorationService: Provider = { provide: 'AvatarDecorationService', useExisting: AvatarDecorationService };
 const $CaptchaService: Provider = { provide: 'CaptchaService', useExisting: CaptchaService };
+const $CheckSecurityUpdateService: Provider = { provide: 'CheckSecurityUpdateService', useExisting: CheckSecurityUpdateService };
 const $CreateSystemUserService: Provider = { provide: 'CreateSystemUserService', useExisting: CreateSystemUserService };
 const $CustomEmojiService: Provider = { provide: 'CustomEmojiService', useExisting: CustomEmojiService };
 const $DeleteAccountService: Provider = { provide: 'DeleteAccountService', useExisting: DeleteAccountService };
@@ -318,6 +320,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		AchievementService,
 		AvatarDecorationService,
 		CaptchaService,
+		CheckSecurityUpdateService,
 		CreateSystemUserService,
 		CustomEmojiService,
 		DeleteAccountService,
@@ -465,6 +468,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		$AchievementService,
 		$AvatarDecorationService,
 		$CaptchaService,
+		$CheckSecurityUpdateService,
 		$CreateSystemUserService,
 		$CustomEmojiService,
 		$DeleteAccountService,
@@ -613,6 +617,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		AchievementService,
 		AvatarDecorationService,
 		CaptchaService,
+		CheckSecurityUpdateService,
 		CreateSystemUserService,
 		CustomEmojiService,
 		DeleteAccountService,
@@ -759,6 +764,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		$AchievementService,
 		$AvatarDecorationService,
 		$CaptchaService,
+		$CheckSecurityUpdateService,
 		$CreateSystemUserService,
 		$CustomEmojiService,
 		$DeleteAccountService,

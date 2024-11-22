@@ -648,6 +648,15 @@ export type paths = {
      */
     post: operations['admin___suspend-user'];
   };
+  '/admin/approve-user': {
+    /**
+     * admin/approve-user
+     * @description No description provided.
+     *
+     * **Credential required**: *Yes* / **Permission**: *write:admin:approve-account*
+     */
+    post: operations['admin___approve-user'];
+  };
   '/admin/unsuspend-user': {
     /**
      * admin/unsuspend-user
@@ -1744,6 +1753,24 @@ export type paths = {
      */
     post: operations['following___requests___cancel'];
   };
+  '/following/requests/ignore': {
+    /**
+     * following/requests/ignore
+     * @description No description provided.
+     *
+     * **Credential required**: *Yes* / **Permission**: *write:following*
+     */
+    post: operations['following___requests___ignore'];
+  };
+  '/following/requests/display': {
+    /**
+     * following/requests/display
+     * @description No description provided.
+     *
+     * **Credential required**: *Yes* / **Permission**: *write:following*
+     */
+    post: operations['following___requests___display'];
+  };
   '/following/requests/list': {
     /**
      * following/requests/list
@@ -1752,6 +1779,15 @@ export type paths = {
      * **Credential required**: *Yes* / **Permission**: *read:following*
      */
     post: operations['following___requests___list'];
+  };
+  '/following/requests/sent': {
+    /**
+     * following/requests/sent
+     * @description No description provided.
+     *
+     * **Credential required**: *Yes* / **Permission**: *read:following*
+     */
+    post: operations['following___requests___sent'];
   };
   '/following/requests/reject': {
     /**
@@ -3746,6 +3782,9 @@ export type components = {
       isBot?: boolean;
       isCat?: boolean;
       isVI?: boolean;
+      requireSigninToViewContents?: boolean;
+      makeNotesFollowersOnlyBefore?: number | null;
+      makeNotesHiddenBefore?: number | null;
       instance?: {
         name: string | null;
         softwareName: string | null;
@@ -3817,6 +3856,7 @@ export type components = {
       twoFactorEnabled?: boolean;
       usePasswordLessLogin?: boolean;
       securityKeys?: boolean;
+      approved?: boolean;
       isFollowing?: boolean;
       isFollowed?: boolean;
       hasPendingFollowRequestFromYou?: boolean;
@@ -4974,6 +5014,7 @@ export type components = {
       defaultLightTheme: string | null;
       disableRegistration: boolean;
       emailRequiredForSignup: boolean;
+      approvalRequiredForSignup: boolean;
       enableHcaptcha: boolean;
       hcaptchaSiteKey: string | null;
       enableMcaptcha: boolean;
@@ -5029,11 +5070,13 @@ export type components = {
        */
       noteSearchableScope: 'local' | 'global';
       maxFileSize: number;
+      security: boolean;
     };
     MetaDetailedOnly: {
       features?: {
         registration: boolean;
         emailRequiredForSignup: boolean;
+        approvalRequiredForSignup: boolean;
         localTimeline: boolean;
         globalTimeline: boolean;
         hcaptcha: boolean;
@@ -5106,6 +5149,7 @@ export type operations = {
             cacheRemoteFiles: boolean;
             cacheRemoteSensitiveFiles: boolean;
             emailRequiredForSignup: boolean;
+            approvalRequiredForSignup: boolean;
             enableHcaptcha: boolean;
             hcaptchaSiteKey: string | null;
             enableMcaptcha: boolean;
@@ -5237,6 +5281,7 @@ export type operations = {
             urlPreviewSummaryProxyUrl: string | null;
             federation: string;
             federationHosts: string[];
+            security: boolean;
           };
         };
       };
@@ -6347,9 +6392,22 @@ export type operations = {
       };
     };
     responses: {
-      /** @description OK (without any results) */
-      204: {
-        content: never;
+      /** @description OK (with results) */
+      200: {
+        content: {
+          'application/json': {
+            /** Format: id */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string | null;
+            name: string;
+            description: string;
+            url: string;
+            roleIdsThatCanBeUsedThisDecoration: string[];
+          };
+        };
       };
       /** @description Client error */
       400: {
@@ -9314,7 +9372,7 @@ export type operations = {
            * @default all
            * @enum {string}
            */
-          state?: 'all' | 'alive' | 'available' | 'admin' | 'moderator' | 'adminOrModerator' | 'suspended';
+          state?: 'all' | 'alive' | 'available' | 'admin' | 'moderator' | 'adminOrModerator' | 'suspended' | 'approved';
           /**
            * @default combined
            * @enum {string}
@@ -9376,6 +9434,58 @@ export type operations = {
    * **Credential required**: *Yes* / **Permission**: *write:admin:suspend-user*
    */
   'admin___suspend-user': {
+    requestBody: {
+      content: {
+        'application/json': {
+          /** Format: misskey:id */
+          userId: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * admin/approve-user
+   * @description No description provided.
+   *
+   * **Credential required**: *Yes* / **Permission**: *write:admin:approve-account*
+   */
+  'admin___approve-user': {
     requestBody: {
       content: {
         'application/json': {
@@ -9509,6 +9619,7 @@ export type operations = {
           cacheRemoteFiles?: boolean;
           cacheRemoteSensitiveFiles?: boolean;
           emailRequiredForSignup?: boolean;
+          approvalRequiredForSignup?: boolean;
           enableHcaptcha?: boolean;
           hcaptchaSiteKey?: string | null;
           hcaptchaSecretKey?: string | null;
@@ -16009,12 +16120,179 @@ export type operations = {
     };
   };
   /**
+   * following/requests/ignore
+   * @description No description provided.
+   *
+   * **Credential required**: *Yes* / **Permission**: *write:following*
+   */
+  following___requests___ignore: {
+    requestBody: {
+      content: {
+        'application/json': {
+          /** Format: misskey:id */
+          userId: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * following/requests/display
+   * @description No description provided.
+   *
+   * **Credential required**: *Yes* / **Permission**: *write:following*
+   */
+  following___requests___display: {
+    requestBody: {
+      content: {
+        'application/json': {
+          /** Format: misskey:id */
+          userId: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
    * following/requests/list
    * @description No description provided.
    *
    * **Credential required**: *Yes* / **Permission**: *read:following*
    */
   following___requests___list: {
+    requestBody: {
+      content: {
+        'application/json': {
+          /** Format: misskey:id */
+          sinceId?: string;
+          /** Format: misskey:id */
+          untilId?: string;
+          /** @default 10 */
+          limit?: number;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (with results) */
+      200: {
+        content: {
+          'application/json': {
+              /** Format: id */
+              id: string;
+              follower: components['schemas']['UserLite'];
+              followee: components['schemas']['UserLite'];
+            }[];
+        };
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * following/requests/sent
+   * @description No description provided.
+   *
+   * **Credential required**: *Yes* / **Permission**: *read:following*
+   */
+  following___requests___sent: {
     requestBody: {
       content: {
         'application/json': {
@@ -19891,6 +20169,9 @@ export type operations = {
           autoAcceptFollowed?: boolean;
           noCrawle?: boolean;
           preventAiLearning?: boolean;
+          requireSigninToViewContents?: boolean;
+          makeNotesFollowersOnlyBefore?: number | null;
+          makeNotesHiddenBefore?: number | null;
           isBot?: boolean;
           isCat?: boolean;
           isVI?: boolean;

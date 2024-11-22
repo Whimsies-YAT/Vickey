@@ -17,7 +17,7 @@ export function misskeyApi<
 	_ResT = ResT extends void ? Misskey.api.SwitchCaseResponseType<E, P> : ResT,
 >(
 	endpoint: E,
-	data: P = {} as any,
+	data: P & { i?: string | null; } = {} as any,
 	token?: string | null | undefined,
 	signal?: AbortSignal,
 	returnResponse: boolean = false
@@ -31,8 +31,8 @@ export function misskeyApi<
 
 	const promise = new Promise<_ResT | Response>((resolve, reject) => {
 		// Append a credential
-		if ($i) (data as any).i = $i.token;
-		if (token !== undefined) (data as any).i = token;
+		if ($i) data.i = $i.token;
+		if (token !== undefined) data.i = token;
 
 		// Send request
 		window.fetch(`${apiUrl}/${endpoint}`, {

@@ -68,10 +68,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				.andWhere('request.followeeId = :meId', { meId: me.id });
 
 			const requests = await query
+				.addSelect('request.ignore')
 				.limit(ps.limit)
 				.getMany();
 
-			return await this.followRequestEntityService.packMany(requests, me);
+			const result = await this.followRequestEntityService.packMany(requests, me);
+
+			return result.map((request) => ({
+				...request,
+				ignore: request.ignored,
+			}));
 		});
 	}
 }

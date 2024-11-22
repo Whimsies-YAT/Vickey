@@ -168,7 +168,7 @@
 			<p>Clear the browser cache / 清除浏览器缓存</p>
 			<p>Update your os and browser / 更新您的操作系统和浏览器</p>
 			<p>Disable an adblocker / 禁用广告拦截器</p>
-	 		<p>&#40;Tor Browser&#41; Set dom.webaudio.enabled to true / 将 dom.webaudio.enabled 设置为 true</p>
+			<p>&#40;Tor Browser&#41; Set dom.webaudio.enabled to true / 将 dom.webaudio.enabled 设置为 true</p>
 			<details style="color: #86b300;">
 				<summary>Other options / 其余选项</summary>
 				<a href="/flush">

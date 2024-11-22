@@ -12,7 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	:withOkButton="true"
 	@close="cancel()"
 	@ok="ok()"
-	@closed="$emit('closed')"
+	@closed="emit('closed')"
 >
 	<template #header>{{ i18n.ts.cropImage }}</template>
 	<template #default="{ width, height }">
@@ -55,7 +55,7 @@ const props = defineProps<{
 	uploadFolder?: string | null;
 }>();
 
-const imgUrl = getProxiedImageUrl(props.file.url, undefined, true);
+const imgUrl = getProxiedImageUrl(props.file.url, undefined, true).replace(/^https?:\/\/[^/]+/, location.origin);
 const dialogEl = shallowRef<InstanceType<typeof MkModalWindow>>();
 const imgEl = shallowRef<HTMLImageElement>();
 let cropper: Cropper | null = null;
