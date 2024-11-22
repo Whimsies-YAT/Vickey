@@ -1,14 +1,10 @@
 {
 	"name": "misskey",
-<<<<<<< HEAD
-	"version": "2024.10.1~hashi",
-=======
 	"version": "2024.11.0",
->>>>>>> 298bf76fcbb811c3f92af91b03d6719809a286ea
 	"codename": "nasubi",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Whimsies-YAT/misskey.git"
+		"url": "https://github.com/misskey-dev/misskey.git"
 	},
 	"packageManager": "pnpm@9.6.0",
 	"workspaces": [
