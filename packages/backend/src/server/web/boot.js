@@ -164,6 +164,7 @@
 			<button class="button-big" onclick="location.reload(true);">
 				<span class="button-label-big">Reload / リロード</span>
 			</button>
+<<<<<<< HEAD
 			<p><b>The following actions may solve the problem. / 以下操作可能会解决问题。</b></p>
 			<p>Clear the browser cache / 清除浏览器缓存</p>
 			<p>Update your os and browser / 更新您的操作系统和浏览器</p>
@@ -171,6 +172,15 @@
 	 		<p>&#40;Tor Browser&#41; Set dom.webaudio.enabled to true / 将 dom.webaudio.enabled 设置为 true</p>
 			<details style="color: #86b300;">
 				<summary>Other options / 其余选项</summary>
+=======
+			<p><b>The following actions may solve the problem.</b></p>
+			<p>Update your os and browser</p>
+			<p>Disable an adblocker</p>
+			<p>Clear the browser cache</p>
+			<p>&#40;Tor Browser&#41; Set dom.webaudio.enabled to true</p>
+			<details style="color: #86b300;">
+				<summary>Other options</summary>
+>>>>>>> 298bf76fcbb811c3f92af91b03d6719809a286ea
 				<a href="/flush">
 					<button class="button-small">
 						<span class="button-label-small">Clear preferences and cache</span>

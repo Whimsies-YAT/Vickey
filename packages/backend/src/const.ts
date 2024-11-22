@@ -3,7 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+<<<<<<< HEAD
 export const MAX_NOTE_TEXT_LENGTH = 8000;
+=======
+export const MAX_NOTE_TEXT_LENGTH = 30000;
+>>>>>>> 298bf76fcbb811c3f92af91b03d6719809a286ea
 
 export const USER_ONLINE_THRESHOLD = 1000 * 60 * 10; // 10min
 export const USER_ACTIVE_THRESHOLD = 1000 * 60 * 60 * 24 * 3; // 3days
@@ -17,7 +21,7 @@ export const PER_NOTE_REACTION_USER_PAIR_CACHE_MAX = 16;
  * Maximum note text length that can be stored in DB.
  * Surrogate pairs count as one
  */
-export const DB_MAX_NOTE_TEXT_LENGTH = 8192;
+export const DB_MAX_NOTE_TEXT_LENGTH = 300000;
 
 /**
  * Maximum image description length that can be stored in DB.

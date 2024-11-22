@@ -192,6 +192,11 @@ export class MiMeta {
 	@Column('boolean', {
 		default: false,
 	})
+	public approvalRequiredForSignup: boolean;
+
+	@Column('boolean', {
+		default: false,
+	})
 	public enableHcaptcha: boolean;
 
 	@Column('varchar', {
@@ -730,4 +735,9 @@ export class MiMeta {
 		default: '{}',
 	})
 	public federationHosts: string[];
+
+	@Column('boolean', {
+		default: true,
+	})
+	public security: boolean;
 }

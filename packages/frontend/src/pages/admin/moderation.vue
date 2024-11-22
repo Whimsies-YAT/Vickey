@@ -10,13 +10,21 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkSpacer :contentMax="700" :marginMin="16" :marginMax="32">
 			<FormSuspense :p="init">
 				<div class="_gaps_m">
-					<MkSwitch v-model="enableRegistration" @change="onChange_enableRegistration">
-						<template #label>{{ i18n.ts.enableRegistration }}</template>
-						<template #caption>{{ i18n.ts._serverSettings.thisSettingWillAutomaticallyOffWhenModeratorsInactive }}</template>
+					<MkSwitch :modelValue="enableRegistration" @update:modelValue="onChange_enableRegistration">
+						<template #label>{{ i18n.ts._serverSettings.openRegistration }}</template>
+						<template #caption>
+							<div>{{ i18n.ts._serverSettings.thisSettingWillAutomaticallyOffWhenModeratorsInactive }}</div>
+							<div><i class="ti ti-alert-triangle" style="color: var(--MI_THEME-warn);"></i> {{ i18n.ts._serverSettings.openRegistrationWarning }}</div>
+						</template>
 					</MkSwitch>
 
 					<MkSwitch v-model="emailRequiredForSignup" @change="onChange_emailRequiredForSignup">
 						<template #label>{{ i18n.ts.emailRequiredForSignup }}</template>
+					</MkSwitch>
+
+					<MkSwitch v-model="approvalRequiredForSignup" @change="onChange_approvalRequiredForSignup">
+						<template #label>{{ i18n.ts.approvalRequiredForSignup }}</template>
+						<template #caption>{{ i18n.ts.registerApprovalEmailRecommended }}</template>
 					</MkSwitch>
 
 					<FormLink to="/admin/server-rules">{{ i18n.ts.serverRules }}</FormLink>
@@ -141,6 +149,7 @@ import MkFolder from '@/components/MkFolder.vue';
 
 const enableRegistration = ref<boolean>(false);
 const emailRequiredForSignup = ref<boolean>(false);
+const approvalRequiredForSignup = ref<boolean>(false);
 const sensitiveWords = ref<string>('');
 const prohibitedWords = ref<string>('');
 const prohibitedWordsForNameOfUser = ref<string>('');
@@ -154,6 +163,7 @@ async function init() {
 	const meta = await misskeyApi('admin/meta');
 	enableRegistration.value = !meta.disableRegistration;
 	emailRequiredForSignup.value = meta.emailRequiredForSignup;
+	approvalRequiredForSignup.value = meta.approvalRequiredForSignup;
 	sensitiveWords.value = meta.sensitiveWords.join('\n');
 	prohibitedWords.value = meta.prohibitedWords.join('\n');
 	prohibitedWordsForNameOfUser.value = meta.prohibitedWordsForNameOfUser.join('\n');
@@ -164,7 +174,17 @@ async function init() {
 	mediaSilencedHosts.value = meta.mediaSilencedHosts.join('\n');
 }
 
-function onChange_enableRegistration(value: boolean) {
+async function onChange_enableRegistration(value: boolean) {
+	if (value) {
+		const { canceled } = await os.confirm({
+			type: 'warning',
+			text: i18n.ts.acknowledgeNotesAndEnable,
+		});
+		if (canceled) return;
+	}
+
+	enableRegistration.value = value;
+
 	os.apiWithDialog('admin/update-meta', {
 		disableRegistration: !value,
 	}).then(() => {
@@ -175,6 +195,14 @@ function onChange_enableRegistration(value: boolean) {
 function onChange_emailRequiredForSignup(value: boolean) {
 	os.apiWithDialog('admin/update-meta', {
 		emailRequiredForSignup: value,
+	}).then(() => {
+		fetchInstance(true);
+	});
+}
+
+function onChange_approvalRequiredForSignup(value: boolean) {
+	os.apiWithDialog('admin/update-meta', {
+		approvalRequiredForSignup: value,
 	}).then(() => {
 		fetchInstance(true);
 	});

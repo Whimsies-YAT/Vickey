@@ -76,6 +76,7 @@ import * as ep___admin_showModerationLogs from './endpoints/admin/show-moderatio
 import * as ep___admin_showUser from './endpoints/admin/show-user.js';
 import * as ep___admin_showUsers from './endpoints/admin/show-users.js';
 import * as ep___admin_suspendUser from './endpoints/admin/suspend-user.js';
+import * as ep___admin_approveUser from './endpoints/admin/approve-user.js';
 import * as ep___admin_unsuspendUser from './endpoints/admin/unsuspend-user.js';
 import * as ep___admin_updateMeta from './endpoints/admin/update-meta.js';
 import * as ep___admin_deleteAccount from './endpoints/admin/delete-account.js';
@@ -186,7 +187,10 @@ import * as ep___following_update_all from './endpoints/following/update-all.js'
 import * as ep___following_invalidate from './endpoints/following/invalidate.js';
 import * as ep___following_requests_accept from './endpoints/following/requests/accept.js';
 import * as ep___following_requests_cancel from './endpoints/following/requests/cancel.js';
+import * as ep___following_requests_ignore from './endpoints/following/requests/ignore.js';
+import * as ep___following_requests_display from './endpoints/following/requests/display.js';
 import * as ep___following_requests_list from './endpoints/following/requests/list.js';
+import * as ep___following_requests_sent from './endpoints/following/requests/sent.js';
 import * as ep___following_requests_reject from './endpoints/following/requests/reject.js';
 import * as ep___gallery_featured from './endpoints/gallery/featured.js';
 import * as ep___gallery_popular from './endpoints/gallery/popular.js';
@@ -464,6 +468,7 @@ const $admin_showModerationLogs: Provider = { provide: 'ep:admin/show-moderation
 const $admin_showUser: Provider = { provide: 'ep:admin/show-user', useClass: ep___admin_showUser.default };
 const $admin_showUsers: Provider = { provide: 'ep:admin/show-users', useClass: ep___admin_showUsers.default };
 const $admin_suspendUser: Provider = { provide: 'ep:admin/suspend-user', useClass: ep___admin_suspendUser.default };
+const $admin_approveUser: Provider = { provide: 'ep:admin/approve-user', useClass: ep___admin_approveUser.default };
 const $admin_unsuspendUser: Provider = { provide: 'ep:admin/unsuspend-user', useClass: ep___admin_unsuspendUser.default };
 const $admin_updateMeta: Provider = { provide: 'ep:admin/update-meta', useClass: ep___admin_updateMeta.default };
 const $admin_deleteAccount: Provider = { provide: 'ep:admin/delete-account', useClass: ep___admin_deleteAccount.default };
@@ -574,7 +579,10 @@ const $following_update_all: Provider = { provide: 'ep:following/update-all', us
 const $following_invalidate: Provider = { provide: 'ep:following/invalidate', useClass: ep___following_invalidate.default };
 const $following_requests_accept: Provider = { provide: 'ep:following/requests/accept', useClass: ep___following_requests_accept.default };
 const $following_requests_cancel: Provider = { provide: 'ep:following/requests/cancel', useClass: ep___following_requests_cancel.default };
+const $following_requests_ignore: Provider = { provide: 'ep:following/requests/ignore', useClass: ep___following_requests_ignore.default };
+const $following_requests_display: Provider = { provide: 'ep:following/requests/display', useClass: ep___following_requests_display.default };
 const $following_requests_list: Provider = { provide: 'ep:following/requests/list', useClass: ep___following_requests_list.default };
+const $following_requests_sent: Provider = { provide: 'ep:following/requests/sent', useClass: ep___following_requests_sent.default };
 const $following_requests_reject: Provider = { provide: 'ep:following/requests/reject', useClass: ep___following_requests_reject.default };
 const $gallery_featured: Provider = { provide: 'ep:gallery/featured', useClass: ep___gallery_featured.default };
 const $gallery_popular: Provider = { provide: 'ep:gallery/popular', useClass: ep___gallery_popular.default };
@@ -856,6 +864,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_showUser,
 		$admin_showUsers,
 		$admin_suspendUser,
+		$admin_approveUser,
 		$admin_unsuspendUser,
 		$admin_updateMeta,
 		$admin_deleteAccount,
@@ -966,7 +975,10 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$following_invalidate,
 		$following_requests_accept,
 		$following_requests_cancel,
+		$following_requests_ignore,
+		$following_requests_display,
 		$following_requests_list,
+		$following_requests_sent,
 		$following_requests_reject,
 		$gallery_featured,
 		$gallery_popular,
@@ -1242,6 +1254,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_showUser,
 		$admin_showUsers,
 		$admin_suspendUser,
+		$admin_approveUser,
 		$admin_unsuspendUser,
 		$admin_updateMeta,
 		$admin_deleteAccount,
@@ -1352,6 +1365,8 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$following_invalidate,
 		$following_requests_accept,
 		$following_requests_cancel,
+		$following_requests_ignore,
+		$following_requests_display,
 		$following_requests_list,
 		$following_requests_reject,
 		$gallery_featured,

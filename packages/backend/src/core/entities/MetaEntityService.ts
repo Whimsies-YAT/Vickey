@@ -87,6 +87,7 @@ export class MetaEntityService {
 			inquiryUrl: instance.inquiryUrl,
 			disableRegistration: instance.disableRegistration,
 			emailRequiredForSignup: instance.emailRequiredForSignup,
+			approvalRequiredForSignup: instance.approvalRequiredForSignup,
 			enableHcaptcha: instance.enableHcaptcha,
 			hcaptchaSiteKey: instance.hcaptchaSiteKey,
 			enableMcaptcha: instance.enableMcaptcha,
@@ -133,6 +134,7 @@ export class MetaEntityService {
 			enableUrlPreview: instance.urlPreviewEnabled,
 			noteSearchableScope: (this.config.meilisearch == null || this.config.meilisearch.scope !== 'local') ? 'global' : 'local',
 			maxFileSize: this.config.maxFileSize,
+			security: instance.security,
 		};
 
 		return packed;
@@ -161,6 +163,7 @@ export class MetaEntityService {
 				globalTimeline: instance.policies.gtlAvailable,
 				registration: !instance.disableRegistration,
 				emailRequiredForSignup: instance.emailRequiredForSignup,
+				approvalRequiredForSignup: instance.approvalRequiredForSignup,
 				hcaptcha: instance.enableHcaptcha,
 				recaptcha: instance.enableRecaptcha,
 				turnstile: instance.enableTurnstile,

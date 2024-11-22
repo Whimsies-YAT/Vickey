@@ -121,7 +121,10 @@ import { definePageMetadata } from '@/scripts/page-metadata.js';
 import { claimAchievement, claimedAchievements } from '@/scripts/achievements.js';
 import { $i } from '@/account.js';
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 298bf76fcbb811c3f92af91b03d6719809a286ea
 const thereIsTreasure = ref($i && !claimedAchievements.includes('foundTreasure'));
 
 let easterEggReady = false;

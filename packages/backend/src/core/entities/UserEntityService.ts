@@ -362,9 +362,18 @@ export class UserEntityService implements OnModuleInit {
 			followeeId: userId,
 		});
 
-		return count > 0;
-	}
+		if (count === 0) {
+			return false;
+		}
 
+		const ignoredCount = await this.followRequestsRepository.countBy({
+			followeeId: userId,
+			ignore: true,
+		});
+
+		return ignoredCount < count;
+	}
+	
 	@bindThis
 	public getOnlineStatus(user: MiUser): 'unknown' | 'online' | 'active' | 'offline' {
 		if (user.hideOnlineStatus) return 'unknown';
@@ -491,6 +500,9 @@ export class UserEntityService implements OnModuleInit {
 			isBot: user.isBot,
 			isCat: user.isCat,
 			isVI: user.isVI,
+			requireSigninToViewContents: user.requireSigninToViewContents === false ? undefined : true,
+			makeNotesFollowersOnlyBefore: user.makeNotesFollowersOnlyBefore ?? undefined,
+			makeNotesHiddenBefore: user.makeNotesHiddenBefore ?? undefined,
 			instance: user.host ? this.federatedInstanceService.federatedInstanceCache.fetch(user.host).then(instance => instance ? {
 				name: instance.name,
 				softwareName: instance.softwareName,
@@ -558,6 +570,7 @@ export class UserEntityService implements OnModuleInit {
 				}))),
 				memo: memo,
 				moderationNote: iAmModerator ? (profile!.moderationNote ?? '') : undefined,
+				approved: iAmModerator ? user.approved : undefined,
 			} : {}),
 
 			...(isDetailed && (isMe || iAmModerator) ? {
@@ -615,6 +628,7 @@ export class UserEntityService implements OnModuleInit {
 			...(opts.includeSecrets ? {
 				email: profile!.email,
 				emailVerified: profile!.emailVerified,
+				signupReason: user.signupReason,
 				securityKeysList: profile!.twoFactorEnabled
 					? this.userSecurityKeysRepository.find({
 						where: {

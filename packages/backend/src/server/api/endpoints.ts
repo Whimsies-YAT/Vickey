@@ -82,6 +82,7 @@ import * as ep___admin_showModerationLogs from './endpoints/admin/show-moderatio
 import * as ep___admin_showUser from './endpoints/admin/show-user.js';
 import * as ep___admin_showUsers from './endpoints/admin/show-users.js';
 import * as ep___admin_suspendUser from './endpoints/admin/suspend-user.js';
+import * as ep___admin_approveUser from './endpoints/admin/approve-user.js';
 import * as ep___admin_unsuspendUser from './endpoints/admin/unsuspend-user.js';
 import * as ep___admin_updateMeta from './endpoints/admin/update-meta.js';
 import * as ep___admin_deleteAccount from './endpoints/admin/delete-account.js';
@@ -192,7 +193,10 @@ import * as ep___following_update_all from './endpoints/following/update-all.js'
 import * as ep___following_invalidate from './endpoints/following/invalidate.js';
 import * as ep___following_requests_accept from './endpoints/following/requests/accept.js';
 import * as ep___following_requests_cancel from './endpoints/following/requests/cancel.js';
+import * as ep___following_requests_ignore from './endpoints/following/requests/ignore.js';
+import * as ep___following_requests_display from './endpoints/following/requests/display.js';
 import * as ep___following_requests_list from './endpoints/following/requests/list.js';
+import * as ep___following_requests_sent from './endpoints/following/requests/sent.js';
 import * as ep___following_requests_reject from './endpoints/following/requests/reject.js';
 import * as ep___gallery_featured from './endpoints/gallery/featured.js';
 import * as ep___gallery_popular from './endpoints/gallery/popular.js';
@@ -468,6 +472,7 @@ const eps = [
 	['admin/show-user', ep___admin_showUser],
 	['admin/show-users', ep___admin_showUsers],
 	['admin/suspend-user', ep___admin_suspendUser],
+	['admin/approve-user', ep___admin_approveUser],
 	['admin/unsuspend-user', ep___admin_unsuspendUser],
 	['admin/update-meta', ep___admin_updateMeta],
 	['admin/delete-account', ep___admin_deleteAccount],
@@ -578,7 +583,10 @@ const eps = [
 	['following/invalidate', ep___following_invalidate],
 	['following/requests/accept', ep___following_requests_accept],
 	['following/requests/cancel', ep___following_requests_cancel],
+	['following/requests/ignore', ep___following_requests_ignore],
+	['following/requests/display', ep___following_requests_display],
 	['following/requests/list', ep___following_requests_list],
+	['following/requests/sent', ep___following_requests_sent],
 	['following/requests/reject', ep___following_requests_reject],
 	['gallery/featured', ep___gallery_featured],
 	['gallery/popular', ep___gallery_popular],
