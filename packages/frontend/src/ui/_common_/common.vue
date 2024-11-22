@@ -42,7 +42,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <div v-if="dev" id="devTicker"><span style="animation: dev-ticker-blink 2s infinite;">DEV BUILD</span></div>
 
 <div v-if="$i && $i.isBot" id="botWarn"><span style="animation: dev-ticker-blink 2s infinite;">{{ i18n.ts.loggedInAsBot }}</span></div>
-<div v-if="$i.isAdmin && !state.security" id="secWarn"><span style="animation: dev-ticker-blink 2s infinite;">Perform a security update immediately!</span></div>
+<div v-if="iAmAdmin && !state.security" id="secWarn"><span style="animation: dev-ticker-blink 2s infinite;">Perform a security update immediately!</span></div>
 </template>
 
 <script lang="ts" setup>
@@ -55,7 +55,7 @@ import { popups } from '@/os.js';
 import { pendingApiRequestsCount } from '@/scripts/misskey-api.js';
 import { uploads } from '@/scripts/upload.js';
 import * as sound from '@/scripts/sound.js';
-import { $i } from '@/account.js';
+import { $i, iAmAdmin } from '@/account.js';
 import { useStream } from '@/stream.js';
 import { i18n } from '@/i18n.js';
 import { defaultStore } from '@/store.js';
@@ -66,7 +66,7 @@ let state = reactive({
 });
 
 async function fetchSec() {
-	if ($i.isAdmin) {
+	if (iAmAdmin) {
 		const meta = await misskeyApi('admin/meta');
 		state.security = meta.security ?? true;
 	}

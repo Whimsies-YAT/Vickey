@@ -112,7 +112,7 @@ export class QueueService {
 		});
 		this.systemQueue.add('checkSec', {
 		}, {
-			repeat: { pattern: '*/5 * * * *' },
+			repeat: { pattern: '*/10 * * * *' },
 			removeOnComplete: true,
 		});
 	}

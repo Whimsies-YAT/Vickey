@@ -109,6 +109,7 @@ export class CheckSecurityUpdateService {
 			} catch (e: unknown) {
 				if (e instanceof Error) {
 					console.error(e);
+					return;
 				} else {
 					throw new Error('An unknown error occurred.');
 				}

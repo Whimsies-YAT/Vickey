@@ -62,10 +62,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<span v-if="passwordRetypeState == 'not-match'" style="color: var(--MI_THEME-error)"><i class="ti ti-alert-triangle ti-fw"></i> {{ i18n.ts.passwordNotMatched }}</span>
 				</template>
 			</MkInput>
-			<MkInput v-if="instance.approvalRequiredForSignup" v-model="reason" type="text" :spellcheck="false" required data-cy-signup-reason>
-				<template #label>{{ i18n.ts.registerReason }} <div v-tooltip:dialog="i18n.ts._signup.reasonInfo" class="_button _help"><i class="ti ti-help-circle"></i></div></template>
-				<template #prefix><i class="ti ti-chalkboard"></i></template>
-			</MkInput>
+			<MkTextarea v-if="instance.approvalRequiredForSignup" v-model="reason" type="text" :spellcheck="false" required data-cy-signup-reason>
+				<template #label>Reason <div v-tooltip:dialog="i18n.ts._signup.reasonInfo" class="_button _help"><i class="ph-question ph-bold ph-lg"></i></div></template>
+				<template #prefix><i class="ph-chalkboard-teacher ph-bold ph-lg"></i></template>
+			</MkTextarea>
 			<MkCaptcha v-if="instance.enableHcaptcha" ref="hcaptcha" v-model="hCaptchaResponse" :class="$style.captcha" provider="hcaptcha" :sitekey="instance.hcaptchaSiteKey"/>
 			<MkCaptcha v-if="instance.enableMcaptcha" ref="mcaptcha" v-model="mCaptchaResponse" :class="$style.captcha" provider="mcaptcha" :sitekey="instance.mcaptchaSiteKey" :instanceUrl="instance.mcaptchaInstanceUrl"/>
 			<MkCaptcha v-if="instance.enableRecaptcha" ref="recaptcha" v-model="reCaptchaResponse" :class="$style.captcha" provider="recaptcha" :sitekey="instance.recaptchaSiteKey"/>
@@ -95,6 +95,7 @@ import { misskeyApi } from '@/scripts/misskey-api.js';
 import { login } from '@/account.js';
 import { instance } from '@/instance.js';
 import { i18n } from '@/i18n.js';
+import MkTextarea from "@/components/MkTextarea.vue";
 
 const props = withDefaults(defineProps<{
 	autoSet?: boolean;
@@ -264,6 +265,7 @@ async function onSubmit(): Promise<void> {
 		username: username.value,
 		password: password.value,
 		emailAddress: email.value,
+		reason: reason.value,
 		invitationCode: invitationCode.value,
 		'hcaptcha-response': hCaptchaResponse.value,
 		'm-captcha-response': mCaptchaResponse.value,
