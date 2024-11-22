@@ -3,11 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-<<<<<<< HEAD
-export const MAX_NOTE_TEXT_LENGTH = 8000;
-=======
 export const MAX_NOTE_TEXT_LENGTH = 30000;
->>>>>>> 298bf76fcbb811c3f92af91b03d6719809a286ea
 
 export const USER_ONLINE_THRESHOLD = 1000 * 60 * 10; // 10min
 export const USER_ACTIVE_THRESHOLD = 1000 * 60 * 60 * 24 * 3; // 3days

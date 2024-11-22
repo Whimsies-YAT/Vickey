@@ -303,11 +303,7 @@ export async function mainBoot() {
 				});
 			}
 		}
-<<<<<<< HEAD
-		*/
-=======
 		 */
->>>>>>> 298bf76fcbb811c3f92af91b03d6719809a286ea
 
 		const modifiedVersionMustProminentlyOfferInAgplV3Section13Read = miLocalStorage.getItem('modifiedVersionMustProminentlyOfferInAgplV3Section13Read');
 		if (modifiedVersionMustProminentlyOfferInAgplV3Section13Read !== 'true' && instance.repositoryUrl !== 'https://github.com/misskey-dev/misskey') {

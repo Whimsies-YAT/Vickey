@@ -160,19 +160,10 @@
 				<path d="M12 9v2m0 4v.01"></path>
 				<path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75"></path>
 			</svg>
-			<h1>Failed to load<br>载入失败</h1>
+			<h1>Failed to load<br>読み込みに失敗しました</h1>
 			<button class="button-big" onclick="location.reload(true);">
 				<span class="button-label-big">Reload / リロード</span>
 			</button>
-<<<<<<< HEAD
-			<p><b>The following actions may solve the problem. / 以下操作可能会解决问题。</b></p>
-			<p>Clear the browser cache / 清除浏览器缓存</p>
-			<p>Update your os and browser / 更新您的操作系统和浏览器</p>
-			<p>Disable an adblocker / 禁用广告拦截器</p>
-	 		<p>&#40;Tor Browser&#41; Set dom.webaudio.enabled to true / 将 dom.webaudio.enabled 设置为 true</p>
-			<details style="color: #86b300;">
-				<summary>Other options / 其余选项</summary>
-=======
 			<p><b>The following actions may solve the problem.</b></p>
 			<p>Update your os and browser</p>
 			<p>Disable an adblocker</p>
@@ -180,7 +171,6 @@
 			<p>&#40;Tor Browser&#41; Set dom.webaudio.enabled to true</p>
 			<details style="color: #86b300;">
 				<summary>Other options</summary>
->>>>>>> 298bf76fcbb811c3f92af91b03d6719809a286ea
 				<a href="/flush">
 					<button class="button-small">
 						<span class="button-label-small">Clear preferences and cache</span>
