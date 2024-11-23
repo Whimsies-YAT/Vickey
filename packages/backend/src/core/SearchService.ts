@@ -114,7 +114,7 @@ export class SearchService {
 		if (!meilisearch && this.elasticsearch) {
 			const indexName = `${config.elasticsearch!.index}---notes`;
 			this.elasticsearchNoteIndex = indexName;
-		
+
 			this.elasticsearch.indices.exists({
 				index: indexName,
 			}).then((indexExists) => {
@@ -145,7 +145,6 @@ export class SearchService {
 				console.error(error);
 			});
 		} else {
-			console.error('Elasticsearch is not available');
 			this.elasticsearchNoteIndex = null;
 		}
 
@@ -313,7 +312,7 @@ export class SearchService {
 				sort: [{ createdAt: { order: "desc" } }],
 				_source: ['id', 'createdAt'],
 				size: pagination.limit,
-				
+
 			});
 			const noteIds = res.hits.hits.map((hit: any) => hit._id);
 			if (noteIds.length === 0) return [];

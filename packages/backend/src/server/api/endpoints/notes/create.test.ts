@@ -22,6 +22,7 @@ describe('api:notes/create', () => {
 	describe('validation', () => {
 		const v = getValidator(paramDef);
 		const tooLong = readFile(_dirname + '/../../../../../test/resources/misskey.svg', 'utf-8');
+		const tooLongLong = 'a'.repeat(30001);
 
 		test('reject empty', () => {
 			const valid = v({ });
@@ -44,8 +45,8 @@ describe('api:notes/create', () => {
 					.toBe(INVALID);
 			});
 
-			test('over 3000 characters post', async () => {
-				expect(v({ text: await tooLong }))
+			test('over 30000 characters post', async () => {
+				expect(v({ text: tooLongLong }))
 					.toBe(INVALID);
 			});
 
