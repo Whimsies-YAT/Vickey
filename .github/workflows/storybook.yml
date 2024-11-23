@@ -1,17 +1,18 @@
 name: Storybook
 
 on:
-  push:
-    branches:
-      - master
-      - develop
-      - dev/storybook8 # for testing
-  pull_request_target:
-    branches-ignore:
+  workflow_dispatch:
+#   push:
+#     branches:
+#       - master
+#       - develop
+#       - dev/storybook8 # for testing
+#   pull_request_target:
+#     branches-ignore:
       # Since pull requests targets master mostly is the "develop" branch.
       # Storybook CI is checked on the "push" event of "develop" branch so it would cause a duplicate build.
       # This is a waste of chromatic build quota, so we don't run storybook CI on pull requests targets master.
-      - master
+#       - master
 
 jobs:
   build:
