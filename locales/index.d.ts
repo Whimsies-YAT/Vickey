@@ -7455,6 +7455,16 @@ export interface Locale extends ILocale {
          */
         "projectMembers": string;
     };
+	"_aboutVickey": {
+		/**
+		 * Vickeyを翻訳
+		 */
+		"translation": string;
+		/**
+		 * Vickeyに寄付
+		 */
+		"donate": string;
+	};
     "_displayOfSensitiveMedia": {
         /**
          * センシティブ設定されたメディアを隠す
