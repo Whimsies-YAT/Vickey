@@ -1,5 +1,4 @@
 _lang_: "English"
-
 flagAsVI: "Automatic TTS feature needed."
 flagAsVIDescription: "Enable this if you need the automatic TTS feature. If you belong to an authorized user group, the automatic TTS feature will be activated within a specific scope."
 _role:
