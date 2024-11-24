@@ -10,7 +10,7 @@ export interface ILocale {
 }
 export interface Locale extends ILocale {
     /**
-     * 日本語
+     * English
      */
     "_lang_": string;
     /**
@@ -166,10 +166,6 @@ export interface Locale extends ILocale {
      * ユーザー
      */
     "users": string;
-    /**
-     * 承認
-     */
-    "approvals": string;
     /**
      * ユーザーを追加
      */
@@ -631,14 +627,6 @@ export interface Locale extends ILocale {
      */
     "suspendConfirm": string;
     /**
-     * 登録を承認しますか？
-     */
-    "registerApproveConfirm": string;
-    /**
-     * この操作は取り消せません。承認後、このユーザーに登録が承認された旨が記載されたメールが送信されます。
-     */
-    "registerApproveConfirmDescription": string;
-    /**
      * 解凍しますか？
      */
     "unsuspendConfirm": string;
@@ -742,14 +730,6 @@ export interface Locale extends ILocale {
      * にゃにゃにゃ？？
      */
     "flagAsCatDescription": string;
-    /**
-     * 自動TTS機能が欲しい。
-     */
-    "flagAsVI": string;
-    /**
-     * 自動TTS機能が必要な場合は有効にしてください。 権限のあるユーザーグループに所属している場合、特定の範囲で自動TTS機能を有効にします。
-     */
-    "flagAsVIDescription": string;
     /**
      * タイムラインにノートへの返信を表示する
      */
@@ -3675,14 +3655,6 @@ export interface Locale extends ILocale {
      */
     "emailRequiredForSignup": string;
     /**
-     * アカウント登録を承認制にする
-     */
-    "approvalRequiredForSignup": string;
-    /**
-     * アカウント登録の承認
-     */
-    "signupPendingApprovals": string;
-    /**
      * 未読
      */
     "unread": string;
@@ -3899,10 +3871,6 @@ export interface Locale extends ILocale {
      */
     "thereIsUnresolvedAbuseReportWarning": string;
     /**
-     * 承認待ちのユーザーがいます。
-     */
-    "pendingUserApprovals": string;
-    /**
      * 推奨
      */
     "recommended": string;
@@ -3934,26 +3902,6 @@ export interface Locale extends ILocale {
      * アカウント削除
      */
     "deleteAccount": string;
-    /**
-     * 承認する
-     */
-    "approveAccount": string;
-    /**
-     * 拒否してアカウント削除
-     */
-    "denyAccount": string;
-    /**
-     * 承認済み
-     */
-    "approved": string;
-    /**
-     * 未承認
-     */
-    "notApproved": string;
-    /**
-     * 承認状況
-     */
-    "approvalStatus": string;
     /**
      * ドキュメント
      */
@@ -4322,22 +4270,6 @@ export interface Locale extends ILocale {
      * 現在このサーバーは招待制です。招待コードをお持ちの方のみ登録できます。
      */
     "invitationRequiredToRegister": string;
-    /**
-     * 現在このサーバーは承認制です。参加したい理由を記入し、承認された方のみ登録できます。
-     */
-    "approvalRequiredToRegister": string;
-    /**
-     * 登録理由
-     */
-    "registerReason": string;
-    /**
-     * サーバーへの登録はまだ承認されていません。しばらくしてから再度お試しください。登録時にメールアドレスを記入した場合は、登録が承認されたらメールでお知らせします。
-     */
-    "registerHasNotBeenApprovedYet": string;
-    /**
-     * サーバーへの登録が承認されたかどうかの通知を行うために、併せてアカウント登録にメールアドレスを必須にすることを強く推奨します。
-     */
-    "registerApprovalEmailRecommended": string;
     /**
      * このサーバーではメール配信はサポートされていません
      */
@@ -7050,7 +6982,7 @@ export interface Locale extends ILocale {
              */
             "canUseTranslator": string;
             /**
-             * TTS機能の利用
+             * Use TTS feature
              */
             "canUseTTS": string;
             /**
@@ -7100,7 +7032,7 @@ export interface Locale extends ILocale {
              */
             "isBot": string;
             /**
-             * TTSユーザー
+             * TTS User
              */
             "isVI": string;
             /**
@@ -7245,11 +7177,11 @@ export interface Locale extends ILocale {
          */
         "emailSent": ParameterizedString<"email">;
         /**
-         * アカウントが作成され、承認待ちの状態です。
+         * Your account has been created and is now pending approval.
          */
         "approvalPending": string;
         /**
-         * このサーバーに参加したい理由を入力してください。
+         * Please enter the reason you wish to join this server.
          */
         "reasonInfo": string;
     };
@@ -9943,10 +9875,6 @@ export interface Locale extends ILocale {
          */
         "unassignRole": string;
         /**
-         * 承認済み
-         */
-        "approve": string;
-        /**
          * 凍結
          */
         "suspend": string;
@@ -10118,6 +10046,10 @@ export interface Locale extends ILocale {
          * ギャラリーの投稿を削除
          */
         "deleteGalleryPost": string;
+        /**
+         * Approved
+         */
+        "approve": string;
     };
     "_fileViewer": {
         /**
@@ -10697,6 +10629,74 @@ export interface Locale extends ILocale {
          */
         "sent": string;
     };
+    /**
+     * Automatic TTS feature needed.
+     */
+    "flagAsVI": string;
+    /**
+     * Enable this if you need the automatic TTS feature. If you belong to an authorized user group, the automatic TTS feature will be activated within a specific scope.
+     */
+    "flagAsVIDescription": string;
+    /**
+     * Approvals
+     */
+    "approvals": string;
+    /**
+     * Do you want to approve the registration?
+     */
+    "registerApproveConfirm": string;
+    /**
+     * This action cannot be undone. Once approved, an email will be sent to notify the user that their registration has been approved.
+     */
+    "registerApproveConfirmDescription": string;
+    /**
+     * Make account registration approval-based
+     */
+    "approvalRequiredForSignup": string;
+    /**
+     * Pending account registration approvals
+     */
+    "signupPendingApprovals": string;
+    /**
+     * There are users awaiting approval.
+     */
+    "pendingUserApprovals": string;
+    /**
+     * Approve
+     */
+    "approveAccount": string;
+    /**
+     * Deny and delete account
+     */
+    "denyAccount": string;
+    /**
+     * Approved
+     */
+    "approved": string;
+    /**
+     * Not approved
+     */
+    "notApproved": string;
+    /**
+     * Approval status
+     */
+    "approvalStatus": string;
+    /**
+     * This server currently requires approval to register. Please provide your reason for joining, and only those approved will be allowed to register.
+     */
+    "approvalRequiredToRegister": string;
+    /**
+     * Reason for registration
+     */
+    "registerReason": string;
+    /**
+     * Your registration for the server has not yet been approved. Please try again later. If you provided an email address during registration, you will be notified by email once your registration is approved.
+     */
+    "registerHasNotBeenApprovedYet": string;
+    /**
+     * To ensure notifications are sent regarding the approval of server registrations, it is strongly recommended to require an email address during account registration.
+     */
+    "registerApprovalEmailRecommended": string;
 }
 declare const locales: {
     [lang: string]: Locale;
