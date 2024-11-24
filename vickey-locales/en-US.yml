@@ -1,0 +1,29 @@
+_lang_: "English"
+
+flagAsVI: "Automatic TTS feature needed."
+flagAsVIDescription: "Enable this if you need the automatic TTS feature. If you belong to an authorized user group, the automatic TTS feature will be activated within a specific scope."
+_role:
+  _options:
+    canUseTTS: "Use TTS feature"
+  _condition:
+    isVI: "TTS User"
+approvals: "Approvals"
+registerApproveConfirm: "Do you want to approve the registration?"
+registerApproveConfirmDescription: "This action cannot be undone. Once approved, an email will be sent to notify the user that their registration has been approved."
+approvalRequiredForSignup: "Make account registration approval-based"
+signupPendingApprovals: "Pending account registration approvals"
+pendingUserApprovals: "There are users awaiting approval."
+approveAccount: "Approve"
+denyAccount: "Deny and delete account"
+approved: "Approved"
+notApproved: "Not approved"
+approvalStatus: "Approval status"
+approvalRequiredToRegister: "This server currently requires approval to register. Please provide your reason for joining, and only those approved will be allowed to register."
+registerReason: "Reason for registration"
+registerHasNotBeenApprovedYet: "Your registration for the server has not yet been approved. Please try again later. If you provided an email address during registration, you will be notified by email once your registration is approved."
+registerApprovalEmailRecommended: "To ensure notifications are sent regarding the approval of server registrations, it is strongly recommended to require an email address during account registration."
+_signup:
+  approvalPending: "Your account has been created and is now pending approval."
+  reasonInfo: "Please enter the reason you wish to join this server."
+_moderationLogTypes:
+  approve: "Approved"

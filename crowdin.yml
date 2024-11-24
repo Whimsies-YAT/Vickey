@@ -1,4 +1,4 @@
 files:
-  - source: /locales/ja-JP.yml
-    translation: /locales/%locale%.yml
+  - source: /vickey-locales/en-US.yml
+    translation: /vickey-locales/%locale%.yml
     update_option: update_as_unapproved
