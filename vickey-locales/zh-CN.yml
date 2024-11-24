@@ -27,5 +27,5 @@ _signup:
 _moderationLogTypes:
   approve: "已批准"
 _aboutVickey:
-  translation: "Translate Vickey"
-  donate: "Donate to Vickey"
+  translation: "翻译 Vickey"
+  donate: "赞助 Vickey"
