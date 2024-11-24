@@ -26,3 +26,6 @@ _signup:
   reasonInfo: "Please enter the reason you wish to join this server."
 _moderationLogTypes:
   approve: "Approved"
+_aboutVickey:
+  translation: "Translate Vickey"
+  donate: "Donate to Vickey"
