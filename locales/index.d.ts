@@ -7455,16 +7455,6 @@ export interface Locale extends ILocale {
          */
         "projectMembers": string;
     };
-	"_aboutVickey": {
-		/**
-		 * Vickeyを翻訳
-		 */
-		"translation": string;
-		/**
-		 * Vickeyに寄付
-		 */
-		"donate": string;
-	};
     "_displayOfSensitiveMedia": {
         /**
          * センシティブ設定されたメディアを隠す
@@ -10707,6 +10697,16 @@ export interface Locale extends ILocale {
      * To ensure notifications are sent regarding the approval of server registrations, it is strongly recommended to require an email address during account registration.
      */
     "registerApprovalEmailRecommended": string;
+    "_aboutVickey": {
+        /**
+         * Translate Vickey
+         */
+        "translation": string;
+        /**
+         * Donate to Vickey
+         */
+        "donate": string;
+    };
 }
 declare const locales: {
     [lang: string]: Locale;

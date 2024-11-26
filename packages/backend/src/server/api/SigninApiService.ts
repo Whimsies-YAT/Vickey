@@ -81,8 +81,6 @@ export class SigninApiService {
 		reply.header('Access-Control-Allow-Origin', this.config.url);
 		reply.header('Access-Control-Allow-Credentials', 'true');
 
-		const instance = await this.metaService.fetch(true);
-
 		const body = request.body;
 		const username = body['username'];
 		const password = body['password'];
@@ -138,6 +136,17 @@ export class SigninApiService {
 		const profile = await this.userProfilesRepository.findOneByOrFail({ userId: user.id });
 		const securityKeysAvailable = await this.userSecurityKeysRepository.countBy({ userId: user.id }).then(result => result >= 1);
 
+		if (!user.approved && this.meta.approvalRequiredForSignup) {
+			reply.code(403);
+			return {
+				error: {
+					message: 'The account has not been approved by an admin yet. Try again later.',
+					code: 'NOT_APPROVED',
+					id: '22d05606-fbcf-421a-a2db-b32241faft1b',
+				},
+			};
+		}
+
 		if (password == null) {
 			reply.code(200);
 			if (profile.twoFactorEnabled) {
@@ -156,18 +165,6 @@ export class SigninApiService {
 		if (typeof password !== 'string') {
 			reply.code(400);
 			return;
-		}
-
-		if (user.approved === false && instance.approvalRequiredForSignup) {
-			reply.code(403);
-			return {
-				error: {
-					message: 'Your account is not approved yet.',
-					code: 'YOUR_ACCOUNT_NOT_APPROVED',
-					kind: 'permission',
-					id: '2fe70810-0ed2-47db-a70b-dc3ecbf5f069',
-				},
-			};
 		}
 
 		// Compare password
@@ -220,7 +217,7 @@ export class SigninApiService {
 			}
 
 			if (same) {
-				if (!instance.approvalRequiredForSignup && !user.approved) this.usersRepository.update(user.id, { approved: true });
+				if (!this.meta.approvalRequiredForSignup && !user.approved) this.usersRepository.update(user.id, { approved: true });
 				return this.signinService.signin(request, reply, user);
 			} else {
 				return await fail(403, {
@@ -244,7 +241,7 @@ export class SigninApiService {
 				});
 			}
 
-			if (!instance.approvalRequiredForSignup && !user.approved) this.usersRepository.update(user.id, { approved: true });
+			if (!this.meta.approvalRequiredForSignup && !user.approved) this.usersRepository.update(user.id, { approved: true });
 
 			return this.signinService.signin(request, reply, user);
 		} else if (body.credential) {
@@ -257,7 +254,7 @@ export class SigninApiService {
 			const authorized = await this.webAuthnService.verifyAuthentication(user.id, body.credential);
 
 			if (authorized) {
-				if (!instance.approvalRequiredForSignup && !user.approved) this.usersRepository.update(user.id, { approved: true });
+				if (!this.meta.approvalRequiredForSignup && !user.approved) this.usersRepository.update(user.id, { approved: true });
 				return this.signinService.signin(request, reply, user);
 			} else {
 				return await fail(403, {

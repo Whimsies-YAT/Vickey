@@ -3,19 +3,21 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from "@nestjs/common";
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { UserProfilesRepository, UsersRepository } from '@/models/_.js';
+import type { UsedUsernamesRepository, UserProfilesRepository, UsersRepository } from '@/models/_.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { DI } from '@/di-symbols.js';
 import { EmailService } from '@/core/EmailService.js';
+import { DeleteAccountService } from '@/core/DeleteAccountService.js';
 
 export const meta = {
 	tags: ['admin'],
 	requireCredential: true,
 	requireModerator: true,
-	kind: 'write:admin:approve-account',
+	kind: 'write:admin:decline-account',
 } as const;
+
 
 export const paramDef = {
 	type: 'object',
@@ -34,29 +36,40 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.userProfilesRepository)
 		private userProfilesRepository: UserProfilesRepository,
 
+		@Inject(DI.usedUsernamesRepository)
+		private usedUsernamesRepository: UsedUsernamesRepository,
+
 		private moderationLogService: ModerationLogService,
 		private emailService: EmailService,
+		private deleteAccountService: DeleteAccountService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const user = await this.usersRepository.findOneBy({ id: ps.userId });
 
-			if (user == null) {
-				throw new Error('user not found');
+			if (user == null || user.isDeleted) {
+				throw new Error('user not found or already deleted');
+			}
+
+			if (user.approved) {
+				throw new Error('user is already approved');
+			}
+
+			if (user.host) {
+				throw new Error('user is not local');
 			}
 
 			const profile = await this.userProfilesRepository.findOneBy({ userId: ps.userId });
 
-			await this.usersRepository.update(user.id, {
-				approved: true,
-			});
-
 			if (profile?.email) {
-				this.emailService.sendEmail(profile.email, 'Account Approved',
-					'Your Account has been approved have fun socializing!',
-					'Your Account has been approved have fun socializing!');
+				this.emailService.sendEmail(profile.email, 'Account Declined',
+					'Your Account has been declined!',
+					'Your Account has been declined!');
 			}
 
-			this.moderationLogService.log(me, 'approve', {
+			await this.usedUsernamesRepository.delete({ username: user.username });
+			await this.deleteAccountService.deleteAccount(user);
+
+			this.moderationLogService.log(me, 'decline', {
 				userId: user.id,
 				userUsername: user.username,
 				userHost: user.host,

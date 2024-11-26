@@ -20,6 +20,7 @@ import { bindThis } from '@/decorators.js';
 import { L_CHARS, secureRndstr } from '@/misc/secure-rndstr.js';
 import { SigninService } from './SigninService.js';
 import type { FastifyRequest, FastifyReply } from 'fastify';
+import instance from './endpoints/charts/instance.js';
 import { RoleService } from '@/core/RoleService.js';
 
 @Injectable()
