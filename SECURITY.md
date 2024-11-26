@@ -2,6 +2,8 @@
 
 If you discover a security issue in Misskey, please report it by **[this form](https://github.com/misskey-dev/misskey/security/advisories/new)**.
 
+If you find a security issue in Vickey, please report the issue via **both the form above and [this form](https://github.com/misskey-dev/misskey/security/advisories/new)**.Vickey is a soft fork of Misskey now, so it is more dependent on Misskey for fixes at this time.
+
 This will allow us to assess the risk, and make a fix available before we add a
 bug report to the GitHub repository.
 
