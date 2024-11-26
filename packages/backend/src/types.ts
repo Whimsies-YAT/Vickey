@@ -73,6 +73,7 @@ export const moderationLogTypes = [
 	'updateServerSettings',
 	'suspend',
 	'approve',
+	'decline',
 	'unsuspend',
 	'updateUserNote',
 	'addCustomEmoji',
@@ -134,6 +135,11 @@ export type ModerationLogPayloads = {
 		userHost: string | null;
 	};
 	approve: {
+		userId: string;
+		userUsername: string;
+		userHost: string | null;
+	};
+	decline: {
 		userId: string;
 		userUsername: string;
 		userHost: string | null;

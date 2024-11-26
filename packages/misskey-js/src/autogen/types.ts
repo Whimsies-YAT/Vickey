@@ -657,6 +657,15 @@ export type paths = {
      */
     post: operations['admin___approve-user'];
   };
+  '/admin/decline-user': {
+    /**
+     * admin/decline-user
+     * @description No description provided.
+     *
+     * **Credential required**: *Yes* / **Permission**: *write:admin:decline-account*
+     */
+    post: operations['admin___decline-user'];
+  };
   '/admin/unsuspend-user': {
     /**
      * admin/unsuspend-user
@@ -9532,6 +9541,58 @@ export type operations = {
     };
   };
   /**
+   * admin/decline-user
+   * @description No description provided.
+   *
+   * **Credential required**: *Yes* / **Permission**: *write:admin:decline-account*
+   */
+  'admin___decline-user': {
+    requestBody: {
+      content: {
+        'application/json': {
+          /** Format: misskey:id */
+          userId: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
    * admin/unsuspend-user
    * @description No description provided.
    *
@@ -10726,7 +10787,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -11245,7 +11306,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -11312,7 +11373,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -11706,7 +11767,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -11766,7 +11827,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -11889,7 +11950,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -13484,7 +13545,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -14317,7 +14378,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -14664,7 +14725,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -14789,7 +14850,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -15284,7 +15345,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -15757,7 +15818,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -15817,7 +15878,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -15880,7 +15941,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -15939,7 +16000,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -15999,7 +16060,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -16610,7 +16671,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -16885,7 +16946,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -18145,7 +18206,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -18206,7 +18267,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -18257,7 +18318,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -18308,7 +18369,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -18359,7 +18420,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -18410,7 +18471,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -18461,7 +18522,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -18512,7 +18573,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -18749,7 +18810,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -18809,7 +18870,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -18868,7 +18929,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -18927,7 +18988,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -18986,7 +19047,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -19054,7 +19115,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -19122,7 +19183,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -20114,7 +20175,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -20352,7 +20413,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -20412,7 +20473,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -20782,7 +20843,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -21261,7 +21322,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -21429,7 +21490,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -21926,7 +21987,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -21984,7 +22045,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -22042,7 +22103,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -22702,7 +22763,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -23136,7 +23197,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -23438,7 +23499,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -23574,7 +23635,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -23712,7 +23773,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -23846,7 +23907,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -24178,7 +24239,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -24245,7 +24306,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -24575,7 +24636,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -25125,7 +25186,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -26404,7 +26465,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -27694,7 +27755,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
@@ -27808,7 +27869,7 @@ export type operations = {
           'application/json': components['schemas']['Error'];
         };
       };
-      /** @description To many requests */
+      /** @description Too many requests */
       429: {
         content: {
           'application/json': components['schemas']['Error'];
