@@ -68,7 +68,7 @@ function generateModeratorInactivityMail(remainingTime: ModeratorInactivityRemai
 }
 
 function generateInvitationOnlyChangedMail() {
-	const subject = 'Change to Approval-Only / 招待制に変更されました';
+	const subject = 'Change to Approval-Only / 承認制に変更されました';
 
 	const message = [
 		'To Moderators,',
