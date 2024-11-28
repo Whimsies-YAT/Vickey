@@ -13,7 +13,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkSwitch :modelValue="enableRegistration" @update:modelValue="onChange_enableRegistration">
 						<template #label>{{ i18n.ts._serverSettings.openRegistration }}</template>
 						<template #caption>
-							<div>{{ i18n.ts._serverSettings.thisSettingWillAutomaticallyOffWhenModeratorsInactive }}</div>
 							<div><i class="ti ti-alert-triangle" style="color: var(--MI_THEME-warn);"></i> {{ i18n.ts._serverSettings.openRegistrationWarning }}</div>
 						</template>
 					</MkSwitch>
@@ -24,7 +23,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 					<MkSwitch v-model="approvalRequiredForSignup" @change="onChange_approvalRequiredForSignup">
 						<template #label>{{ i18n.ts.approvalRequiredForSignup }}</template>
-						<template #caption>{{ i18n.ts.registerApprovalEmailRecommended }}</template>
+						<template #caption>
+							<div><i class="ti ti-alert-triangle" style="color: var(--MI_THEME-warn);"></i>{{ i18n.ts._serverSettings.thisSettingWillAutomaticallyOnWhenModeratorsInactive }}</div>
+							{{ i18n.ts.registerApprovalEmailRecommended }}
+						</template>
 					</MkSwitch>
 
 					<FormLink to="/admin/server-rules">{{ i18n.ts.serverRules }}</FormLink>
