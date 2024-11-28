@@ -52,8 +52,8 @@ function generateModeratorInactivityMail(remainingTime: ModeratorInactivityRemai
 		'',
 		'To モデレーター各位',
 		'',
-		`モデレーターが一定期間活動していないようです。あと${timeVariantJa}活動していない状態が続くと招待制に切り替わります。`,
-		'招待制に切り替わることを望まない場合は、Misskeyにログインして最終アクティブ日時を更新してください。',
+		`モデレーターが一定期間活動していないようです。あと${timeVariantJa}活動していない状態が続くと承認制に切り替わります。`,
+		'承認制に切り替わることを望まない場合は、Misskeyにログインして最終アクティブ日時を更新してください。',
 		'',
 	];
 
@@ -80,8 +80,8 @@ function generateInvitationOnlyChangedMail() {
 		'',
 		'To モデレーター各位',
 		'',
-		`モデレーターの活動が${MODERATOR_INACTIVITY_LIMIT_DAYS}日間検出されなかったため、招待制に変更されました。`,
-		'招待制を解除するには、コントロールパネルにアクセスする必要があります。',
+		`モデレーターの活動が${MODERATOR_INACTIVITY_LIMIT_DAYS}日間検出されなかったため、承認制に変更されました。`,
+		'承認制を解除するには、コントロールパネルにアクセスする必要があります。',
 		'',
 	];
 
