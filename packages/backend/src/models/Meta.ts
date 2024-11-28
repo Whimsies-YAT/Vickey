@@ -738,6 +738,7 @@ export class MiMeta {
 
 	@Column('boolean', {
 		default: true,
+		select: false,
 	})
 	public security: boolean;
 }

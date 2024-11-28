@@ -69,6 +69,7 @@ async function fetchSec() {
 	if (iAmAdmin) {
 		const meta = await misskeyApi('admin/meta');
 		state.security = meta.security ?? true;
+		console.info(meta.security);
 	}
 }
 

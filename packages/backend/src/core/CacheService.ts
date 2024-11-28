@@ -26,6 +26,7 @@ export class CacheService implements OnApplicationShutdown {
 	public userBlockedCache: RedisKVCache<Set<string>>; // NOTE: 「被」Blockキャッシュ
 	public renoteMutingsCache: RedisKVCache<Set<string>>;
 	public userFollowingsCache: RedisKVCache<Record<string, Pick<MiFollowing, 'withReplies'> | undefined>>;
+	public systemStatusCache: RedisKVCache<any>;
 
 	constructor(
 		@Inject(DI.redis)
@@ -115,9 +116,32 @@ export class CacheService implements OnApplicationShutdown {
 			fromRedisConverter: (value) => JSON.parse(value),
 		});
 
+		this.systemStatusCache = new RedisKVCache<any>(this.redisClient, 'systemStatus', {
+				lifetime: 1000 * 60 * 30,
+				memoryCacheLifetime: 1000 * 60,
+				fetcher: (key) => this.fetchSystemStatus(),
+				toRedisConverter: (value) => JSON.stringify(value),
+				fromRedisConverter: (value) => JSON.parse(value),
+		});
+
 		// NOTE: チャンネルのフォロー状況キャッシュはChannelFollowingServiceで行っている
 
 		this.redisForSub.on('message', this.onMessage);
+	}
+
+	private async fetchSystemStatus() {
+		const defaultValue = { security: true };
+		try {
+			let redisValue = await this.redisClient.get('systemStatus');
+
+			if (redisValue === null) {
+				await this.redisClient.set('systemStatus', JSON.stringify(defaultValue));
+				redisValue = JSON.stringify(defaultValue);
+			}
+			return JSON.parse(redisValue);
+		} catch (error) {
+			return defaultValue;
+		}
 	}
 
 	@bindThis
@@ -192,6 +216,7 @@ export class CacheService implements OnApplicationShutdown {
 		this.userBlockedCache.dispose();
 		this.renoteMutingsCache.dispose();
 		this.userFollowingsCache.dispose();
+		this.systemStatusCache.dispose();
 	}
 
 	@bindThis

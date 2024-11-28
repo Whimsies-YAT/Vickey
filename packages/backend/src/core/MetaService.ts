@@ -9,6 +9,7 @@ import * as Redis from 'ioredis';
 import { DI } from '@/di-symbols.js';
 import { MiMeta } from '@/models/Meta.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
+import { CacheService } from '@/core/CacheService.js';
 import { bindThis } from '@/decorators.js';
 import type { GlobalEvents } from '@/core/GlobalEventService.js';
 import { FeaturedService } from '@/core/FeaturedService.js';
@@ -26,8 +27,12 @@ export class MetaService implements OnApplicationShutdown {
 		@Inject(DI.db)
 		private db: DataSource,
 
+		@Inject(DI.redis)
+		private redisClient: Redis.Redis,
+
 		private featuredService: FeaturedService,
 		private globalEventService: GlobalEventService,
+		private cacheService: CacheService,
 	) {
 		//this.onMessage = this.onMessage.bind(this);
 
@@ -75,7 +80,9 @@ export class MetaService implements OnApplicationShutdown {
 				},
 			});
 
-			const meta = metas[0];
+			const metaBF = metas[0];
+			const beforeSec = await this.cacheService.systemStatusCache.fetch('systemStatus');
+			const meta = { ...metaBF, security: beforeSec.security };
 
 			if (meta) {
 				this.cache = meta;
@@ -99,7 +106,12 @@ export class MetaService implements OnApplicationShutdown {
 	}
 
 	@bindThis
-	public async update(data: Partial<MiMeta>): Promise<MiMeta> {
+	public async update(data: Partial<MiMeta>): Promise<MiMeta | undefined> {
+		await this.cacheService.systemStatusCache.refresh('systemStatus');
+		const beforeSec = await this.cacheService.systemStatusCache.fetch('systemStatus');
+		const { security = beforeSec.security, ...restDataBF } = data;
+		const restData = { ...restDataBF, security: true };
+
 		let before: MiMeta | undefined;
 
 		const updated = await this.db.transaction(async transactionalEntityManager => {
@@ -111,8 +123,15 @@ export class MetaService implements OnApplicationShutdown {
 
 			before = metas[0];
 
+			if (security !== undefined) {
+				if (beforeSec.security !== security) {
+					await this.redisClient.set('systemStatus', JSON.stringify({ security: security }));
+					await this.cacheService.systemStatusCache.refresh('systemStatus');
+				}
+			}
+
 			if (before) {
-				await transactionalEntityManager.update(MiMeta, before.id, data);
+				await transactionalEntityManager.update(MiMeta, before.id, restData);
 
 				const metas = await transactionalEntityManager.find(MiMeta, {
 					order: {
@@ -122,13 +141,13 @@ export class MetaService implements OnApplicationShutdown {
 
 				return metas[0];
 			} else {
-				return await transactionalEntityManager.save(MiMeta, data);
+				return await transactionalEntityManager.save(MiMeta, restData);
 			}
 		});
 
-		if (data.hiddenTags) {
+		if (restData.hiddenTags) {
 			process.nextTick(() => {
-				const hiddenTags = new Set<string>(data.hiddenTags);
+				const hiddenTags = new Set<string>(restData.hiddenTags);
 				if (before) {
 					for (const previousHiddenTag of before.hiddenTags) {
 						hiddenTags.delete(previousHiddenTag);
@@ -141,9 +160,12 @@ export class MetaService implements OnApplicationShutdown {
 			});
 		}
 
-		this.globalEventService.publishInternalEvent('metaUpdated', { before, after: updated });
+		const finallyBefore: MiMeta = { ...(before as MiMeta), security: beforeSec.security };
+		const finallyUpd: MiMeta = { ...(updated as MiMeta), security: security };
 
-		return updated;
+		this.globalEventService.publishInternalEvent('metaUpdated', { before: finallyBefore, after: finallyUpd });
+
+		return finallyUpd;
 	}
 
 	@bindThis

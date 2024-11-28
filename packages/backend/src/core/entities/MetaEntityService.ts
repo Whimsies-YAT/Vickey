@@ -12,6 +12,7 @@ import type { AdsRepository } from '@/models/_.js';
 import { MAX_NOTE_TEXT_LENGTH } from '@/const.js';
 import { bindThis } from '@/decorators.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
+import { CacheService } from '@/core/CacheService.js';
 import { InstanceActorService } from '@/core/InstanceActorService.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
@@ -29,6 +30,7 @@ export class MetaEntityService {
 		@Inject(DI.adsRepository)
 		private adsRepository: AdsRepository,
 
+		private cacheService: CacheService,
 		private userEntityService: UserEntityService,
 		private instanceActorService: InstanceActorService,
 	) { }
@@ -36,6 +38,7 @@ export class MetaEntityService {
 	@bindThis
 	public async pack(meta?: MiMeta): Promise<Packed<'MetaLite'>> {
 		let instance = meta;
+		let secData = await this.cacheService.systemStatusCache.get('systemStatus');
 
 		if (!instance) {
 			instance = this.meta;
@@ -134,7 +137,7 @@ export class MetaEntityService {
 			enableUrlPreview: instance.urlPreviewEnabled,
 			noteSearchableScope: (this.config.meilisearch == null || this.config.meilisearch.scope !== 'local') ? 'global' : 'local',
 			maxFileSize: this.config.maxFileSize,
-			security: instance.security,
+			security: secData.security,
 		};
 
 		return packed;

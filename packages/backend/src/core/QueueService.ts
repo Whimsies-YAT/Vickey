@@ -54,6 +54,7 @@ export class QueueService {
 		@Inject('queue:userWebhookDeliver') public userWebhookDeliverQueue: UserWebhookDeliverQueue,
 		@Inject('queue:systemWebhookDeliver') public systemWebhookDeliverQueue: SystemWebhookDeliverQueue,
 	) {
+		/*
 		this.systemQueue.add('defaultSec', {
 		}, {
 			repeat: {
@@ -62,6 +63,7 @@ export class QueueService {
 			},
 			removeOnComplete: true,
 		});
+		*/
 		this.systemQueue.add('tickCharts', {
 		}, {
 			repeat: { pattern: '55 * * * *' },
