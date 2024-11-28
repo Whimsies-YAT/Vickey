@@ -30,3 +30,8 @@ _moderationLogTypes:
 _aboutVickey:
   translation: "Translate Vickey"
   donate: "Donate to Vickey"
+_serverSettings:
+  thisSettingWillAutomaticallyOnWhenModeratorsInactive: "If no moderator activity is detected for a while, this setting will be automatically turned on to prevent spam."
+_webhookSettings:
+  _systemEvents:
+    inactiveModeratorsApprovalOnlyChanged: "When a moderator has been inactive for a while, and the server is changed to approval-only"

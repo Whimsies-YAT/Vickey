@@ -5814,6 +5814,10 @@ export interface Locale extends ILocale {
          * 一定期間モデレーターのアクティビティが検出されなかった場合、スパム防止のためこの設定は自動でオフになります。
          */
         "thisSettingWillAutomaticallyOffWhenModeratorsInactive": string;
+        /**
+         * If no moderator activity is detected for a while, this setting will be automatically turned on to prevent spam.
+         */
+        "thisSettingWillAutomaticallyOnWhenModeratorsInactive": string;
     };
     "_accountMigration": {
         /**
@@ -9791,6 +9795,10 @@ export interface Locale extends ILocale {
              * モデレーターが一定期間非アクティブだったため、システムにより招待制へと変更されたとき
              */
             "inactiveModeratorsInvitationOnlyChanged": string;
+            /**
+             * When a moderator has been inactive for a while, and the server is changed to approval-only
+             */
+            "inactiveModeratorsApprovalOnlyChanged": string;
         };
         /**
          * Webhookを削除しますか？
