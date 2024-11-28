@@ -210,7 +210,6 @@ export class NotificationService implements OnApplicationShutdown {
 
 	@bindThis
 	private async emailNotificationReceiveFollowRequest(userId: MiUser['id'], follower: MiUser, config: Config) {
-
 		const userProfile = await this.userProfilesRepository.findOneByOrFail({ userId: userId });
 		if (!userProfile.email || !userProfile.emailNotificationTypes.includes('receiveFollowRequest')) return;
 		const locale = locales[userProfile.lang ?? 'ja-JP'];

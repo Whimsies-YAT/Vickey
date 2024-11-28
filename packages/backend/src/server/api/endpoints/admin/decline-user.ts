@@ -18,7 +18,6 @@ export const meta = {
 	kind: 'write:admin:decline-account',
 } as const;
 
-
 export const paramDef = {
 	type: 'object',
 	properties: {
