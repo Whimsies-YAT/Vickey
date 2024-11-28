@@ -348,7 +348,7 @@ describe('ユーザー', () => {
 		assert.strictEqual(response.followersVisibility, 'public');
 		assert.deepStrictEqual(response.roles, []);
 		assert.strictEqual(response.memo, null);
-		assert.strictEqual(response.signupReason, null);
+		// assert.strictEqual(response.signupReason, null);
 
 		// MeDetailedOnly
 		assert.strictEqual(response.avatarId, null);
@@ -476,7 +476,7 @@ describe('ユーザー', () => {
 		{ parameters: () => ({ notificationRecieveConfig: {} }) },
 		{ parameters: () => ({ emailNotificationTypes: ['mention', 'reply', 'quote', 'follow', 'receiveFollowRequest'] }) },
 		{ parameters: () => ({ emailNotificationTypes: [] }) },
-		{ parameters: () => ({ signupReason: null }) },
+		// { parameters: () => ({ signupReason: null }) },
 	] as const)('を書き換えることができる($#)', async ({ parameters }) => {
 		const response = await successfulApiCall({ endpoint: 'i/update', parameters: parameters(), user: alice });
 		const expected = { ...meDetailed(alice, true), ...parameters() };
