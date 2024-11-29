@@ -22,6 +22,7 @@ approvalRequiredToRegister: "This server currently requires approval to register
 registerReason: "Reason for registration"
 registerHasNotBeenApprovedYet: "Your registration for the server has not yet been approved. Please try again later. If you provided an email address during registration, you will be notified by email once your registration is approved."
 registerApprovalEmailRecommended: "To ensure notifications are sent regarding the approval of server registrations, it is strongly recommended to require an email address during account registration."
+HaveSecurityUpdate: "Perform a security update immediately!"
 _signup:
   approvalPending: "Your account has been created and is now pending approval."
   reasonInfo: "Please enter the reason you wish to join this server."
