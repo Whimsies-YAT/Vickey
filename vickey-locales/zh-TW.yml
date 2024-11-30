@@ -17,9 +17,9 @@ denyAccount: "Deny and delete account"
 approved: "Approved"
 notApproved: "Not approved"
 approvalStatus: "Approval status"
-approvalRequiredToRegister: "This server currently requires approval to register. Please provide your reason for joining, and only those approved will be allowed to register."
+approvalRequiredToRegister: "該伺服器目前需要核准才能註冊。請提供您想加入的原因，只有通過審核的人才能註冊。"
 registerReason: "Reason for registration"
-registerHasNotBeenApprovedYet: "Your registration for the server has not yet been approved. Please try again later. If you provided an email address during registration, you will be notified by email once your registration is approved."
+registerHasNotBeenApprovedYet: "您在本伺服器註冊的帳號目前仍在審核中。請稍後重試。如果您在註冊時提供了電子郵件地址，註冊若獲得核准，您的電子郵件將收到通知。"
 registerApprovalEmailRecommended: "To ensure notifications are sent regarding the approval of server registrations, it is strongly recommended to require an email address during account registration."
 HaveSecurityUpdate: "Perform a security update immediately!"
 _signup:
@@ -34,4 +34,4 @@ _serverSettings:
   thisSettingWillAutomaticallyOnWhenModeratorsInactive: "If no moderator activity is detected for a while, this setting will be automatically turned on to prevent spam."
 _webhookSettings:
   _systemEvents:
-    inactiveModeratorsApprovalOnlyChanged: "When a moderator has been inactive for a while, and the server is changed to approval-only"
+    inactiveModeratorsApprovalOnlyChanged: "當管理員一定時間內沒有上線，伺服器帳號將更改為僅開放核准註冊。"
