@@ -17,7 +17,7 @@ denyAccount: "Từ chối và xóa tài khoản"
 approved: "Đã phê duyệt"
 notApproved: "Không được phê duyệt"
 approvalStatus: "Tình trạng phê duyệt"
-approvalRequiredToRegister: "Máy chủ này hiện yêu cầu phê duyệt đăng ký. Vui lòng cung cấp lý do tham gia của bạn, và chỉ những người được phê duyệt mới được phép đăng ký."
+approvalRequiredToRegister: "Máy chủ này hiện bắt buộc mọi yêu cầu đăng ký cần được phê duyệt. Vui lòng cung cấp lý do tham gia của bạn, và chỉ những người được phê duyệt mới được phép đăng ký."
 registerReason: "Lý do đăng ký"
 registerHasNotBeenApprovedYet: "Yêu cầu đăng ký vào máy chủ của bạn vẫn chưa được phê duyệt. Vui lòng thử lại sau. Nếu bạn đã cung cấp địa chỉ email trong quá trình đăng ký, bạn sẽ được thông báo qua email khi đăng ký của bạn được phê duyệt."
 registerApprovalEmailRecommended: "Để đảm bảo nhận được thông báo về việc phê duyệt yêu cầu đăng ký tham gia máy chủ, rất mong bạn cung cấp địa chỉ email trong quá trình đăng ký tài khoản."
@@ -31,7 +31,7 @@ _aboutVickey:
   translation: "Dịch Vickey"
   donate: "Quyên góp cho Vickey"
 _serverSettings:
-  thisSettingWillAutomaticallyOnWhenModeratorsInactive: "If no moderator activity is detected for a while, this setting will be automatically turned on to prevent spam."
+  thisSettingWillAutomaticallyOnWhenModeratorsInactive: "Nếu sau một thời gian mà không phát hiện hoạt động nào của người điều hành, cài đặt này sẽ tự động được bật để ngăn chặn spam."
 _webhookSettings:
   _systemEvents:
-    inactiveModeratorsApprovalOnlyChanged: "When a moderator has been inactive for a while, and the server is changed to approval-only"
+    inactiveModeratorsApprovalOnlyChanged: "Khi một người điều hành đã không hoạt động trong một thời gian, và máy chủ được chuyển sang chế độ bắt buộc phê duyệt"
