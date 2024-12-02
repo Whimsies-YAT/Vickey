@@ -544,6 +544,27 @@ export class QueueService {
 	}
 
 	@bindThis
+	public createExportAvatarDecorationJob(user: ThinUser) {
+		return this.dbQueue.add('exportAvatarDecoration', {
+			user: { id: user.id },
+		}, {
+			removeOnComplete: true,
+			removeOnFail: true,
+		});
+	}
+
+	@bindThis
+	public createImportAvatarDecorationJob(user: ThinUser, fileId: MiDriveFile['id']) {
+		return this.dbQueue.add('importAvatarDecoration', {
+			user: { id: user.id },
+			fileId: fileId,
+		}, {
+			removeOnComplete: true,
+			removeOnFail: true,
+		});
+	}
+
+	@bindThis
 	public destroy() {
 		this.deliverQueue.once('cleaned', (jobs, status) => {
 			//deliverLogger.succ(`Cleaned ${jobs.length} ${status} jobs`);

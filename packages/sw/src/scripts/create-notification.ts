@@ -221,6 +221,7 @@ async function composeNotification(data: PushNotificationDataMap[keyof PushNotif
 						antenna: i18n.ts.antennas,
 						blocking: i18n.ts.blockedUsers,
 						clip: i18n.ts.clips,
+						customAvatarDecoration: i18n.ts.customAvatarDecoration,
 						customEmoji: i18n.ts.customEmojis,
 						favorite: i18n.ts.favorites,
 						following: i18n.ts.following,

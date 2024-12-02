@@ -33,6 +33,7 @@ import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
+import { selectFile } from "@/scripts/select-file.js";
 
 const $i = signinRequired();
 
@@ -77,11 +78,56 @@ function edit(avatarDecoration) {
 	});
 }
 
+const menu = (ev: MouseEvent) => {
+	os.popupMenu([{
+		icon: 'ti ti-download',
+		text: i18n.ts.export,
+		action: async () => {
+			misskeyApi('export-custom-avatar-decoration', {
+			})
+				.then(() => {
+					os.alert({
+						type: 'info',
+						text: i18n.ts.exportRequested,
+					});
+				}).catch((err) => {
+				os.alert({
+					type: 'error',
+					text: err.message,
+				});
+			});
+		},
+	}, {
+		icon: 'ti ti-upload',
+		text: i18n.ts.import,
+		action: async () => {
+			const file = await selectFile(ev.currentTarget ?? ev.target);
+			misskeyApi('admin/avatar-decorations/import-zip', {
+				fileId: file.id,
+			})
+				.then(() => {
+					os.alert({
+						type: 'info',
+						text: i18n.ts.importRequested,
+					});
+				}).catch((err) => {
+				os.alert({
+					type: 'error',
+					text: err.message,
+				});
+			});
+		},
+	}], ev.currentTarget ?? ev.target);
+};
+
 const headerActions = computed(() => [{
 	asFullButton: true,
 	icon: 'ti ti-plus',
 	text: i18n.ts.add,
 	handler: add,
+}, {
+	icon: 'ti ti-dots',
+	handler: menu,
 }]);
 
 const headerTabs = computed(() => []);

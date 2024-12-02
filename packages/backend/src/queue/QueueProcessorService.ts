@@ -17,6 +17,7 @@ import { EndedPollNotificationProcessorService } from './processors/EndedPollNot
 import { DeliverProcessorService } from './processors/DeliverProcessorService.js';
 import { InboxProcessorService } from './processors/InboxProcessorService.js';
 import { DeleteDriveFilesProcessorService } from './processors/DeleteDriveFilesProcessorService.js';
+import { ExportCustomAvatarDecorationProcessorService } from './processors/ExportCustomAvatarDecorationProcessorService.js';
 import { ExportCustomEmojisProcessorService } from './processors/ExportCustomEmojisProcessorService.js';
 import { ExportNotesProcessorService } from './processors/ExportNotesProcessorService.js';
 import { ExportClipsProcessorService } from './processors/ExportClipsProcessorService.js';
@@ -29,6 +30,7 @@ import { ImportFollowingProcessorService } from './processors/ImportFollowingPro
 import { ImportMutingProcessorService } from './processors/ImportMutingProcessorService.js';
 import { ImportBlockingProcessorService } from './processors/ImportBlockingProcessorService.js';
 import { ImportUserListsProcessorService } from './processors/ImportUserListsProcessorService.js';
+import { ImportCustomAvatarDecorationsProcessorService } from './processors/ImportCustomAvatarDecorationsProcessorService.js';
 import { ImportCustomEmojisProcessorService } from './processors/ImportCustomEmojisProcessorService.js';
 import { ImportAntennasProcessorService } from './processors/ImportAntennasProcessorService.js';
 import { DeleteAccountProcessorService } from './processors/DeleteAccountProcessorService.js';
@@ -98,6 +100,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		private deliverProcessorService: DeliverProcessorService,
 		private inboxProcessorService: InboxProcessorService,
 		private deleteDriveFilesProcessorService: DeleteDriveFilesProcessorService,
+		private exportCustomAvatarDecorationProcessorService: ExportCustomAvatarDecorationProcessorService,
 		private exportCustomEmojisProcessorService: ExportCustomEmojisProcessorService,
 		private exportNotesProcessorService: ExportNotesProcessorService,
 		private exportClipsProcessorService: ExportClipsProcessorService,
@@ -107,6 +110,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		private exportBlockingProcessorService: ExportBlockingProcessorService,
 		private exportUserListsProcessorService: ExportUserListsProcessorService,
 		private exportAntennasProcessorService: ExportAntennasProcessorService,
+		private importCustomAvatarDecorationsProcessorService :ImportCustomAvatarDecorationsProcessorService,
 		private importFollowingProcessorService: ImportFollowingProcessorService,
 		private importMutingProcessorService: ImportMutingProcessorService,
 		private importBlockingProcessorService: ImportBlockingProcessorService,
@@ -209,6 +213,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 			const processer = (job: Bull.Job) => {
 				switch (job.name) {
 					case 'deleteDriveFiles': return this.deleteDriveFilesProcessorService.process(job);
+					case 'exportAvatarDecoration': return this.exportCustomAvatarDecorationProcessorService.process(job);
 					case 'exportCustomEmojis': return this.exportCustomEmojisProcessorService.process(job);
 					case 'exportNotes': return this.exportNotesProcessorService.process(job);
 					case 'exportClips': return this.exportClipsProcessorService.process(job);
@@ -218,6 +223,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 					case 'exportBlocking': return this.exportBlockingProcessorService.process(job);
 					case 'exportUserLists': return this.exportUserListsProcessorService.process(job);
 					case 'exportAntennas': return this.exportAntennasProcessorService.process(job);
+					case 'importAvatarDecoration': return this.importCustomAvatarDecorationsProcessorService.process(job);
 					case 'importFollowing': return this.importFollowingProcessorService.process(job);
 					case 'importFollowingToDb': return this.importFollowingProcessorService.processDb(job);
 					case 'importMuting': return this.importMutingProcessorService.process(job);

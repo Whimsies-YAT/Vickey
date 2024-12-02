@@ -31,6 +31,7 @@ import * as ep___admin_announcements_list from './endpoints/admin/announcements/
 import * as ep___admin_announcements_update from './endpoints/admin/announcements/update.js';
 import * as ep___admin_avatarDecorations_create from './endpoints/admin/avatar-decorations/create.js';
 import * as ep___admin_avatarDecorations_delete from './endpoints/admin/avatar-decorations/delete.js';
+import * as ep___admin_avatarDecorations_importZip from './endpoints/admin/avatar-decorations/import-zip.js';
 import * as ep___admin_avatarDecorations_list from './endpoints/admin/avatar-decorations/list.js';
 import * as ep___admin_avatarDecorations_update from './endpoints/admin/avatar-decorations/update.js';
 import * as ep___admin_deleteAllFilesOfAUser from './endpoints/admin/delete-all-files-of-a-user.js';
@@ -179,6 +180,7 @@ import * as ep___drive_stream from './endpoints/drive/stream.js';
 import * as ep___emailAddress_available from './endpoints/email-address/available.js';
 import * as ep___endpoint from './endpoints/endpoint.js';
 import * as ep___endpoints from './endpoints/endpoints.js';
+import * as ep___exportCustomAvatarDecoration from './endpoints/export-custom-avatar-decoration.js';
 import * as ep___exportCustomEmojis from './endpoints/export-custom-emojis.js';
 import * as ep___federation_followers from './endpoints/federation/followers.js';
 import * as ep___federation_following from './endpoints/federation/following.js';
@@ -423,6 +425,7 @@ const eps = [
 	['admin/announcements/update', ep___admin_announcements_update],
 	['admin/avatar-decorations/create', ep___admin_avatarDecorations_create],
 	['admin/avatar-decorations/delete', ep___admin_avatarDecorations_delete],
+	['admin/avatar-decorations/import-zip', ep___admin_avatarDecorations_importZip],
 	['admin/avatar-decorations/list', ep___admin_avatarDecorations_list],
 	['admin/avatar-decorations/update', ep___admin_avatarDecorations_update],
 	['admin/delete-all-files-of-a-user', ep___admin_deleteAllFilesOfAUser],
@@ -570,6 +573,7 @@ const eps = [
 	['email-address/available', ep___emailAddress_available],
 	['endpoint', ep___endpoint],
 	['endpoints', ep___endpoints],
+	['export-custom-avatar-decoration', ep___exportCustomAvatarDecoration],
 	['export-custom-emojis', ep___exportCustomEmojis],
 	['federation/followers', ep___federation_followers],
 	['federation/following', ep___federation_following],

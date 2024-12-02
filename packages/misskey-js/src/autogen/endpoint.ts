@@ -33,6 +33,7 @@ import type {
 	AdminAvatarDecorationsCreateRequest,
 	AdminAvatarDecorationsCreateResponse,
 	AdminAvatarDecorationsDeleteRequest,
+	AdminAvatarDecorationsImportZipRequest,
 	AdminAvatarDecorationsListRequest,
 	AdminAvatarDecorationsListResponse,
 	AdminAvatarDecorationsUpdateRequest,
@@ -608,6 +609,7 @@ export type Endpoints = {
 	'admin/announcements/update': { req: AdminAnnouncementsUpdateRequest; res: EmptyResponse };
 	'admin/avatar-decorations/create': { req: AdminAvatarDecorationsCreateRequest; res: AdminAvatarDecorationsCreateResponse };
 	'admin/avatar-decorations/delete': { req: AdminAvatarDecorationsDeleteRequest; res: EmptyResponse };
+	'admin/avatar-decorations/import-zip': { req: AdminAvatarDecorationsImportZipRequest; res: EmptyResponse };
 	'admin/avatar-decorations/list': { req: AdminAvatarDecorationsListRequest; res: AdminAvatarDecorationsListResponse };
 	'admin/avatar-decorations/update': { req: AdminAvatarDecorationsUpdateRequest; res: EmptyResponse };
 	'admin/delete-all-files-of-a-user': { req: AdminDeleteAllFilesOfAUserRequest; res: EmptyResponse };
@@ -755,6 +757,7 @@ export type Endpoints = {
 	'email-address/available': { req: EmailAddressAvailableRequest; res: EmailAddressAvailableResponse };
 	'endpoint': { req: EndpointRequest; res: EndpointResponse };
 	'endpoints': { req: EmptyRequest; res: EndpointsResponse };
+	'export-custom-avatar-decoration': { req: EmptyRequest; res: EmptyResponse };
 	'export-custom-emojis': { req: EmptyRequest; res: EmptyResponse };
 	'federation/followers': { req: FederationFollowersRequest; res: FederationFollowersResponse };
 	'federation/following': { req: FederationFollowingRequest; res: FederationFollowingResponse };

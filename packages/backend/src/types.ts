@@ -60,14 +60,14 @@ export const followersVisibilities = ['public', 'followers', 'private'] as const
  *
  * （主にエクスポート完了通知で使用するものであり、既存のDBの名称等と必ずしも一致しない）
  */
-export const userExportableEntities = ['antenna', 'blocking', 'clip', 'customEmoji', 'favorite', 'following', 'muting', 'note', 'userList'] as const;
+export const userExportableEntities = ['antenna', 'blocking', 'clip', 'customEmoji', 'favorite', 'following', 'muting', 'note', 'userList', 'customAvatarDecoration'] as const;
 
 /**
  * ユーザーがインポートできるものの種類
  *
  * （主にインポート完了通知で使用するものであり、既存のDBの名称等と必ずしも一致しない）
  */
-export const userImportableEntities = ['antenna', 'blocking', 'customEmoji', 'following', 'muting', 'userList'] as const;
+export const userImportableEntities = ['antenna', 'blocking', 'customEmoji', 'following', 'muting', 'userList', 'customAvatarDecoration'] as const;
 
 export const moderationLogTypes = [
 	'updateServerSettings',

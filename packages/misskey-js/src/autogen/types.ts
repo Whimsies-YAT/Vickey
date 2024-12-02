@@ -197,6 +197,16 @@ export type paths = {
      */
     post: operations['admin___avatar-decorations___delete'];
   };
+  '/admin/avatar-decorations/import-zip': {
+    /**
+     * admin/avatar-decorations/import-zip
+     * @description No description provided.
+     *
+     * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+     * **Credential required**: *Yes* / **Permission**: *write:admin:avatar-decorations*
+     */
+    post: operations['admin___avatar-decorations___import-zip'];
+  };
   '/admin/avatar-decorations/list': {
     /**
      * admin/avatar-decorations/list
@@ -1611,6 +1621,16 @@ export type paths = {
      * **Credential required**: *No*
      */
     post: operations['endpoints'];
+  };
+  '/export-custom-avatar-decoration': {
+    /**
+     * export-custom-avatar-decoration
+     * @description No description provided.
+     *
+     * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+     * **Credential required**: *Yes*
+     */
+    post: operations['export-custom-avatar-decoration'];
   };
   '/export-custom-emojis': {
     /**
@@ -4365,7 +4385,7 @@ export type components = {
       /** @enum {string} */
       type: 'exportCompleted';
       /** @enum {string} */
-      exportedEntity: 'antenna' | 'blocking' | 'clip' | 'customEmoji' | 'favorite' | 'following' | 'muting' | 'note' | 'userList';
+      exportedEntity: 'antenna' | 'blocking' | 'clip' | 'customEmoji' | 'favorite' | 'following' | 'muting' | 'note' | 'userList' | 'customAvatarDecoration';
       /** Format: id */
       fileId: string;
     }) | {
@@ -6462,6 +6482,59 @@ export type operations = {
         'application/json': {
           /** Format: misskey:id */
           id: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * admin/avatar-decorations/import-zip
+   * @description No description provided.
+   *
+   * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+   * **Credential required**: *Yes* / **Permission**: *write:admin:avatar-decorations*
+   */
+  'admin___avatar-decorations___import-zip': {
+    requestBody: {
+      content: {
+        'application/json': {
+          /** Format: misskey:id */
+          fileId: string;
         };
       };
     };
@@ -15296,6 +15369,57 @@ export type operations = {
       };
       /** @description I'm Ai */
       418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * export-custom-avatar-decoration
+   * @description No description provided.
+   *
+   * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+   * **Credential required**: *Yes*
+   */
+  'export-custom-avatar-decoration': {
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Too many requests */
+      429: {
         content: {
           'application/json': components['schemas']['Error'];
         };
