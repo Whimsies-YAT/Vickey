@@ -22,6 +22,7 @@ registerReason: "注册的原因"
 registerHasNotBeenApprovedYet: "您在本实例注册的账号目前还在审核中。请稍后重试。如果您在注册时提供了电子邮件地址，一旦您的注册获得批准，您将收到电子邮件通知。"
 registerApprovalEmailRecommended: "为了确保发送有关服务器注册审核的通知，强烈建议在帐户注册期间要求提供电子邮件地址。"
 HaveSecurityUpdate: "立即执行安全更新！"
+customAvatarDecoration: "Avatar decorations"
 _signup:
   approvalPending: "您的注册申请已提交成功，目前正在等待审核。"
   reasonInfo: "请输入您希望加入该实例的原因。"
