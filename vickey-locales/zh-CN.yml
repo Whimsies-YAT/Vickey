@@ -10,8 +10,8 @@ approvals: "批准"
 registerApproveConfirm: "是否确认批准注册？"
 registerApproveConfirmDescription: "此操作无法撤消。一旦确认批准，系统将发送一封电子邮件通知用户其注册已获得批准。"
 approvalRequiredForSignup: "打开账号注册审核模式"
-signupPendingApprovals: "账号正在等待注册审核中"
-pendingUserApprovals: "有用户的注册等待审批"
+signupPendingApprovals: "待审核的注册账户"
+pendingUserApprovals: "有用户正在等待注册审核。"
 approveAccount: "批准"
 denyAccount: "拒绝并删除该账户"
 approved: "已批准"
@@ -21,6 +21,8 @@ approvalRequiredToRegister: "该实例目前需要批准才能注册。请提供
 registerReason: "注册的原因"
 registerHasNotBeenApprovedYet: "您在本实例注册的账号目前还在审核中。请稍后重试。如果您在注册时提供了电子邮件地址，一旦您的注册获得批准，您将收到电子邮件通知。"
 registerApprovalEmailRecommended: "为了确保发送有关服务器注册审核的通知，强烈建议在帐户注册期间要求提供电子邮件地址。"
+HaveSecurityUpdate: "立即执行安全更新！"
+customAvatarDecoration: "Avatar decorations"
 _signup:
   approvalPending: "您的注册申请已提交成功，目前正在等待审核。"
   reasonInfo: "请输入您希望加入该实例的原因。"
@@ -29,3 +31,8 @@ _moderationLogTypes:
 _aboutVickey:
   translation: "翻译 Vickey"
   donate: "赞助 Vickey"
+_serverSettings:
+  thisSettingWillAutomaticallyOnWhenModeratorsInactive: "如果管理员在一定时间内未活跃，此设置将自动打开以防止垃圾邮件。"
+_webhookSettings:
+  _systemEvents:
+    inactiveModeratorsApprovalOnlyChanged: "当管理员一定时间内未活跃，服务器将更改为需要批准才能注册。"
