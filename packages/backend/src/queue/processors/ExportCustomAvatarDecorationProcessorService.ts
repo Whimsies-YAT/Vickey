@@ -88,7 +88,7 @@ export class ExportCustomAvatarDecorationProcessorService {
 				this.logger.error(`invalid avatar decoration name: ${cads.name}`);
 				continue;
 			}
-			let fileName = cads.name
+			let fileName = cads.name;
 			let ADPath = path + '/' + fileName;
 			let downloaded = false;
 
@@ -104,7 +104,6 @@ export class ExportCustomAvatarDecorationProcessorService {
 
 				await this.downloadService.downloadUrl(cads.url, ADPath);
 				downloaded = true;
-
 			} catch (e) {
 				this.logger.error(e instanceof Error ? e : new Error(e as string));
 			}
