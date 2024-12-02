@@ -26,6 +26,7 @@ import * as ep___admin_announcements_list from './endpoints/admin/announcements/
 import * as ep___admin_announcements_update from './endpoints/admin/announcements/update.js';
 import * as ep___admin_avatarDecorations_create from './endpoints/admin/avatar-decorations/create.js';
 import * as ep___admin_avatarDecorations_delete from './endpoints/admin/avatar-decorations/delete.js';
+import * as ep___admin_avatarDecorations_importZip from './endpoints/admin/avatar-decorations/import-zip.js';
 import * as ep___admin_avatarDecorations_list from './endpoints/admin/avatar-decorations/list.js';
 import * as ep___admin_avatarDecorations_update from './endpoints/admin/avatar-decorations/update.js';
 import * as ep___admin_deleteAllFilesOfAUser from './endpoints/admin/delete-all-files-of-a-user.js';
@@ -173,6 +174,7 @@ import * as ep___drive_stream from './endpoints/drive/stream.js';
 import * as ep___emailAddress_available from './endpoints/email-address/available.js';
 import * as ep___endpoint from './endpoints/endpoint.js';
 import * as ep___endpoints from './endpoints/endpoints.js';
+import * as ep___exportCustomAvatarDecoration from './endpoints/export-custom-avatar-decoration.js';
 import * as ep___exportCustomEmojis from './endpoints/export-custom-emojis.js';
 import * as ep___federation_followers from './endpoints/federation/followers.js';
 import * as ep___federation_following from './endpoints/federation/following.js';
@@ -419,6 +421,7 @@ const $admin_announcements_list: Provider = { provide: 'ep:admin/announcements/l
 const $admin_announcements_update: Provider = { provide: 'ep:admin/announcements/update', useClass: ep___admin_announcements_update.default };
 const $admin_avatarDecorations_create: Provider = { provide: 'ep:admin/avatar-decorations/create', useClass: ep___admin_avatarDecorations_create.default };
 const $admin_avatarDecorations_delete: Provider = { provide: 'ep:admin/avatar-decorations/delete', useClass: ep___admin_avatarDecorations_delete.default };
+const $admin_avatarDecorations_importZip: Provider = { provide: 'ep:admin/avatar-decorations/import-zip', useClass: ep___admin_avatarDecorations_importZip.default };
 const $admin_avatarDecorations_list: Provider = { provide: 'ep:admin/avatar-decorations/list', useClass: ep___admin_avatarDecorations_list.default };
 const $admin_avatarDecorations_update: Provider = { provide: 'ep:admin/avatar-decorations/update', useClass: ep___admin_avatarDecorations_update.default };
 const $admin_deleteAllFilesOfAUser: Provider = { provide: 'ep:admin/delete-all-files-of-a-user', useClass: ep___admin_deleteAllFilesOfAUser.default };
@@ -566,6 +569,7 @@ const $drive_stream: Provider = { provide: 'ep:drive/stream', useClass: ep___dri
 const $emailAddress_available: Provider = { provide: 'ep:email-address/available', useClass: ep___emailAddress_available.default };
 const $endpoint: Provider = { provide: 'ep:endpoint', useClass: ep___endpoint.default };
 const $endpoints: Provider = { provide: 'ep:endpoints', useClass: ep___endpoints.default };
+const $exportCustomAvatarDecoration: Provider = { provide: 'ep:export-custom-avatar-decoration', useClass: ep___exportCustomAvatarDecoration.default };
 const $exportCustomEmojis: Provider = { provide: 'ep:export-custom-emojis', useClass: ep___exportCustomEmojis.default };
 const $federation_followers: Provider = { provide: 'ep:federation/followers', useClass: ep___federation_followers.default };
 const $federation_following: Provider = { provide: 'ep:federation/following', useClass: ep___federation_following.default };
@@ -816,6 +820,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_announcements_update,
 		$admin_avatarDecorations_create,
 		$admin_avatarDecorations_delete,
+		$admin_avatarDecorations_importZip,
 		$admin_avatarDecorations_list,
 		$admin_avatarDecorations_update,
 		$admin_deleteAllFilesOfAUser,
@@ -963,6 +968,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$emailAddress_available,
 		$endpoint,
 		$endpoints,
+		$exportCustomAvatarDecoration,
 		$exportCustomEmojis,
 		$federation_followers,
 		$federation_following,
@@ -1207,6 +1213,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_announcements_update,
 		$admin_avatarDecorations_create,
 		$admin_avatarDecorations_delete,
+		$admin_avatarDecorations_importZip,
 		$admin_avatarDecorations_list,
 		$admin_avatarDecorations_update,
 		$admin_deleteAllFilesOfAUser,
@@ -1354,6 +1361,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$emailAddress_available,
 		$endpoint,
 		$endpoints,
+		$exportCustomAvatarDecoration,
 		$exportCustomEmojis,
 		$federation_followers,
 		$federation_following,

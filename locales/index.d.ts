@@ -5226,10 +5226,6 @@ export interface Locale extends ILocale {
      * 注意事項を理解した上でオンにします。
      */
     "acknowledgeNotesAndEnable": string;
-	  /**
-	   * 直ちにセキュリティ・アップデートを実施すること！
-	   */
-		"HaveSecurityUpdate": string;
     "_accountSettings": {
         /**
          * コンテンツの表示にログインを必須にする
@@ -10709,6 +10705,14 @@ export interface Locale extends ILocale {
      * To ensure notifications are sent regarding the approval of server registrations, it is strongly recommended to require an email address during account registration.
      */
     "registerApprovalEmailRecommended": string;
+    /**
+     * Perform a security update immediately!
+     */
+    "HaveSecurityUpdate": string;
+    /**
+     * Avatar decorations
+     */
+    "customAvatarDecoration": string;
     "_aboutVickey": {
         /**
          * Translate Vickey
