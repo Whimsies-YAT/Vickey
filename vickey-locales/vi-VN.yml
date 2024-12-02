@@ -22,6 +22,7 @@ registerReason: "Lý do đăng ký"
 registerHasNotBeenApprovedYet: "Yêu cầu đăng ký vào máy chủ của bạn vẫn chưa được phê duyệt. Vui lòng thử lại sau. Nếu bạn đã cung cấp địa chỉ email trong quá trình đăng ký, bạn sẽ được thông báo qua email khi đăng ký của bạn được phê duyệt."
 registerApprovalEmailRecommended: "Để đảm bảo nhận được thông báo về việc phê duyệt yêu cầu đăng ký tham gia máy chủ, rất mong bạn cung cấp địa chỉ email trong quá trình đăng ký tài khoản."
 HaveSecurityUpdate: "Thực hiện cập nhật bảo mật ngay lập tức!"
+customAvatarDecoration: "Avatar decorations"
 _signup:
   approvalPending: "Tài khoản của bạn đã được tạo và đang chờ phê duyệt."
   reasonInfo: "Vui lòng nhập lý do bạn muốn tham gia máy chủ này."
