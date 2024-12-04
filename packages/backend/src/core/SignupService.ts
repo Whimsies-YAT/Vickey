@@ -118,9 +118,6 @@ export class SignupService {
 			));
 
 		let account!: MiUser;
-		let defaultApproval = false;
-
-		if (!instance.approvalRequiredForSignup) defaultApproval = true;
 
 		// Start transaction
 		await this.db.transaction(async transactionalEntityManager => {
@@ -166,4 +163,3 @@ export class SignupService {
 		return { account, secret };
 	}
 }
-
