@@ -63,20 +63,25 @@ const emits = defineEmits<{
 }>();
 
 async function deleteAccount() {
-	const confirm = await os.confirm({
-		type: 'warning',
-		text: i18n.ts.deleteAccountConfirm,
-	});
-	if (confirm.canceled) return;
-
 	const typed = await os.inputText({
-		text: i18n.t('typeToConfirm', { x: props.user.username }),
+		text: i18n.ts.optionalReason,
+		type: 'text',
+		placeholder: i18n.ts.optionalReason,
 	});
 	if (typed.canceled) return;
 
-	if (typed.result === props.user.username) {
+	const reason = typed.result || '';
+
+	const confirm = await os.inputText({
+		text: i18n.tsx.typeToConfirm({ x: props.user.username }),
+		type: 'text',
+	});
+	if (confirm.canceled) return;
+
+	if (confirm.result === props.user.username) {
 		await os.apiWithDialog('admin/decline-user', {
 			userId: props.user.id,
+			reason: reason,
 		});
 		emits('deleted', props.user.id);
 	} else {

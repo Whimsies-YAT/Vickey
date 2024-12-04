@@ -22,6 +22,7 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		userId: { type: 'string', format: 'misskey:id' },
+		reason: { type: 'string', nullable: true },
 	},
 	required: ['userId'],
 } as const;
@@ -59,11 +60,21 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			const profile = await this.userProfilesRepository.findOneBy({ userId: ps.userId });
 
+			const reason = ps.reason?.trim();
+
 			if (profile?.email) {
-				this.emailService.sendEmail(profile.email, 'Account Declined',
-					'Your Account has been declined!',
-					'Your Account has been declined!');
+				if (!reason) {
+					await this.emailService.sendEmail(profile.email, 'Account Declined',
+						'Your Account has been declined!',
+						'Your Account has been declined!');
+				} else {
+					await this.emailService.sendEmail(profile.email, 'Account Declined',
+						`Your account has been declined due to: ${reason}`,
+						`Your account has been declined due to: ${reason}`);
+				}
 			}
+
+			const log_reason = reason ? reason : 'Reason not provided';
 
 			await this.usedUsernamesRepository.delete({ username: user.username });
 			await this.deleteAccountService.deleteAccount(user);
@@ -72,6 +83,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				userId: user.id,
 				userUsername: user.username,
 				userHost: user.host,
+				reason: log_reason,
 			});
 		});
 	}
