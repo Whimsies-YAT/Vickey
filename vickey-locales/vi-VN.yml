@@ -23,11 +23,13 @@ registerHasNotBeenApprovedYet: "Yêu cầu đăng ký vào máy chủ của bạ
 registerApprovalEmailRecommended: "Để đảm bảo nhận được thông báo về việc phê duyệt yêu cầu đăng ký tham gia máy chủ, rất mong bạn cung cấp địa chỉ email trong quá trình đăng ký tài khoản."
 HaveSecurityUpdate: "Thực hiện cập nhật bảo mật ngay lập tức!"
 customAvatarDecoration: "Avatar decorations"
+optionalReason: "Reason for Decline (Optional)"
 _signup:
   approvalPending: "Tài khoản của bạn đã được tạo và đang chờ phê duyệt."
   reasonInfo: "Vui lòng nhập lý do bạn muốn tham gia máy chủ này."
 _moderationLogTypes:
   approve: "Đã phê duyệt"
+  decline: "Declined"
 _aboutVickey:
   translation: "Dịch Vickey"
   donate: "Quyên góp cho Vickey"
