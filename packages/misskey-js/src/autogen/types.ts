@@ -9625,6 +9625,7 @@ export type operations = {
         'application/json': {
           /** Format: misskey:id */
           userId: string;
+          reason?: string | null;
         };
       };
     };

@@ -10058,6 +10058,10 @@ export interface Locale extends ILocale {
          * Approved
          */
         "approve": string;
+				/**
+			   * Declined
+			   */
+			  "decline": string;
     };
     "_fileViewer": {
         /**
@@ -10713,6 +10717,10 @@ export interface Locale extends ILocale {
      * Avatar decorations
      */
     "customAvatarDecoration": string;
+    /**
+     * Reason for Decline (Optional)
+     */
+    "optionalReason": string;
     "_aboutVickey": {
         /**
          * Translate Vickey
