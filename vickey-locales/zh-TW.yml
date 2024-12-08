@@ -31,6 +31,7 @@ _moderationLogTypes:
   approve: "Approved"
   decline: "Declined"
 _aboutVickey:
+  about: "Vickey is a soft fork of Misskey."
   translation: "Translate Vickey"
   donate: "Donate to Vickey"
 _serverSettings:
