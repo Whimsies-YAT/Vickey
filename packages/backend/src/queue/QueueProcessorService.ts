@@ -48,6 +48,7 @@ import { AggregateRetentionProcessorService } from './processors/AggregateRetent
 import { QueueLoggerService } from './QueueLoggerService.js';
 import { CheckSecurityReleaseProcessorService } from "./processors/CheckSecurityReleaseProcessorService.js";
 import { DefaultSecCheckSecurityReleaseProcessorService } from "@/queue/processors/DefaultSecCheckSecurityReleaseProcessorService.js";
+import { CleanExpiredPendingsProcessorService } from './processors/CleanExpiredPendingsProcessorService.js';
 import { QUEUE, baseQueueOptions } from './const.js';
 
 // ref. https://github.com/misskey-dev/misskey/pull/7635#issue-971097019
@@ -131,6 +132,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		private cleanProcessorService: CleanProcessorService,
 		private checkSecurityReleaseProcessorService: CheckSecurityReleaseProcessorService,
 		private defaultSecCheckSecurityReleaseProcessorService: DefaultSecCheckSecurityReleaseProcessorService,
+		private cleanExpiredPendingsProcessorService: CleanExpiredPendingsProcessorService,
 	) {
 		this.logger = this.queueLoggerService.logger;
 
@@ -174,6 +176,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 					case 'clean': return this.cleanProcessorService.process();
 					case 'checkSec': return this.checkSecurityReleaseProcessorService.process();
 					case 'defaultSec': return this.defaultSecCheckSecurityReleaseProcessorService.process();
+					case 'cleanExpired': return this.cleanExpiredPendingsProcessorService.process();
 					default: throw new Error(`unrecognized job type ${job.name} for system`);
 				}
 			};

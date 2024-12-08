@@ -45,6 +45,7 @@ import { ExportFavoritesProcessorService } from './processors/ExportFavoritesPro
 import { RelationshipProcessorService } from './processors/RelationshipProcessorService.js';
 import { CheckSecurityReleaseProcessorService } from "@/queue/processors/CheckSecurityReleaseProcessorService.js";
 import { DefaultSecCheckSecurityReleaseProcessorService } from "@/queue/processors/DefaultSecCheckSecurityReleaseProcessorService.js";
+import { CleanExpiredPendingsProcessorService } from './processors/CleanExpiredPendingsProcessorService.js';
 
 @Module({
 	imports: [
@@ -92,6 +93,7 @@ import { DefaultSecCheckSecurityReleaseProcessorService } from "@/queue/processo
 		QueueProcessorService,
 		CheckSecurityReleaseProcessorService,
 		DefaultSecCheckSecurityReleaseProcessorService,
+		CleanExpiredPendingsProcessorService,
 	],
 	exports: [
 		QueueProcessorService,

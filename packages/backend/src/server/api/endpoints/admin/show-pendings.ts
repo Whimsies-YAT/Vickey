@@ -4,7 +4,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import type { UserPendingsRepository } from '@/models/_.js';
+import type { UserPendingsRepository, MiMeta } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
 import { IdService } from '@/core/IdService.js';
@@ -41,6 +41,9 @@ export const paramDef = {
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
 	constructor(
+		@Inject(DI.meta)
+		private Mmeta: MiMeta,
+
 		@Inject(DI.userPendingsRepository)
 		private userPendingsRepository: UserPendingsRepository,
 
@@ -60,7 +63,15 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			const users = await query.getMany();
 
-			return users.map(user => ({
+			let FinalUsers = users;
+
+			if (this.Mmeta.emailRequiredForSignup) {
+				FinalUsers = users.filter(user => {
+					return user.email && user.emailVerified;
+				});
+			}
+
+			return FinalUsers.map(user => ({
 				id: user.id,
 				username: user.username,
 				createdAt: this.idService.parse(user.id).date.toISOString(),
