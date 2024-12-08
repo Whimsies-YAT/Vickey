@@ -180,36 +180,37 @@ export class SignupApiService {
 			}
 		}
 
-		if (this.meta.emailRequiredForSignup) {
-			if (await this.usersRepository.exists({ where: { usernameLower: username.toLowerCase(), host: IsNull() } })) {
-				throw new FastifyReplyError(400, 'DUPLICATED_USERNAME');
-			}
+		if (await this.usersRepository.exists({ where: { usernameLower: username.toLowerCase(), host: IsNull() } })) {
+			throw new FastifyReplyError(400, 'DUPLICATED_USERNAME');
+		}
 
-			// Check deleted username duplication
-			if (await this.usedUsernamesRepository.exists({ where: { username: username.toLowerCase() } })) {
-				throw new FastifyReplyError(400, 'USED_USERNAME');
-			}
+		// Check deleted username duplication
+		if (await this.usedUsernamesRepository.exists({ where: { username: username.toLowerCase() } })) {
+			throw new FastifyReplyError(400, 'USED_USERNAME');
+		}
 
-			const isPreserved = this.meta.preservedUsernames.map(x => x.toLowerCase()).includes(username.toLowerCase());
-			if (isPreserved) {
-				throw new FastifyReplyError(400, 'DENIED_USERNAME');
-			}
+		const isPreserved = this.meta.preservedUsernames.map(x => x.toLowerCase()).includes(username.toLowerCase());
+		if (isPreserved) {
+			throw new FastifyReplyError(400, 'DENIED_USERNAME');
+		}
 
-			const code = secureRndstr(16, { chars: L_CHARS });
 
-			// Generate hash of password
-			const salt = await bcrypt.genSalt(8);
-			const hash = await bcrypt.hash(password, salt);
+		const code = secureRndstr(16, { chars: L_CHARS });
 
-			const pendingUser = await this.userPendingsRepository.insertOne({
-				id: this.idService.gen(),
-				code,
-				email: emailAddress!,
-				username: username,
-				password: hash,
-				reason: reason,
-			});
+		// Generate hash of password
+		const salt = await bcrypt.genSalt(8);
+		const hash = await bcrypt.hash(password, salt);
 
+		const pendingUser = await this.userPendingsRepository.insertOne({
+			id: this.idService.gen(),
+			code,
+			email: emailAddress,
+			username: username,
+			password: hash,
+			reason: reason,
+		});
+
+		if (this.meta.emailRequiredForSignup && pendingUser.email) {
 			const link = `${this.config.url}/signup-complete/${code}`;
 
 			this.emailService.sendEmail(emailAddress!, 'Signup',
@@ -226,10 +227,6 @@ export class SignupApiService {
 			reply.code(204);
 			return;
 		} else if (this.meta.approvalRequiredForSignup) {
-			const { account } = await this.signupService.signup({
-				username, password, host, reason,
-			});
-
 			if (emailAddress) {
 				this.emailService.sendEmail(emailAddress, 'Approval pending',
 					'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.',
@@ -239,8 +236,7 @@ export class SignupApiService {
 			if (ticket) {
 				await this.registrationTicketsRepository.update(ticket.id, {
 					usedAt: new Date(),
-					usedBy: account,
-					usedById: account.id,
+					pendingUserId: pendingUser.id,
 				});
 			}
 
@@ -251,8 +247,8 @@ export class SignupApiService {
 
 				if (profile?.email) {
 					this.emailService.sendEmail(profile.email, 'New user awaiting approval',
-						`A new user called ${account.username} is awaiting approval with the following reason: "${reason}"`,
-						`A new user called ${account.username} is awaiting approval with the following reason: "${reason}"`);
+						`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${reason}"`,
+						`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${reason}"`);
 				}
 			}
 
@@ -296,14 +292,52 @@ export class SignupApiService {
 		try {
 			const pendingUser = await this.userPendingsRepository.findOneByOrFail({ code });
 
-			if (this.idService.parse(pendingUser.id).date.getTime() + (1000 * 60 * 30) < Date.now()) {
+			if (this.idService.parse(pendingUser.id).date.getTime() + (1000 * 60 * 30) < Date.now() && !pendingUser.emailVerified) {
+				try {
+					this.userPendingsRepository.delete({
+						id: pendingUser.id,
+					});
+				} catch (e) {
+					throw new FastifyReplyError(400, 'DATA ERROR');
+				}
 				throw new FastifyReplyError(400, 'EXPIRED');
+			}
+
+			if (this.meta.approvalRequiredForSignup) {
+				try {
+					await this.userPendingsRepository.update({ code: code }, {
+						emailVerified: true,
+					});
+				} catch (e) {
+					throw new FastifyReplyError(400, 'EXPIRED');
+				}
+
+				if (pendingUser.email) {
+					await this.emailService.sendEmail(pendingUser.email, 'Approval pending',
+						'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.',
+						'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.');
+				}
+
+				const moderators = await this.roleService.getModerators();
+
+				for (const moderator of moderators) {
+					const profile = await this.userProfilesRepository.findOneBy({ userId: moderator.id });
+
+					if (profile?.email) {
+						await this.emailService.sendEmail(profile.email, 'New user awaiting approval',
+							`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`,
+							`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`);
+					}
+				}
+
+				return { pendingApproval: true };
 			}
 
 			const { account, secret } = await this.signupService.signup({
 				username: pendingUser.username,
 				passwordHash: pendingUser.password,
 				reason: pendingUser.reason,
+				approved: true,
 			});
 
 			this.userPendingsRepository.delete({
@@ -325,28 +359,6 @@ export class SignupApiService {
 					usedById: account.id,
 					pendingUserId: null,
 				});
-			}
-
-			if (this.meta.approvalRequiredForSignup) {
-				if (pendingUser.email) {
-					this.emailService.sendEmail(pendingUser.email, 'Approval pending',
-						'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.',
-						'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.');
-				}
-
-				const moderators = await this.roleService.getModerators();
-
-				for (const moderator of moderators) {
-					const profile = await this.userProfilesRepository.findOneBy({ userId: moderator.id });
-
-					if (profile?.email) {
-						this.emailService.sendEmail(profile.email, 'New user awaiting approval',
-							`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${pendingUser.reason}"`,
-							`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${pendingUser.reason}"`);
-					}
-				}
-
-				return { pendingApproval: true };
 			}
 
 			return this.signinService.signin(request, reply, account as MiLocalUser);

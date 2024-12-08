@@ -631,6 +631,24 @@ export type paths = {
      */
     post: operations['admin___show-moderation-logs'];
   };
+  '/admin/show-pending': {
+    /**
+     * admin/show-pending
+     * @description No description provided.
+     *
+     * **Credential required**: *Yes* / **Permission**: *read:admin:show-pendings*
+     */
+    post: operations['admin___show-pending'];
+  };
+  '/admin/show-pendings': {
+    /**
+     * admin/show-pendings
+     * @description No description provided.
+     *
+     * **Credential required**: *Yes* / **Permission**: *read:admin:show-pending*
+     */
+    post: operations['admin___show-pendings'];
+  };
   '/admin/show-user': {
     /**
      * admin/show-user
@@ -663,7 +681,7 @@ export type paths = {
      * admin/approve-user
      * @description No description provided.
      *
-     * **Credential required**: *Yes* / **Permission**: *write:admin:approve-account*
+     * **Credential required**: *Yes* / **Permission**: *write:admin:approve-user*
      */
     post: operations['admin___approve-user'];
   };
@@ -9225,6 +9243,120 @@ export type operations = {
     };
   };
   /**
+   * admin/show-pending
+   * @description No description provided.
+   *
+   * **Credential required**: *Yes* / **Permission**: *read:admin:show-pendings*
+   */
+  'admin___show-pending': {
+    requestBody: {
+      content: {
+        'application/json': {
+          /** Format: misskey:id */
+          id: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (with results) */
+      200: {
+        content: {
+          'application/json': {
+            email: string | null;
+          };
+        };
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * admin/show-pendings
+   * @description No description provided.
+   *
+   * **Credential required**: *Yes* / **Permission**: *read:admin:show-pending*
+   */
+  'admin___show-pendings': {
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @default 10 */
+          limit?: number;
+          /** @default 0 */
+          offset?: number;
+          /** @enum {string} */
+          sort?: '+createdAt' | '-createdAt';
+        };
+      };
+    };
+    responses: {
+      /** @description OK (with results) */
+      200: {
+        content: {
+          'application/json': components['schemas']['UserDetailed'][];
+        };
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
    * admin/show-user
    * @description No description provided.
    *
@@ -9565,7 +9697,7 @@ export type operations = {
    * admin/approve-user
    * @description No description provided.
    *
-   * **Credential required**: *Yes* / **Permission**: *write:admin:approve-account*
+   * **Credential required**: *Yes* / **Permission**: *write:admin:approve-user*
    */
   'admin___approve-user': {
     requestBody: {
@@ -23541,7 +23673,7 @@ export type operations = {
       /** @description OK (with results) */
       200: {
         content: {
-          'application/json': string;
+          'application/json': Record<string, never>;
         };
       };
       /** @description OK (without any results) */

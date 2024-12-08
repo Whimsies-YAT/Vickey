@@ -10058,10 +10058,10 @@ export interface Locale extends ILocale {
          * Approved
          */
         "approve": string;
-				/**
-			   * Declined
-			   */
-			  "decline": string;
+        /**
+         * Declined
+         */
+        "decline": string;
     };
     "_fileViewer": {
         /**

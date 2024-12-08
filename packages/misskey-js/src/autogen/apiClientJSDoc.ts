@@ -761,6 +761,28 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
+     * **Credential required**: *Yes* / **Permission**: *read:admin:show-pendings*
+     */
+    request<E extends 'admin/show-pending', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *read:admin:show-pending*
+     */
+    request<E extends 'admin/show-pendings', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
      * **Credential required**: *Yes* / **Permission**: *read:admin:show-user*
      */
     request<E extends 'admin/show-user', P extends Endpoints[E]['req']>(
@@ -794,7 +816,7 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
-     * **Credential required**: *Yes* / **Permission**: *write:admin:approve-account*
+     * **Credential required**: *Yes* / **Permission**: *write:admin:approve-user*
      */
     request<E extends 'admin/approve-user', P extends Endpoints[E]['req']>(
       endpoint: E,

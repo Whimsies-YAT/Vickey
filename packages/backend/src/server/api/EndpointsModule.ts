@@ -74,6 +74,8 @@ import * as ep___admin_updateAbuseUserReport from './endpoints/admin/update-abus
 import * as ep___admin_sendEmail from './endpoints/admin/send-email.js';
 import * as ep___admin_serverInfo from './endpoints/admin/server-info.js';
 import * as ep___admin_showModerationLogs from './endpoints/admin/show-moderation-logs.js';
+import * as ep___admin_showPending from './endpoints/admin/show-pending.js';
+import * as ep___admin_showPendings from './endpoints/admin/show-pendings.js';
 import * as ep___admin_showUser from './endpoints/admin/show-user.js';
 import * as ep___admin_showUsers from './endpoints/admin/show-users.js';
 import * as ep___admin_suspendUser from './endpoints/admin/suspend-user.js';
@@ -469,6 +471,8 @@ const $admin_updateAbuseUserReport: Provider = { provide: 'ep:admin/update-abuse
 const $admin_sendEmail: Provider = { provide: 'ep:admin/send-email', useClass: ep___admin_sendEmail.default };
 const $admin_serverInfo: Provider = { provide: 'ep:admin/server-info', useClass: ep___admin_serverInfo.default };
 const $admin_showModerationLogs: Provider = { provide: 'ep:admin/show-moderation-logs', useClass: ep___admin_showModerationLogs.default };
+const $admin_showPending: Provider = { provide: 'ep:admin/show-pending', useClass: ep___admin_showPending.default };
+const $admin_showPendings: Provider = { provide: 'ep:admin/show-pendings', useClass: ep___admin_showPendings.default };
 const $admin_showUser: Provider = { provide: 'ep:admin/show-user', useClass: ep___admin_showUser.default };
 const $admin_showUsers: Provider = { provide: 'ep:admin/show-users', useClass: ep___admin_showUsers.default };
 const $admin_suspendUser: Provider = { provide: 'ep:admin/suspend-user', useClass: ep___admin_suspendUser.default };
@@ -868,6 +872,8 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_sendEmail,
 		$admin_serverInfo,
 		$admin_showModerationLogs,
+		$admin_showPending,
+		$admin_showPendings,
 		$admin_showUser,
 		$admin_showUsers,
 		$admin_suspendUser,
@@ -1261,6 +1267,8 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_sendEmail,
 		$admin_serverInfo,
 		$admin_showModerationLogs,
+		$admin_showPending,
+		$admin_showPendings,
 		$admin_showUser,
 		$admin_showUsers,
 		$admin_suspendUser,
