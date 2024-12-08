@@ -23,12 +23,15 @@ registerHasNotBeenApprovedYet: "Your registration for the server has not yet bee
 registerApprovalEmailRecommended: "To ensure notifications are sent regarding the approval of server registrations, it is strongly recommended to require an email address during account registration."
 HaveSecurityUpdate: "Perform a security update immediately!"
 customAvatarDecoration: "Avatar decorations"
+optionalReason: "Reason for Decline (Optional)"
 _signup:
   approvalPending: "Your account has been created and is now pending approval."
   reasonInfo: "Please enter the reason you wish to join this server."
 _moderationLogTypes:
   approve: "Approved"
+  decline: "Declined"
 _aboutVickey:
+  about: "Vickey is a soft fork of Misskey."
   translation: "Translate Vickey"
   donate: "Donate to Vickey"
 _serverSettings:
