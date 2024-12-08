@@ -117,6 +117,11 @@ export class QueueService {
 			repeat: { pattern: '*/10 * * * *' },
 			removeOnComplete: true,
 		});
+		this.systemQueue.add('cleanExpired', {
+		}, {
+			repeat: { pattern: '0 */6 * * *' },
+			removeOnComplete: true,
+		});
 	}
 
 	@bindThis
