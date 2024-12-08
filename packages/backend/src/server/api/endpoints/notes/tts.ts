@@ -20,7 +20,7 @@ export const meta = {
 	kind: 'read:account',
 
 	res: {
-		type: 'string',
+		type: 'object',
 		optional: true, nullable: false,
 		contentMediaType: 'audio/flac',
 	},
@@ -66,7 +66,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private httpRequestService: HttpRequestService,
 		private roleService: RoleService,
 	) {
-		// @ts-expect-error: Functionality can be implemented here with minimal modifications.
+		// @ts-expect-error: to be resolved in the future.
 		super(meta, paramDef, async (ps, me) => {
 			const policies = await this.roleService.getUserPolicies(me.id);
 			if (!policies.canUseTTS) {
@@ -122,14 +122,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 				try {
 					result = await app.predict("/get_tts_wav", [
-						exampleAudio,		
-						instance.hfexampleText,	
-						instance.hfexampleLang,		
+						exampleAudio,
+						instance.hfexampleText,
+						instance.hfexampleLang,
 						note.text,
 						"Multilingual Mixed",
-						instance.hfslice,	
+						instance.hfslice,
 						instance.hftopK,
-						instance.hftopP / 100,	
+						instance.hftopP / 100,
 						instance.hfTemperature / 100,
 						instance.hfnrm,
 						instance.hfSpeedRate / 100,
@@ -193,5 +193,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				}
 			}
 		});
+		return;
 	}
 }

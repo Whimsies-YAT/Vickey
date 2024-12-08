@@ -48,8 +48,8 @@ const reason = ref('');
 const email = ref('');
 
 function getReason() {
-	return misskeyApi('admin/show-user', {
-		userId: props.user.id,
+	return misskeyApi('admin/show-pending', {
+		id: props.user.id,
 	}).then(info => {
 		reason.value = info.signupReason;
 		email.value = info.email;

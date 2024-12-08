@@ -77,6 +77,8 @@ export const permissions = [
 	'write:admin:send-email',
 	'read:admin:server-info',
 	'read:admin:show-moderation-log',
+	'read:admin:show-pending',
+	'read:admin:show-pendings',
 	'read:admin:show-user',
 	'write:admin:suspend-user',
 	'write:admin:unset-user-avatar',

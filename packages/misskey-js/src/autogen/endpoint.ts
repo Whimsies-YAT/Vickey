@@ -91,6 +91,10 @@ import type {
 	AdminServerInfoResponse,
 	AdminShowModerationLogsRequest,
 	AdminShowModerationLogsResponse,
+	AdminShowPendingRequest,
+	AdminShowPendingResponse,
+	AdminShowPendingsRequest,
+	AdminShowPendingsResponse,
 	AdminShowUserRequest,
 	AdminShowUserResponse,
 	AdminShowUsersRequest,
@@ -657,6 +661,8 @@ export type Endpoints = {
 	'admin/send-email': { req: AdminSendEmailRequest; res: EmptyResponse };
 	'admin/server-info': { req: EmptyRequest; res: AdminServerInfoResponse };
 	'admin/show-moderation-logs': { req: AdminShowModerationLogsRequest; res: AdminShowModerationLogsResponse };
+	'admin/show-pending': { req: AdminShowPendingRequest; res: AdminShowPendingResponse };
+	'admin/show-pendings': { req: AdminShowPendingsRequest; res: AdminShowPendingsResponse };
 	'admin/show-user': { req: AdminShowUserRequest; res: AdminShowUserResponse };
 	'admin/show-users': { req: AdminShowUsersRequest; res: AdminShowUsersResponse };
 	'admin/suspend-user': { req: AdminSuspendUserRequest; res: EmptyResponse };

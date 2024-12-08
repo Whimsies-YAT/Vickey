@@ -10058,10 +10058,10 @@ export interface Locale extends ILocale {
          * Approved
          */
         "approve": string;
-				/**
-			   * Declined
-			   */
-			  "decline": string;
+        /**
+         * Declined
+         */
+        "decline": string;
     };
     "_fileViewer": {
         /**
@@ -10722,6 +10722,10 @@ export interface Locale extends ILocale {
      */
     "optionalReason": string;
     "_aboutVickey": {
+        /**
+         * Vickey is a soft fork of Misskey.
+         */
+        "about": string;
         /**
          * Translate Vickey
          */
