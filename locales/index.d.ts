@@ -10722,10 +10722,10 @@ export interface Locale extends ILocale {
      */
     "optionalReason": string;
     "_aboutVickey": {
-			  /**
-		  	 * About
-			   */
-				"about": string;
+        /**
+         * Vickey is a soft fork of Misskey.
+         */
+        "about": string;
         /**
          * Translate Vickey
          */

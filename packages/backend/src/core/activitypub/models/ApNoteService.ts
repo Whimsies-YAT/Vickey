@@ -159,9 +159,7 @@ export class ApNoteService {
 				throw new Error('unexpected schema of note url: ' + url);
 			}
 
-			const allowedHosts = ['www.threads.net', 'threads.net'];
-
-			if (this.utilityService.punyHost(url) !== this.utilityService.punyHost(note.id) && !allowedHosts.includes(this.utilityService.punyHost(url))) {
+			if (this.utilityService.punyHost(url) !== this.utilityService.punyHost(note.id)) {
 				throw new Error(`note url & uri host mismatch: note url: ${url}, note uri: ${note.id}`);
 			}
 		}
