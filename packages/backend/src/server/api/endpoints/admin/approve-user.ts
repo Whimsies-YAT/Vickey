@@ -16,6 +16,7 @@ export const meta = {
 	requireCredential: true,
 	requireModerator: true,
 	kind: 'write:admin:approve-user',
+	secure: true,
 } as const;
 
 export const paramDef = {
@@ -60,7 +61,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			const profile = await this.userProfilesRepository.findOneBy({ userId: account.id });
 			if (pendingUser.email && pendingUser.emailVerified) {
-				await this.userProfilesRepository.update({userId: profile?.userId}, {
+				await this.userProfilesRepository.update({ userId: profile?.userId }, {
 					email: pendingUser.email,
 					emailVerified: true,
 					emailVerifyCode: null,

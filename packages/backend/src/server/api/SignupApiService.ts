@@ -194,7 +194,6 @@ export class SignupApiService {
 			throw new FastifyReplyError(400, 'DENIED_USERNAME');
 		}
 
-
 		const code = secureRndstr(16, { chars: L_CHARS });
 
 		// Generate hash of password

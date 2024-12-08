@@ -66,7 +66,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private httpRequestService: HttpRequestService,
 		private roleService: RoleService,
 	) {
-		// @ts-ignore
+		// @ts-expect-error
 		super(meta, paramDef, async (ps, me) => {
 			const policies = await this.roleService.getUserPolicies(me.id);
 			if (!policies.canUseTTS) {
