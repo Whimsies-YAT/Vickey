@@ -31,6 +31,7 @@ _moderationLogTypes:
   approve: "Đã phê duyệt"
   decline: "Declined"
 _aboutVickey:
+  about: "Vickey is a soft fork of Misskey."
   translation: "Dịch Vickey"
   donate: "Quyên góp cho Vickey"
 _serverSettings:
