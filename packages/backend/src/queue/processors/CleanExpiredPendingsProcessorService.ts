@@ -43,7 +43,7 @@ export class CleanExpiredPendingsProcessorService {
 		}
 
 		for (const pending of CheckData) {
-			if (this.idService.parse(pending.id).date.getTime() + (1000 * 60 * 30) < Date.now()) {
+			if (pending.email && this.idService.parse(pending.id).date.getTime() + (1000 * 60 * 30) < Date.now()) {
 				try {
 					this.logger.info(`Deleting ${ pending.id }...`);
 					await this.userPendingsRepository.delete({
