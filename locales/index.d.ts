@@ -10722,6 +10722,10 @@ export interface Locale extends ILocale {
      */
     "optionalReason": string;
     "_aboutVickey": {
+			  /**
+		  	 * About
+			   */
+				"about": string;
         /**
          * Translate Vickey
          */
