@@ -77,9 +77,10 @@ misskeyApi('admin/abuse-user-reports', {
 	if (reports.length > 0) thereIsUnresolvedAbuseReport.value = true;
 });
 
-misskeyApi('admin/show-users', {
-	state: 'approved',
-	origin: 'local',
+misskeyApi('admin/show-pendings', {
+	params: computed(() => ({
+		sort: '+createdAt',
+	})),
 	limit: 1,
 }).then(approvals => {
 	if (approvals.length > 0) pendingUserApprovals.value = true;
