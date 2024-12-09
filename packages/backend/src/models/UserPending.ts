@@ -24,6 +24,7 @@ export class MiUserPending {
 
 	@Column('varchar', {
 		length: 128,
+		nullable: true,
 	})
 	public email: string;
 
@@ -36,4 +37,9 @@ export class MiUserPending {
 		length: 1000,
 	})
 	public reason: string;
+
+	@Column('varchar', {
+		default: false,
+	})
+	public emailVerified: boolean;
 }

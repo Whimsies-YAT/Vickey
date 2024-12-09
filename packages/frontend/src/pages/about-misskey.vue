@@ -24,6 +24,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div style="text-align: center;">
 					{{ i18n.ts._aboutMisskey.about }}<br><a href="https://misskey-hub.net/docs/about-misskey/" target="_blank" class="_link">{{ i18n.ts.learnMore }}</a>
 				</div>
+				<div style="text-align: center;">
+					{{ i18n.ts._aboutVickey.about }}
+				</div>
 				<div v-if="$i != null" style="text-align: center;">
 					<MkButton primary rounded inline @click="iLoveMisskey">I <Mfm text="$[jelly ❤]"/> #Misskey</MkButton>
 				</div>
@@ -39,6 +42,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 							{{ i18n.ts._aboutMisskey.translation }}
 							<template #suffix>Crowdin</template>
 						</FormLink>
+						<FormLink to="https://crowdin.com/project/vickey" external>
+							<template #icon><i class="ti ti-language-hiragana"></i></template>
+							{{ i18n.ts._aboutVickey.translation }}
+							<template #suffix>Crowdin</template>
+						</FormLink>
 						<FormLink to="https://www.patreon.com/syuilo" external>
 							<template #icon><i class="ti ti-pig-money"></i></template>
 							{{ i18n.ts._aboutMisskey.donate }}
@@ -46,8 +54,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</FormLink>
 						<FormLink to="https://www.patreon.com/yateam" external>
 							<template #icon><i class="ti ti-pig-money"></i></template>
-							Support Hashi
-							<template #suffix>Hashi Patreon</template>
+							{{ i18n.ts._aboutVickey.donate }}
+							<template #suffix>Vickey Patreon</template>
 						</FormLink>
 					</div>
 				</FormSection>

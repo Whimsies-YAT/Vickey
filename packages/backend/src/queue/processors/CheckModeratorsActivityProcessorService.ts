@@ -45,15 +45,15 @@ function generateModeratorInactivityMail(remainingTime: ModeratorInactivityRemai
 	const message = [
 		'To Moderators,',
 		'',
-		`A moderator has been inactive for a period of time. If there are ${timeVariant} of inactivity left, it will switch to invitation only.`,
-		'If you do not wish to move to invitation only, you must log into Misskey and update your last active date and time.',
+		`A moderator has been inactive for a period of time. If there are ${timeVariant} of inactivity left, it will switch to approval only.`,
+		'If you do not wish to move to approval only, you must log into Misskey and update your last active date and time.',
 		'',
 		'---------------',
 		'',
 		'To モデレーター各位',
 		'',
-		`モデレーターが一定期間活動していないようです。あと${timeVariantJa}活動していない状態が続くと招待制に切り替わります。`,
-		'招待制に切り替わることを望まない場合は、Misskeyにログインして最終アクティブ日時を更新してください。',
+		`モデレーターが一定期間活動していないようです。あと${timeVariantJa}活動していない状態が続くと承認制に切り替わります。`,
+		'承認制に切り替わることを望まない場合は、Misskeyにログインして最終アクティブ日時を更新してください。',
 		'',
 	];
 
@@ -68,20 +68,20 @@ function generateModeratorInactivityMail(remainingTime: ModeratorInactivityRemai
 }
 
 function generateInvitationOnlyChangedMail() {
-	const subject = 'Change to Invitation-Only / 招待制に変更されました';
+	const subject = 'Change to Approval-Only / 承認制に変更されました';
 
 	const message = [
 		'To Moderators,',
 		'',
-		`Changed to invitation only because no moderator activity was detected for ${MODERATOR_INACTIVITY_LIMIT_DAYS} days.`,
-		'To cancel the invitation only, you need to access the control panel.',
+		`Changed to approval only because no moderator activity was detected for ${MODERATOR_INACTIVITY_LIMIT_DAYS} days.`,
+		'To cancel the approval only, you need to access the control panel.',
 		'',
 		'---------------',
 		'',
 		'To モデレーター各位',
 		'',
-		`モデレーターの活動が${MODERATOR_INACTIVITY_LIMIT_DAYS}日間検出されなかったため、招待制に変更されました。`,
-		'招待制を解除するには、コントロールパネルにアクセスする必要があります。',
+		`モデレーターの活動が${MODERATOR_INACTIVITY_LIMIT_DAYS}日間検出されなかったため、承認制に変更されました。`,
+		'承認制を解除するには、コントロールパネルにアクセスする必要があります。',
 		'',
 	];
 
@@ -117,10 +117,10 @@ export class CheckModeratorsActivityProcessorService {
 		this.logger.info('start.');
 
 		const meta = await this.metaService.fetch(false);
-		if (!meta.disableRegistration) {
+		if (!meta.approvalRequiredForSignup) {
 			await this.processImpl();
 		} else {
-			this.logger.info('is already invitation only.');
+			this.logger.info('is already approval only.');
 		}
 
 		this.logger.succ('finish.');
@@ -130,7 +130,7 @@ export class CheckModeratorsActivityProcessorService {
 	private async processImpl() {
 		const evaluateResult = await this.evaluateModeratorsInactiveDays();
 		if (evaluateResult.isModeratorsInactive) {
-			this.logger.warn(`The moderator has been inactive for ${MODERATOR_INACTIVITY_LIMIT_DAYS} days. We will move to invitation only.`);
+			this.logger.warn(`The moderator has been inactive for ${MODERATOR_INACTIVITY_LIMIT_DAYS} days. We will move to approval only.`);
 
 			await this.changeToInvitationOnly();
 			await this.notifyChangeToInvitationOnly();
@@ -138,7 +138,7 @@ export class CheckModeratorsActivityProcessorService {
 			const remainingTime = evaluateResult.remainingTime;
 			if (remainingTime.asDays <= MODERATOR_INACTIVITY_WARNING_REMAINING_DAYS) {
 				const timeVariant = remainingTime.asDays === 0 ? `${remainingTime.asHours} hours` : `${remainingTime.asDays} days`;
-				this.logger.warn(`A moderator has been inactive for a period of time. If you are inactive for an additional ${timeVariant}, it will switch to invitation only.`);
+				this.logger.warn(`A moderator has been inactive for a period of time. If you are inactive for an additional ${timeVariant}, it will switch to approval only.`);
 
 				if (remainingTime.asHours % MODERATOR_INACTIVITY_WARNING_NOTIFY_INTERVAL_HOURS === 0) {
 					// ジョブの実行頻度と同等だと通知が多すぎるため期限から6時間ごとに通知する
@@ -209,7 +209,8 @@ export class CheckModeratorsActivityProcessorService {
 
 	@bindThis
 	private async changeToInvitationOnly() {
-		await this.metaService.update({ disableRegistration: true });
+		// await this.metaService.update({ disableRegistration: true });
+		await this.metaService.update({ approvalRequiredForSignup: true });
 	}
 
 	@bindThis

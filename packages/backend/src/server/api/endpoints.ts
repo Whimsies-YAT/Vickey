@@ -31,6 +31,7 @@ import * as ep___admin_announcements_list from './endpoints/admin/announcements/
 import * as ep___admin_announcements_update from './endpoints/admin/announcements/update.js';
 import * as ep___admin_avatarDecorations_create from './endpoints/admin/avatar-decorations/create.js';
 import * as ep___admin_avatarDecorations_delete from './endpoints/admin/avatar-decorations/delete.js';
+import * as ep___admin_avatarDecorations_importZip from './endpoints/admin/avatar-decorations/import-zip.js';
 import * as ep___admin_avatarDecorations_list from './endpoints/admin/avatar-decorations/list.js';
 import * as ep___admin_avatarDecorations_update from './endpoints/admin/avatar-decorations/update.js';
 import * as ep___admin_deleteAllFilesOfAUser from './endpoints/admin/delete-all-files-of-a-user.js';
@@ -79,10 +80,13 @@ import * as ep___admin_updateAbuseUserReport from './endpoints/admin/update-abus
 import * as ep___admin_sendEmail from './endpoints/admin/send-email.js';
 import * as ep___admin_serverInfo from './endpoints/admin/server-info.js';
 import * as ep___admin_showModerationLogs from './endpoints/admin/show-moderation-logs.js';
+import * as ep___admin_showPending from './endpoints/admin/show-pending.js';
+import * as ep___admin_showPendings from './endpoints/admin/show-pendings.js';
 import * as ep___admin_showUser from './endpoints/admin/show-user.js';
 import * as ep___admin_showUsers from './endpoints/admin/show-users.js';
 import * as ep___admin_suspendUser from './endpoints/admin/suspend-user.js';
 import * as ep___admin_approveUser from './endpoints/admin/approve-user.js';
+import * as ep___admin_declineUser from './endpoints/admin/decline-user.js';
 import * as ep___admin_unsuspendUser from './endpoints/admin/unsuspend-user.js';
 import * as ep___admin_updateMeta from './endpoints/admin/update-meta.js';
 import * as ep___admin_deleteAccount from './endpoints/admin/delete-account.js';
@@ -178,6 +182,7 @@ import * as ep___drive_stream from './endpoints/drive/stream.js';
 import * as ep___emailAddress_available from './endpoints/email-address/available.js';
 import * as ep___endpoint from './endpoints/endpoint.js';
 import * as ep___endpoints from './endpoints/endpoints.js';
+import * as ep___exportCustomAvatarDecoration from './endpoints/export-custom-avatar-decoration.js';
 import * as ep___exportCustomEmojis from './endpoints/export-custom-emojis.js';
 import * as ep___federation_followers from './endpoints/federation/followers.js';
 import * as ep___federation_following from './endpoints/federation/following.js';
@@ -422,6 +427,7 @@ const eps = [
 	['admin/announcements/update', ep___admin_announcements_update],
 	['admin/avatar-decorations/create', ep___admin_avatarDecorations_create],
 	['admin/avatar-decorations/delete', ep___admin_avatarDecorations_delete],
+	['admin/avatar-decorations/import-zip', ep___admin_avatarDecorations_importZip],
 	['admin/avatar-decorations/list', ep___admin_avatarDecorations_list],
 	['admin/avatar-decorations/update', ep___admin_avatarDecorations_update],
 	['admin/delete-all-files-of-a-user', ep___admin_deleteAllFilesOfAUser],
@@ -469,10 +475,13 @@ const eps = [
 	['admin/send-email', ep___admin_sendEmail],
 	['admin/server-info', ep___admin_serverInfo],
 	['admin/show-moderation-logs', ep___admin_showModerationLogs],
+	['admin/show-pending', ep___admin_showPending],
+	['admin/show-pendings', ep___admin_showPendings],
 	['admin/show-user', ep___admin_showUser],
 	['admin/show-users', ep___admin_showUsers],
 	['admin/suspend-user', ep___admin_suspendUser],
 	['admin/approve-user', ep___admin_approveUser],
+	['admin/decline-user', ep___admin_declineUser],
 	['admin/unsuspend-user', ep___admin_unsuspendUser],
 	['admin/update-meta', ep___admin_updateMeta],
 	['admin/delete-account', ep___admin_deleteAccount],
@@ -568,6 +577,7 @@ const eps = [
 	['email-address/available', ep___emailAddress_available],
 	['endpoint', ep___endpoint],
 	['endpoints', ep___endpoints],
+	['export-custom-avatar-decoration', ep___exportCustomAvatarDecoration],
 	['export-custom-emojis', ep___exportCustomEmojis],
 	['federation/followers', ep___federation_followers],
 	['federation/following', ep___federation_following],

@@ -5,7 +5,13 @@
 
 import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
 import * as Redis from 'ioredis';
-import type { AvatarDecorationsRepository, MiAvatarDecoration, MiUser } from '@/models/_.js';
+import type {
+	AvatarDecorationsRepository,
+	MiAvatarDecoration,
+	MiDriveFile,
+	MiRole,
+	MiUser
+} from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { DI } from '@/di-symbols.js';
@@ -51,6 +57,34 @@ export class AvatarDecorationService implements OnApplicationShutdown {
 					break;
 			}
 		}
+	}
+
+	@bindThis
+	public async add(data: {
+		name: string;
+		url: string;
+		description: string | undefined;
+		roleIdsThatCanBeUsedThisDecoration: MiRole['id'][];
+	}, moderator?: MiUser): Promise<MiAvatarDecoration> {
+		const added = await this.avatarDecorationsRepository.insertOne({
+			id: this.idService.gen(),
+			updatedAt: new Date(),
+			name: data.name,
+			url: data.url,
+			description: data.description,
+			roleIdsThatCanBeUsedThisDecoration: data.roleIdsThatCanBeUsedThisDecoration,
+		});
+
+		this.globalEventService.publishInternalEvent('avatarDecorationCreated', added);
+
+		if (moderator) {
+			this.moderationLogService.log(moderator, 'createAvatarDecoration', {
+				avatarDecorationId: added.id,
+				avatarDecoration: added,
+			});
+		}
+
+		return added;
 	}
 
 	@bindThis

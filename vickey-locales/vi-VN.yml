@@ -1,0 +1,41 @@
+_lang_: "Tiếng Việt"
+flagAsVI: "Cần tính năng TTS tự động."
+flagAsVIDescription: "Kích hoạt nếu bạn cần tính năng TTS tự động. Nếu bạn thuộc nhóm người dùng được ủy quyền, tính năng TTS tự động sẽ được kích hoạt trong một phạm vi cụ thể."
+_role:
+  _options:
+    canUseTTS: "Dùng tính năng TTS"
+  _condition:
+    isVI: "Người dùng TTS"
+approvals: "Phê duyệt"
+registerApproveConfirm: "Bạn muốn phê duyệt đăng ký?"
+registerApproveConfirmDescription: "Không thể hoàn tác tác vụ này. Sau khi phê duyệt, một email sẽ được gửi để thông báo cho người dùng rằng yêu cầu đăng ký của họ đã được chấp thuận."
+approvalRequiredForSignup: "Bắt đầu quy trình đăng ký tài khoản theo hình thức chờ phê duyệt"
+signupPendingApprovals: "Các yêu cầu đăng ký tài khoản đang chờ phê duyệt"
+pendingUserApprovals: "Có một số người dùng đang chờ phê duyệt."
+approveAccount: "Phê duyệt"
+denyAccount: "Từ chối và xóa tài khoản"
+approved: "Đã phê duyệt"
+notApproved: "Không được phê duyệt"
+approvalStatus: "Tình trạng phê duyệt"
+approvalRequiredToRegister: "Máy chủ này hiện bắt buộc mọi yêu cầu đăng ký cần được phê duyệt. Vui lòng cung cấp lý do tham gia của bạn, và chỉ những người được phê duyệt mới được phép đăng ký."
+registerReason: "Lý do đăng ký"
+registerHasNotBeenApprovedYet: "Yêu cầu đăng ký vào máy chủ của bạn vẫn chưa được phê duyệt. Vui lòng thử lại sau. Nếu bạn đã cung cấp địa chỉ email trong quá trình đăng ký, bạn sẽ được thông báo qua email khi đăng ký của bạn được phê duyệt."
+registerApprovalEmailRecommended: "Để đảm bảo nhận được thông báo về việc phê duyệt yêu cầu đăng ký tham gia máy chủ, rất mong bạn cung cấp địa chỉ email trong quá trình đăng ký tài khoản."
+HaveSecurityUpdate: "Thực hiện cập nhật bảo mật ngay lập tức!"
+customAvatarDecoration: "Avatar decorations"
+optionalReason: "Reason for Decline (Optional)"
+_signup:
+  approvalPending: "Tài khoản của bạn đã được tạo và đang chờ phê duyệt."
+  reasonInfo: "Vui lòng nhập lý do bạn muốn tham gia máy chủ này."
+_moderationLogTypes:
+  approve: "Đã phê duyệt"
+  decline: "Declined"
+_aboutVickey:
+  about: "Vickey is a soft fork of Misskey."
+  translation: "Dịch Vickey"
+  donate: "Quyên góp cho Vickey"
+_serverSettings:
+  thisSettingWillAutomaticallyOnWhenModeratorsInactive: "Nếu sau một thời gian mà không phát hiện hoạt động nào của người điều hành, cài đặt này sẽ tự động được bật để ngăn chặn spam."
+_webhookSettings:
+  _systemEvents:
+    inactiveModeratorsApprovalOnlyChanged: "Khi một người điều hành đã không hoạt động trong một thời gian, và máy chủ được chuyển sang chế độ bắt buộc phê duyệt"

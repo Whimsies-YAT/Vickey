@@ -18,9 +18,13 @@ import { NotificationEntityService } from '@/core/entities/NotificationEntitySer
 import { IdService } from '@/core/IdService.js';
 import { CacheService } from '@/core/CacheService.js';
 import type { Config } from '@/config.js';
+import { locales } from '@/const.js';
 import { UserListService } from '@/core/UserListService.js';
 import type { FilterUnionByProperty } from '@/types.js';
 import { trackPromise } from '@/misc/promise-tracker.js';
+import { I18n } from "@/misc/i18n.js";
+import type { UserProfilesRepository } from '@/models/_.js';
+import { EmailService } from '@/core/EmailService.js';
 
 @Injectable()
 export class NotificationService implements OnApplicationShutdown {
@@ -36,12 +40,16 @@ export class NotificationService implements OnApplicationShutdown {
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
 
+		@Inject(DI.userProfilesRepository)
+		private userProfilesRepository: UserProfilesRepository,
+
 		private notificationEntityService: NotificationEntityService,
 		private idService: IdService,
 		private globalEventService: GlobalEventService,
 		private pushNotificationService: PushNotificationService,
 		private cacheService: CacheService,
 		private userListService: UserListService,
+		private emailService: EmailService,
 	) {
 	}
 
@@ -178,8 +186,8 @@ export class NotificationService implements OnApplicationShutdown {
 			this.globalEventService.publishMainStream(notifieeId, 'unreadNotification', packed);
 			this.pushNotificationService.pushNotification(notifieeId, 'notification', packed);
 
-			if (type === 'follow') this.emailNotificationFollow(notifieeId, await this.usersRepository.findOneByOrFail({ id: notifierId! }));
-			if (type === 'receiveFollowRequest') this.emailNotificationReceiveFollowRequest(notifieeId, await this.usersRepository.findOneByOrFail({ id: notifierId! }));
+			if (type === 'follow') this.emailNotificationFollow(notifieeId, await this.usersRepository.findOneByOrFail({ id: notifierId! }), this.config);
+			if (type === 'receiveFollowRequest') this.emailNotificationReceiveFollowRequest(notifieeId, await this.usersRepository.findOneByOrFail({ id: notifierId! }), this.config);
 		}, () => { /* aborted, ignore it */ });
 
 		return notification;
@@ -191,27 +199,23 @@ export class NotificationService implements OnApplicationShutdown {
 	// TODO: locale ファイルをクライアント用とサーバー用で分けたい
 
 	@bindThis
-	private async emailNotificationFollow(userId: MiUser['id'], follower: MiUser) {
-		/*
-		const userProfile = await UserProfiles.findOneByOrFail({ userId: userId });
+	private async emailNotificationFollow(userId: MiUser['id'], follower: MiUser, config: Config) {
+		const userProfile = await this.userProfilesRepository.findOneByOrFail({ userId: userId });
 		if (!userProfile.email || !userProfile.emailNotificationTypes.includes('follow')) return;
 		const locale = locales[userProfile.lang ?? 'ja-JP'];
 		const i18n = new I18n(locale);
 		// TODO: render user information html
-		sendEmail(userProfile.email, i18n.t('_email._follow.title'), `${follower.name} (@${Acct.toString(follower)})`, `${follower.name} (@${Acct.toString(follower)})`);
-		*/
+		await this.emailService.sendEmail(userProfile.email, `You have a new follower.`, `${follower.name ?? follower.username} (@${follower.username}@${follower.host ?? config.host})`, `${follower.name ?? follower.username} (@${follower.username}@${follower.host ?? config.host})`);
 	}
 
 	@bindThis
-	private async emailNotificationReceiveFollowRequest(userId: MiUser['id'], follower: MiUser) {
-		/*
-		const userProfile = await UserProfiles.findOneByOrFail({ userId: userId });
+	private async emailNotificationReceiveFollowRequest(userId: MiUser['id'], follower: MiUser, config: Config) {
+		const userProfile = await this.userProfilesRepository.findOneByOrFail({ userId: userId });
 		if (!userProfile.email || !userProfile.emailNotificationTypes.includes('receiveFollowRequest')) return;
 		const locale = locales[userProfile.lang ?? 'ja-JP'];
 		const i18n = new I18n(locale);
 		// TODO: render user information html
-		sendEmail(userProfile.email, i18n.t('_email._receiveFollowRequest.title'), `${follower.name} (@${Acct.toString(follower)})`, `${follower.name} (@${Acct.toString(follower)})`);
-		*/
+		await this.emailService.sendEmail(userProfile.email, `You've received a new follow request.`, `${follower.name ?? follower.username} (@${follower.username}@${follower.host ?? config.host})`, `${follower.name ?? follower.username} (@${follower.username}@${follower.host ?? config.host})`);
 	}
 
 	@bindThis

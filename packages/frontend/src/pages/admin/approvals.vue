@@ -33,12 +33,10 @@ import { definePageMetadata } from '@/scripts/page-metadata.js';
 let paginationComponent = shallowRef<InstanceType<typeof MkPagination>>();
 
 const pagination = {
-	endpoint: 'admin/show-users' as const,
+	endpoint: 'admin/show-pendings' as const,
 	limit: 10,
 	params: computed(() => ({
 		sort: '+createdAt',
-		state: 'approved',
-		origin: 'local',
 	})),
 	offsetMode: true,
 };

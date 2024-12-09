@@ -33,6 +33,7 @@ import type {
 	AdminAvatarDecorationsCreateRequest,
 	AdminAvatarDecorationsCreateResponse,
 	AdminAvatarDecorationsDeleteRequest,
+	AdminAvatarDecorationsImportZipRequest,
 	AdminAvatarDecorationsListRequest,
 	AdminAvatarDecorationsListResponse,
 	AdminAvatarDecorationsUpdateRequest,
@@ -90,12 +91,17 @@ import type {
 	AdminServerInfoResponse,
 	AdminShowModerationLogsRequest,
 	AdminShowModerationLogsResponse,
+	AdminShowPendingRequest,
+	AdminShowPendingResponse,
+	AdminShowPendingsRequest,
+	AdminShowPendingsResponse,
 	AdminShowUserRequest,
 	AdminShowUserResponse,
 	AdminShowUsersRequest,
 	AdminShowUsersResponse,
 	AdminSuspendUserRequest,
 	AdminApproveUserRequest,
+	AdminDeclineUserRequest,
 	AdminUnsuspendUserRequest,
 	AdminUpdateMetaRequest,
 	AdminDeleteAccountRequest,
@@ -607,6 +613,7 @@ export type Endpoints = {
 	'admin/announcements/update': { req: AdminAnnouncementsUpdateRequest; res: EmptyResponse };
 	'admin/avatar-decorations/create': { req: AdminAvatarDecorationsCreateRequest; res: AdminAvatarDecorationsCreateResponse };
 	'admin/avatar-decorations/delete': { req: AdminAvatarDecorationsDeleteRequest; res: EmptyResponse };
+	'admin/avatar-decorations/import-zip': { req: AdminAvatarDecorationsImportZipRequest; res: EmptyResponse };
 	'admin/avatar-decorations/list': { req: AdminAvatarDecorationsListRequest; res: AdminAvatarDecorationsListResponse };
 	'admin/avatar-decorations/update': { req: AdminAvatarDecorationsUpdateRequest; res: EmptyResponse };
 	'admin/delete-all-files-of-a-user': { req: AdminDeleteAllFilesOfAUserRequest; res: EmptyResponse };
@@ -654,10 +661,13 @@ export type Endpoints = {
 	'admin/send-email': { req: AdminSendEmailRequest; res: EmptyResponse };
 	'admin/server-info': { req: EmptyRequest; res: AdminServerInfoResponse };
 	'admin/show-moderation-logs': { req: AdminShowModerationLogsRequest; res: AdminShowModerationLogsResponse };
+	'admin/show-pending': { req: AdminShowPendingRequest; res: AdminShowPendingResponse };
+	'admin/show-pendings': { req: AdminShowPendingsRequest; res: AdminShowPendingsResponse };
 	'admin/show-user': { req: AdminShowUserRequest; res: AdminShowUserResponse };
 	'admin/show-users': { req: AdminShowUsersRequest; res: AdminShowUsersResponse };
 	'admin/suspend-user': { req: AdminSuspendUserRequest; res: EmptyResponse };
 	'admin/approve-user': { req: AdminApproveUserRequest; res: EmptyResponse };
+	'admin/decline-user': { req: AdminDeclineUserRequest; res: EmptyResponse };
 	'admin/unsuspend-user': { req: AdminUnsuspendUserRequest; res: EmptyResponse };
 	'admin/update-meta': { req: AdminUpdateMetaRequest; res: EmptyResponse };
 	'admin/delete-account': { req: AdminDeleteAccountRequest; res: EmptyResponse };
@@ -753,6 +763,7 @@ export type Endpoints = {
 	'email-address/available': { req: EmailAddressAvailableRequest; res: EmailAddressAvailableResponse };
 	'endpoint': { req: EndpointRequest; res: EndpointResponse };
 	'endpoints': { req: EmptyRequest; res: EndpointsResponse };
+	'export-custom-avatar-decoration': { req: EmptyRequest; res: EmptyResponse };
 	'export-custom-emojis': { req: EmptyRequest; res: EmptyResponse };
 	'federation/followers': { req: FederationFollowersRequest; res: FederationFollowersResponse };
 	'federation/following': { req: FederationFollowingRequest; res: FederationFollowingResponse };

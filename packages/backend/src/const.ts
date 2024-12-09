@@ -76,3 +76,4 @@ https://github.com/sindresorhus/file-type/blob/main/supported.js
 https://github.com/sindresorhus/file-type/blob/main/core.js
 https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Containers
 */
+export const locales: Record<string, any> = await import('../../../locales/index.js');

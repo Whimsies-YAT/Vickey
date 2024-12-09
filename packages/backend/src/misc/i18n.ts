@@ -25,7 +25,7 @@ export class I18n<T extends Record<string, any>> {
 					str = str.replace(`{${k}}`, v);
 				}
 			}
-			return str;
+			return str || key;
 		} catch (e) {
 			console.warn(`missing localization '${key}'`);
 			return key;

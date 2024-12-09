@@ -54,6 +54,7 @@ export class QueueService {
 		@Inject('queue:userWebhookDeliver') public userWebhookDeliverQueue: UserWebhookDeliverQueue,
 		@Inject('queue:systemWebhookDeliver') public systemWebhookDeliverQueue: SystemWebhookDeliverQueue,
 	) {
+		/*
 		this.systemQueue.add('defaultSec', {
 		}, {
 			repeat: {
@@ -62,6 +63,7 @@ export class QueueService {
 			},
 			removeOnComplete: true,
 		});
+		*/
 		this.systemQueue.add('tickCharts', {
 		}, {
 			repeat: { pattern: '55 * * * *' },
@@ -113,6 +115,11 @@ export class QueueService {
 		this.systemQueue.add('checkSec', {
 		}, {
 			repeat: { pattern: '*/10 * * * *' },
+			removeOnComplete: true,
+		});
+		this.systemQueue.add('cleanExpired', {
+		}, {
+			repeat: { pattern: '0 */6 * * *' },
 			removeOnComplete: true,
 		});
 	}
@@ -536,6 +543,27 @@ export class QueueService {
 			backoff: {
 				type: 'custom',
 			},
+			removeOnComplete: true,
+			removeOnFail: true,
+		});
+	}
+
+	@bindThis
+	public createExportAvatarDecorationJob(user: ThinUser) {
+		return this.dbQueue.add('exportAvatarDecoration', {
+			user: { id: user.id },
+		}, {
+			removeOnComplete: true,
+			removeOnFail: true,
+		});
+	}
+
+	@bindThis
+	public createImportAvatarDecorationJob(user: ThinUser, fileId: MiDriveFile['id']) {
+		return this.dbQueue.add('importAvatarDecoration', {
+			user: { id: user.id },
+			fileId: fileId,
+		}, {
 			removeOnComplete: true,
 			removeOnFail: true,
 		});

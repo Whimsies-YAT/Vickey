@@ -67,6 +67,7 @@ export const permissions = [
 	'write:admin:delete-account',
 	'write:admin:delete-all-files-of-a-user',
 	'write:admin:approve-account',
+	'write:admin:decline-account',
 	'read:admin:index-stats',
 	'read:admin:table-stats',
 	'read:admin:user-ips',
@@ -76,6 +77,8 @@ export const permissions = [
 	'write:admin:send-email',
 	'read:admin:server-info',
 	'read:admin:show-moderation-log',
+	'read:admin:show-pending',
+	'read:admin:show-pendings',
 	'read:admin:show-user',
 	'write:admin:suspend-user',
 	'write:admin:unset-user-avatar',
@@ -198,6 +201,11 @@ export type ModerationLogPayloads = {
 		userHost: string | null;
 	};
 	approve: {
+		userId: string;
+		userUsername: string;
+		userHost: string | null;
+	};
+	decline: {
 		userId: string;
 		userUsername: string;
 		userHost: string | null;

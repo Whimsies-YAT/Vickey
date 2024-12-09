@@ -24,6 +24,7 @@ import { DeleteDriveFilesProcessorService } from './processors/DeleteDriveFilesP
 import { DeleteFileProcessorService } from './processors/DeleteFileProcessorService.js';
 import { ExportBlockingProcessorService } from './processors/ExportBlockingProcessorService.js';
 import { ExportCustomEmojisProcessorService } from './processors/ExportCustomEmojisProcessorService.js';
+import { ExportCustomAvatarDecorationProcessorService } from './processors/ExportCustomAvatarDecorationProcessorService.js';
 import { ExportFollowingProcessorService } from './processors/ExportFollowingProcessorService.js';
 import { ExportMutingProcessorService } from './processors/ExportMutingProcessorService.js';
 import { ExportNotesProcessorService } from './processors/ExportNotesProcessorService.js';
@@ -31,6 +32,7 @@ import { ExportClipsProcessorService } from './processors/ExportClipsProcessorSe
 import { ExportUserListsProcessorService } from './processors/ExportUserListsProcessorService.js';
 import { ExportAntennasProcessorService } from './processors/ExportAntennasProcessorService.js';
 import { ImportBlockingProcessorService } from './processors/ImportBlockingProcessorService.js';
+import { ImportCustomAvatarDecorationsProcessorService } from './processors/ImportCustomAvatarDecorationsProcessorService.js';
 import { ImportCustomEmojisProcessorService } from './processors/ImportCustomEmojisProcessorService.js';
 import { ImportFollowingProcessorService } from './processors/ImportFollowingProcessorService.js';
 import { ImportMutingProcessorService } from './processors/ImportMutingProcessorService.js';
@@ -43,6 +45,7 @@ import { ExportFavoritesProcessorService } from './processors/ExportFavoritesPro
 import { RelationshipProcessorService } from './processors/RelationshipProcessorService.js';
 import { CheckSecurityReleaseProcessorService } from "@/queue/processors/CheckSecurityReleaseProcessorService.js";
 import { DefaultSecCheckSecurityReleaseProcessorService } from "@/queue/processors/DefaultSecCheckSecurityReleaseProcessorService.js";
+import { CleanExpiredPendingsProcessorService } from './processors/CleanExpiredPendingsProcessorService.js';
 
 @Module({
 	imports: [
@@ -58,6 +61,7 @@ import { DefaultSecCheckSecurityReleaseProcessorService } from "@/queue/processo
 		BakeBufferedReactionsProcessorService,
 		CleanProcessorService,
 		DeleteDriveFilesProcessorService,
+		ExportCustomAvatarDecorationProcessorService,
 		ExportCustomEmojisProcessorService,
 		ExportNotesProcessorService,
 		ExportClipsProcessorService,
@@ -70,6 +74,7 @@ import { DefaultSecCheckSecurityReleaseProcessorService } from "@/queue/processo
 		ImportFollowingProcessorService,
 		ImportMutingProcessorService,
 		ImportBlockingProcessorService,
+		ImportCustomAvatarDecorationsProcessorService,
 		ImportUserListsProcessorService,
 		ImportCustomEmojisProcessorService,
 		ImportAntennasProcessorService,
@@ -88,6 +93,7 @@ import { DefaultSecCheckSecurityReleaseProcessorService } from "@/queue/processo
 		QueueProcessorService,
 		CheckSecurityReleaseProcessorService,
 		DefaultSecCheckSecurityReleaseProcessorService,
+		CleanExpiredPendingsProcessorService,
 	],
 	exports: [
 		QueueProcessorService,

@@ -1,0 +1,41 @@
+_lang_: "繁體中文"
+flagAsVI: "需要自動TTS功能"
+flagAsVIDescription: "如果需要自動TTS功能，請啟動此選項。如果您屬於授權用戶組，自動TTS功能將在特定的範圍內激活。"
+_role:
+  _options:
+    canUseTTS: "使用TTS功能"
+  _condition:
+    isVI: "TTS的用戶"
+approvals: "批准"
+registerApproveConfirm: "確認批准註冊？"
+registerApproveConfirmDescription: "此操作無法撤銷。一旦確認批准，系統將發送一封電子郵件通知用戶其註冊已獲得批准。"
+approvalRequiredForSignup: "打開賬號註冊審核模式"
+signupPendingApprovals: "待審核的註冊賬號"
+pendingUserApprovals: "有用戶正在等待註冊審核。"
+approveAccount: "批准"
+denyAccount: "拒絕並刪除該賬戶"
+approved: "已批准"
+notApproved: "沒有通過審核"
+approvalStatus: "審核狀態"
+approvalRequiredToRegister: "該伺服器目前需要核准才能註冊。請提供您想加入的原因，只有通過審核的人才能註冊。"
+registerReason: "註冊的原因"
+registerHasNotBeenApprovedYet: "您在本伺服器註冊的帳號目前仍在審核中。請稍後重試。如果您在註冊時提供了電子郵件地址，註冊若獲得核准，您的電子郵件將收到通知。"
+registerApprovalEmailRecommended: "為了確保發送有關伺服器註冊審核的結果，強烈建議在賬戶註冊期間要求提供電子郵件。"
+HaveSecurityUpdate: "立即執行安全更新！"
+customAvatarDecoration: "頭像裝飾"
+optionalReason: "拒絕理由(可選)"
+_signup:
+  approvalPending: "您的註冊申請已經提交成功，目前正在等待審核。"
+  reasonInfo: "請輸入您希望加入該伺服器的原因。"
+_moderationLogTypes:
+  approve: "已批准"
+  decline: "已拒絕"
+_aboutVickey:
+  about: "Vickey是Misskey的特色分支。"
+  translation: "翻譯Vickey"
+  donate: "贊助Vickey"
+_serverSettings:
+  thisSettingWillAutomaticallyOnWhenModeratorsInactive: "為了防止 spam，如果一段期間內沒有偵測到管理員的活動，此設定將自動關閉。"
+_webhookSettings:
+  _systemEvents:
+    inactiveModeratorsApprovalOnlyChanged: "當管理員一定時間內沒有上線，伺服器帳號將更改為僅開放核准註冊。"

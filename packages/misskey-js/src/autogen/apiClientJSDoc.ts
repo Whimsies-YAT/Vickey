@@ -231,6 +231,18 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
+     * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+     * **Credential required**: *Yes* / **Permission**: *write:admin:avatar-decorations*
+     */
+    request<E extends 'admin/avatar-decorations/import-zip', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
      * **Credential required**: *Yes* / **Permission**: *read:admin:avatar-decorations*
      */
     request<E extends 'admin/avatar-decorations/list', P extends Endpoints[E]['req']>(
@@ -749,6 +761,28 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
+     * **Credential required**: *Yes* / **Permission**: *read:admin:show-pendings*
+     */
+    request<E extends 'admin/show-pending', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *read:admin:show-pending*
+     */
+    request<E extends 'admin/show-pendings', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
      * **Credential required**: *Yes* / **Permission**: *read:admin:show-user*
      */
     request<E extends 'admin/show-user', P extends Endpoints[E]['req']>(
@@ -782,9 +816,20 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
-     * **Credential required**: *Yes* / **Permission**: *write:admin:approve-account*
+     * **Credential required**: *Yes* / **Permission**: *write:admin:approve-user*
      */
     request<E extends 'admin/approve-user', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *write:admin:decline-account*
+     */
+    request<E extends 'admin/decline-user', P extends Endpoints[E]['req']>(
       endpoint: E,
       params: P,
       credential?: string | null,
@@ -1837,6 +1882,18 @@ declare module '../api.js' {
      * **Credential required**: *No*
      */
     request<E extends 'endpoints', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+     * **Credential required**: *Yes*
+     */
+    request<E extends 'export-custom-avatar-decoration', P extends Endpoints[E]['req']>(
       endpoint: E,
       params: P,
       credential?: string | null,

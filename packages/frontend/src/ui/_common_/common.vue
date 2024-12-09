@@ -42,7 +42,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <div v-if="dev" id="devTicker"><span style="animation: dev-ticker-blink 2s infinite;">DEV BUILD</span></div>
 
 <div v-if="$i && $i.isBot" id="botWarn"><span style="animation: dev-ticker-blink 2s infinite;">{{ i18n.ts.loggedInAsBot }}</span></div>
-<div v-if="iAmAdmin && !state.security" id="secWarn"><span style="animation: dev-ticker-blink 2s infinite;">Perform a security update immediately!</span></div>
+<div v-if="iAmAdmin && !state.security" id="secWarn"><span style="animation: dev-ticker-blink 2s infinite;">{{ i18n.ts.HaveSecurityUpdate }}</span></div>
 </template>
 
 <script lang="ts" setup>

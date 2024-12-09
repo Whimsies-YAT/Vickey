@@ -63,7 +63,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</div>
 							<div :class="$style.switchBox">
 								<MkSwitch v-model="events.inactiveModeratorsInvitationOnlyChanged" :disabled="disabledEvents.inactiveModeratorsInvitationOnlyChanged">
-									<template #label>{{ i18n.ts._webhookSettings._systemEvents.inactiveModeratorsInvitationOnlyChanged }}</template>
+									<template #label>{{ i18n.ts._webhookSettings._systemEvents.inactiveModeratorsApprovalOnlyChanged }}</template>
 								</MkSwitch>
 								<MkButton v-show="mode === 'edit'" transparent :class="$style.testButton" :disabled="!(isActive && events.inactiveModeratorsInvitationOnlyChanged)" @click="test('inactiveModeratorsInvitationOnlyChanged')"><i class="ti ti-send"></i></MkButton>
 							</div>

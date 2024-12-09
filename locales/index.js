@@ -5,7 +5,7 @@
 import * as fs from 'node:fs';
 import * as yaml from 'js-yaml';
 
-const merge = (...args) => args.reduce((a, c) => ({
+export const merge = (...args) => args.reduce((a, c) => ({
 	...a,
 	...c,
 	...Object.entries(a)
@@ -52,12 +52,22 @@ const primaries = {
 // 何故か文字列にバックスペース文字が混入することがあり、YAMLが壊れるので取り除く
 const clean = (text) => text.replace(new RegExp(String.fromCodePoint(0x08), 'g'), '');
 
+export const tryReadFile = (...rfsArgs) => {
+	try {
+		return fs.readFileSync(...rfsArgs);
+	} catch(e) {
+		return "";
+	}
+}
+
 export function build() {
 	// vitestの挙動を調整するため、一度ローカル変数化する必要がある
 	// https://github.com/vitest-dev/vitest/issues/3988#issuecomment-1686599577
 	// https://github.com/misskey-dev/misskey/pull/14057#issuecomment-2192833785
 	const metaUrl = import.meta.url;
-	const locales = languages.reduce((a, c) => (a[c] = yaml.load(clean(fs.readFileSync(new URL(`${c}.yml`, metaUrl), 'utf-8'))) || {}, a), {});
+	const misskeyLocales = languages.reduce((a, c) => (a[c] = yaml.load(clean(tryReadFile(new URL(`${c}.yml`, metaUrl), 'utf-8'))) || {}, a), {});
+	const vkLocales = languages.reduce((a, c) => (a[c] = yaml.load(clean(tryReadFile(new URL(`../vickey-locales/${c}.yml`, metaUrl), 'utf-8'))) || {}, a), {});
+	const locales = merge(misskeyLocales, vkLocales);
 
 	// 空文字列が入ることがあり、フォールバックが動作しなくなるのでプロパティごと消す
 	const removeEmpty = (obj) => {

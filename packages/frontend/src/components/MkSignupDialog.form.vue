@@ -63,7 +63,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</template>
 			</MkInput>
 			<MkTextarea v-if="instance.approvalRequiredForSignup" v-model="reason" type="text" :spellcheck="false" required data-cy-signup-reason>
-				<template #label>Reason <div v-tooltip:dialog="i18n.ts._signup.reasonInfo" class="_button _help"><i class="ph-question ph-bold ph-lg"></i></div></template>
+				<template #label>{{ i18n.ts.registerReason }}<div v-tooltip:dialog="i18n.ts._signup.reasonInfo" class="_button _help"><i class="ph-question ph-bold ph-lg"></i></div></template>
 				<template #prefix><i class="ph-chalkboard-teacher ph-bold ph-lg"></i></template>
 			</MkTextarea>
 			<MkCaptcha v-if="instance.enableHcaptcha" ref="hcaptcha" v-model="hCaptchaResponse" :class="$style.captcha" provider="hcaptcha" :sitekey="instance.hcaptchaSiteKey"/>
