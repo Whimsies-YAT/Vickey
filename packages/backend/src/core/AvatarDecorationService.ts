@@ -65,6 +65,7 @@ export class AvatarDecorationService implements OnApplicationShutdown {
 		url: string;
 		description: string | undefined;
 		roleIdsThatCanBeUsedThisDecoration: MiRole['id'][];
+		driveId: string;
 	}, moderator?: MiUser): Promise<MiAvatarDecoration> {
 		const added = await this.avatarDecorationsRepository.insertOne({
 			id: this.idService.gen(),
@@ -73,6 +74,7 @@ export class AvatarDecorationService implements OnApplicationShutdown {
 			url: data.url,
 			description: data.description,
 			roleIdsThatCanBeUsedThisDecoration: data.roleIdsThatCanBeUsedThisDecoration,
+			driveId: data.driveId,
 		});
 
 		this.globalEventService.publishInternalEvent('avatarDecorationCreated', added);

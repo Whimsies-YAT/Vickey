@@ -81,4 +81,7 @@ export class MiEmoji {
 		array: true, length: 128, default: '{}',
 	})
 	public roleIdsThatCanBeUsedThisEmojiAsReaction: string[];
+
+	@Column(id())
+	public driveId: string;
 }
