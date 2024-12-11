@@ -132,7 +132,7 @@ export class CacheService implements OnApplicationShutdown {
 	private async fetchSystemStatus() {
 		const defaultValue = { security: true };
 		try {
-			let redisValue = await this.redisClient.get('systemStatus');
+			const redisValue = await this.redisClient.get('systemStatus');
 
 			if (redisValue === null) {
 				await this.redisClient.set('systemStatus', JSON.stringify(defaultValue));
@@ -148,18 +148,15 @@ export class CacheService implements OnApplicationShutdown {
 				}
 
 				return parsedValue;
-
 			} catch (parseError) {
 				await this.redisClient.set('systemStatus', JSON.stringify(defaultValue));
 				return defaultValue;
 			}
-
 		} catch (error) {
 			console.error('Error fetching system status from Redis:', error);
 			return defaultValue;
 		}
 	}
-
 
 	@bindThis
 	private async onMessage(_: string, data: string): Promise<void> {
