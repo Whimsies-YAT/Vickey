@@ -17,8 +17,6 @@ import { bindThis } from '@/decorators.js';
 import { QueueLoggerService } from '../QueueLoggerService.js';
 import type * as Bull from 'bullmq';
 import type { DbUserImportJobData } from '../types.js';
-import {ApiError} from "@/server/api/error.js";
-import {meta} from "@/server/api/endpoints/drive/files/delete.js";
 
 // TODO: 名前衝突時の動作を選べるようにする
 @Injectable()

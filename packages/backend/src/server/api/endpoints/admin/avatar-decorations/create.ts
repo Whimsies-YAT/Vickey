@@ -3,10 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Injectable } from '@nestjs/common';
+import {Inject, Injectable} from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
+import type { DriveFilesRepository } from '@/models/_.js';
 import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
 import { IdService } from '@/core/IdService.js';
+import {DI} from "@/di-symbols.js";
 
 export const meta = {
 	tags: ['admin'],
@@ -75,15 +77,20 @@ export const paramDef = {
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
 	constructor(
+		@Inject(DI.driveFilesRepository)
+		private driveFilesRepository: DriveFilesRepository,
+
 		private avatarDecorationService: AvatarDecorationService,
 		private idService: IdService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
+			const adExist = await this.driveFilesRepository.findOneBy({ url: ps.url });
 			const created = await this.avatarDecorationService.create({
 				name: ps.name,
 				description: ps.description,
 				url: ps.url,
 				roleIdsThatCanBeUsedThisDecoration: ps.roleIdsThatCanBeUsedThisDecoration,
+				driveId: adExist?.id ?? undefined,
 			}, me);
 
 			return {
@@ -94,6 +101,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				description: created.description,
 				url: created.url,
 				roleIdsThatCanBeUsedThisDecoration: created.roleIdsThatCanBeUsedThisDecoration,
+				driveId: created.driveId,
 			};
 		});
 	}

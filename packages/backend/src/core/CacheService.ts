@@ -136,13 +136,30 @@ export class CacheService implements OnApplicationShutdown {
 
 			if (redisValue === null) {
 				await this.redisClient.set('systemStatus', JSON.stringify(defaultValue));
-				redisValue = JSON.stringify(defaultValue);
+				return defaultValue;
 			}
-			return JSON.parse(redisValue);
+
+			try {
+				const parsedValue = JSON.parse(redisValue);
+
+				if (parsedValue && typeof parsedValue.security === 'undefined') {
+					await this.redisClient.set('systemStatus', JSON.stringify(defaultValue));
+					return defaultValue;
+				}
+
+				return parsedValue;
+
+			} catch (parseError) {
+				await this.redisClient.set('systemStatus', JSON.stringify(defaultValue));
+				return defaultValue;
+			}
+
 		} catch (error) {
+			console.error('Error fetching system status from Redis:', error);
 			return defaultValue;
 		}
 	}
+
 
 	@bindThis
 	private async onMessage(_: string, data: string): Promise<void> {
