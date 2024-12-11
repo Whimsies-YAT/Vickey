@@ -84,9 +84,20 @@ export class ImportCustomEmojisProcessorService {
 					continue;
 				}
 				const emojiPath = outputPath + '/' + record.fileName;
-				await this.emojisRepository.delete({
-					name: emojiInfo.name,
-				});
+				const emojiExist = await this.emojisRepository.findOneBy({ name: emojiInfo.name });
+
+				if (emojiExist) {
+					await this.emojisRepository.delete({
+						name: emojiInfo.name,
+					});
+					const file = await this.driveFilesRepository.findOneBy({ id: emojiExist.driveId });
+
+					if (file == null) {
+						this.logger.error(`Cannot delete ${ emojiInfo.id } (${ emojiInfo.driveId }). Ignored.`);
+						continue;
+					}
+					await this.driveService.deleteFile(file);
+				}
 				try {
 					const driveFile = await this.driveService.addFile({
 						user: null,
@@ -104,6 +115,7 @@ export class ImportCustomEmojisProcessorService {
 						isSensitive: emojiInfo.isSensitive,
 						localOnly: emojiInfo.localOnly,
 						roleIdsThatCanBeUsedThisEmojiAsReaction: [],
+						driveId: driveFile.id,
 					});
 				} catch (e) {
 					if (e instanceof Error || typeof e === 'string') {

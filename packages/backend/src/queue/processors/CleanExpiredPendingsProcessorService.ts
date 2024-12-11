@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import {Inject, Injectable} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type Logger from '@/logger.js';
 import type { UserPendingsRepository, MiMeta } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
@@ -29,7 +29,6 @@ export class CleanExpiredPendingsProcessorService {
 
 	@bindThis
 	public async process(): Promise<void> {
-
 		if (!this.meta.emailRequiredForSignup) {
 			this.logger.info(`Nothing to do.`);
 			return;
