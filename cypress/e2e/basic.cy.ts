@@ -39,7 +39,7 @@ describe('After setup instance', () => {
 		cy.resetState();
 
 		// インスタンス初期セットアップ
-		cy.registerUser('admin', 'pass', true);
+		cy.registerUser('admin', 'pass', 'test', true);
 	});
 
 	afterEach(() => {
@@ -77,7 +77,7 @@ describe('After setup instance', () => {
   });
 
   it('signup with duplicated username', () => {
-		cy.registerUser('alice', 'alice1234');
+		cy.registerUser('alice', 'alice1234', 'test');
 
 		cy.visitHome();
 
@@ -101,10 +101,10 @@ describe('After user signup', () => {
 		cy.resetState();
 
 		// インスタンス初期セットアップ
-		cy.registerUser('admin', 'pass', true);
+		cy.registerUser('admin', 'pass', 'test', true);
 
 		// ユーザー作成
-		cy.registerUser('alice', 'alice1234');
+		cy.registerUser('alice', 'alice1234', 'test');
 	});
 
 	afterEach(() => {
@@ -158,10 +158,10 @@ describe('After user signed in', () => {
 		cy.resetState();
 
 		// インスタンス初期セットアップ
-		cy.registerUser('admin', 'pass', true);
+		cy.registerUser('admin', 'pass', 'test', true);
 
 		// ユーザー作成
-		cy.registerUser('alice', 'alice1234');
+		cy.registerUser('alice', 'alice1234', 'test');
 
 		cy.login('alice', 'alice1234');
 	});
@@ -208,10 +208,10 @@ describe('After user setup', () => {
 		cy.resetState();
 
 		// インスタンス初期セットアップ
-		cy.registerUser('admin', 'pass', true);
+		cy.registerUser('admin', 'pass', 'test', true);
 
 		// ユーザー作成
-		cy.registerUser('alice', 'alice1234');
+		cy.registerUser('alice', 'alice1234', 'test');
 
 		cy.login('alice', 'alice1234');
 

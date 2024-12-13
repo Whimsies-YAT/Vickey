@@ -14,10 +14,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 				<div class="_gaps_s">
 					<MkInfo v-if="thereIsUnresolvedAbuseReport" warn>{{ i18n.ts.thereIsUnresolvedAbuseReportWarning }} <MkA to="/admin/abuses" class="_link">{{ i18n.ts.check }}</MkA></MkInfo>
-					<MkInfo v-if="noMaintainerInformation" warn>{{ i18n.ts.noMaintainerInformationWarning }} <MkA to="/admin/settings" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
-					<MkInfo v-if="noInquiryUrl" warn>{{ i18n.ts.noInquiryUrlWarning }} <MkA to="/admin/settings" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
-					<MkInfo v-if="noBotProtection" warn>{{ i18n.ts.noBotProtectionWarning }} <MkA to="/admin/security" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
-					<MkInfo v-if="noEmailServer" warn>{{ i18n.ts.noEmailServerWarning }} <MkA to="/admin/email-settings" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
+					<MkInfo v-if="isAdmin && noMaintainerInformation" warn>{{ i18n.ts.noMaintainerInformationWarning }} <MkA to="/admin/settings" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
+					<MkInfo v-if="isAdmin && noInquiryUrl" warn>{{ i18n.ts.noInquiryUrlWarning }} <MkA to="/admin/settings" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
+					<MkInfo v-if="isAdmin && noBotProtection" warn>{{ i18n.ts.noBotProtectionWarning }} <MkA to="/admin/security" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
+					<MkInfo v-if="isAdmin && noEmailServer" warn>{{ i18n.ts.noEmailServerWarning }} <MkA to="/admin/email-settings" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
 					<MkInfo v-if="pendingUserApprovals" warn class="info">{{ i18n.ts.pendingUserApprovals }} <MkA to="/admin/approvals" class="_link">{{ i18n.ts.check }}</MkA></MkInfo>
 				</div>
 
@@ -39,6 +39,7 @@ import MkInfo from '@/components/MkInfo.vue';
 import { instance } from '@/instance.js';
 import { lookup } from '@/scripts/lookup.js';
 import * as os from '@/os.js';
+import { $i, iAmAdmin } from '@/account.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { lookupUser, lookupUserByEmail, lookupFile } from '@/scripts/admin-lookup.js';
 import { PageMetadata, definePageMetadata, provideMetadataReceiver, provideReactiveMetadata } from '@/scripts/page-metadata.js';
@@ -69,6 +70,7 @@ const noInquiryUrl = computed(() => isEmpty(instance.inquiryUrl));
 const thereIsUnresolvedAbuseReport = ref(false);
 const pendingUserApprovals = ref(false);
 const currentPage = computed(() => router.currentRef.value.child);
+const isAdmin = ref($i && iAmAdmin);
 
 misskeyApi('admin/abuse-user-reports', {
 	state: 'unresolved',
@@ -178,7 +180,7 @@ const menuDef = computed(() => [{
 		to: '/admin/modlog',
 		active: currentPage.value?.route.name === 'modlog',
 	}],
-}, {
+}, ...(isAdmin.value ? [{
 	title: i18n.ts.settings,
 	items: [{
 		icon: 'ti ti-settings',
@@ -231,7 +233,7 @@ const menuDef = computed(() => [{
 		to: '/admin/performance',
 		active: currentPage.value?.route.name === 'performance',
 	}],
-}, {
+}] : []), ...(isAdmin.value ? [{
 	title: i18n.ts.info,
 	items: [{
 		icon: 'ti ti-database',
@@ -239,7 +241,7 @@ const menuDef = computed(() => [{
 		to: '/admin/database',
 		active: currentPage.value?.route.name === 'database',
 	}],
-}]);
+}] : [])]);
 
 onMounted(() => {
 	if (el.value != null) {

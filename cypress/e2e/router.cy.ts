@@ -10,10 +10,10 @@ describe('Router transition', () => {
 			cy.resetState();
 
 			// インスタンス初期セットアップ
-			cy.registerUser('admin', 'pass', true);
+			cy.registerUser('admin', 'pass', 'test', true);
 
 			// ユーザー作成
-			cy.registerUser('alice', 'alice1234');
+			cy.registerUser('alice', 'alice1234', 'test');
 
 			cy.login('alice', 'alice1234');
 
