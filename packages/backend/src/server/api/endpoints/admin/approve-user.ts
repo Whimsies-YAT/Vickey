@@ -72,8 +72,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (pendingUser.email && pendingUser.emailVerified) {
 				await this.emailService.sendEmail(pendingUser.email, 'Account Approved',
-					'Your Account has been approved have fun socializing!',
-					'Your Account has been approved have fun socializing!');
+					'Your Account has been approved. Have fun socializing!',
+					'Your Account has been approved. Have fun socializing!');
 			}
 
 			await this.userPendingsRepository.delete({
