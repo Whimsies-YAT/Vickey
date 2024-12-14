@@ -322,6 +322,27 @@ export class NoteEntityService implements OnModuleInit {
 			}
 		}
 
+		if (meId && meId !== note.userId) {
+			const findUser = await this.usersRepository.findOneBy({ id: note.userId });
+
+			if (findUser) {
+				const HiddenOnlyBefore = findUser.makeNotesHiddenBefore;
+				if (HiddenOnlyBefore != null) {
+					const noteTimestamp = new Date(this.idService.parse(note.id).date.toISOString()).getTime();
+					const currentTime = Date.now();
+
+					if (
+						(HiddenOnlyBefore <= 0 && (currentTime - noteTimestamp > Math.abs(HiddenOnlyBefore) * 1000)) ||
+						(HiddenOnlyBefore > 0 && (noteTimestamp < currentTime - (HiddenOnlyBefore * 1000)))
+					) {
+						return false;
+					}
+				}
+				return true;
+			}
+			return false;
+		}
+
 		return true;
 	}
 
