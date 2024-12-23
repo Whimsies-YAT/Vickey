@@ -184,6 +184,10 @@ export class SignupApiService {
 			throw new FastifyReplyError(400, 'DUPLICATED_USERNAME');
 		}
 
+		if (await this.userPendingsRepository.exists({ where: { username: username.toLowerCase() } })) {
+			throw new FastifyReplyError(400, 'TEMP_DUPLICATED_USERNAME');
+		}
+
 		// Check deleted username duplication
 		if (await this.usedUsernamesRepository.exists({ where: { username: username.toLowerCase() } })) {
 			throw new FastifyReplyError(400, 'USED_USERNAME');
