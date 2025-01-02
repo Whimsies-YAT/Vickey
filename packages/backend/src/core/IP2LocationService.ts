@@ -34,10 +34,10 @@ export class IP2LocationService {
 	) {}
 
 	@bindThis
-	public async syncIP2L(): Promise<void> {
-		if (this.meta.ip2lAuthKey) {
+	public async syncIP2L(auth: string | null = this.meta.ip2lAuthKey, pro: boolean = this.meta.ip2lIsPro): Promise<void> {
+		if (auth || this.meta.ip2lAuthKey) {
 			try {
-				const dbUrl = `https://www.ip2location.com/download/?token=${ this.meta.ip2lAuthKey }&file=${ this.meta.ip2lIsPro ? "DB1BINIPV6" : "DB1LITEBINIPV6" }`;
+				const dbUrl = `https://www.ip2location.com/download/?token=${ auth }&file=${ pro ? "DB1BINIPV6" : "DB1LITEBINIPV6" }`;
 				const zipFilePath = path + '/file.zip';
 				await this.downloadService.downloadUrl(dbUrl, zipFilePath, true);
 				await this.extractAndRenameBinFile(zipFilePath, path, newFileName);
@@ -103,13 +103,13 @@ export class IP2LocationService {
 				}
 			}
 
-			await fs.promises.unlink(zipFilePath);
-
 			if (!extracted) {
 				console.log('No .BIN file found in the ZIP archive.');
 			}
 		} catch (error) {
 			console.error('Error during extraction:', error);
+		} finally {
+			await fs.promises.unlink(zipFilePath);
 		}
 	}
 }
