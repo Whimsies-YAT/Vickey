@@ -13,7 +13,7 @@ import { DownloadService } from '@/core/DownloadService.js';
 import type { MiMeta } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { DI } from "@/di-symbols.js";
-import { IP2Location,IPTools } from 'ip2location-nodejs';
+import { IP2Location, IPTools } from 'ip2location-nodejs';
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
@@ -35,7 +35,6 @@ export class IP2LocationService {
 
 	@bindThis
 	public async syncIP2L(): Promise<void> {
-
 		if (this.meta.ip2lAuthKey) {
 			try {
 				const dbUrl = `https://www.ip2location.com/download/?token=${ this.meta.ip2lAuthKey }&file=${ this.meta.ip2lIsPro ? "DB1BINIPV6" : "DB1LITEBINIPV6" }`;
@@ -63,7 +62,7 @@ export class IP2LocationService {
 					ip2location.openAsync(path + newFileName).then(() => {
 							ip2location.getAllAsync(ip).then((result: any): boolean => {
 								const finalResult = result.countryShort;
-								if (finalResult != 'MISSING_FILE') {
+								if (finalResult !== 'MISSING_FILE') {
 									return !this.meta.banCountry.includes(finalResult);
 								}
 								console.log("MISSING_FILE");
@@ -109,7 +108,6 @@ export class IP2LocationService {
 			if (!extracted) {
 				console.log('No .BIN file found in the ZIP archive.');
 			}
-
 		} catch (error) {
 			console.error('Error during extraction:', error);
 		}

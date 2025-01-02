@@ -8,7 +8,7 @@ import type { MiMeta } from '@/models/Meta.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { MetaService } from '@/core/MetaService.js';
-import { IP2LocationService } from '@/core/IP2LocationService.js'
+import { IP2LocationService } from '@/core/IP2LocationService.js';
 import { DI } from "@/di-symbols.js";
 import { IPTools } from 'ip2location-nodejs';
 import iso3166 from 'iso-3166-1';
@@ -663,7 +663,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					set.ip2lAuthKey = null;
 				} else {
 					set.ip2lAuthKey = ps.ip2lAuthKey;
-					if (set.ip2lAuthKey != this.mMeta.ip2lAuthKey) {
+					if (set.ip2lAuthKey !== this.mMeta.ip2lAuthKey) {
 						await this.iP2LocationService.syncIP2L();
 					}
 				}
@@ -671,7 +671,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (ps.ip2lIsPro !== undefined) {
 				set.ip2lIsPro = ps.ip2lIsPro;
-				if (set.ip2lIsPro != this.mMeta.ip2lIsPro) {
+				if (set.ip2lIsPro !== this.mMeta.ip2lIsPro) {
 					await this.iP2LocationService.syncIP2L();
 				}
 			}

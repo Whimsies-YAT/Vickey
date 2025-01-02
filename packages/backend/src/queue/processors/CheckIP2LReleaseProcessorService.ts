@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import {Inject, Injectable} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type Logger from '@/logger.js';
 import { IP2LocationService } from '@/core/IP2LocationService.js';
 import { QueueLoggerService } from '../QueueLoggerService.js';
@@ -29,7 +29,7 @@ export class CheckIP2LReleaseProcessorService {
 		this.logger.info('Checking version...');
 		const key = 'ip2l';
 		const value = 'latest';
-		if (!this.redisClient.get(key)) {
+		if (!await this.redisClient.get(key)) {
 			await this.storeData(key, value);
 			await Promise.all([
 				this.iP2LocationService.syncIP2L(),
