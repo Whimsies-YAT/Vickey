@@ -39,7 +39,7 @@ export class IP2LocationService {
 			try {
 				const dbUrl = `https://www.ip2location.com/download/?token=${ this.meta.ip2lAuthKey }&file=${ this.meta.ip2lIsPro ? "DB1BINIPV6" : "DB1LITEBINIPV6" }`;
 				const zipFilePath = path + '/file.zip';
-				await this.downloadService.downloadUrl(dbUrl, zipFilePath);
+				await this.downloadService.downloadUrl(dbUrl, zipFilePath, true);
 				await this.extractAndRenameBinFile(zipFilePath, path, newFileName);
 			} catch (e: unknown) {
 				if (e instanceof Error) {

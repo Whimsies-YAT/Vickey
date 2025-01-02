@@ -664,7 +664,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				} else {
 					set.ip2lAuthKey = ps.ip2lAuthKey;
 					if (set.ip2lAuthKey !== this.mMeta.ip2lAuthKey) {
-						await this.iP2LocationService.syncIP2L();
+						this.iP2LocationService.syncIP2L();
 					}
 				}
 			}
@@ -672,7 +672,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.ip2lIsPro !== undefined) {
 				set.ip2lIsPro = ps.ip2lIsPro;
 				if (set.ip2lIsPro !== this.mMeta.ip2lIsPro) {
-					await this.iP2LocationService.syncIP2L();
+					this.iP2LocationService.syncIP2L();
 				}
 			}
 
