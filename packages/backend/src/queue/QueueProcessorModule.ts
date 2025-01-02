@@ -46,6 +46,7 @@ import { RelationshipProcessorService } from './processors/RelationshipProcessor
 import { CheckSecurityReleaseProcessorService } from "@/queue/processors/CheckSecurityReleaseProcessorService.js";
 import { DefaultSecCheckSecurityReleaseProcessorService } from "@/queue/processors/DefaultSecCheckSecurityReleaseProcessorService.js";
 import { CleanExpiredPendingsProcessorService } from './processors/CleanExpiredPendingsProcessorService.js';
+import { CheckIP2LReleaseProcessorService } from './processors/CheckIP2LReleaseProcessorService.js';
 
 @Module({
 	imports: [
@@ -94,6 +95,7 @@ import { CleanExpiredPendingsProcessorService } from './processors/CleanExpiredP
 		CheckSecurityReleaseProcessorService,
 		DefaultSecCheckSecurityReleaseProcessorService,
 		CleanExpiredPendingsProcessorService,
+		CheckIP2LReleaseProcessorService,
 	],
 	exports: [
 		QueueProcessorService,

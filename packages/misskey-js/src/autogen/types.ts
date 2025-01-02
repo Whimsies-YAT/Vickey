@@ -681,6 +681,7 @@ export type paths = {
      * admin/approve-user
      * @description No description provided.
      *
+     * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
      * **Credential required**: *Yes* / **Permission**: *write:admin:approve-user*
      */
     post: operations['admin___approve-user'];
@@ -5298,6 +5299,10 @@ export type operations = {
             hfSpeedRate: number | null;
             hfnrm: boolean;
             hfdas: boolean;
+            ip2lAuthKey: string | null;
+            ip2lIsPro: boolean;
+            banCountry: string[];
+            exemptIP: string[];
             defaultDarkTheme: string | null;
             defaultLightTheme: string | null;
             description: string | null;
@@ -9697,6 +9702,7 @@ export type operations = {
    * admin/approve-user
    * @description No description provided.
    *
+   * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
    * **Credential required**: *Yes* / **Permission**: *write:admin:approve-user*
    */
   'admin___approve-user': {
@@ -9935,6 +9941,10 @@ export type operations = {
           hfSpeedRate?: number;
           /** @default false */
           hfdas?: boolean;
+          ip2lAuthKey?: string | null;
+          banCountry?: string[];
+          exemptIP?: string[];
+          ip2lIsPro?: boolean;
           enableEmail?: boolean;
           email?: string | null;
           smtpSecure?: boolean;

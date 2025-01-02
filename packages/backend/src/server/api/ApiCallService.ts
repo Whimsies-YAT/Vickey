@@ -25,6 +25,7 @@ import { AuthenticateService, AuthenticationError } from './AuthenticateService.
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import type { OnApplicationShutdown } from '@nestjs/common';
 import type { IEndpointMeta, IEndpoint } from './endpoints.js';
+import { IP2LocationService } from "@/core/IP2LocationService.js";
 
 const accessDenied = {
 	message: 'Access denied.',
@@ -52,6 +53,7 @@ export class ApiCallService implements OnApplicationShutdown {
 		private rateLimiterService: RateLimiterService,
 		private roleService: RoleService,
 		private apiLoggerService: ApiLoggerService,
+		private iP2LocationService: IP2LocationService,
 	) {
 		this.logger = this.apiLoggerService.logger;
 		this.userIpHistories = new Map<MiUser['id'], Set<string>>();
@@ -155,6 +157,17 @@ export class ApiCallService implements OnApplicationShutdown {
 		request: FastifyRequest<{ Body: Record<string, unknown> | undefined, Querystring: Record<string, unknown> }>,
 		reply: FastifyReply,
 	): void {
+		const limitEndpoints = ['notes/create', 'notes/renotes', 'notes/reactions/create', 'channels/create'];
+		if (limitEndpoints.includes(endpoint.name)) {
+			if (request.ip && !this.iP2LocationService.checkIP(request.ip)) {
+				throw new ApiError({
+					message: 'Access Denied',
+					code: 'ACCESS_DENIED',
+					id: '1ac836e0-c8b5-11ef-bed9-7724be24f9c5',
+					httpStatusCode: 403,
+				});
+			}
+		}
 		const body = request.method === 'GET'
 			? request.query
 			: request.body;

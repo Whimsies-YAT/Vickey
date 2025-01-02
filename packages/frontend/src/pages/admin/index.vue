@@ -174,12 +174,13 @@ const menuDef = computed(() => [{
 		text: i18n.ts.abuseReports,
 		to: '/admin/abuses',
 		active: currentPage.value?.route.name === 'abuses',
-	}, {
+	}, ...(isAdmin.value ? [{
 		icon: 'ti ti-list-search',
 		text: i18n.ts.moderationLogs,
 		to: '/admin/modlog',
 		active: currentPage.value?.route.name === 'modlog',
-	}],
+	}] : []),
+	],
 }, ...(isAdmin.value ? [{
 	title: i18n.ts.settings,
 	items: [{
