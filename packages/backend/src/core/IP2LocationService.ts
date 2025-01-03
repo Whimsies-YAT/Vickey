@@ -56,19 +56,20 @@ export class IP2LocationService {
 	public async checkIP(ip: string): Promise<boolean> {
 		const ip2location = new IP2Location();
 		const tools = new IPTools();
+
 		if (tools.isIPV4(ip) || tools.isIPV6(ip)) {
 			if (!this.meta.exemptIP.includes(ip)) {
 				try {
-					ip2location.openAsync(path + newFileName).then(() => {
-							ip2location.getAllAsync(ip).then((result: any): boolean => {
-								const finalResult = result.countryShort;
-								if (finalResult !== 'MISSING_FILE') {
-									return !this.meta.banCountry.includes(finalResult);
-								}
-								console.log("MISSING_FILE");
-								return true;
-							});
-					});
+					await ip2location.openAsync(path + newFileName);
+					const result = await ip2location.getAllAsync(ip);
+					const finalResult = result.countryShort;
+
+					if (finalResult !== 'MISSING_FILE') {
+						return !this.meta.banCountry.includes(finalResult);
+					} else {
+						console.log("MISSING_FILE");
+						return true;
+					}
 				} catch (error) {
 					console.error(error);
 					return true;
@@ -76,9 +77,46 @@ export class IP2LocationService {
 			}
 			return true;
 		}
+
 		console.log("Not a valid IP");
 		return true;
 	}
+
+	@bindThis
+	public checkIPsync(ip: string, callback: (result: boolean) => void): void {
+		const ip2location = new IP2Location();
+		const tools = new IPTools();
+
+		if (tools.isIPV4(ip) || tools.isIPV6(ip)) {
+			if (!this.meta.exemptIP.includes(ip)) {
+				try {
+					ip2location.openAsync(path + newFileName).then(() => {
+						ip2location.getAllAsync(ip).then((result: any): void => {
+							const finalResult = result.countryShort;
+							if (finalResult !== 'MISSING_FILE') {
+								callback(!this.meta.banCountry.includes(finalResult));
+							} else {
+								console.log("MISSING_FILE");
+								callback(true);
+							}
+						});
+					}).catch((error: Error) => {
+						console.error(error);
+						callback(true);
+					});
+				} catch (error) {
+					console.error(error);
+					callback(true);
+				}
+			} else {
+				callback(true);
+			}
+		} else {
+			console.log("Not a valid IP");
+			callback(true);
+		}
+	}
+
 
 	private async extractAndRenameBinFile(zipFilePath: string, outputDir: string, newFileName: string): Promise<void> {
 		try {

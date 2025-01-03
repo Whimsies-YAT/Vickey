@@ -21,7 +21,6 @@ import { bindThis } from '@/decorators.js';
 import { L_CHARS, secureRndstr } from '@/misc/secure-rndstr.js';
 import { SigninService } from './SigninService.js';
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import instance from './endpoints/charts/instance.js';
 import { RoleService } from '@/core/RoleService.js';
 
 @Injectable()
@@ -89,7 +88,7 @@ export class SignupApiService {
 				reply.code(403);
 				return {
 					error: {
-						message: 'Access Denied',
+						message: 'Access is Actively Denied',
 						code: 'ACCESS_DENIED',
 						id: '1ac836e0-c8b5-11ef-bed9-7724be24f9c5',
 					},
@@ -303,6 +302,20 @@ export class SignupApiService {
 
 	@bindThis
 	public async signupPending(request: FastifyRequest<{ Body: { code: string; } }>, reply: FastifyReply) {
+		const ip = request.ip;
+
+		if (ip && !await this.iP2LocationService.checkIP(ip)) {
+			reply.code(400);
+			reply.code(403);
+			return {
+				error: {
+					message: 'Access is Actively Denied',
+					code: 'ACCESS_DENIED',
+					id: '1ac836e0-c8b5-11ef-bed9-7724be24f9c5',
+				},
+			};
+		}
+
 		const body = request.body;
 
 		const code = body['code'];
