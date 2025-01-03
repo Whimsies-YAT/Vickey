@@ -3,11 +3,15 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { MiMeta } from '@/models/Meta.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { MetaService } from '@/core/MetaService.js';
+import { IP2LocationService } from '@/core/IP2LocationService.js';
+import { DI } from "@/di-symbols.js";
+import { IPTools } from 'ip2location-nodejs';
+import iso3166 from 'iso-3166-1';
 
 export const meta = {
 	tags: ['admin'],
@@ -112,6 +116,18 @@ export const paramDef = {
 		hfnrm: { type: 'boolean', default: false },
 		hfSpeedRate: { type: 'integer', default: 125 },
 		hfdas: { type: 'boolean', default: false },
+		ip2lAuthKey: { type: 'string', nullable: true },
+		banCountry: {
+			type: 'array', items: {
+				type: 'string',
+			},
+		},
+		exemptIP: {
+			type: 'array', items: {
+				type: 'string',
+			},
+		},
+		ip2lIsPro: { type: 'boolean' },
 		enableEmail: { type: 'boolean' },
 		email: { type: 'string', nullable: true },
 		smtpSecure: { type: 'boolean' },
@@ -206,8 +222,12 @@ export const paramDef = {
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
 	constructor(
+		@Inject(DI.meta)
+		private mMeta: MiMeta,
+
 		private metaService: MetaService,
 		private moderationLogService: ModerationLogService,
+		private iP2LocationService: IP2LocationService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const set = {} as Partial<MiMeta>;
@@ -251,6 +271,19 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					const lv = lastValue;
 					lastValue = h;
 					return h !== '' && h !== lv && !set.blockedHosts?.includes(h);
+				});
+			}
+			if (Array.isArray(ps.banCountry)) {
+				set.banCountry = ps.banCountry.filter(Boolean);
+				set.banCountry = set.banCountry.filter(item => {
+					return iso3166.whereAlpha2(item.toLowerCase());
+				});
+			}
+			if (Array.isArray(ps.exemptIP) && ps.exemptIP.length > 0) {
+				const tools = new IPTools();
+				set.exemptIP = ps.exemptIP.filter(Boolean);
+				set.exemptIP = set.exemptIP.filter(item => {
+					return tools.isIPV4(item) || tools.isIPV6(item);
 				});
 			}
 			if (ps.themeColor !== undefined) {
@@ -556,11 +589,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					set.hfAuthKey = ps.hfAuthKey;
 				}
 			}
-			
+
 			if (ps.hfSpace !== undefined) {
 				set.hfSpace = ps.hfSpace;
 			}
-			
+
 			if (ps.hfSpaceName !== undefined) {
 				if (ps.hfSpaceName === '') {
 					set.hfSpaceName = null;
@@ -568,7 +601,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					set.hfSpaceName = ps.hfSpaceName;
 				}
 			}
-			
+
 			if (ps.hfexampleAudioURL !== undefined) {
 				if (ps.hfexampleAudioURL === '') {
 					set.hfexampleAudioURL = null;
@@ -576,7 +609,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					set.hfexampleAudioURL = ps.hfexampleAudioURL;
 				}
 			}
-			
+
 			if (ps.hfexampleText !== undefined) {
 				if (ps.hfexampleText === '') {
 					set.hfexampleText = null;
@@ -584,7 +617,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					set.hfexampleText = ps.hfexampleText;
 				}
 			}
-			
+
 			if (ps.hfexampleLang !== undefined) {
 				if (ps.hfexampleLang === '') {
 					set.hfexampleLang = null;
@@ -592,7 +625,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					set.hfexampleLang = ps.hfexampleLang;
 				}
 			}
-			
+
 			if (ps.hfslice !== undefined) {
 				if (ps.hfslice === '') {
 					set.hfslice = null;
@@ -600,30 +633,48 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					set.hfslice = ps.hfslice;
 				}
 			}
-			
+
 			if (ps.hftopK !== undefined) {
 				set.hftopK = ps.hftopK;
 			}
-			
+
 			if (ps.hftopP !== undefined) {
 				set.hftopP = ps.hftopP;
 			}
-			
+
 			if (ps.hfTemperature !== undefined) {
 				set.hfTemperature = ps.hfTemperature;
 			}
-			
+
 			if (ps.hfnrm !== undefined) {
 				set.hfnrm = ps.hfnrm;
 			}
-			
+
 			if (ps.hfSpeedRate !== undefined) {
 				set.hfSpeedRate = ps.hfSpeedRate;
 			}
-			
+
 			if (ps.hfdas !== undefined) {
 				set.hfdas = ps.hfdas;
-			}			
+			}
+
+			if (ps.ip2lAuthKey !== undefined) {
+				if (ps.ip2lAuthKey === '') {
+					set.ip2lAuthKey = null;
+				} else {
+					set.ip2lAuthKey = ps.ip2lAuthKey;
+					if (set.ip2lAuthKey !== this.mMeta.ip2lAuthKey) {
+						this.iP2LocationService.syncIP2L(set.ip2lAuthKey);
+					}
+				}
+			}
+
+			if (ps.ip2lIsPro !== undefined) {
+				set.ip2lIsPro = ps.ip2lIsPro;
+				if (set.ip2lIsPro !== this.mMeta.ip2lIsPro) {
+					this.iP2LocationService.syncIP2L(null, set.ip2lIsPro);
+				}
+			}
 
 			if (ps.enableIpLogging !== undefined) {
 				set.enableIpLogging = ps.enableIpLogging;

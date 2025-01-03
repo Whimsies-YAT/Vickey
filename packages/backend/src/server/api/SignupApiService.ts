@@ -14,13 +14,13 @@ import { IdService } from '@/core/IdService.js';
 import { SignupService } from '@/core/SignupService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { EmailService } from '@/core/EmailService.js';
+import { IP2LocationService } from '@/core/IP2LocationService.js';
 import { MiLocalUser } from '@/models/User.js';
 import { FastifyReplyError } from '@/misc/fastify-reply-error.js';
 import { bindThis } from '@/decorators.js';
 import { L_CHARS, secureRndstr } from '@/misc/secure-rndstr.js';
 import { SigninService } from './SigninService.js';
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import instance from './endpoints/charts/instance.js';
 import { RoleService } from '@/core/RoleService.js';
 
 @Injectable()
@@ -54,6 +54,7 @@ export class SignupApiService {
 		private signinService: SigninService,
 		private emailService: EmailService,
 		private roleService: RoleService,
+		private iP2LocationService: IP2LocationService,
 	) {
 	}
 
@@ -76,11 +77,24 @@ export class SignupApiService {
 		}>,
 		reply: FastifyReply,
 	) {
+		const ip = request.ip;
 		const body = request.body;
 
 		// Verify *Captcha
 		// ただしテスト時はこの機構は障害となるため無効にする
 		if (process.env.NODE_ENV !== 'test') {
+			if (ip && !await this.iP2LocationService.checkIP(ip)) {
+				reply.code(400);
+				reply.code(403);
+				return {
+					error: {
+						message: 'Access is Actively Denied',
+						code: 'ACCESS_DENIED',
+						id: '1ac836e0-c8b5-11ef-bed9-7724be24f9c5',
+					},
+				};
+			}
+
 			if (this.meta.enableHcaptcha && this.meta.hcaptchaSecretKey) {
 				await this.captchaService.verifyHcaptcha(this.meta.hcaptchaSecretKey, body['hcaptcha-response']).catch(err => {
 					throw new FastifyReplyError(400, err);
@@ -288,6 +302,20 @@ export class SignupApiService {
 
 	@bindThis
 	public async signupPending(request: FastifyRequest<{ Body: { code: string; } }>, reply: FastifyReply) {
+		const ip = request.ip;
+
+		if (ip && !await this.iP2LocationService.checkIP(ip)) {
+			reply.code(400);
+			reply.code(403);
+			return {
+				error: {
+					message: 'Access is Actively Denied',
+					code: 'ACCESS_DENIED',
+					id: '1ac836e0-c8b5-11ef-bed9-7724be24f9c5',
+				},
+			};
+		}
+
 		const body = request.body;
 
 		const code = body['code'];

@@ -34,7 +34,7 @@ export class DownloadService {
 	}
 
 	@bindThis
-	public async downloadUrl(url: string, path: string): Promise<{
+	public async downloadUrl(url: string, path: string, errorCode: boolean = false): Promise<{
 		filename: string;
 	}> {
 		this.logger.info(`Downloading ${chalk.cyan(url)} to ${chalk.cyanBright(path)} ...`);
@@ -68,7 +68,14 @@ export class DownloadService {
 				limit: 0,
 			},
 			enableUnixSockets: false,
+			followRedirect: true,
 		}).on('response', (res: Got.Response) => {
+			console.log(errorCode, res.statusCode)
+			if (errorCode && (res.statusCode.toString().startsWith("4")) || res.statusCode.toString().startsWith("5")) {
+				this.logger.error("Download failed. The status code is " + res.statusCode.toString());
+				return;
+			}
+
 			const contentLength = res.headers['content-length'];
 			if (contentLength != null) {
 				const size = Number(contentLength);

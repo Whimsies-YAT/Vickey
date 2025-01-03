@@ -96,6 +96,28 @@ SPDX-License-Identifier: AGPL-3.0-only
                     <MkButton primary @click="save_tts">Save</MkButton>
                 </div>
             </MkFolder>
+					  <br />
+					  <MkFolder>
+						  <template #label>Restricted Regions</template>
+
+						  <div class="_gaps_m">
+							  <MkInput v-model="ip2lAuthKey">
+								  <template #prefix><i class="ti ti-key"></i></template>
+								  <template #label>IP2Location Auth Key</template>
+							  </MkInput>
+							  <MkSwitch v-model="ip2lIsPro">
+								  <template #label>Pro</template>
+							  </MkSwitch>
+								<MkTextarea v-model="banCountry">
+									<template #label>Restricted regions (one per line)</template>
+								</MkTextarea>
+								<MkButton primary @click="addRestrictedArea">Add GDPR-compliant regions</MkButton>
+								<MkTextarea v-model="exemptIP">
+									<template #label>Exempt IPs (one per line)</template>
+								</MkTextarea>
+							  <MkButton primary @click="save_ra">Save</MkButton>
+						  </div>
+					  </MkFolder>
         </FormSuspense>
     </MkSpacer>
 </MkStickyContainer>
@@ -115,6 +137,7 @@ import { fetchInstance } from '@/instance.js';
 import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
 import MkFolder from '@/components/MkFolder.vue';
+import MkTextarea from "@/components/MkTextarea.vue";
 
 const deeplAuthKey = ref<string>('');
 const deeplIsPro = ref<boolean>(false);
@@ -131,6 +154,10 @@ const hfTemperature = ref<number>(100);
 const hfnrm = ref<boolean>(false);
 const hfSpeedRate = ref<number>(125);
 const hfdas = ref<boolean>(false);
+const ip2lAuthKey = ref<string>('');
+const ip2lIsPro = ref<boolean>(false);
+const banCountry = ref<string>('');
+const exemptIP = ref<string>('');
 
 async function init() {
     const meta = await misskeyApi('admin/meta');
@@ -149,6 +176,10 @@ async function init() {
     hfnrm.value = meta.hfnrm;
     hfSpeedRate.value = meta.hfSpeedRate;
     hfdas.value = meta.hfdas;
+	  ip2lAuthKey.value = meta.ip2lAuthKey;
+		ip2lIsPro.value = meta.ip2lIsPro;
+		banCountry.value = meta.banCountry.join('\n');
+		exemptIP.value = meta.exemptIP.join('\n');
 }
 
 function save_deepl() {
@@ -178,6 +209,33 @@ function save_tts() {
     }).then(() => {
         fetchInstance(true);
     });
+}
+
+function save_ra() {
+	const banCountryArray = banCountry.value.split('\n').map(item => item.trim()).filter(item => item);
+	const exemptIPArray = exemptIP.value.split('\n').map(item => item.trim()).filter(item => item);
+
+	os.apiWithDialog('admin/update-meta', {
+		ip2lAuthKey: ip2lAuthKey.value,
+		ip2lIsPro: ip2lIsPro.value,
+		banCountry: banCountryArray,
+		exemptIP: exemptIPArray,
+	}).then(() => {
+		fetchInstance(true);
+	});
+}
+
+function addRestrictedArea() {
+	const gdprRegions = [
+		'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR',
+		'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL',
+		'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS', 'NO', 'LI',
+		'CH', 'MK', 'AL', 'RS', 'ME', 'XK', 'BA', 'TR'
+	];
+
+	const newArea = gdprRegions.join('\n') + '\n';
+
+	banCountry.value = newArea + banCountry.value;
 }
 
 const headerActions = computed(() => []);
