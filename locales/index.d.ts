@@ -10788,6 +10788,10 @@ export interface Locale extends ILocale {
      * Reason for Decline (Optional)
      */
     "optionalReason": string;
+    /**
+     * Email Templates
+     */
+    "emailTemplates": string;
     "_aboutVickey": {
         /**
          * Vickey is a soft fork of Misskey.
@@ -10801,6 +10805,108 @@ export interface Locale extends ILocale {
          * Donate to Vickey
          */
         "donate": string;
+    };
+    "_emailTemplates": {
+        /**
+         * Global switch
+         */
+        "global": string;
+        /**
+         * Email templates will only take effect if the global switch is turned on.
+         */
+        "globalDescription": string;
+        /**
+         * Single switch
+         */
+        "singleSwitch": string;
+        /**
+         * Controls each item individually when the global switche are enabled.
+         */
+        "singleSwitchDescription": string;
+        /**
+         * Email content (leave blank to use default)
+         */
+        "textareaDescription": string;
+        /**
+         * Email title (leave blank to use default)
+         */
+        "title": string;
+        /**
+         * New Login
+         */
+        "newLogin": string;
+        /**
+         * Abuse Report
+         */
+        "abuseReport": string;
+        /**
+         * Reset Password
+         */
+        "resetPassword": string;
+        /**
+         * Account Delete
+         */
+        "accountDelete": string;
+        /**
+         * Moderator Inactivity Warning
+         */
+        "inactivityWarning": string;
+        /**
+         * Change to Approval-Only
+         */
+        "changeToApproval": string;
+        /**
+         * Signup
+         */
+        "signup": string;
+        /**
+         * Email Verification
+         */
+        "emailVerification": string;
+        /**
+         * Account Approved
+         */
+        "accountApproved": string;
+        /**
+         * Account Suspended
+         */
+        "accountSuspended": string;
+        /**
+         * Approval Pending
+         */
+        "approvalPending": string;
+        /**
+         * New User Approval
+         */
+        "newUserApproval": string;
+        /**
+         * New User Approval (without email)
+         */
+        "newUserApprovalWithoutEmail": string;
+        /**
+         * Account Reinstated
+         */
+        "accountReinstated": string;
+        /**
+         * Account Declined
+         */
+        "accountDeclined": string;
+        /**
+         * Account Declined （with reason）
+         */
+        "accountDeclinedWithReason": string;
+        /**
+         * New Follower
+         */
+        "newFollower": string;
+        /**
+         * New Follow Request
+         */
+        "newFollowRequest": string;
+        /**
+         * New Security Release
+         */
+        "secRelease": string;
     };
 }
 declare const locales: {

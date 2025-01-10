@@ -288,6 +288,24 @@ export type paths = {
      */
     post: operations['admin___drive___show-file'];
   };
+  '/admin/email/templates/update': {
+    /**
+     * admin/email/templates/update
+     * @description No description provided.
+     *
+     * **Credential required**: *Yes* / **Permission**: *write:admin:email-templates*
+     */
+    post: operations['admin___email___templates___update'];
+  };
+  '/admin/email/templates/show': {
+    /**
+     * admin/email/templates/show
+     * @description No description provided.
+     *
+     * **Credential required**: *Yes* / **Permission**: *read:admin:email-templates*
+     */
+    post: operations['admin___email___templates___show'];
+  };
   '/admin/emoji/add-aliases-bulk': {
     /**
      * admin/emoji/add-aliases-bulk
@@ -5119,6 +5137,7 @@ export type components = {
       noteSearchableScope: 'local' | 'global';
       maxFileSize: number;
       security: boolean;
+      enableEmailTemplates: boolean;
     };
     MetaDetailedOnly: {
       features?: {
@@ -5218,6 +5237,7 @@ export type operations = {
             iconUrl: string | null;
             app192IconUrl: string | null;
             app512IconUrl: string | null;
+            enableEmailTemplates: boolean;
             enableEmail: boolean;
             enableServiceWorker: boolean;
             translatorAvailable: boolean;
@@ -7119,6 +7139,112 @@ export type operations = {
             isLink: boolean;
           };
         };
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * admin/email/templates/update
+   * @description No description provided.
+   *
+   * **Credential required**: *Yes* / **Permission**: *write:admin:email-templates*
+   */
+  admin___email___templates___update: {
+    requestBody: {
+      content: {
+        'application/json': {
+          templates: {
+              key: string;
+              content: string[];
+              enable: boolean;
+            }[];
+        };
+      };
+    };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * admin/email/templates/show
+   * @description No description provided.
+   *
+   * **Credential required**: *Yes* / **Permission**: *read:admin:email-templates*
+   */
+  admin___email___templates___show: {
+    requestBody: {
+      content: {
+        'application/json': {
+          key?: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
       };
       /** @description Client error */
       400: {
@@ -9945,6 +10071,7 @@ export type operations = {
           banCountry?: string[];
           exemptIP?: string[];
           ip2lIsPro?: boolean;
+          enableEmailTemplates?: boolean;
           enableEmail?: boolean;
           email?: string | null;
           smtpSecure?: boolean;

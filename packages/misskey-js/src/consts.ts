@@ -99,6 +99,8 @@ export const permissions = [
 	'write:admin:federation',
 	'write:admin:account',
 	'read:admin:account',
+	'write:admin:email-templates',
+	'read:admin:email-templates',
 	'write:admin:emoji',
 	'read:admin:emoji',
 	'write:admin:queue',

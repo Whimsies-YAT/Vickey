@@ -205,7 +205,10 @@ export class NotificationService implements OnApplicationShutdown {
 		const locale = locales[userProfile.lang ?? 'ja-JP'];
 		const i18n = new I18n(locale);
 		// TODO: render user information html
-		await this.emailService.sendEmail(userProfile.email, `You have a new follower.`, `${follower.name ?? follower.username} (@${follower.username}@${follower.host ?? config.host})`, `${follower.name ?? follower.username} (@${follower.username}@${follower.host ?? config.host})`);
+		const name = follower.name ?? follower.username;
+		const username = follower.username;
+		const host = follower.host ?? config.host;
+		await this.emailService.sendEmail(userProfile.email, `You have a new follower.`, `${name} (@${username}@${host})`, `${name} (@${username}@${host})`);
 	}
 
 	@bindThis
@@ -215,7 +218,10 @@ export class NotificationService implements OnApplicationShutdown {
 		const locale = locales[userProfile.lang ?? 'ja-JP'];
 		const i18n = new I18n(locale);
 		// TODO: render user information html
-		await this.emailService.sendEmail(userProfile.email, `You've received a new follow request.`, `${follower.name ?? follower.username} (@${follower.username}@${follower.host ?? config.host})`, `${follower.name ?? follower.username} (@${follower.username}@${follower.host ?? config.host})`);
+		const name = follower.name ?? follower.username;
+		const username = follower.username;
+		const host = follower.host ?? config.host;
+		await this.emailService.sendEmail(userProfile.email, `You've received a new follow request.`, `${name} (@${username}@${host})`, `${name} (@${username}@${host})`);
 	}
 
 	@bindThis

@@ -27,6 +27,7 @@ import {
 	MiClipNote,
 	MiDriveFile,
 	MiDriveFolder,
+	MiEmailTemplates,
 	MiEmoji,
 	MiFlash,
 	MiFlashLike,
@@ -234,6 +235,12 @@ const $followRequestsRepository: Provider = {
 const $instancesRepository: Provider = {
 	provide: DI.instancesRepository,
 	useFactory: (db: DataSource) => db.getRepository(MiInstance).extend(miRepository as MiRepository<MiInstance>),
+	inject: [DI.db],
+};
+
+const $emailTemplatesRepository: Provider = {
+	provide: DI.emailTemplatesRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiEmailTemplates).extend(miRepository as MiRepository<MiEmailTemplates>),
 	inject: [DI.db],
 };
 
@@ -524,6 +531,7 @@ const $reversiGamesRepository: Provider = {
 		$followingsRepository,
 		$followRequestsRepository,
 		$instancesRepository,
+		$emailTemplatesRepository,
 		$emojisRepository,
 		$driveFilesRepository,
 		$driveFoldersRepository,
@@ -595,6 +603,7 @@ const $reversiGamesRepository: Provider = {
 		$followingsRepository,
 		$followRequestsRepository,
 		$instancesRepository,
+		$emailTemplatesRepository,
 		$emojisRepository,
 		$driveFilesRepository,
 		$driveFoldersRepository,

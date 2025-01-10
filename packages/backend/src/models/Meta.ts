@@ -762,4 +762,9 @@ export class MiMeta {
 		select: false,
 	})
 	public security: boolean;
+
+	@Column('boolean', {
+		default: false,
+	})
+	public enableEmailTemplates: boolean;
 }

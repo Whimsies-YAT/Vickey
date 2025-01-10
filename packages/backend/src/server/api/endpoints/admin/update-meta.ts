@@ -128,6 +128,7 @@ export const paramDef = {
 			},
 		},
 		ip2lIsPro: { type: 'boolean' },
+		enableEmailTemplates: { type: 'boolean' },
 		enableEmail: { type: 'boolean' },
 		email: { type: 'string', nullable: true },
 		smtpSecure: { type: 'boolean' },
@@ -452,6 +453,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (Array.isArray(ps.langs)) {
 				set.langs = ps.langs.filter(Boolean);
+			}
+
+			if (ps.enableEmailTemplates !== undefined) {
+				set.enableEmailTemplates = ps.enableEmailTemplates;
 			}
 
 			if (ps.enableEmail !== undefined) {

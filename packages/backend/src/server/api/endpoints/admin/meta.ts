@@ -114,6 +114,10 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
+			enableEmailTemplates: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
 			enableEmail: {
 				type: 'boolean',
 				optional: false, nullable: false,
@@ -670,6 +674,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				logoImageUrl: instance.logoImageUrl,
 				defaultLightTheme: instance.defaultLightTheme,
 				defaultDarkTheme: instance.defaultDarkTheme,
+				enableEmailTemplates: instance.enableEmailTemplates,
 				enableEmail: instance.enableEmail,
 				enableServiceWorker: instance.enableServiceWorker,
 				translatorAvailable: instance.deeplAuthKey != null,

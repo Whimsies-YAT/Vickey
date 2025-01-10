@@ -36,6 +36,8 @@ import * as ep___admin_drive_cleanRemoteFiles from './endpoints/admin/drive/clea
 import * as ep___admin_drive_cleanup from './endpoints/admin/drive/cleanup.js';
 import * as ep___admin_drive_files from './endpoints/admin/drive/files.js';
 import * as ep___admin_drive_showFile from './endpoints/admin/drive/show-file.js';
+import * as ep___admin_email_templates_update from './endpoints/admin/email/templates/update.js';
+import * as ep___admin_email_templates_show from './endpoints/admin/email/templates/show.js';
 import * as ep___admin_emoji_addAliasesBulk from './endpoints/admin/emoji/add-aliases-bulk.js';
 import * as ep___admin_emoji_add from './endpoints/admin/emoji/add.js';
 import * as ep___admin_emoji_copy from './endpoints/admin/emoji/copy.js';
@@ -433,6 +435,8 @@ const $admin_drive_cleanRemoteFiles: Provider = { provide: 'ep:admin/drive/clean
 const $admin_drive_cleanup: Provider = { provide: 'ep:admin/drive/cleanup', useClass: ep___admin_drive_cleanup.default };
 const $admin_drive_files: Provider = { provide: 'ep:admin/drive/files', useClass: ep___admin_drive_files.default };
 const $admin_drive_showFile: Provider = { provide: 'ep:admin/drive/show-file', useClass: ep___admin_drive_showFile.default };
+const $admin_email_templates_update: Provider = { provide: 'ep:admin/email/templates/update', useClass: ep___admin_email_templates_update.default };
+const $admin_email_templates_show: Provider = { provide: 'ep:admin/email/templates/show', useClass: ep___admin_email_templates_show.default };
 const $admin_emoji_addAliasesBulk: Provider = { provide: 'ep:admin/emoji/add-aliases-bulk', useClass: ep___admin_emoji_addAliasesBulk.default };
 const $admin_emoji_add: Provider = { provide: 'ep:admin/emoji/add', useClass: ep___admin_emoji_add.default };
 const $admin_emoji_copy: Provider = { provide: 'ep:admin/emoji/copy', useClass: ep___admin_emoji_copy.default };
@@ -834,6 +838,8 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_drive_cleanup,
 		$admin_drive_files,
 		$admin_drive_showFile,
+		$admin_email_templates_update,
+		$admin_email_templates_show,
 		$admin_emoji_addAliasesBulk,
 		$admin_emoji_add,
 		$admin_emoji_copy,
@@ -1229,6 +1235,8 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_drive_cleanup,
 		$admin_drive_files,
 		$admin_drive_showFile,
+		$admin_email_templates_update,
+		$admin_email_templates_show,
 		$admin_emoji_addAliasesBulk,
 		$admin_emoji_add,
 		$admin_emoji_copy,

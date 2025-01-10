@@ -44,6 +44,8 @@ import type {
 	AdminDriveFilesResponse,
 	AdminDriveShowFileRequest,
 	AdminDriveShowFileResponse,
+	AdminEmailTemplatesUpdateRequest,
+	AdminEmailTemplatesShowRequest,
 	AdminEmojiAddAliasesBulkRequest,
 	AdminEmojiAddRequest,
 	AdminEmojiAddResponse,
@@ -623,6 +625,8 @@ export type Endpoints = {
 	'admin/drive/cleanup': { req: EmptyRequest; res: EmptyResponse };
 	'admin/drive/files': { req: AdminDriveFilesRequest; res: AdminDriveFilesResponse };
 	'admin/drive/show-file': { req: AdminDriveShowFileRequest; res: AdminDriveShowFileResponse };
+	'admin/email/templates/update': { req: AdminEmailTemplatesUpdateRequest; res: EmptyResponse };
+	'admin/email/templates/show': { req: AdminEmailTemplatesShowRequest; res: EmptyResponse };
 	'admin/emoji/add-aliases-bulk': { req: AdminEmojiAddAliasesBulkRequest; res: EmptyResponse };
 	'admin/emoji/add': { req: AdminEmojiAddRequest; res: AdminEmojiAddResponse };
 	'admin/emoji/copy': { req: AdminEmojiCopyRequest; res: AdminEmojiCopyResponse };
