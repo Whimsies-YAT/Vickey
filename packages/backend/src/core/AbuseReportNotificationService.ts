@@ -121,10 +121,10 @@ export class AbuseReportNotificationService implements OnApplicationShutdown {
 
 		for (const mailAddress of recipientEMailAddresses) {
 			await Promise.all(
-				abuseReports.map(it => {
+				abuseReports.map(async (it) => {
 					// TODO: 送信処理はJobQueue化したい
 					const comment = it.comment;
-					const result = this.emailTemplatesService.sendEmailWithTemplates(mailAddress, 'abuseReport', { comment });
+					const result = await this.emailTemplatesService.sendEmailWithTemplates(mailAddress, 'abuseReport', { comment });
 					if (!result) {
 						return this.emailService.sendEmail(
 							mailAddress,

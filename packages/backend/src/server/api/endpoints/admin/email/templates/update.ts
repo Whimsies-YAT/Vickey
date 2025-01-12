@@ -89,7 +89,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					sub = sub.trim() ? sub : templateDB.content[0];
 					msg = msg.trim() ? msg : templateDB.content[1];
 
-					const success =  await this.emailTemplatesService.customEmailTemplates(key, sub, msg, enabled);
+					const success = await this.emailTemplatesService.customEmailTemplates(key, sub, msg, enabled);
 					if (!success) throw new ApiError(meta.errors.noSuchKey);
 				}
 			}

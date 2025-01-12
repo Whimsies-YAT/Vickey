@@ -48,8 +48,8 @@ export function misskeyApi<
 		let bodyJSON;
 		try {
 			bodyJSON = safeStringify(data);
-		} catch (e) {
-			console.error(e, data, endpoint);
+		} catch (error) {
+			console.error(error, data, endpoint);
 			return;
 		}
 

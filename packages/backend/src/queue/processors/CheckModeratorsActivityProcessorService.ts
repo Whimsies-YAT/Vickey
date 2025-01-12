@@ -231,7 +231,7 @@ export class CheckModeratorsActivityProcessorService {
 				const timeAll = {
 					timeVariant: remainingTime.asDays === 0 ? `${remainingTime.asHours} hours` : `${remainingTime.asDays} days`,
 					timeVariantJa: remainingTime.asDays === 0 ? `${remainingTime.asHours} 時間` : `${remainingTime.asDays} 日間`,
-				}
+				};
 				const result = await this.emailTemplatesService.sendEmailWithTemplates(profile.email, 'inactivityWarning', { timeAll });
 				if (!result) {
 					this.emailService.sendEmail(profile.email, mail.subject, mail.html, mail.text);

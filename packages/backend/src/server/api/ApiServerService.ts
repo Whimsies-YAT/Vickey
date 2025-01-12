@@ -3,24 +3,24 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import {Inject, Injectable} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import fastifyCookie from '@fastify/cookie';
-import {ModuleRef} from '@nestjs/core';
-import {AuthenticationResponseJSON} from '@simplewebauthn/types';
-import type {Config} from '@/config.js';
-import type {AccessTokensRepository, InstancesRepository} from '@/models/_.js';
-import {DI} from '@/di-symbols.js';
-import {UserEntityService} from '@/core/entities/UserEntityService.js';
-import {bindThis} from '@/decorators.js';
-import endpoints, {IEndpoint} from './endpoints.js';
-import {ApiCallService} from './ApiCallService.js';
-import {SignupApiService} from './SignupApiService.js';
-import {SigninApiService} from './SigninApiService.js';
-import {SigninWithPasskeyApiService} from './SigninWithPasskeyApiService.js';
-import type {FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest} from 'fastify';
-import {IP2LocationService} from "@/core/IP2LocationService.js";
+import { ModuleRef } from '@nestjs/core';
+import { AuthenticationResponseJSON } from '@simplewebauthn/types';
+import type { Config } from '@/config.js';
+import type { AccessTokensRepository, InstancesRepository } from '@/models/_.js';
+import { DI } from '@/di-symbols.js';
+import { UserEntityService } from '@/core/entities/UserEntityService.js';
+import { bindThis } from '@/decorators.js';
+import endpoints, { IEndpoint } from './endpoints.js';
+import { ApiCallService } from './ApiCallService.js';
+import { SignupApiService } from './SignupApiService.js';
+import { SigninApiService } from './SigninApiService.js';
+import { SigninWithPasskeyApiService } from './SigninWithPasskeyApiService.js';
+import type { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
+import { IP2LocationService } from "@/core/IP2LocationService.js";
 
 @Injectable()
 export class ApiServerService {
@@ -93,7 +93,7 @@ export class ApiServerService {
 				}
 			}
 			return true;
-		}
+		};
 
 		for (const endpoint of endpoints) {
 			const ep = {

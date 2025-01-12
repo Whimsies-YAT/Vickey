@@ -39,7 +39,7 @@ export class EmailTemplatesService {
 
 		const subject = await this.replaceVariables(to, template.content[0], context);
 		const message = await this.replaceVariables(to, template.content[1], context);
-		const messageText = sanitizeHtml(message, { allowedTags: [ 'br' ], allowedAttributes: {} }).replace(/<br\s*\/?>/g, '\n');
+		const messageText = sanitizeHtml(message, { allowedTags: ['br'], allowedAttributes: {} }).replace(/<br\s*\/?>/g, '\n');
 		await this.emailService.sendEmail(to, subject, sanitizeHtml(message), messageText);
 		return true;
 	}
@@ -47,7 +47,7 @@ export class EmailTemplatesService {
 	@bindThis
 	public async customEmailTemplates(key: string, sub: string, msg: string, enabled: boolean = false): Promise<boolean> {
 		if (!await this.emailTemplatesRepository.findOneBy({ key: key })) return false;
-		let template = new MiEmailTemplates();
+		const template = new MiEmailTemplates();
 		template.key = key;
 		template.content = [sub, msg];
 		template.enabled = enabled;
@@ -91,7 +91,7 @@ export class EmailTemplatesService {
 		return text.replace(/\${(.*?)}/g, (match, expression) => {
 			const key = expression.trim();
 
-			if (presetVariables.hasOwnProperty(key)) {
+			if (Object.prototype.hasOwnProperty.call(presetVariables, key)) {
 				return presetVariables[key];
 			}
 

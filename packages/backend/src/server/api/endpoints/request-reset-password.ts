@@ -58,7 +58,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		private idService: IdService,
 		private emailService: EmailService,
-		private  emailTemplatesService: EmailTemplatesService,
+		private emailTemplatesService: EmailTemplatesService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const user = await this.usersRepository.findOneBy({

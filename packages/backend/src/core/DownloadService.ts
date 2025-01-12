@@ -70,7 +70,6 @@ export class DownloadService {
 			enableUnixSockets: false,
 			followRedirect: true,
 		}).on('response', (res: Got.Response) => {
-			console.log(errorCode, res.statusCode)
 			if (errorCode && (res.statusCode.toString().startsWith("4")) || res.statusCode.toString().startsWith("5")) {
 				this.logger.error("Download failed. The status code is " + res.statusCode.toString());
 				return;

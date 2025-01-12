@@ -124,6 +124,7 @@ export class MetaEntityService {
 			})),
 			notesPerOneAd: instance.notesPerOneAd,
 			enableEmail: instance.enableEmail,
+			enableEmailTemplates: instance.enableEmailTemplates,
 			enableServiceWorker: instance.enableServiceWorker,
 
 			translatorAvailable: instance.deeplAuthKey != null,

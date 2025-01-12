@@ -214,7 +214,7 @@ export class NotificationService implements OnApplicationShutdown {
 			name: name,
 			username: username,
 			host: host,
-		}
+		};
 		const result = await this.emailTemplatesService.sendEmailWithTemplates(userProfile.email, 'newFollower', { followerProfile });
 		if (!result) {
 			await this.emailService.sendEmail(userProfile.email, `You have a new follower.`, `${name} (@${username}@${host})`, `${name} (@${username}@${host})`);
@@ -235,7 +235,7 @@ export class NotificationService implements OnApplicationShutdown {
 			name: name,
 			username: username,
 			host: host,
-		}
+		};
 		const result = await this.emailTemplatesService.sendEmailWithTemplates(userProfile.email, 'newFollowRequest', { followerProfile });
 		if (!result) {
 			await this.emailService.sendEmail(userProfile.email, `You've received a new follow request.`, `${name} (@${username}@${host})`, `${name} (@${username}@${host})`);

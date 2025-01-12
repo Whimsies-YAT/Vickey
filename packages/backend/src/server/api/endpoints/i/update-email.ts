@@ -15,7 +15,7 @@ import { DI } from '@/di-symbols.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { L_CHARS, secureRndstr } from '@/misc/secure-rndstr.js';
 import { UserAuthService } from '@/core/UserAuthService.js';
-import  { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
+import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
