@@ -45,11 +45,18 @@ export function misskeyApi<
 		// Append a credential
 		if ($i) data.i = $i.token;
 		if (token !== undefined) data.i = token;
+		let bodyJSON;
+		try {
+			bodyJSON = safeStringify(data);
+		} catch (e) {
+			console.error(e, data, endpoint);
+			return;
+		}
 
 		// Send request
 		window.fetch(`${apiUrl}/${endpoint}`, {
 			method: 'POST',
-			body: JSON.stringify(data),
+			body: bodyJSON,
 			credentials: 'omit',
 			cache: 'no-cache',
 			headers: {
@@ -75,6 +82,19 @@ export function misskeyApi<
 	promise.then(onFinally, onFinally);
 
 	return promise;
+}
+
+function safeStringify(obj) {
+	const seen = new Set();
+	return JSON.stringify(obj, (key, value) => {
+		if (value != null && typeof value === 'object') {
+			if (seen.has(value)) {
+				return undefined;
+			}
+			seen.add(value);
+		}
+		return value;
+	});
 }
 
 // Implements Misskey.api.ApiClient.request

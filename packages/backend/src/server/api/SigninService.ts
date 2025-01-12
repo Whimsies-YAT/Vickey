@@ -14,6 +14,7 @@ import { SigninEntityService } from '@/core/entities/SigninEntityService.js';
 import { bindThis } from '@/decorators.js';
 import { EmailService } from '@/core/EmailService.js';
 import { NotificationService } from '@/core/NotificationService.js';
+import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 
 @Injectable()
@@ -27,6 +28,7 @@ export class SigninService {
 
 		private signinEntityService: SigninEntityService,
 		private emailService: EmailService,
+		private emailTemplatesService: EmailTemplatesService,
 		private notificationService: NotificationService,
 		private idService: IdService,
 		private globalEventService: GlobalEventService,
@@ -50,9 +52,12 @@ export class SigninService {
 
 			const profile = await this.userProfilesRepository.findOneByOrFail({ userId: user.id });
 			if (profile.email && profile.emailVerified) {
-				this.emailService.sendEmail(profile.email, 'New login / ログインがありました',
-					'There is a new login. If you do not recognize this login, update the security status of your account, including changing your password. / 新しいログインがありました。このログインに心当たりがない場合は、パスワードを変更するなど、アカウントのセキュリティ状態を更新してください。',
-					'There is a new login. If you do not recognize this login, update the security status of your account, including changing your password. / 新しいログインがありました。このログインに心当たりがない場合は、パスワードを変更するなど、アカウントのセキュリティ状態を更新してください。');
+				const result = await this.emailTemplatesService.sendEmailWithTemplates(profile.email, 'newLogin');
+				if (!result) {
+					this.emailService.sendEmail(profile.email, 'New login / ログインがありました',
+						'There is a new login. If you do not recognize this login, update the security status of your account, including changing your password. / 新しいログインがありました。このログインに心当たりがない場合は、パスワードを変更するなど、アカウントのセキュリティ状態を更新してください。',
+						'There is a new login. If you do not recognize this login, update the security status of your account, including changing your password. / 新しいログインがありました。このログインに心当たりがない場合は、パスワードを変更するなど、アカウントのセキュリティ状態を更新してください。');
+				}
 			}
 		});
 

@@ -10761,7 +10761,7 @@ export interface Locale extends ILocale {
      */
     "approvalStatus": string;
     /**
-     * This server currently requires approval to register. Please provide your reason for joining, and only those approved will be allowed to register.
+     * This instance currently requires approval to register. Please provide your reason for joining, and only those approved will be allowed to register.
      */
     "approvalRequiredToRegister": string;
     /**
@@ -10816,6 +10816,22 @@ export interface Locale extends ILocale {
          */
         "globalDescription": string;
         /**
+         * The email templates have some predefined variables that are available in all templates:
+         * ${instanceHost}: instance domain name
+         * ${instanceName}: instance name or instance domain (if no instance name)
+         * ${maintainerName}: maintainer name (if available)
+         * ${maintainerEmail}: maintainer email (if available)
+         * ${contact}: contact information (if available)
+         * ${senderEmail}: sender email (if available)
+         * ${receiverName}: receiver name (if available)
+         * ${receiverEmail}: receiver email
+         */
+        "globalVars": ParameterizedString<"instanceHost" | "instanceName" | "maintainerName" | "maintainerEmail" | "contact" | "senderEmail" | "receiverName" | "receiverEmail">;
+        /**
+         * The templates require HTML implementation!
+         */
+        "globalEditWarning": string;
+        /**
          * Single switch
          */
         "singleSwitch": string;
@@ -10840,9 +10856,17 @@ export interface Locale extends ILocale {
          */
         "abuseReport": string;
         /**
+         * comment: content of the abuse report
+         */
+        "abuseReportVars": string;
+        /**
          * Reset Password
          */
         "resetPassword": string;
+        /**
+         * link: link to reset password
+         */
+        "resetPasswordVars": string;
         /**
          * Account Delete
          */
@@ -10852,17 +10876,34 @@ export interface Locale extends ILocale {
          */
         "inactivityWarning": string;
         /**
+         * timeVariant: time
+         * timeVariantJa: time (Japanese)
+         */
+        "inactivityWarningVars": string;
+        /**
          * Change to Approval-Only
          */
         "changeToApproval": string;
+        /**
+         * MODERATOR_INACTIVITY_LIMIT_DAYS: moderator inactivity limit days
+         */
+        "changeToApprovalVars": string;
         /**
          * Signup
          */
         "signup": string;
         /**
+         * link: link to complete registration
+         */
+        "signupVars": string;
+        /**
          * Email Verification
          */
         "emailVerification": string;
+        /**
+         * link: link to complete email verification
+         */
+        "emailVerificationVars": string;
         /**
          * Account Approved
          */
@@ -10880,9 +10921,20 @@ export interface Locale extends ILocale {
          */
         "newUserApproval": string;
         /**
+         * username: new user's username
+         * email: new user's email
+         * reason: new user's reason
+         */
+        "newUserApprovalVars": string;
+        /**
          * New User Approval (without email)
          */
         "newUserApprovalWithoutEmail": string;
+        /**
+         * username: new user's username
+         * reason: new user's reason
+         */
+        "newUserApprovalWithoutEmailVars": string;
         /**
          * Account Reinstated
          */
@@ -10892,21 +10944,41 @@ export interface Locale extends ILocale {
          */
         "accountDeclined": string;
         /**
-         * Account Declined （with reason）
+         * Account Declined (with reason)
          */
         "accountDeclinedWithReason": string;
+        /**
+         * reason: reason for decline
+         */
+        "accountDeclinedWithReasonVars": string;
         /**
          * New Follower
          */
         "newFollower": string;
         /**
+         * name: follower's name
+         * username: follower's username
+         * host: the host of the instance where the follower is located
+         */
+        "newFollowerVars": string;
+        /**
          * New Follow Request
          */
         "newFollowRequest": string;
         /**
+         * name: follower's name
+         * username: follower's username
+         * host: the host of the instance where the follower is located
+         */
+        "newFollowRequestVars": string;
+        /**
          * New Security Release
          */
         "secRelease": string;
+        /**
+         * tag: name of the version to update to
+         */
+        "secReleaseVars": string;
     };
 }
 declare const locales: {

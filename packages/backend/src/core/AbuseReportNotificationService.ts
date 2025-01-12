@@ -18,6 +18,7 @@ import type {
 	MiUser,
 } from '@/models/_.js';
 import { EmailService } from '@/core/EmailService.js';
+import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
 import { RoleService } from '@/core/RoleService.js';
 import { RecipientMethod } from '@/models/AbuseReportNotificationRecipient.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
@@ -41,6 +42,7 @@ export class AbuseReportNotificationService implements OnApplicationShutdown {
 		private roleService: RoleService,
 		private systemWebhookService: SystemWebhookService,
 		private emailService: EmailService,
+		private emailTemplatesService: EmailTemplatesService,
 		private moderationLogService: ModerationLogService,
 		private globalEventService: GlobalEventService,
 		private userEntityService: UserEntityService,
@@ -121,12 +123,17 @@ export class AbuseReportNotificationService implements OnApplicationShutdown {
 			await Promise.all(
 				abuseReports.map(it => {
 					// TODO: 送信処理はJobQueue化したい
-					return this.emailService.sendEmail(
-						mailAddress,
-						'New Abuse Report',
-						sanitizeHtml(it.comment),
-						sanitizeHtml(it.comment),
-					);
+					const comment = it.comment;
+					const result = this.emailTemplatesService.sendEmailWithTemplates(mailAddress, 'abuseReport', { comment });
+					if (!result) {
+						return this.emailService.sendEmail(
+							mailAddress,
+							'New Abuse Report',
+							sanitizeHtml(it.comment),
+							sanitizeHtml(it.comment),
+						);
+					}
+					return true;
 				}),
 			);
 		}

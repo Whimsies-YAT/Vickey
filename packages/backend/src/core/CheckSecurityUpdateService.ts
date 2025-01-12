@@ -7,6 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import type Logger from '@/logger.js';
 import sanitizeHtml from 'sanitize-html';
 import { EmailService } from '@/core/EmailService.js';
+import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
 import { MetaService } from '@/core/MetaService.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import type { MiMeta } from '@/models/_.js';
@@ -25,6 +26,7 @@ export class CheckSecurityUpdateService {
 		private meta: MiMeta,
 
 		private emailService: EmailService,
+		private emailTemplatesService: EmailTemplatesService,
 		private metaService: MetaService,
 		private httpRequestService: HttpRequestService
 	) {}
@@ -86,12 +88,16 @@ export class CheckSecurityUpdateService {
 											this.meta.maintainerEmail &&
 											emailRe.test(this.meta.maintainerEmail)
 										) {
-											await this.emailService.sendEmail(
-												this.meta.maintainerEmail,
-												"New Security Release Detected",
-												sanitizeHtml(`Version ${release.tag_name} contains security updates!`),
-												sanitizeHtml(`Version ${release.tag_name} contains security updates!`)
-											);
+											const tag = release.tag_name;
+											const result = await this.emailTemplatesService.sendEmailWithTemplates(this.meta.maintainerEmail, 'secRelease', { tag });
+											if (!result) {
+												await this.emailService.sendEmail(
+													this.meta.maintainerEmail,
+													"New Security Release Detected",
+													sanitizeHtml(`Version ${tag} contains security updates!`),
+													sanitizeHtml(`Version ${tag} contains security updates!`)
+												);
+											}
 										}
 										const set = { security: false } as Partial<MiMeta>;
 										await this.metaService.update(set);
