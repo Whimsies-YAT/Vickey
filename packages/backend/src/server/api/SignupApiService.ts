@@ -274,7 +274,7 @@ export class SignupApiService {
 					const newUserProfile = {
 						username: pendingUser.username,
 						reason: reason,
-					}
+					};
 					const result = await this.emailTemplatesService.sendEmailWithTemplates(profile.email, 'newUserApprovalWithoutEmail', { newUserProfile });
 					if (!result) {
 						this.emailService.sendEmail(profile.email, 'New user awaiting approval',
@@ -377,7 +377,7 @@ export class SignupApiService {
 							email: profile.email,
 							username: pendingUser.username,
 							reason: pendingUser.reason,
-						}
+						};
 						const result = await this.emailTemplatesService.sendEmailWithTemplates(profile.email, 'newUserApprovalWithoutEmail', { newUserProfile });
 						if (!result) {
 							await this.emailService.sendEmail(profile.email, 'New user awaiting approval',
