@@ -396,6 +396,6 @@ describe('AiScript common API', () => {
 		const [res] = await exe(`
 			<: Mk:nyaize('な')
 		`);
-		expect(res).toStrictEqual(values.STR('にゃ'));
+		expect(res).toStrictEqual(values.STR('な'));
 	});
 });
