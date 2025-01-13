@@ -20,6 +20,7 @@ import { DI } from '@/di-symbols.js';
 import { GlobalModule } from '@/GlobalModule.js';
 import { IdService } from '@/core/IdService.js';
 import { EmailService } from '@/core/EmailService.js';
+import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
 import { RoleService } from '@/core/RoleService.js';
 import { MetaService } from '@/core/MetaService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
@@ -43,6 +44,7 @@ describe('AbuseReportNotificationService', () => {
 	let idService: IdService;
 	let roleService: jest.Mocked<RoleService>;
 	let emailService: jest.Mocked<EmailService>;
+	let emailTemplatesService: jest.Mocked<EmailTemplatesService>;
 	let webhookService: jest.Mocked<SystemWebhookService>;
 
 	// --------------------------------------------------------------------------------------
@@ -118,6 +120,9 @@ describe('AbuseReportNotificationService', () => {
 						provide: EmailService, useFactory: () => ({ sendEmail: jest.fn() }),
 					},
 					{
+						provide: EmailTemplatesService, useFactory: () => ({ sendEmailWithTemplates: jest.fn() }),
+					},
+					{
 						provide: MetaService, useFactory: () => ({ fetch: jest.fn() }),
 					},
 					{
@@ -139,6 +144,7 @@ describe('AbuseReportNotificationService', () => {
 		idService = app.get(IdService);
 		roleService = app.get(RoleService) as jest.Mocked<RoleService>;
 		emailService = app.get<EmailService>(EmailService) as jest.Mocked<EmailService>;
+		emailTemplatesService = app.get(EmailTemplatesService) as jest.Mocked<EmailTemplatesService>;
 		webhookService = app.get<SystemWebhookService>(SystemWebhookService) as jest.Mocked<SystemWebhookService>;
 
 		app.enableShutdownHooks();

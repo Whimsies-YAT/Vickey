@@ -2759,9 +2759,17 @@ export interface Locale extends ILocale {
      */
     "wordMute": string;
     /**
+     * 指定した語句を含むノートを最小化します。最小化されたノートをクリックすることで表示することができます。
+     */
+    "wordMuteDescription": string;
+    /**
      * ハードワードミュート
      */
     "hardWordMute": string;
+    /**
+     * 指定した語句を含むノートを隠します。ワードミュートとは異なり、ノートは完全に表示されなくなります。
+     */
+    "hardWordMuteDescription": string;
     /**
      * 正規表現エラー
      */
@@ -10753,7 +10761,7 @@ export interface Locale extends ILocale {
      */
     "approvalStatus": string;
     /**
-     * This server currently requires approval to register. Please provide your reason for joining, and only those approved will be allowed to register.
+     * This instance currently requires approval to register. Please provide your reason for joining, and only those approved will be allowed to register.
      */
     "approvalRequiredToRegister": string;
     /**
@@ -10780,6 +10788,10 @@ export interface Locale extends ILocale {
      * Reason for Decline (Optional)
      */
     "optionalReason": string;
+    /**
+     * Email Templates
+     */
+    "emailTemplates": string;
     "_aboutVickey": {
         /**
          * Vickey is a soft fork of Misskey.
@@ -10793,6 +10805,180 @@ export interface Locale extends ILocale {
          * Donate to Vickey
          */
         "donate": string;
+    };
+    "_emailTemplates": {
+        /**
+         * Global switch
+         */
+        "global": string;
+        /**
+         * Email templates will only take effect if the global switch is turned on.
+         */
+        "globalDescription": string;
+        /**
+         * The email templates have some predefined variables that are available in all templates:
+         * ${instanceHost}: instance domain name
+         * ${instanceName}: instance name or instance domain (if no instance name)
+         * ${maintainerName}: maintainer name (if available)
+         * ${maintainerEmail}: maintainer email (if available)
+         * ${contact}: contact information (if available)
+         * ${senderEmail}: sender email (if available)
+         * ${receiverName}: receiver name (if available)
+         * ${receiverEmail}: receiver email
+         */
+        "globalVars": ParameterizedString<"instanceHost" | "instanceName" | "maintainerName" | "maintainerEmail" | "contact" | "senderEmail" | "receiverName" | "receiverEmail">;
+        /**
+         * The templates require HTML implementation!
+         */
+        "globalEditWarning": string;
+        /**
+         * Single switch
+         */
+        "singleSwitch": string;
+        /**
+         * Controls each item individually when the global switche are enabled.
+         */
+        "singleSwitchDescription": string;
+        /**
+         * Email content (leave blank to use default)
+         */
+        "textareaDescription": string;
+        /**
+         * Email title (leave blank to use default)
+         */
+        "title": string;
+        /**
+         * New Login
+         */
+        "newLogin": string;
+        /**
+         * Abuse Report
+         */
+        "abuseReport": string;
+        /**
+         * comment: content of the abuse report
+         */
+        "abuseReportVars": string;
+        /**
+         * Reset Password
+         */
+        "resetPassword": string;
+        /**
+         * link: link to reset password
+         */
+        "resetPasswordVars": string;
+        /**
+         * Account Delete
+         */
+        "accountDelete": string;
+        /**
+         * Moderator Inactivity Warning
+         */
+        "inactivityWarning": string;
+        /**
+         * timeVariant: time
+         * timeVariantJa: time (Japanese)
+         */
+        "inactivityWarningVars": string;
+        /**
+         * Change to Approval-Only
+         */
+        "changeToApproval": string;
+        /**
+         * MODERATOR_INACTIVITY_LIMIT_DAYS: moderator inactivity limit days
+         */
+        "changeToApprovalVars": string;
+        /**
+         * Signup
+         */
+        "signup": string;
+        /**
+         * link: link to complete registration
+         */
+        "signupVars": string;
+        /**
+         * Email Verification
+         */
+        "emailVerification": string;
+        /**
+         * link: link to complete email verification
+         */
+        "emailVerificationVars": string;
+        /**
+         * Account Approved
+         */
+        "accountApproved": string;
+        /**
+         * Account Suspended
+         */
+        "accountSuspended": string;
+        /**
+         * Approval Pending
+         */
+        "approvalPending": string;
+        /**
+         * New User Approval
+         */
+        "newUserApproval": string;
+        /**
+         * username: new user's username
+         * email: new user's email
+         * reason: new user's reason
+         */
+        "newUserApprovalVars": string;
+        /**
+         * New User Approval (without email)
+         */
+        "newUserApprovalWithoutEmail": string;
+        /**
+         * username: new user's username
+         * reason: new user's reason
+         */
+        "newUserApprovalWithoutEmailVars": string;
+        /**
+         * Account Reinstated
+         */
+        "accountReinstated": string;
+        /**
+         * Account Declined
+         */
+        "accountDeclined": string;
+        /**
+         * Account Declined (with reason)
+         */
+        "accountDeclinedWithReason": string;
+        /**
+         * reason: reason for decline
+         */
+        "accountDeclinedWithReasonVars": string;
+        /**
+         * New Follower
+         */
+        "newFollower": string;
+        /**
+         * name: follower's name
+         * username: follower's username
+         * host: the host of the instance where the follower is located
+         */
+        "newFollowerVars": string;
+        /**
+         * New Follow Request
+         */
+        "newFollowRequest": string;
+        /**
+         * name: follower's name
+         * username: follower's username
+         * host: the host of the instance where the follower is located
+         */
+        "newFollowRequestVars": string;
+        /**
+         * New Security Release
+         */
+        "secRelease": string;
+        /**
+         * tag: name of the version to update to
+         */
+        "secReleaseVars": string;
     };
 }
 declare const locales: {

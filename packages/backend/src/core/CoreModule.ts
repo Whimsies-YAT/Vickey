@@ -31,6 +31,7 @@ import { DeleteAccountService } from './DeleteAccountService.js';
 import { DownloadService } from './DownloadService.js';
 import { DriveService } from './DriveService.js';
 import { EmailService } from './EmailService.js';
+import { EmailTemplatesService } from './EmailTemplatesService.js';
 import { FederatedInstanceService } from './FederatedInstanceService.js';
 import { FetchInstanceMetadataService } from './FetchInstanceMetadataService.js';
 import { GlobalEventService } from './GlobalEventService.js';
@@ -176,6 +177,7 @@ const $DeleteAccountService: Provider = { provide: 'DeleteAccountService', useEx
 const $DownloadService: Provider = { provide: 'DownloadService', useExisting: DownloadService };
 const $DriveService: Provider = { provide: 'DriveService', useExisting: DriveService };
 const $EmailService: Provider = { provide: 'EmailService', useExisting: EmailService };
+const $EmailTemplatesService: Provider = { provide: 'EmailTemplatesService', useExisting: EmailTemplatesService };
 const $FederatedInstanceService: Provider = { provide: 'FederatedInstanceService', useExisting: FederatedInstanceService };
 const $FetchInstanceMetadataService: Provider = { provide: 'FetchInstanceMetadataService', useExisting: FetchInstanceMetadataService };
 const $GlobalEventService: Provider = { provide: 'GlobalEventService', useExisting: GlobalEventService };
@@ -329,6 +331,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		DownloadService,
 		DriveService,
 		EmailService,
+		EmailTemplatesService,
 		FederatedInstanceService,
 		FetchInstanceMetadataService,
 		GlobalEventService,
@@ -478,6 +481,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		$DownloadService,
 		$DriveService,
 		$EmailService,
+		$EmailTemplatesService,
 		$FederatedInstanceService,
 		$FetchInstanceMetadataService,
 		$GlobalEventService,
@@ -628,6 +632,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		DownloadService,
 		DriveService,
 		EmailService,
+		EmailTemplatesService,
 		FederatedInstanceService,
 		FetchInstanceMetadataService,
 		GlobalEventService,
@@ -776,6 +781,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		$DownloadService,
 		$DriveService,
 		$EmailService,
+		$EmailTemplatesService,
 		$FederatedInstanceService,
 		$FetchInstanceMetadataService,
 		$GlobalEventService,

@@ -117,7 +117,6 @@ export class IP2LocationService {
 		}
 	}
 
-
 	private async extractAndRenameBinFile(zipFilePath: string, outputDir: string, newFileName: string): Promise<void> {
 		try {
 			const zipBuffer = await fs.promises.readFile(zipFilePath);

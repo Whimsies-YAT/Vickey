@@ -9,7 +9,7 @@ import type { UsersRepository, UserProfilesRepository } from '@/models/_.js';
 import { EmailService } from '@/core/EmailService.js';
 import { UserSuspendService } from '@/core/UserSuspendService.js';
 import { DI } from '@/di-symbols.js';
-import {RoleService} from "@/core/RoleService.js";
+import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
 
 export const meta = {
 	tags: ['admin'],
@@ -37,6 +37,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private userProfilesRepository: UserProfilesRepository,
 
 		private emailService: EmailService,
+		private emailTemplatesService: EmailTemplatesService,
 		private userSuspendService: UserSuspendService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
@@ -49,9 +50,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			await this.userSuspendService.unsuspend(user, me);
 			if (userProfile?.email && userProfile.emailVerified) {
-				await this.emailService.sendEmail(userProfile.email, 'Account Reinstated',
-					'Your account has been reinstated. You can now access it again. If you have any further questions, please contact moderators.',
-					'Your account has been reinstated. You can now access it again. If you have any further questions, please contact moderators.');
+				const result = await this.emailTemplatesService.sendEmailWithTemplates(userProfile.email, 'accountReinstated');
+				if (!result) {
+					await this.emailService.sendEmail(userProfile.email, 'Account Reinstated',
+						'Your account has been reinstated. You can now access it again. If you have any further questions, please contact moderators.',
+						'Your account has been reinstated. You can now access it again. If you have any further questions, please contact moderators.');
+				}
 			}
 		});
 	}

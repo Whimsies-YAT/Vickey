@@ -22,6 +22,7 @@ import { L_CHARS, secureRndstr } from '@/misc/secure-rndstr.js';
 import { SigninService } from './SigninService.js';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { RoleService } from '@/core/RoleService.js';
+import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
 
 @Injectable()
 export class SignupApiService {
@@ -55,6 +56,7 @@ export class SignupApiService {
 		private emailService: EmailService,
 		private roleService: RoleService,
 		private iP2LocationService: IP2LocationService,
+		private emailTemplatesService: EmailTemplatesService,
 	) {
 	}
 
@@ -230,9 +232,12 @@ export class SignupApiService {
 		if (this.meta.emailRequiredForSignup && pendingUser.email) {
 			const link = `${this.config.url}/signup-complete/${code}`;
 
-			this.emailService.sendEmail(emailAddress!, 'Signup',
-				`To complete signup, please click this link:<br><a href="${link}">${link}</a>`,
-				`To complete signup, please click this link: ${link}`);
+			const result = await this.emailTemplatesService.sendEmailWithTemplates(emailAddress!, 'signup', { link });
+			if (!result) {
+				this.emailService.sendEmail(emailAddress!, 'Signup',
+					`To complete signup, please click this link:<br><a href="${link}">${link}</a>`,
+					`To complete signup, please click this link: ${link}`);
+			}
 
 			if (ticket) {
 				await this.registrationTicketsRepository.update(ticket.id, {
@@ -245,9 +250,12 @@ export class SignupApiService {
 			return;
 		} else if (this.meta.approvalRequiredForSignup) {
 			if (emailAddress) {
-				this.emailService.sendEmail(emailAddress, 'Approval pending',
-					'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.',
-					'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.');
+				const result = await this.emailTemplatesService.sendEmailWithTemplates(emailAddress, 'approvalPending');
+				if (!result) {
+					this.emailService.sendEmail(emailAddress, 'Approval pending',
+						'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.',
+						'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.');
+				}
 			}
 
 			if (ticket) {
@@ -263,9 +271,16 @@ export class SignupApiService {
 				const profile = await this.userProfilesRepository.findOneBy({ userId: moderator.id });
 
 				if (profile?.email) {
-					this.emailService.sendEmail(profile.email, 'New user awaiting approval',
-						`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${reason}"`,
-						`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${reason}"`);
+					const newUserProfile = {
+						username: pendingUser.username,
+						reason: reason,
+					};
+					const result = await this.emailTemplatesService.sendEmailWithTemplates(profile.email, 'newUserApprovalWithoutEmail', { newUserProfile });
+					if (!result) {
+						this.emailService.sendEmail(profile.email, 'New user awaiting approval',
+							`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${reason}"`,
+							`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${reason}"`);
+					}
 				}
 			}
 
@@ -344,9 +359,12 @@ export class SignupApiService {
 				}
 
 				if (pendingUser.email) {
-					await this.emailService.sendEmail(pendingUser.email, 'Approval pending',
-						'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.',
-						'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.');
+					const result = await this.emailTemplatesService.sendEmailWithTemplates(pendingUser.email, 'approvalPending');
+					if (!result) {
+						await this.emailService.sendEmail(pendingUser.email, 'Approval pending',
+							'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.',
+							'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.');
+					}
 				}
 
 				const moderators = await this.roleService.getModerators();
@@ -355,9 +373,17 @@ export class SignupApiService {
 					const profile = await this.userProfilesRepository.findOneBy({ userId: moderator.id });
 
 					if (profile?.email) {
-						await this.emailService.sendEmail(profile.email, 'New user awaiting approval',
-							`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`,
-							`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`);
+						const newUserProfile = {
+							email: profile.email,
+							username: pendingUser.username,
+							reason: pendingUser.reason,
+						};
+						const result = await this.emailTemplatesService.sendEmailWithTemplates(profile.email, 'newUserApprovalWithoutEmail', { newUserProfile });
+						if (!result) {
+							await this.emailService.sendEmail(profile.email, 'New user awaiting approval',
+								`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`,
+								`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`);
+						}
 					}
 				}
 

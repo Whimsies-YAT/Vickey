@@ -41,6 +41,8 @@ import * as ep___admin_drive_cleanRemoteFiles from './endpoints/admin/drive/clea
 import * as ep___admin_drive_cleanup from './endpoints/admin/drive/cleanup.js';
 import * as ep___admin_drive_files from './endpoints/admin/drive/files.js';
 import * as ep___admin_drive_showFile from './endpoints/admin/drive/show-file.js';
+import * as ep___admin_email_templates_update from './endpoints/admin/email/templates/update.js';
+import * as ep___admin_email_templates_show from './endpoints/admin/email/templates/show.js';
 import * as ep___admin_emoji_addAliasesBulk from './endpoints/admin/emoji/add-aliases-bulk.js';
 import * as ep___admin_emoji_add from './endpoints/admin/emoji/add.js';
 import * as ep___admin_emoji_copy from './endpoints/admin/emoji/copy.js';
@@ -437,6 +439,8 @@ const eps = [
 	['admin/drive/cleanup', ep___admin_drive_cleanup],
 	['admin/drive/files', ep___admin_drive_files],
 	['admin/drive/show-file', ep___admin_drive_showFile],
+	['admin/email/templates/update', ep___admin_email_templates_update],
+	['admin/email/templates/show', ep___admin_email_templates_show],
 	['admin/emoji/add-aliases-bulk', ep___admin_emoji_addAliasesBulk],
 	['admin/emoji/add', ep___admin_emoji_add],
 	['admin/emoji/copy', ep___admin_emoji_copy],

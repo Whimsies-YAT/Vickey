@@ -9,6 +9,7 @@ import type { UserPendingsRepository, UsersRepository } from '@/models/_.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { DI } from '@/di-symbols.js';
 import { EmailService } from '@/core/EmailService.js';
+import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
 
 export const meta = {
 	tags: ['admin'],
@@ -37,6 +38,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		private moderationLogService: ModerationLogService,
 		private emailService: EmailService,
+		private emailTemplatesService: EmailTemplatesService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const pendingUser = await this.userPendingsRepository.findOneByOrFail({ id: ps.userId });
@@ -59,13 +61,19 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (pendingUser.email && pendingUser.emailVerified) {
 				if (!reason) {
-					await this.emailService.sendEmail(pendingUser.email, 'Account declined',
-						'Your Account has been declined!',
-						'Your Account has been declined!');
+					const result = await this.emailTemplatesService.sendEmailWithTemplates(pendingUser.email, 'accountDeclined');
+					if (!result) {
+						await this.emailService.sendEmail(pendingUser.email, 'Account declined',
+							'Your Account has been declined!',
+							'Your Account has been declined!');
+					}
 				} else {
-					await this.emailService.sendEmail(pendingUser.email, 'Account declined',
-						`Your account has been declined due to: ${reason}`,
-						`Your account has been declined due to: ${reason}`);
+					const result = await this.emailTemplatesService.sendEmailWithTemplates(pendingUser.email, 'accountDeclinedWithReason', { reason });
+					if (!result) {
+						await this.emailService.sendEmail(pendingUser.email, 'Account declined',
+							`Your account has been declined due to: ${reason}`,
+							`Your account has been declined due to: ${reason}`);
+					}
 				}
 			}
 

@@ -15,6 +15,7 @@ import { DI } from '@/di-symbols.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { L_CHARS, secureRndstr } from '@/misc/secure-rndstr.js';
 import { UserAuthService } from '@/core/UserAuthService.js';
+import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -77,6 +78,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		private userEntityService: UserEntityService,
 		private emailService: EmailService,
+		private emailTemplatesService: EmailTemplatesService,
 		private userAuthService: UserAuthService,
 		private globalEventService: GlobalEventService,
 	) {
@@ -133,9 +135,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 				const link = `${this.config.url}/verify-email/${code}`;
 
-				this.emailService.sendEmail(ps.email, 'Email verification',
-					`To verify email, please click this link:<br><a href="${link}">${link}</a>`,
-					`To verify email, please click this link: ${link}`);
+				const result = await this.emailTemplatesService.sendEmailWithTemplates(ps.email, 'emailVerification', { link });
+				if (!result) {
+					this.emailService.sendEmail(ps.email, 'Email verification',
+						`To verify email, please click this link:<br><a href="${link}">${link}</a>`,
+						`To verify email, please click this link: ${link}`);
+				}
 			}
 
 			return iObj;

@@ -273,6 +273,10 @@ export const packedMetaLiteSchema = {
 			type: 'boolean',
 			optional: false, nullable: false,
 		},
+		enableEmailTemplates: {
+			type: 'boolean',
+			optional: false, nullable: false,
+		},
 	},
 } as const;
 
