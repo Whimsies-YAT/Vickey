@@ -681,7 +681,7 @@ export type paths = {
      * admin/show-pendings
      * @description No description provided.
      *
-     * **Credential required**: *Yes* / **Permission**: *read:admin:show-pending*
+     * **Credential required**: *Yes* / **Permission**: *read:admin:show-pendings*
      */
     post: operations['admin___show-pendings'];
   };
@@ -7327,7 +7327,7 @@ export type operations = {
           templates: {
               key: string;
               content: string[];
-              enable: boolean;
+              enabled: boolean;
             }[];
         };
       };
@@ -9575,7 +9575,7 @@ export type operations = {
    * admin/show-pendings
    * @description No description provided.
    *
-   * **Credential required**: *Yes* / **Permission**: *read:admin:show-pending*
+   * **Credential required**: *Yes* / **Permission**: *read:admin:show-pendings*
    */
   'admin___show-pendings': {
     requestBody: {
