@@ -29,6 +29,7 @@ import type {
 	AdminAnnouncementsListRequest,
 	AdminAnnouncementsListResponse,
 	AdminAnnouncementsUpdateRequest,
+	AdminApproveUserRequest,
 	AdminAvatarDecorationsCreateRequest,
 	AdminAvatarDecorationsCreateResponse,
 	AdminAvatarDecorationsDeleteRequest,
@@ -38,14 +39,15 @@ import type {
 	AdminAvatarDecorationsUpdateRequest,
 	AdminCaptchaCurrentResponse,
 	AdminCaptchaSaveRequest,
+	AdminDeclineUserRequest,
 	AdminDeleteAccountRequest,
 	AdminDeleteAllFilesOfAUserRequest,
 	AdminDriveFilesRequest,
 	AdminDriveFilesResponse,
 	AdminDriveShowFileRequest,
 	AdminDriveShowFileResponse,
-	AdminEmailTemplatesUpdateRequest,
 	AdminEmailTemplatesShowRequest,
+	AdminEmailTemplatesUpdateRequest,
 	AdminEmojiAddRequest,
 	AdminEmojiAddResponse,
 	AdminEmojiAddAliasesBulkRequest,
@@ -89,27 +91,6 @@ import type {
 	AdminResetPasswordRequest,
 	AdminResetPasswordResponse,
 	AdminResolveAbuseUserReportRequest,
-	AdminForwardAbuseUserReportRequest,
-	AdminUpdateAbuseUserReportRequest,
-	AdminSendEmailRequest,
-	AdminServerInfoResponse,
-	AdminShowModerationLogsRequest,
-	AdminShowModerationLogsResponse,
-	AdminShowPendingRequest,
-	AdminShowPendingResponse,
-	AdminShowPendingsRequest,
-	AdminShowPendingsResponse,
-	AdminShowUserRequest,
-	AdminShowUserResponse,
-	AdminShowUsersRequest,
-	AdminShowUsersResponse,
-	AdminSuspendUserRequest,
-	AdminApproveUserRequest,
-	AdminDeclineUserRequest,
-	AdminUnsuspendUserRequest,
-	AdminUpdateMetaRequest,
-	AdminDeleteAccountRequest,
-	AdminUpdateUserNoteRequest,
 	AdminRolesAssignRequest,
 	AdminRolesCreateRequest,
 	AdminRolesCreateResponse,
@@ -126,6 +107,10 @@ import type {
 	AdminServerInfoResponse,
 	AdminShowModerationLogsRequest,
 	AdminShowModerationLogsResponse,
+	AdminShowPendingRequest,
+	AdminShowPendingResponse,
+	AdminShowPendingsRequest,
+	AdminShowPendingsResponse,
 	AdminShowUserRequest,
 	AdminShowUserResponse,
 	AdminShowUsersRequest,
@@ -324,8 +309,8 @@ import type {
 	FollowingRequestsAcceptRequest,
 	FollowingRequestsCancelRequest,
 	FollowingRequestsCancelResponse,
-	FollowingRequestsIgnoreRequest,
 	FollowingRequestsDisplayRequest,
+	FollowingRequestsIgnoreRequest,
 	FollowingRequestsListRequest,
 	FollowingRequestsListResponse,
 	FollowingRequestsRejectRequest,
@@ -631,6 +616,7 @@ export type Endpoints = {
 	'admin/announcements/delete': { req: AdminAnnouncementsDeleteRequest; res: EmptyResponse };
 	'admin/announcements/list': { req: AdminAnnouncementsListRequest; res: AdminAnnouncementsListResponse };
 	'admin/announcements/update': { req: AdminAnnouncementsUpdateRequest; res: EmptyResponse };
+	'admin/approve-user': { req: AdminApproveUserRequest; res: EmptyResponse };
 	'admin/avatar-decorations/create': { req: AdminAvatarDecorationsCreateRequest; res: AdminAvatarDecorationsCreateResponse };
 	'admin/avatar-decorations/delete': { req: AdminAvatarDecorationsDeleteRequest; res: EmptyResponse };
 	'admin/avatar-decorations/import-zip': { req: AdminAvatarDecorationsImportZipRequest; res: EmptyResponse };
@@ -638,14 +624,15 @@ export type Endpoints = {
 	'admin/avatar-decorations/update': { req: AdminAvatarDecorationsUpdateRequest; res: EmptyResponse };
 	'admin/captcha/current': { req: EmptyRequest; res: AdminCaptchaCurrentResponse };
 	'admin/captcha/save': { req: AdminCaptchaSaveRequest; res: EmptyResponse };
+	'admin/decline-user': { req: AdminDeclineUserRequest; res: EmptyResponse };
 	'admin/delete-account': { req: AdminDeleteAccountRequest; res: EmptyResponse };
 	'admin/delete-all-files-of-a-user': { req: AdminDeleteAllFilesOfAUserRequest; res: EmptyResponse };
 	'admin/drive/clean-remote-files': { req: EmptyRequest; res: EmptyResponse };
 	'admin/drive/cleanup': { req: EmptyRequest; res: EmptyResponse };
 	'admin/drive/files': { req: AdminDriveFilesRequest; res: AdminDriveFilesResponse };
 	'admin/drive/show-file': { req: AdminDriveShowFileRequest; res: AdminDriveShowFileResponse };
-	'admin/email/templates/update': { req: AdminEmailTemplatesUpdateRequest; res: EmptyResponse };
 	'admin/email/templates/show': { req: AdminEmailTemplatesShowRequest; res: EmptyResponse };
+	'admin/email/templates/update': { req: AdminEmailTemplatesUpdateRequest; res: EmptyResponse };
 	'admin/emoji/add': { req: AdminEmojiAddRequest; res: AdminEmojiAddResponse };
 	'admin/emoji/add-aliases-bulk': { req: AdminEmojiAddAliasesBulkRequest; res: EmptyResponse };
 	'admin/emoji/copy': { req: AdminEmojiCopyRequest; res: AdminEmojiCopyResponse };
@@ -681,22 +668,6 @@ export type Endpoints = {
 	'admin/relays/remove': { req: AdminRelaysRemoveRequest; res: EmptyResponse };
 	'admin/reset-password': { req: AdminResetPasswordRequest; res: AdminResetPasswordResponse };
 	'admin/resolve-abuse-user-report': { req: AdminResolveAbuseUserReportRequest; res: EmptyResponse };
-	'admin/forward-abuse-user-report': { req: AdminForwardAbuseUserReportRequest; res: EmptyResponse };
-	'admin/update-abuse-user-report': { req: AdminUpdateAbuseUserReportRequest; res: EmptyResponse };
-	'admin/send-email': { req: AdminSendEmailRequest; res: EmptyResponse };
-	'admin/server-info': { req: EmptyRequest; res: AdminServerInfoResponse };
-	'admin/show-moderation-logs': { req: AdminShowModerationLogsRequest; res: AdminShowModerationLogsResponse };
-	'admin/show-pending': { req: AdminShowPendingRequest; res: AdminShowPendingResponse };
-	'admin/show-pendings': { req: AdminShowPendingsRequest; res: AdminShowPendingsResponse };
-	'admin/show-user': { req: AdminShowUserRequest; res: AdminShowUserResponse };
-	'admin/show-users': { req: AdminShowUsersRequest; res: AdminShowUsersResponse };
-	'admin/suspend-user': { req: AdminSuspendUserRequest; res: EmptyResponse };
-	'admin/approve-user': { req: AdminApproveUserRequest; res: EmptyResponse };
-	'admin/decline-user': { req: AdminDeclineUserRequest; res: EmptyResponse };
-	'admin/unsuspend-user': { req: AdminUnsuspendUserRequest; res: EmptyResponse };
-	'admin/update-meta': { req: AdminUpdateMetaRequest; res: EmptyResponse };
-	'admin/delete-account': { req: AdminDeleteAccountRequest; res: EmptyResponse };
-	'admin/update-user-note': { req: AdminUpdateUserNoteRequest; res: EmptyResponse };
 	'admin/roles/assign': { req: AdminRolesAssignRequest; res: EmptyResponse };
 	'admin/roles/create': { req: AdminRolesCreateRequest; res: AdminRolesCreateResponse };
 	'admin/roles/delete': { req: AdminRolesDeleteRequest; res: EmptyResponse };
@@ -709,6 +680,8 @@ export type Endpoints = {
 	'admin/send-email': { req: AdminSendEmailRequest; res: EmptyResponse };
 	'admin/server-info': { req: EmptyRequest; res: AdminServerInfoResponse };
 	'admin/show-moderation-logs': { req: AdminShowModerationLogsRequest; res: AdminShowModerationLogsResponse };
+	'admin/show-pending': { req: AdminShowPendingRequest; res: AdminShowPendingResponse };
+	'admin/show-pendings': { req: AdminShowPendingsRequest; res: AdminShowPendingsResponse };
 	'admin/show-user': { req: AdminShowUserRequest; res: AdminShowUserResponse };
 	'admin/show-users': { req: AdminShowUsersRequest; res: AdminShowUsersResponse };
 	'admin/suspend-user': { req: AdminSuspendUserRequest; res: EmptyResponse };
@@ -804,7 +777,6 @@ export type Endpoints = {
 	'emojis': { req: EmptyRequest; res: EmojisResponse };
 	'endpoint': { req: EndpointRequest; res: EndpointResponse };
 	'endpoints': { req: EmptyRequest; res: EndpointsResponse };
-	'export-custom-avatar-decoration': { req: EmptyRequest; res: EmptyResponse };
 	'export-custom-emojis': { req: EmptyRequest; res: EmptyResponse };
 	'federation/followers': { req: FederationFollowersRequest; res: FederationFollowersResponse };
 	'federation/following': { req: FederationFollowingRequest; res: FederationFollowingResponse };
@@ -829,8 +801,8 @@ export type Endpoints = {
 	'following/invalidate': { req: FollowingInvalidateRequest; res: FollowingInvalidateResponse };
 	'following/requests/accept': { req: FollowingRequestsAcceptRequest; res: EmptyResponse };
 	'following/requests/cancel': { req: FollowingRequestsCancelRequest; res: FollowingRequestsCancelResponse };
-	'following/requests/ignore': { req: FollowingRequestsIgnoreRequest; res: EmptyResponse };
 	'following/requests/display': { req: FollowingRequestsDisplayRequest; res: EmptyResponse };
+	'following/requests/ignore': { req: FollowingRequestsIgnoreRequest; res: EmptyResponse };
 	'following/requests/list': { req: FollowingRequestsListRequest; res: FollowingRequestsListResponse };
 	'following/requests/reject': { req: FollowingRequestsRejectRequest; res: EmptyResponse };
 	'following/requests/sent': { req: FollowingRequestsSentRequest; res: FollowingRequestsSentResponse };

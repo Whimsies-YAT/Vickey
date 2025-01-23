@@ -10952,6 +10952,49 @@ export interface Locale extends ILocale {
             "description": string;
         };
     };
+    "_captcha": {
+        /**
+         * CAPTCHAを通過してください
+         */
+        "verify": string;
+        /**
+         * サイトキーとシークレットキーにテスト用の値を入力することでプレビューを確認できます。
+         * 詳細は下記ページをご確認ください。
+         */
+        "testSiteKeyMessage": string;
+        "_error": {
+            "_requestFailed": {
+                /**
+                 * CAPTCHAのリクエストに失敗しました
+                 */
+                "title": string;
+                /**
+                 * しばらく後に実行するか、設定をもう一度ご確認ください。
+                 */
+                "text": string;
+            };
+            "_verificationFailed": {
+                /**
+                 * CAPTCHAの検証に失敗しました
+                 */
+                "title": string;
+                /**
+                 * 設定が正しいかどうかもう一度確認ください。
+                 */
+                "text": string;
+            };
+            "_unknown": {
+                /**
+                 * CAPTCHAエラー
+                 */
+                "title": string;
+                /**
+                 * 想定外のエラーが発生しました。
+                 */
+                "text": string;
+            };
+        };
+    };
     /**
      * Automatic TTS feature needed.
      */
@@ -11223,49 +11266,6 @@ export interface Locale extends ILocale {
          * tag: name of the version to update to
          */
         "secReleaseVars": string;
-    };
-    "_captcha": {
-        /**
-         * CAPTCHAを通過してください
-         */
-        "verify": string;
-        /**
-         * サイトキーとシークレットキーにテスト用の値を入力することでプレビューを確認できます。
-         * 詳細は下記ページをご確認ください。
-         */
-        "testSiteKeyMessage": string;
-        "_error": {
-            "_requestFailed": {
-                /**
-                 * CAPTCHAのリクエストに失敗しました
-                 */
-                "title": string;
-                /**
-                 * しばらく後に実行するか、設定をもう一度ご確認ください。
-                 */
-                "text": string;
-            };
-            "_verificationFailed": {
-                /**
-                 * CAPTCHAの検証に失敗しました
-                 */
-                "title": string;
-                /**
-                 * 設定が正しいかどうかもう一度確認ください。
-                 */
-                "text": string;
-            };
-            "_unknown": {
-                /**
-                 * CAPTCHAエラー
-                 */
-                "title": string;
-                /**
-                 * 想定外のエラーが発生しました。
-                 */
-                "text": string;
-            };
-        };
     };
 }
 declare const locales: {
