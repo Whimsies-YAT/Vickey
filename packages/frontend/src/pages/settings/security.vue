@@ -21,7 +21,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<header>
 							<i v-if="item.success" class="ti ti-check icon succ"></i>
 							<i v-else class="ti ti-circle-x icon fail"></i>
-							<code class="ip _monospace">{{ item.ip }}</code>
+							<code class="ip _monospace">{{ item.ip[0] }}</code>
+							<code class="location _monospace">{{ item.ip[5] }}, {{ item.ip[4] }}, {{ item.ip[2] }}</code>
 							<MkTime :time="item.createdAt" class="time"/>
 						</header>
 					</div>
@@ -151,6 +152,12 @@ definePageMetadata(() => ({
 			overflow: hidden;
 			text-overflow: ellipsis;
 			margin-right: 12px;
+		}
+
+		> .location {
+			flex-grow: 1;
+			display: flex;
+			justify-content: center;
 		}
 
 		> .time {

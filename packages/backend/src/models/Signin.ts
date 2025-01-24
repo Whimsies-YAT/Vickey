@@ -25,7 +25,7 @@ export class MiSignin {
 	@Column('varchar', {
 		length: 128,
 	})
-	public ip: string;
+	public ip: string | string[];
 
 	@Column('jsonb')
 	public headers: Record<string, any>;

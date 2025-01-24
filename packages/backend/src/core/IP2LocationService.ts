@@ -18,11 +18,15 @@ import { IP2Location, IPTools } from 'ip2location-nodejs';
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
 
-const path = Path.resolve(_dirname, '../../../../files/ip2l');
-if (!fs.existsSync(path)) {
-	fs.mkdirSync(path, { recursive: true });
+const CONFIG = {
+	path: Path.resolve(_dirname, '../../../../files/ip2l'),
+	fileName: 'ipdb.bin',
+	zipFileName: 'file.zip',
+};
+
+if (!fs.existsSync(CONFIG.path)) {
+	fs.mkdirSync(CONFIG.path, { recursive: true });
 }
-const newFileName = '/ipdb.bin';
 
 @Injectable()
 export class IP2LocationService {
@@ -35,118 +39,91 @@ export class IP2LocationService {
 
 	@bindThis
 	public async syncIP2L(auth: string | null = this.meta.ip2lAuthKey, pro: boolean = this.meta.ip2lIsPro): Promise<void> {
-		if (auth || this.meta.ip2lAuthKey) {
-			try {
-				const dbUrl = `https://www.ip2location.com/download/?token=${ auth }&file=${ pro ? "DB1BINIPV6" : "DB1LITEBINIPV6" }`;
-				const zipFilePath = path + '/file.zip';
-				await this.downloadService.downloadUrl(dbUrl, zipFilePath, true);
-				await this.extractAndRenameBinFile(zipFilePath, path, newFileName);
-			} catch (e: unknown) {
-				if (e instanceof Error) {
-					console.error(e);
-					return;
-				} else {
-					throw new Error('An unknown error occurred.');
-				}
-			}
+		if (!auth) return;
+
+		const dbUrl = `https://www.ip2location.com/download/?token=${auth}&file=${pro ? "DB11BINIPV6" : "DB11LITEBINIPV6"}`;
+		const zipFilePath = Path.join(CONFIG.path, CONFIG.zipFileName);
+
+		try {
+			await this.downloadService.downloadUrl(dbUrl, zipFilePath, true);
+			await this.extractAndRenameBinFile(zipFilePath, CONFIG.path, CONFIG.fileName);
+		} catch (error) {
+			console.error(error instanceof Error ? error : new Error('Unknown error occurred.'));
 		}
 	}
 
 	@bindThis
 	public async checkIP(ip: string): Promise<boolean> {
-		const ip2location = new IP2Location();
-		const tools = new IPTools();
+		if (!(await this.isValidIP(ip))) return true;
 
-		if (tools.isIPV4(ip) || tools.isIPV6(ip)) {
-			if (!this.meta.exemptIP.includes(ip)) {
-				try {
-					await ip2location.openAsync(path + newFileName);
-					const result = await ip2location.getAllAsync(ip);
-					const finalResult = result.countryShort;
-
-					if (finalResult !== 'MISSING_FILE') {
-						return !this.meta.banCountry.includes(finalResult);
-					} else {
-						console.log("MISSING_FILE");
-						return true;
-					}
-				} catch (error) {
-					console.error(error);
-					return true;
-				}
-			}
+		try {
+			const result = await this.getIPDetails(ip);
+			return !this.meta.banCountry.includes(result.countryShort || '');
+		} catch (error) {
+			console.error(error);
 			return true;
 		}
-
-		console.log("Not a valid IP");
-		return true;
 	}
 
 	@bindThis
 	public checkIPsync(ip: string, callback: (result: boolean) => void): void {
-		const ip2location = new IP2Location();
-		const tools = new IPTools();
+		this.checkIP(ip).then(callback).catch(() => callback(true));
+	}
 
-		if (tools.isIPV4(ip) || tools.isIPV6(ip)) {
-			if (!this.meta.exemptIP.includes(ip)) {
-				try {
-					ip2location.openAsync(path + newFileName).then(() => {
-						ip2location.getAllAsync(ip).then((result: any): void => {
-							const finalResult = result.countryShort;
-							if (finalResult !== 'MISSING_FILE') {
-								callback(!this.meta.banCountry.includes(finalResult));
-							} else {
-								console.log("MISSING_FILE");
-								callback(true);
-							}
-						});
-					}).catch((error: Error) => {
-						console.error(error);
-						callback(true);
-					});
-				} catch (error) {
-					console.error(error);
-					callback(true);
-				}
-			} else {
-				callback(true);
-			}
-		} else {
-			console.log("Not a valid IP");
-			callback(true);
+	@bindThis
+	public async checkLocation(ip: string): Promise<string[]> {
+		if (!(await this.isValidIP(ip))) return [];
+
+		try {
+			const result = await this.getIPDetails(ip);
+
+			const order = [
+				'ip', 'ipNo', 'countryShort', 'countryLong',
+				'region', 'city', 'zipCode', 'latitude',
+				'longitude', 'timeZone'
+			];
+
+			return order.map(key => {
+				const value = result[key as keyof typeof result];
+				return value !== undefined && value !== null ? value.toString() : '';
+			});
+		} catch (error) {
+			console.error(error);
+			return [];
 		}
 	}
 
 	private async extractAndRenameBinFile(zipFilePath: string, outputDir: string, newFileName: string): Promise<void> {
 		try {
 			const zipBuffer = await fs.promises.readFile(zipFilePath);
-
 			const zipReader = ZipReader.withDestinationPath(outputDir);
 			zipReader.viaBuffer(zipBuffer);
 
-			const fileNames = await fs.promises.readdir(outputDir);
+			const binFile = (await fs.promises.readdir(outputDir))
+				.find(file => file.toLowerCase().endsWith('.bin'));
 
-			let extracted = false;
-
-			for (const fileName of fileNames) {
-				if (fileName.toLowerCase().endsWith('.bin')) {
-					const oldFilePath = Path.join(outputDir, fileName);
-					const newFilePath = Path.join(outputDir, newFileName);
-
-					await fs.promises.rename(oldFilePath, newFilePath);
-
-					extracted = true;
-					break;
-				}
-			}
-
-			if (!extracted) {
-				console.log('No .BIN file found in the ZIP archive.');
+			if (binFile) {
+				await fs.promises.rename(Path.join(outputDir, binFile), Path.join(outputDir, newFileName));
+			} else {
+				console.warn('No .BIN file found in the ZIP archive.');
 			}
 		} catch (error) {
 			console.error('Error during extraction:', error);
 		} finally {
-			await fs.promises.unlink(zipFilePath);
+			await fs.promises.unlink(zipFilePath).catch(() => {
+				console.warn('Failed to delete ZIP file:', zipFilePath);
+			});
 		}
+	}
+
+	private async isValidIP(ip: string): Promise<boolean> {
+		const tools = new IPTools();
+		return (tools.isIPV4(ip) || tools.isIPV6(ip)) && !this.meta.exemptIP.includes(ip);
+	}
+
+	private async getIPDetails(ip: string): Promise<Record<string, any>> {
+		const ip2location = new IP2Location();
+		await ip2location.openAsync(Path.join(CONFIG.path, CONFIG.fileName));
+		return ip2location.getAllAsync(ip);
 	}
 }
