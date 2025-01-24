@@ -48,6 +48,7 @@ export class SigninService {
 				success: true,
 			});
 
+			// @ts-expect-error: The incoming IP must be a string.
 			this.globalEventService.publishMainStream(user.id, 'signin', await this.signinEntityService.pack(record));
 
 			const profile = await this.userProfilesRepository.findOneByOrFail({ userId: user.id });

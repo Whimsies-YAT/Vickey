@@ -16,11 +16,21 @@ export const packedSigninSchema = {
 			format: 'date-time',
 		},
 		ip: {
-			type: ['string', 'array'],
-			items: {
-				type: 'string',
-			},
-			optional: false, nullable: false,
+			oneOf: [
+				{
+					type: 'string',
+					nullable: false,
+					optional: false,
+				},
+				{
+					type: 'array',
+					items: {
+						type: 'string',
+					},
+					nullable: false,
+					optional: false,
+				},
+			],
 		},
 		headers: {
 			type: 'object',
