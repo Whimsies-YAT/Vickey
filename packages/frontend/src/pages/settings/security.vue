@@ -17,7 +17,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkPagination :pagination="pagination" disableAutoLoad>
 			<template #default="{items}">
 				<div>
-					<div v-for="item in items" :key="item.id" v-panel class="timnmucd">
+					<div v-for="item in items" :key="item.id" v-panel class="timnmucd" @click.stop="showIP(item.ip)">
 						<header>
 							<i v-if="item.success" class="ti ti-check icon succ"></i>
 							<i v-else class="ti ti-circle-x icon fail"></i>
@@ -100,6 +100,13 @@ async function regenerateToken() {
 	});
 }
 
+async function showIP(item) {
+	os.alert({
+		type: 'info',
+		text: `IP: ${item[0]}\nLocation: ${item[5]}, ${item[4]}, ${item[3]}`,
+	});
+}
+
 const headerActions = computed(() => []);
 
 const headerTabs = computed(() => []);
@@ -113,6 +120,12 @@ definePageMetadata(() => ({
 <style lang="scss" scoped>
 .timnmucd {
 	padding: 12px;
+	cursor: pointer;
+	transition: background-color 0.1s ease;
+
+	&:hover {
+		background-color: var(--MI_THEME-hover);
+	}
 
 	&:first-child {
 		border-top-left-radius: 6px;
