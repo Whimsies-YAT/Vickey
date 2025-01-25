@@ -54,7 +54,7 @@ import { definePageMetadata } from '@/scripts/page-metadata.js';
 
 const pagination = {
 	endpoint: 'i/signin-history' as const,
-	limit: 5,
+	limit: 3,
 };
 
 async function change() {
