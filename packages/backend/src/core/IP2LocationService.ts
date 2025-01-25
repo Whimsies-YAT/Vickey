@@ -14,6 +14,7 @@ import type { MiMeta } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { DI } from "@/di-symbols.js";
 import { IP2Location, IPTools } from 'ip2location-nodejs';
+import is_ip_private from 'private-ip';
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
@@ -72,7 +73,7 @@ export class IP2LocationService {
 
 	@bindThis
 	public async checkLocation(ip: string): Promise<string[]> {
-		if (!(await this.isValidIP(ip))) return [];
+		if (!(await this.isValidIPPurge(ip))) return [];
 
 		try {
 			const result = await this.getIPDetails(ip);
@@ -117,8 +118,15 @@ export class IP2LocationService {
 	}
 
 	private async isValidIP(ip: string): Promise<boolean> {
+		const isPrivate = is_ip_private(ip);
 		const tools = new IPTools();
-		return (tools.isIPV4(ip) || tools.isIPV6(ip)) && !this.meta.exemptIP.includes(ip);
+		return (tools.isIPV4(ip) || tools.isIPV6(ip)) && !this.meta.exemptIP.includes(ip) && !isPrivate;
+	}
+
+	private async isValidIPPurge(ip: string): Promise<boolean> {
+		const isPrivate = is_ip_private(ip);
+		const tools = new IPTools();
+		return (tools.isIPV4(ip) || tools.isIPV6(ip)) && !isPrivate;
 	}
 
 	private async getIPDetails(ip: string): Promise<Record<string, any>> {
