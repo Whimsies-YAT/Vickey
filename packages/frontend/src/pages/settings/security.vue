@@ -104,7 +104,7 @@ async function showIP(item) {
 	os.alert({
 		type: 'info',
 		text: `IP: ${item[0]}\nLocation: ${item[5]}, ${item[4]}, ${item[3]}`,
-	})
+	});
 }
 
 const headerActions = computed(() => []);
