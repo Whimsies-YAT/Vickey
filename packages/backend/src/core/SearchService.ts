@@ -298,7 +298,10 @@ export class SearchService {
 				// 今後の拡張で差が出る用であれば関数を分ける.
 				return this.searchNoteByLike(q, me, opts, pagination);
 			}
-			case 'meilisearch': {
+			case 'meilisearch': { // save for compatibility
+				return this.searchNoteBySearchEngine(q, me, opts, pagination);
+			}
+			case 'searchengine': {
 				return this.searchNoteBySearchEngine(q, me, opts, pagination);
 			}
 			default: {
