@@ -9,6 +9,7 @@ import * as Path from 'node:path';
 import { ZipReader } from 'slacc';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
+import { CacheService } from '@/core/CacheService.js';
 import { DownloadService } from '@/core/DownloadService.js';
 import type { MiMeta } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
@@ -35,6 +36,7 @@ export class IP2LocationService {
 		@Inject(DI.meta)
 		private meta: MiMeta,
 
+		private cacheService: CacheService,
 		private downloadService: DownloadService
 	) {}
 
@@ -57,9 +59,17 @@ export class IP2LocationService {
 	public async checkIP(ip: string): Promise<boolean> {
 		if (!(await this.isValidIP(ip))) return true;
 
+		const cache = await this.cacheService.checkIPCache.get(ip);
+
+		if (cache !== undefined) {
+			return cache;
+		}
+
 		try {
 			const result = await this.getIPDetails(ip);
-			return !this.meta.banCountry.includes(result.countryShort || '');
+			const finalResult = !this.meta.banCountry.includes(result.countryShort || '');
+			await this.cacheService.checkIPCache.set(ip, finalResult);
+			return finalResult;
 		} catch (error) {
 			console.error(error);
 			return true;
@@ -75,6 +85,12 @@ export class IP2LocationService {
 	public async checkLocation(ip: string): Promise<string[]> {
 		if (!(await this.isValidIPPurge(ip))) return [];
 
+		const cache = await this.cacheService.checkLocationCache.get(ip);
+
+		if (cache !== undefined) {
+			return cache;
+		}
+
 		try {
 			const result = await this.getIPDetails(ip);
 
@@ -84,10 +100,12 @@ export class IP2LocationService {
 				'longitude', 'timeZone'
 			];
 
-			return order.map(key => {
+			const finalResult = order.map(key => {
 				const value = result[key as keyof typeof result];
 				return value !== undefined && value !== null ? value.toString() : '';
 			});
+			await this.cacheService.checkLocationCache.set(ip, finalResult);
+			return finalResult;
 		} catch (error) {
 			console.error(error);
 			return [];
