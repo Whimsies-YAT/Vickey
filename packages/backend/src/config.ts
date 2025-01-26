@@ -219,7 +219,7 @@ export type Config = {
 	pidFile: string;
 };
 
-export type FulltextSearchProvider = 'sqlLike' | 'sqlPgroonga' | 'meilisearch';
+export type FulltextSearchProvider = 'sqlLike' | 'sqlPgroonga' | 'meilisearch' | 'searchengine';
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
