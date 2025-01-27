@@ -146,7 +146,6 @@ export class CacheService implements OnApplicationShutdown {
 			fromRedisConverter: (value) => JSON.parse(value) as string[],
 		});
 
-
 		// NOTE: チャンネルのフォロー状況キャッシュはChannelFollowingServiceで行っている
 
 		this.redisForSub.on('message', this.onMessage);
