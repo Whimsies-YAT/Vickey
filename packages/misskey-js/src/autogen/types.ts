@@ -4900,7 +4900,7 @@ export type components = {
       id: string;
       /** Format: date-time */
       createdAt: string;
-      ip: string;
+      ip: string | string[];
       headers: Record<string, never>;
       success: boolean;
     };
