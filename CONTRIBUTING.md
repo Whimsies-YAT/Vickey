@@ -2,10 +2,7 @@
 We're glad you're interested in contributing Misskey! In this document you will find the information you need to contribute to the project.
 
 > [!NOTE]
-> This project uses Japanese as its major language, **but you do not need to translate and write the Issues/PRs in Japanese.**
-> Also, you might receive comments on your Issue/PR in Japanese, but you do not need to reply to them in Japanese as well.\
-> The accuracy of machine translation into Japanese is not high, so it will be easier for us to understand if you write it in the original language.
-> It will also allow the reader to use the translation tool of their preference if necessary.
+> You should use English as the primary language for this project, even if the developers involved understand another language. This ensures that as many people as possible can read and understand the discussion.
 
 ## Roadmap
 See [ROADMAP.md](./ROADMAP.md)
@@ -15,7 +12,7 @@ Before creating an issue, please check the following:
 - To avoid duplication, please search for similar issues before creating a new issue.
 - Do not use Issues to ask questions or troubleshooting.
 	- Issues should only be used to feature requests, suggestions, and bug tracking.
-	- Please ask questions or troubleshooting in [GitHub Discussions](https://github.com/misskey-dev/misskey/discussions) or [Discord](https://discord.gg/Wp8gVStHW3).
+	- Please ask questions or troubleshooting in [GitHub Discussions](https://github.com/Whimsies-YAT/Vickey/discussions) or [Matrix](#).
 
 > [!WARNING]
 > Do not close issues that are about to be resolved. It should remain open until a commit that actually resolves it is merged.
@@ -26,7 +23,7 @@ We welcome your proposal.
 When you want to add a feature or fix a bug, **first have the design and policy reviewed in an Issue** (if it is not there, please make one). Without this step, there is a high possibility that the PR will not be merged even if it is implemented.
 
 At this point, you also need to clarify the goals of the PR you will create, and make sure that the other members of the team are aware of them.
-PRs that do not have a clear set of do's and don'ts tend to be bloated and difficult to review.
+PRs that do not have a clear set of do's and dont's tend to be bloated and difficult to review.
 
 Also, when you start implementation, assign yourself to the Issue (if you cannot do it yourself, ask Committer to assign you).
 By expressing your intention to work on the Issue, you can prevent conflicts in the work.
@@ -41,13 +38,14 @@ The Committers may:
 * split an issue into multiple issues,
 * or re-open that has been closed for some reason which is not applicable anymore.
 
-@syuilo reserves the Final Decision rights including whether the project will implement feature and how to implement, these rights are not always exercised.
+<!--@syuilo reserves the Final Decision rights including whether the project will implement feature and how to implement, these rights are not always exercised.-->
 
 ## Well-known branches
 - **`master`** branch is tracking the latest release and used for production purposes.
 - **`develop`** branch is where we work for the next release.
 	- When you create a PR, basically target it to this branch.
-- **`l10n_develop`** branch is reserved for localization management.
+- **`l10n_develop`** branch is used to synchronize Misskey's localized content.
+- **`l10n_develop_vk`** branch is reserved for localization management.
 
 ## Creating a PR
 Thank you for your PR! Before creating a PR, please check the following:
@@ -147,21 +145,21 @@ An actual domain will be assigned so you can test the federation.
 > - To celebrate the release together 🎉
 
 ## Localization (l10n)
-Misskey uses [Crowdin](https://crowdin.com/project/misskey) for localization management.
+Vickey uses [Crowdin](https://crowdin.com/project/misskey) for localization management.
 You can improve our translations with your Crowdin account.
 Your changes in Crowdin are automatically submitted as a PR (with the title "New Crowdin translations") to the repository.
-The owner [@syuilo](https://github.com/syuilo) merges the PR into the develop branch before the next release.
+The owner merges the PR into the develop branch before the next release.
 
 If your language is not listed in Crowdin, please open an issue. We will add it to Crowdin.
-For newly added languages, once the translation progress per language exceeds 70%, it will be officially introduced into Misskey and made available to users.
+For newly added languages, once the translation progress per language exceeds 70%, it will be officially introduced into Vickey and made available to users.
 
-![Crowdin](https://d322cqt584bo4o.cloudfront.net/misskey/localized.svg)
+![Crowdin](https://d322cqt584bo4o.cloudfront.net/vickey/localized.svg)
 
 ## Development
 ### Setup
-Before developing, you have to set up environment. Misskey requires Redis, PostgreSQL, and FFmpeg.
+Before developing, you have to set up environment. Vickey requires Redis, PostgreSQL, and FFmpeg.
 
-You would want to install Meilisearch to experiment related features. Technically, meilisearch is not strict requirement, but some features and tests require it.
+You would want to install Meilisearch or Elasticsearch to experiment related features. Technically, meilisearch or elasticsearch is not strict requirement, but some features and tests require it.
 
 There are a few ways to proceed.
 

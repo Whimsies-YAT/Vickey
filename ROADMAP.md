@@ -1,4 +1,4 @@
-# Roadmap
+# Roadmap (Misskey)
 The order of individual tasks is a guide only and is subject to change depending on the situation.
 Also, the later tasks are more indefinite and are subject to change as development progresses.
 
@@ -38,3 +38,8 @@ It is time to promote Misskey and change the world.
 - MiOS will be developed and integrated into various systems - What is MiOS?
 - Letting Ai-chan interfere with the real world
 - Make Misskey a member of GAFA; Misskey's office must be a reinforced concrete brutalist building with a courtyard.
+
+## (5) Improve scalability (Vickey)
+Once the development of the feature has settled down, this may be an opportunity to make larger modifications.
+
+- Use multi-language collaboration for different parts, e.g. introduce Python to run the model.
