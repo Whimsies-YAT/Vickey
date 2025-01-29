@@ -1,7 +1,8 @@
 <div align="center">
-<a href="#">
+<!--<a href="#">
 	<img src="./assets/title_float.svg" alt="Vickey logo" style="border-radius:50%" width="300"/>
-</a>
+</a>-->
+<b>(Coming soon...)</b>
 
 **🌎 **Vickey** Is Not Just Key, It's Yours!**
 
