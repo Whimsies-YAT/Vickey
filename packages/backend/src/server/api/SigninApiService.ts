@@ -24,7 +24,7 @@ import { WebAuthnService } from '@/core/WebAuthnService.js';
 import { UserAuthService } from '@/core/UserAuthService.js';
 import { CaptchaService } from '@/core/CaptchaService.js';
 import { FastifyReplyError } from '@/misc/fastify-reply-error.js';
-import { MetaService } from '@/core/MetaService.js';
+import { IP2LocationService } from '@/core/IP2LocationService.js';
 import { RateLimiterService } from './RateLimiterService.js';
 import { SigninService } from './SigninService.js';
 import type { AuthenticationResponseJSON } from '@simplewebauthn/types';
@@ -57,7 +57,7 @@ export class SigninApiService {
 		private userAuthService: UserAuthService,
 		private webAuthnService: WebAuthnService,
 		private captchaService: CaptchaService,
-		private metaService: MetaService,
+		private iP2LocationService: IP2LocationService,
 	) {
 	}
 
@@ -78,6 +78,16 @@ export class SigninApiService {
 		}>,
 		reply: FastifyReply,
 	) {
+		if (request.ip && !await this.iP2LocationService.checkIP(request.ip)) {
+			reply.code(403);
+			return {
+				error: {
+					message: 'Access is Actively Denied',
+					code: 'ACCESS_DENIED',
+					id: '1ac836e0-c8b5-11ef-bed9-7724be24f9c5',
+				},
+			};
+		}
 		reply.header('Access-Control-Allow-Origin', this.config.url);
 		reply.header('Access-Control-Allow-Credentials', 'true');
 

@@ -383,6 +383,10 @@ const routes: RouteDef[] = [{
 		name: 'emojis',
 		component: page(() => import('@/pages/custom-emojis-manager.vue')),
 	}, {
+		path: '/emojis2',
+		name: 'emojis2',
+		component: page(() => import('@/pages/admin/custom-emojis-manager2.vue')),
+	}, {
 		path: '/avatar-decorations',
 		name: 'avatarDecorations',
 		component: page(() => import('@/pages/avatar-decorations.vue')),
@@ -446,6 +450,10 @@ const routes: RouteDef[] = [{
 		path: '/moderation',
 		name: 'moderation',
 		component: page(() => import('@/pages/admin/moderation.vue')),
+	}, {
+		path: '/email-templates',
+		name: 'email-templates',
+		component: page(() => import('@/pages/admin/email-templates.vue')),
 	}, {
 		path: '/email-settings',
 		name: 'email-settings',

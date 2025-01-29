@@ -114,6 +114,10 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
+			enableEmailTemplates: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
 			enableEmail: {
 				type: 'boolean',
 				optional: false, nullable: false,
@@ -472,6 +476,26 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
+			ip2lAuthKey: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			ip2lIsPro: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			banCountry: {
+				type: 'array',
+				items: {
+					type: 'string',
+				},
+			},
+			exemptIP: {
+				type: 'array',
+				items: {
+					type: 'string',
+				},
+			},
 			defaultDarkTheme: {
 				type: 'string',
 				optional: false, nullable: true,
@@ -650,6 +674,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				logoImageUrl: instance.logoImageUrl,
 				defaultLightTheme: instance.defaultLightTheme,
 				defaultDarkTheme: instance.defaultDarkTheme,
+				enableEmailTemplates: instance.enableEmailTemplates,
 				enableEmail: instance.enableEmail,
 				enableServiceWorker: instance.enableServiceWorker,
 				translatorAvailable: instance.deeplAuthKey != null,
@@ -709,6 +734,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				hfSpeedRate: instance.hfSpeedRate,
 				hfnrm: instance.hfnrm,
 				hfdas: instance.hfdas,
+				ip2lAuthKey: instance.ip2lAuthKey,
+				ip2lIsPro: instance.ip2lIsPro,
+				banCountry: instance.banCountry,
+				exemptIP: instance.exemptIP,
 				enableIpLogging: instance.enableIpLogging,
 				enableActiveEmailValidation: instance.enableActiveEmailValidation,
 				enableVerifymailApi: instance.enableVerifymailApi,

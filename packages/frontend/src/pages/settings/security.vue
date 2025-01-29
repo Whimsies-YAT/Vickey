@@ -17,11 +17,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkPagination :pagination="pagination" disableAutoLoad>
 			<template #default="{items}">
 				<div>
-					<div v-for="item in items" :key="item.id" v-panel class="timnmucd">
+					<div v-for="item in items" :key="item.id" v-panel class="timnmucd" @click.stop="showIP(item.ip)">
 						<header>
 							<i v-if="item.success" class="ti ti-check icon succ"></i>
 							<i v-else class="ti ti-circle-x icon fail"></i>
-							<code class="ip _monospace">{{ item.ip }}</code>
+							<code class="ip _monospace">{{ item.ip[0] }}</code>
+							<code class="location _monospace">{{ item.ip[5] }}, {{ item.ip[4] }}, {{ item.ip[2] }}</code>
 							<MkTime :time="item.createdAt" class="time"/>
 						</header>
 					</div>
@@ -53,7 +54,7 @@ import { definePageMetadata } from '@/scripts/page-metadata.js';
 
 const pagination = {
 	endpoint: 'i/signin-history' as const,
-	limit: 5,
+	limit: 3,
 };
 
 async function change() {
@@ -99,6 +100,13 @@ async function regenerateToken() {
 	});
 }
 
+async function showIP(item) {
+	os.alert({
+		type: 'info',
+		text: `IP: ${item[0]}\nLocation: ${item[5]}, ${item[4]}, ${item[3]}`,
+	});
+}
+
 const headerActions = computed(() => []);
 
 const headerTabs = computed(() => []);
@@ -112,6 +120,12 @@ definePageMetadata(() => ({
 <style lang="scss" scoped>
 .timnmucd {
 	padding: 12px;
+	cursor: pointer;
+	transition: background-color 0.1s ease;
+
+	&:hover {
+		background-color: var(--MI_THEME-hover);
+	}
 
 	&:first-child {
 		border-top-left-radius: 6px;
@@ -151,6 +165,12 @@ definePageMetadata(() => ({
 			overflow: hidden;
 			text-overflow: ellipsis;
 			margin-right: 12px;
+		}
+
+		> .location {
+			flex-grow: 1;
+			display: flex;
+			justify-content: center;
 		}
 
 		> .time {

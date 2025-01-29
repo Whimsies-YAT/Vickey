@@ -14,10 +14,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 				<div class="_gaps_s">
 					<MkInfo v-if="thereIsUnresolvedAbuseReport" warn>{{ i18n.ts.thereIsUnresolvedAbuseReportWarning }} <MkA to="/admin/abuses" class="_link">{{ i18n.ts.check }}</MkA></MkInfo>
-					<MkInfo v-if="noMaintainerInformation" warn>{{ i18n.ts.noMaintainerInformationWarning }} <MkA to="/admin/settings" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
-					<MkInfo v-if="noInquiryUrl" warn>{{ i18n.ts.noInquiryUrlWarning }} <MkA to="/admin/settings" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
-					<MkInfo v-if="noBotProtection" warn>{{ i18n.ts.noBotProtectionWarning }} <MkA to="/admin/security" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
-					<MkInfo v-if="noEmailServer" warn>{{ i18n.ts.noEmailServerWarning }} <MkA to="/admin/email-settings" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
+					<MkInfo v-if="isAdmin && noMaintainerInformation" warn>{{ i18n.ts.noMaintainerInformationWarning }} <MkA to="/admin/settings" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
+					<MkInfo v-if="isAdmin && noInquiryUrl" warn>{{ i18n.ts.noInquiryUrlWarning }} <MkA to="/admin/settings" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
+					<MkInfo v-if="isAdmin && noBotProtection" warn>{{ i18n.ts.noBotProtectionWarning }} <MkA to="/admin/security" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
+					<MkInfo v-if="isAdmin && noEmailServer" warn>{{ i18n.ts.noEmailServerWarning }} <MkA to="/admin/email-settings" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
 					<MkInfo v-if="pendingUserApprovals" warn class="info">{{ i18n.ts.pendingUserApprovals }} <MkA to="/admin/approvals" class="_link">{{ i18n.ts.check }}</MkA></MkInfo>
 				</div>
 
@@ -35,10 +35,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { onActivated, onMounted, onUnmounted, provide, watch, ref, computed } from 'vue';
 import { i18n } from '@/i18n.js';
 import MkSuperMenu from '@/components/MkSuperMenu.vue';
+import type { SuperMenuDef } from '@/components/MkSuperMenu.vue';
 import MkInfo from '@/components/MkInfo.vue';
 import { instance } from '@/instance.js';
 import { lookup } from '@/scripts/lookup.js';
 import * as os from '@/os.js';
+import { $i, iAmAdmin } from '@/account.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { lookupUser, lookupUserByEmail, lookupFile } from '@/scripts/admin-lookup.js';
 import { PageMetadata, definePageMetadata, provideMetadataReceiver, provideReactiveMetadata } from '@/scripts/page-metadata.js';
@@ -56,7 +58,7 @@ const indexInfo = {
 
 provide('shouldOmitHeaderTitle', false);
 
-const INFO = ref(indexInfo);
+const INFO = ref<PageMetadata>(indexInfo);
 const childInfo = ref<null | PageMetadata>(null);
 const narrow = ref(false);
 const view = ref(null);
@@ -69,6 +71,7 @@ const noInquiryUrl = computed(() => isEmpty(instance.inquiryUrl));
 const thereIsUnresolvedAbuseReport = ref(false);
 const pendingUserApprovals = ref(false);
 const currentPage = computed(() => router.currentRef.value.child);
+const isAdmin = ref($i && iAmAdmin);
 
 misskeyApi('admin/abuse-user-reports', {
 	state: 'unresolved',
@@ -92,7 +95,7 @@ const ro = new ResizeObserver((entries, observer) => {
 	narrow.value = entries[0].borderBoxSize[0].inlineSize < NARROW_THRESHOLD;
 });
 
-const menuDef = computed(() => [{
+const menuDef = computed<SuperMenuDef[]>(() => [{
 	title: i18n.ts.quickAction,
 	items: [{
 		type: 'button',
@@ -100,7 +103,7 @@ const menuDef = computed(() => [{
 		text: i18n.ts.lookup,
 		action: adminLookup,
 	}, ...(instance.disableRegistration ? [{
-		type: 'button',
+		type: 'button' as const,
 		icon: 'ti ti-user-plus',
 		text: i18n.ts.createInviteCode,
 		action: invite,
@@ -138,6 +141,11 @@ const menuDef = computed(() => [{
 		to: '/admin/emojis',
 		active: currentPage.value?.route.name === 'emojis',
 	}, {
+		icon: 'ti ti-icons',
+		text: i18n.ts.customEmojis + '(beta)',
+		to: '/admin/emojis2',
+		active: currentPage.value?.route.name === 'emojis2',
+	}, {
 		icon: 'ti ti-sparkles',
 		text: i18n.ts.avatarDecorations,
 		to: '/admin/avatar-decorations',
@@ -172,13 +180,14 @@ const menuDef = computed(() => [{
 		text: i18n.ts.abuseReports,
 		to: '/admin/abuses',
 		active: currentPage.value?.route.name === 'abuses',
-	}, {
+	}, ...(isAdmin.value ? [{
 		icon: 'ti ti-list-search',
 		text: i18n.ts.moderationLogs,
 		to: '/admin/modlog',
 		active: currentPage.value?.route.name === 'modlog',
-	}],
-}, {
+	}] : []),
+	],
+}, ...(isAdmin.value ? [{
 	title: i18n.ts.settings,
 	items: [{
 		icon: 'ti ti-settings',
@@ -195,6 +204,11 @@ const menuDef = computed(() => [{
 		text: i18n.ts.moderation,
 		to: '/admin/moderation',
 		active: currentPage.value?.route.name === 'moderation',
+	}, {
+		icon: 'ti ti-mail',
+		text: i18n.ts.emailTemplates,
+		to: '/admin/email-templates',
+		active: currentPage.value?.route.name === 'email-templates',
 	}, {
 		icon: 'ti ti-mail',
 		text: i18n.ts.emailServer,
@@ -231,7 +245,7 @@ const menuDef = computed(() => [{
 		to: '/admin/performance',
 		active: currentPage.value?.route.name === 'performance',
 	}],
-}, {
+}] : []), ...(isAdmin.value ? [{
 	title: i18n.ts.info,
 	items: [{
 		icon: 'ti ti-database',
@@ -239,7 +253,7 @@ const menuDef = computed(() => [{
 		to: '/admin/database',
 		active: currentPage.value?.route.name === 'database',
 	}],
-}]);
+}] : [])]);
 
 onMounted(() => {
 	if (el.value != null) {
@@ -344,12 +358,14 @@ defineExpose({
 		height: 100%;
 
 		> .nav {
+			position: sticky;
+			top: 0;
 			width: 32%;
 			max-width: 280px;
 			box-sizing: border-box;
 			border-right: solid 0.5px var(--MI_THEME-divider);
 			overflow: auto;
-			height: 100%;
+			height: 100dvh;
 		}
 
 		> .main {

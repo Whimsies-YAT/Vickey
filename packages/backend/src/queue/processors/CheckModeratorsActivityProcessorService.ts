@@ -14,6 +14,7 @@ import { MiUser, type UserProfilesRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
 import { SystemWebhookService } from '@/core/SystemWebhookService.js';
 import { AnnouncementService } from '@/core/AnnouncementService.js';
+import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
 import { QueueLoggerService } from '../QueueLoggerService.js';
 
 // モデレーターが不在と判断する日付の閾値
@@ -105,6 +106,7 @@ export class CheckModeratorsActivityProcessorService {
 		private metaService: MetaService,
 		private roleService: RoleService,
 		private emailService: EmailService,
+		private emailTemplatesService: EmailTemplatesService,
 		private announcementService: AnnouncementService,
 		private systemWebhookService: SystemWebhookService,
 		private queueLoggerService: QueueLoggerService,
@@ -226,21 +228,23 @@ export class CheckModeratorsActivityProcessorService {
 		for (const moderator of moderators) {
 			const profile = moderatorProfiles.get(moderator.id);
 			if (profile && profile.email && profile.emailVerified) {
-				this.emailService.sendEmail(profile.email, mail.subject, mail.html, mail.text);
+				const timeAll = {
+					timeVariant: remainingTime.asDays === 0 ? `${remainingTime.asHours} hours` : `${remainingTime.asDays} days`,
+					timeVariantJa: remainingTime.asDays === 0 ? `${remainingTime.asHours} 時間` : `${remainingTime.asDays} 日間`,
+				};
+				const result = await this.emailTemplatesService.sendEmailWithTemplates(profile.email, 'inactivityWarning', { timeAll });
+				if (!result) {
+					this.emailService.sendEmail(profile.email, mail.subject, mail.html, mail.text);
+				}
 			}
 		}
 
 		// -- SystemWebhook
 
-		const systemWebhooks = await this.systemWebhookService.fetchActiveSystemWebhooks()
-			.then(it => it.filter(it => it.on.includes('inactiveModeratorsWarning')));
-		for (const systemWebhook of systemWebhooks) {
-			this.systemWebhookService.enqueueSystemWebhook(
-				systemWebhook,
-				'inactiveModeratorsWarning',
-				{ remainingTime: remainingTime },
-			);
-		}
+		return this.systemWebhookService.enqueueSystemWebhook(
+			'inactiveModeratorsWarning',
+			{ remainingTime: remainingTime },
+		);
 	}
 
 	@bindThis
@@ -264,21 +268,19 @@ export class CheckModeratorsActivityProcessorService {
 
 			const profile = moderatorProfiles.get(moderator.id);
 			if (profile && profile.email && profile.emailVerified) {
-				this.emailService.sendEmail(profile.email, mail.subject, mail.html, mail.text);
+				const result = await this.emailTemplatesService.sendEmailWithTemplates(profile.email, 'changeToApproval', { MODERATOR_INACTIVITY_LIMIT_DAYS });
+				if (!result) {
+					this.emailService.sendEmail(profile.email, mail.subject, mail.html, mail.text);
+				}
 			}
 		}
 
 		// -- SystemWebhook
 
-		const systemWebhooks = await this.systemWebhookService.fetchActiveSystemWebhooks()
-			.then(it => it.filter(it => it.on.includes('inactiveModeratorsInvitationOnlyChanged')));
-		for (const systemWebhook of systemWebhooks) {
-			this.systemWebhookService.enqueueSystemWebhook(
-				systemWebhook,
-				'inactiveModeratorsInvitationOnlyChanged',
-				{},
-			);
-		}
+		return this.systemWebhookService.enqueueSystemWebhook(
+			'inactiveModeratorsInvitationOnlyChanged',
+			{},
+		);
 	}
 
 	@bindThis

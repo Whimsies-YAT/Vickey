@@ -15,7 +15,7 @@ export const meta = {
 
 	requireCredential: true,
 	requireModerator: true,
-	kind: 'read:admin:show-pending',
+	kind: 'read:admin:show-pendings',
 
 	res: {
 		type: 'array',

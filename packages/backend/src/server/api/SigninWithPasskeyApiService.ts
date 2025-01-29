@@ -20,6 +20,7 @@ import { bindThis } from '@/decorators.js';
 import { WebAuthnService } from '@/core/WebAuthnService.js';
 import Logger from '@/logger.js';
 import { LoggerService } from '@/core/LoggerService.js';
+import { IP2LocationService } from '@/core/IP2LocationService.js';
 import type { IdentifiableError } from '@/misc/identifiable-error.js';
 import { RateLimiterService } from './RateLimiterService.js';
 import { SigninService } from './SigninService.js';
@@ -47,6 +48,7 @@ export class SigninWithPasskeyApiService {
 		private signinService: SigninService,
 		private webAuthnService: WebAuthnService,
 		private loggerService: LoggerService,
+		private iP2LocationService: IP2LocationService,
 	) {
 		this.logger = this.loggerService.getLogger('PasskeyAuth');
 	}
@@ -61,6 +63,16 @@ export class SigninWithPasskeyApiService {
 		}>,
 		reply: FastifyReply,
 	) {
+		if (request.ip && !await this.iP2LocationService.checkIP(request.ip)) {
+			reply.code(403);
+			return {
+				error: {
+					message: 'Access is Actively Denied',
+					code: 'ACCESS_DENIED',
+					id: '1ac836e0-c8b5-11ef-bed9-7724be24f9c5',
+				},
+			};
+		}
 		reply.header('Access-Control-Allow-Origin', this.config.url);
 		reply.header('Access-Control-Allow-Credentials', 'true');
 

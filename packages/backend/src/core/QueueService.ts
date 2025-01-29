@@ -122,6 +122,11 @@ export class QueueService {
 			repeat: { pattern: '0 */6 * * *' },
 			removeOnComplete: true,
 		});
+		this.systemQueue.add('checkIP2L', {
+		}, {
+			repeat: { pattern: '0 */3 * * *' },
+			removeOnComplete: true,
+		});
 	}
 
 	@bindThis

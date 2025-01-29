@@ -102,8 +102,7 @@ export class NoteEntityService implements OnModuleInit {
 	}
 
 	@bindThis
-	private async hideNote(packedNote: Packed<'Note'>, meId: MiUser['id'] | null): Promise<void> {
-		// FIXME: このvisibility変更処理が当関数にあるのは若干不自然かもしれない(関数名を treatVisibility とかに変える手もある)
+	private treatVisibility(packedNote: Packed<'Note'>): Packed<'Note'>['visibility'] {
 		if (packedNote.visibility === 'public' || packedNote.visibility === 'home') {
 			const followersOnlyBefore = packedNote.user.makeNotesFollowersOnlyBefore;
 			if ((followersOnlyBefore != null)
@@ -115,7 +114,11 @@ export class NoteEntityService implements OnModuleInit {
 				packedNote.visibility = 'followers';
 			}
 		}
+		return packedNote.visibility;
+	}
 
+	@bindThis
+	private async hideNote(packedNote: Packed<'Note'>, meId: MiUser['id'] | null): Promise<void> {
 		if (meId === packedNote.userId) return;
 
 		// TODO: isVisibleForMe を使うようにしても良さそう(型違うけど)
@@ -322,6 +325,27 @@ export class NoteEntityService implements OnModuleInit {
 			}
 		}
 
+		if (meId && meId !== note.userId) {
+			const findUser = await this.usersRepository.findOneBy({ id: note.userId });
+
+			if (findUser) {
+				const HiddenOnlyBefore = findUser.makeNotesHiddenBefore;
+				if (HiddenOnlyBefore != null) {
+					const noteTimestamp = new Date(this.idService.parse(note.id).date.toISOString()).getTime();
+					const currentTime = Date.now();
+
+					if (
+						(HiddenOnlyBefore <= 0 && (currentTime - noteTimestamp > Math.abs(HiddenOnlyBefore) * 1000)) ||
+						(HiddenOnlyBefore > 0 && (noteTimestamp < currentTime - (HiddenOnlyBefore * 1000)))
+					) {
+						return false;
+					}
+				}
+				return true;
+			}
+			return false;
+		}
+
 		return true;
 	}
 
@@ -457,6 +481,8 @@ export class NoteEntityService implements OnModuleInit {
 				} : {}),
 			} : {}),
 		});
+
+		this.treatVisibility(packed);
 
 		if (!opts.skipHide) {
 			await this.hideNote(packed, meId);

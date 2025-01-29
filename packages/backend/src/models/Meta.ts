@@ -440,6 +440,27 @@ export class MiMeta {
 		length: 1024,
 		nullable: true,
 	})
+	public ip2lAuthKey: string | null;
+
+	@Column('boolean', {
+		default: false,
+	})
+	public ip2lIsPro: boolean;
+
+	@Column('varchar', {
+		length: 1024, array: true, default: '{}',
+	})
+	public banCountry: string[];
+
+	@Column('varchar', {
+		array: true, default: '{}',
+	})
+	public exemptIP: string[];
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
 	public termsOfServiceUrl: string | null;
 
 	@Column('varchar', {
@@ -741,4 +762,9 @@ export class MiMeta {
 		select: false,
 	})
 	public security: boolean;
+
+	@Column('boolean', {
+		default: false,
+	})
+	public enableEmailTemplates: boolean;
 }

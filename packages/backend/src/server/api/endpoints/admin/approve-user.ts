@@ -8,6 +8,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import type { UserPendingsRepository, UserProfilesRepository, UsersRepository } from '@/models/_.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { SignupService } from '@/core/SignupService.js';
+import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
 import { DI } from '@/di-symbols.js';
 import { EmailService } from '@/core/EmailService.js';
 
@@ -42,6 +43,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private signupService: SignupService,
 		private moderationLogService: ModerationLogService,
 		private emailService: EmailService,
+		private emailTemplatesService: EmailTemplatesService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const pendingUser = await this.userPendingsRepository.findOneByOrFail({ id: ps.userId });
@@ -71,9 +73,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			console.log(profile);
 
 			if (pendingUser.email && pendingUser.emailVerified) {
-				await this.emailService.sendEmail(pendingUser.email, 'Account Approved',
-					'Your Account has been approved have fun socializing!',
-					'Your Account has been approved have fun socializing!');
+				const result = await this.emailTemplatesService.sendEmailWithTemplates(pendingUser.email, 'accountApproved');
+				if (!result) {
+					await this.emailService.sendEmail(pendingUser.email, 'Account Approved',
+						'Your Account has been approved. Have fun socializing!',
+						'Your Account has been approved. Have fun socializing!');
+				}
 			}
 
 			await this.userPendingsRepository.delete({

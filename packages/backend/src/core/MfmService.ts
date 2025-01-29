@@ -171,6 +171,39 @@ export class MfmService {
 					break;
 				}
 
+				case 'ruby': {
+					let ruby: [string, string][] = [];
+					for (const child of node.childNodes) {
+						if (child.nodeName === 'rp') {
+							continue;
+						}
+						if (treeAdapter.isTextNode(child) && !/\s|\[|\]/.test(child.value)) {
+							ruby.push([child.value, '']);
+							continue;
+						}
+						if (child.nodeName === 'rt' && ruby.length > 0) {
+							const rt = getText(child);
+							if (/\s|\[|\]/.test(rt)) {
+								// If any space is included in rt, it is treated as a normal text
+								ruby = [];
+								appendChildren(node.childNodes);
+								break;
+							} else {
+								ruby.at(-1)![1] = rt;
+								continue;
+							}
+						}
+						// If any other element is included in ruby, it is treated as a normal text
+						ruby = [];
+						appendChildren(node.childNodes);
+						break;
+					}
+					for (const [base, rt] of ruby) {
+						text += `$[ruby ${base} ${rt}]`;
+					}
+					break;
+				}
+
 				// block code (<pre><code>)
 				case 'pre': {
 					if (node.childNodes.length === 1 && node.childNodes[0].nodeName === 'code') {
@@ -200,20 +233,20 @@ export class MfmService {
 					break;
 				}
 
-				case 'ruby': {
-					const rtText = node.childNodes
-						.filter((n) => n.nodeName === 'rt')
-						.map((n) => getText(n)).join(' ');
-					const rubyText = node.childNodes
-						.filter((n) => treeAdapter.isTextNode(n))
-						.map((n) => getText(n)).join(' ');
-					if (rubyText && rtText) {
-						text += `$[ruby ${rubyText}|${rtText} ]`;
-					} else {
-						appendChildren(node.childNodes);
-					}
-					break;
-				}
+				// case 'ruby': {
+				// 	const rtText = node.childNodes
+				// 		.filter((n) => n.nodeName === 'rt')
+				// 		.map((n) => getText(n)).join(' ');
+				// 	const rubyText = node.childNodes
+				// 		.filter((n) => treeAdapter.isTextNode(n))
+				// 		.map((n) => getText(n)).join(' ');
+				// 	if (rubyText && rtText) {
+				// 		text += `$[ruby ${rubyText}|${rtText} ]`;
+				// 	} else {
+				// 		appendChildren(node.childNodes);
+				// 	}
+				// 	break;
+				// }
 
 				case 'p':
 				case 'h2':

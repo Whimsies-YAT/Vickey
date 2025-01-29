@@ -38,7 +38,7 @@ export class MetaEntityService {
 	@bindThis
 	public async pack(meta?: MiMeta): Promise<Packed<'MetaLite'>> {
 		let instance = meta;
-		const secData = await this.cacheService.systemStatusCache.get('systemStatus');
+		const secData = await this.cacheService.systemStatusCache.get('systemStatus') ?? true;
 
 		if (!instance) {
 			instance = this.meta;
@@ -124,6 +124,7 @@ export class MetaEntityService {
 			})),
 			notesPerOneAd: instance.notesPerOneAd,
 			enableEmail: instance.enableEmail,
+			enableEmailTemplates: instance.enableEmailTemplates,
 			enableServiceWorker: instance.enableServiceWorker,
 
 			translatorAvailable: instance.deeplAuthKey != null,
@@ -138,6 +139,7 @@ export class MetaEntityService {
 			noteSearchableScope: (this.config.meilisearch == null || this.config.meilisearch.scope !== 'local') ? 'global' : 'local',
 			maxFileSize: this.config.maxFileSize,
 			security: secData.security,
+			federation: this.meta.federation,
 		};
 
 		return packed;

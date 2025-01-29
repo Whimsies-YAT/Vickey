@@ -7,6 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import type { SigninsRepository } from '@/models/_.js';
 import { QueryService } from '@/core/QueryService.js';
+import { IP2LocationService } from '@/core/IP2LocationService.js';
 import { SigninEntityService } from '@/core/entities/SigninEntityService.js';
 import { DI } from '@/di-symbols.js';
 
@@ -43,12 +44,20 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		private signinEntityService: SigninEntityService,
 		private queryService: QueryService,
+		private iP2LocationService: IP2LocationService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const query = this.queryService.makePaginationQuery(this.signinsRepository.createQueryBuilder('signin'), ps.sinceId, ps.untilId)
 				.andWhere('signin.userId = :meId', { meId: me.id });
 
 			const history = await query.limit(ps.limit).getMany();
+
+			for (const record of history) {
+				const ipToCheck = Array.isArray(record.ip) ? record.ip[0] : record.ip;
+				const IPInfo = await this.iP2LocationService.checkLocation(ipToCheck);
+				const result = IPInfo.length === 0 ? [ipToCheck, '', 'Unknown', 'Unknown', 'Unknown', 'Unknown'] : IPInfo;
+				record.ip = [...result];
+			}
 
 			return await Promise.all(history.map(record => this.signinEntityService.pack(record)));
 		});

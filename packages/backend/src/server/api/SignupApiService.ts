@@ -14,14 +14,15 @@ import { IdService } from '@/core/IdService.js';
 import { SignupService } from '@/core/SignupService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { EmailService } from '@/core/EmailService.js';
+import { IP2LocationService } from '@/core/IP2LocationService.js';
 import { MiLocalUser } from '@/models/User.js';
 import { FastifyReplyError } from '@/misc/fastify-reply-error.js';
 import { bindThis } from '@/decorators.js';
 import { L_CHARS, secureRndstr } from '@/misc/secure-rndstr.js';
 import { SigninService } from './SigninService.js';
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import instance from './endpoints/charts/instance.js';
 import { RoleService } from '@/core/RoleService.js';
+import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
 
 @Injectable()
 export class SignupApiService {
@@ -54,6 +55,8 @@ export class SignupApiService {
 		private signinService: SigninService,
 		private emailService: EmailService,
 		private roleService: RoleService,
+		private iP2LocationService: IP2LocationService,
+		private emailTemplatesService: EmailTemplatesService,
 	) {
 	}
 
@@ -76,11 +79,24 @@ export class SignupApiService {
 		}>,
 		reply: FastifyReply,
 	) {
+		const ip = request.ip;
 		const body = request.body;
 
 		// Verify *Captcha
 		// ただしテスト時はこの機構は障害となるため無効にする
 		if (process.env.NODE_ENV !== 'test') {
+			if (ip && !await this.iP2LocationService.checkIP(ip)) {
+				reply.code(400);
+				reply.code(403);
+				return {
+					error: {
+						message: 'Access is Actively Denied',
+						code: 'ACCESS_DENIED',
+						id: '1ac836e0-c8b5-11ef-bed9-7724be24f9c5',
+					},
+				};
+			}
+
 			if (this.meta.enableHcaptcha && this.meta.hcaptchaSecretKey) {
 				await this.captchaService.verifyHcaptcha(this.meta.hcaptchaSecretKey, body['hcaptcha-response']).catch(err => {
 					throw new FastifyReplyError(400, err);
@@ -184,6 +200,10 @@ export class SignupApiService {
 			throw new FastifyReplyError(400, 'DUPLICATED_USERNAME');
 		}
 
+		if (await this.userPendingsRepository.exists({ where: { username: username.toLowerCase() } })) {
+			throw new FastifyReplyError(400, 'TEMP_DUPLICATED_USERNAME');
+		}
+
 		// Check deleted username duplication
 		if (await this.usedUsernamesRepository.exists({ where: { username: username.toLowerCase() } })) {
 			throw new FastifyReplyError(400, 'USED_USERNAME');
@@ -212,9 +232,12 @@ export class SignupApiService {
 		if (this.meta.emailRequiredForSignup && pendingUser.email) {
 			const link = `${this.config.url}/signup-complete/${code}`;
 
-			this.emailService.sendEmail(emailAddress!, 'Signup',
-				`To complete signup, please click this link:<br><a href="${link}">${link}</a>`,
-				`To complete signup, please click this link: ${link}`);
+			const result = await this.emailTemplatesService.sendEmailWithTemplates(emailAddress!, 'signup', { link });
+			if (!result) {
+				this.emailService.sendEmail(emailAddress!, 'Signup',
+					`To complete signup, please click this link:<br><a href="${link}">${link}</a>`,
+					`To complete signup, please click this link: ${link}`);
+			}
 
 			if (ticket) {
 				await this.registrationTicketsRepository.update(ticket.id, {
@@ -227,9 +250,12 @@ export class SignupApiService {
 			return;
 		} else if (this.meta.approvalRequiredForSignup) {
 			if (emailAddress) {
-				this.emailService.sendEmail(emailAddress, 'Approval pending',
-					'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.',
-					'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.');
+				const result = await this.emailTemplatesService.sendEmailWithTemplates(emailAddress, 'approvalPending');
+				if (!result) {
+					this.emailService.sendEmail(emailAddress, 'Approval pending',
+						'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.',
+						'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.');
+				}
 			}
 
 			if (ticket) {
@@ -245,9 +271,16 @@ export class SignupApiService {
 				const profile = await this.userProfilesRepository.findOneBy({ userId: moderator.id });
 
 				if (profile?.email) {
-					this.emailService.sendEmail(profile.email, 'New user awaiting approval',
-						`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${reason}"`,
-						`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${reason}"`);
+					const newUserProfile = {
+						username: pendingUser.username,
+						reason: reason,
+					};
+					const result = await this.emailTemplatesService.sendEmailWithTemplates(profile.email, 'newUserApprovalWithoutEmail', { newUserProfile });
+					if (!result) {
+						this.emailService.sendEmail(profile.email, 'New user awaiting approval',
+							`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${reason}"`,
+							`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${reason}"`);
+					}
 				}
 			}
 
@@ -284,6 +317,20 @@ export class SignupApiService {
 
 	@bindThis
 	public async signupPending(request: FastifyRequest<{ Body: { code: string; } }>, reply: FastifyReply) {
+		const ip = request.ip;
+
+		if (ip && !await this.iP2LocationService.checkIP(ip)) {
+			reply.code(400);
+			reply.code(403);
+			return {
+				error: {
+					message: 'Access is Actively Denied',
+					code: 'ACCESS_DENIED',
+					id: '1ac836e0-c8b5-11ef-bed9-7724be24f9c5',
+				},
+			};
+		}
+
 		const body = request.body;
 
 		const code = body['code'];
@@ -312,9 +359,12 @@ export class SignupApiService {
 				}
 
 				if (pendingUser.email) {
-					await this.emailService.sendEmail(pendingUser.email, 'Approval pending',
-						'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.',
-						'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.');
+					const result = await this.emailTemplatesService.sendEmailWithTemplates(pendingUser.email, 'approvalPending');
+					if (!result) {
+						await this.emailService.sendEmail(pendingUser.email, 'Approval pending',
+							'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.',
+							'Congratulations! Your account is now pending approval. You will get notified when you have been accepted.');
+					}
 				}
 
 				const moderators = await this.roleService.getModerators();
@@ -323,9 +373,17 @@ export class SignupApiService {
 					const profile = await this.userProfilesRepository.findOneBy({ userId: moderator.id });
 
 					if (profile?.email) {
-						await this.emailService.sendEmail(profile.email, 'New user awaiting approval',
-							`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`,
-							`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`);
+						const newUserProfile = {
+							email: profile.email,
+							username: pendingUser.username,
+							reason: pendingUser.reason,
+						};
+						const result = await this.emailTemplatesService.sendEmailWithTemplates(profile.email, 'newUserApprovalWithoutEmail', { newUserProfile });
+						if (!result) {
+							await this.emailService.sendEmail(profile.email, 'New user awaiting approval',
+								`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`,
+								`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`);
+						}
 					}
 				}
 

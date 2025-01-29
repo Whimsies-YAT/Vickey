@@ -31,6 +31,7 @@ import { DeleteAccountService } from './DeleteAccountService.js';
 import { DownloadService } from './DownloadService.js';
 import { DriveService } from './DriveService.js';
 import { EmailService } from './EmailService.js';
+import { EmailTemplatesService } from './EmailTemplatesService.js';
 import { FederatedInstanceService } from './FederatedInstanceService.js';
 import { FetchInstanceMetadataService } from './FetchInstanceMetadataService.js';
 import { GlobalEventService } from './GlobalEventService.js';
@@ -40,6 +41,7 @@ import { IdService } from './IdService.js';
 import { ImageProcessingService } from './ImageProcessingService.js';
 import { InstanceActorService } from './InstanceActorService.js';
 import { InternalStorageService } from './InternalStorageService.js';
+import { IP2LocationService } from './IP2LocationService.js';
 import { MetaService } from './MetaService.js';
 import { MfmService } from './MfmService.js';
 import { ModerationLogService } from './ModerationLogService.js';
@@ -175,6 +177,7 @@ const $DeleteAccountService: Provider = { provide: 'DeleteAccountService', useEx
 const $DownloadService: Provider = { provide: 'DownloadService', useExisting: DownloadService };
 const $DriveService: Provider = { provide: 'DriveService', useExisting: DriveService };
 const $EmailService: Provider = { provide: 'EmailService', useExisting: EmailService };
+const $EmailTemplatesService: Provider = { provide: 'EmailTemplatesService', useExisting: EmailTemplatesService };
 const $FederatedInstanceService: Provider = { provide: 'FederatedInstanceService', useExisting: FederatedInstanceService };
 const $FetchInstanceMetadataService: Provider = { provide: 'FetchInstanceMetadataService', useExisting: FetchInstanceMetadataService };
 const $GlobalEventService: Provider = { provide: 'GlobalEventService', useExisting: GlobalEventService };
@@ -184,6 +187,7 @@ const $IdService: Provider = { provide: 'IdService', useExisting: IdService };
 const $ImageProcessingService: Provider = { provide: 'ImageProcessingService', useExisting: ImageProcessingService };
 const $InstanceActorService: Provider = { provide: 'InstanceActorService', useExisting: InstanceActorService };
 const $InternalStorageService: Provider = { provide: 'InternalStorageService', useExisting: InternalStorageService };
+const $IP2LocationService: Provider = { provide: 'IP2LocationService', useExisting: IP2LocationService };
 const $MetaService: Provider = { provide: 'MetaService', useExisting: MetaService };
 const $MfmService: Provider = { provide: 'MfmService', useExisting: MfmService };
 const $ModerationLogService: Provider = { provide: 'ModerationLogService', useExisting: ModerationLogService };
@@ -327,6 +331,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		DownloadService,
 		DriveService,
 		EmailService,
+		EmailTemplatesService,
 		FederatedInstanceService,
 		FetchInstanceMetadataService,
 		GlobalEventService,
@@ -336,6 +341,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		ImageProcessingService,
 		InstanceActorService,
 		InternalStorageService,
+		IP2LocationService,
 		MetaService,
 		MfmService,
 		ModerationLogService,
@@ -475,6 +481,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		$DownloadService,
 		$DriveService,
 		$EmailService,
+		$EmailTemplatesService,
 		$FederatedInstanceService,
 		$FetchInstanceMetadataService,
 		$GlobalEventService,
@@ -484,6 +491,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		$ImageProcessingService,
 		$InstanceActorService,
 		$InternalStorageService,
+		$IP2LocationService,
 		$MetaService,
 		$MfmService,
 		$ModerationLogService,
@@ -624,6 +632,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		DownloadService,
 		DriveService,
 		EmailService,
+		EmailTemplatesService,
 		FederatedInstanceService,
 		FetchInstanceMetadataService,
 		GlobalEventService,
@@ -633,6 +642,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		ImageProcessingService,
 		InstanceActorService,
 		InternalStorageService,
+		IP2LocationService,
 		MetaService,
 		MfmService,
 		ModerationLogService,
@@ -771,6 +781,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		$DownloadService,
 		$DriveService,
 		$EmailService,
+		$EmailTemplatesService,
 		$FederatedInstanceService,
 		$FetchInstanceMetadataService,
 		$GlobalEventService,
@@ -780,6 +791,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		$ImageProcessingService,
 		$InstanceActorService,
 		$InternalStorageService,
+		$IP2LocationService,
 		$MetaService,
 		$MfmService,
 		$ModerationLogService,

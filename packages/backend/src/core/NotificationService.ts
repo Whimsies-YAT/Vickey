@@ -25,6 +25,7 @@ import { trackPromise } from '@/misc/promise-tracker.js';
 import { I18n } from "@/misc/i18n.js";
 import type { UserProfilesRepository } from '@/models/_.js';
 import { EmailService } from '@/core/EmailService.js';
+import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
 
 @Injectable()
 export class NotificationService implements OnApplicationShutdown {
@@ -50,6 +51,7 @@ export class NotificationService implements OnApplicationShutdown {
 		private cacheService: CacheService,
 		private userListService: UserListService,
 		private emailService: EmailService,
+		private emailTemplatesService: EmailTemplatesService,
 	) {
 	}
 
@@ -205,7 +207,18 @@ export class NotificationService implements OnApplicationShutdown {
 		const locale = locales[userProfile.lang ?? 'ja-JP'];
 		const i18n = new I18n(locale);
 		// TODO: render user information html
-		await this.emailService.sendEmail(userProfile.email, `You have a new follower.`, `${follower.name ?? follower.username} (@${follower.username}@${follower.host ?? config.host})`, `${follower.name ?? follower.username} (@${follower.username}@${follower.host ?? config.host})`);
+		const name = follower.name ?? follower.username;
+		const username = follower.username;
+		const host = follower.host ?? config.host;
+		const followerProfile = {
+			name: name,
+			username: username,
+			host: host,
+		};
+		const result = await this.emailTemplatesService.sendEmailWithTemplates(userProfile.email, 'newFollower', { followerProfile });
+		if (!result) {
+			await this.emailService.sendEmail(userProfile.email, `You have a new follower.`, `${name} (@${username}@${host})`, `${name} (@${username}@${host})`);
+		}
 	}
 
 	@bindThis
@@ -215,7 +228,18 @@ export class NotificationService implements OnApplicationShutdown {
 		const locale = locales[userProfile.lang ?? 'ja-JP'];
 		const i18n = new I18n(locale);
 		// TODO: render user information html
-		await this.emailService.sendEmail(userProfile.email, `You've received a new follow request.`, `${follower.name ?? follower.username} (@${follower.username}@${follower.host ?? config.host})`, `${follower.name ?? follower.username} (@${follower.username}@${follower.host ?? config.host})`);
+		const name = follower.name ?? follower.username;
+		const username = follower.username;
+		const host = follower.host ?? config.host;
+		const followerProfile = {
+			name: name,
+			username: username,
+			host: host,
+		};
+		const result = await this.emailTemplatesService.sendEmailWithTemplates(userProfile.email, 'newFollowRequest', { followerProfile });
+		if (!result) {
+			await this.emailService.sendEmail(userProfile.email, `You've received a new follow request.`, `${name} (@${username}@${host})`, `${name} (@${username}@${host})`);
+		}
 	}
 
 	@bindThis

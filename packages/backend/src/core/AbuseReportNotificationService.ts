@@ -18,6 +18,7 @@ import type {
 	MiUser,
 } from '@/models/_.js';
 import { EmailService } from '@/core/EmailService.js';
+import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
 import { RoleService } from '@/core/RoleService.js';
 import { RecipientMethod } from '@/models/AbuseReportNotificationRecipient.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
@@ -41,6 +42,7 @@ export class AbuseReportNotificationService implements OnApplicationShutdown {
 		private roleService: RoleService,
 		private systemWebhookService: SystemWebhookService,
 		private emailService: EmailService,
+		private emailTemplatesService: EmailTemplatesService,
 		private moderationLogService: ModerationLogService,
 		private globalEventService: GlobalEventService,
 		private userEntityService: UserEntityService,
@@ -119,14 +121,19 @@ export class AbuseReportNotificationService implements OnApplicationShutdown {
 
 		for (const mailAddress of recipientEMailAddresses) {
 			await Promise.all(
-				abuseReports.map(it => {
+				abuseReports.map(async (it) => {
 					// TODO: 送信処理はJobQueue化したい
-					return this.emailService.sendEmail(
-						mailAddress,
-						'New Abuse Report',
-						sanitizeHtml(it.comment),
-						sanitizeHtml(it.comment),
-					);
+					const comment = it.comment;
+					const result = await this.emailTemplatesService.sendEmailWithTemplates(mailAddress, 'abuseReport', { comment });
+					if (!result) {
+						return this.emailService.sendEmail(
+							mailAddress,
+							'New Abuse Report',
+							sanitizeHtml(it.comment),
+							sanitizeHtml(it.comment),
+						);
+					}
+					return true;
 				}),
 			);
 		}
@@ -167,22 +174,22 @@ export class AbuseReportNotificationService implements OnApplicationShutdown {
 			};
 		});
 
-		const recipientWebhookIds = await this.fetchWebhookRecipients()
-			.then(it => it
-				.filter(it => it.isActive && it.systemWebhookId && it.method === 'webhook')
-				.map(it => it.systemWebhookId)
-				.filter(x => x != null));
-		for (const webhookId of recipientWebhookIds) {
-			await Promise.all(
-				convertedReports.map(it => {
-					return this.systemWebhookService.enqueueSystemWebhook(
-						webhookId,
-						type,
-						it,
-					);
-				}),
-			);
-		}
+		const inactiveRecipients = await this.fetchWebhookRecipients()
+			.then(it => it.filter(it => !it.isActive));
+		const withoutWebhookIds = inactiveRecipients
+			.map(it => it.systemWebhookId)
+			.filter(x => x != null);
+		return Promise.all(
+			convertedReports.map(it => {
+				return this.systemWebhookService.enqueueSystemWebhook(
+					type,
+					it,
+					{
+						excludes: withoutWebhookIds,
+					},
+				);
+			}),
+		);
 	}
 
 	/**

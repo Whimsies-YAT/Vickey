@@ -10,16 +10,17 @@ import fastifyCookie from '@fastify/cookie';
 import { ModuleRef } from '@nestjs/core';
 import { AuthenticationResponseJSON } from '@simplewebauthn/types';
 import type { Config } from '@/config.js';
-import type { InstancesRepository, AccessTokensRepository } from '@/models/_.js';
+import type { AccessTokensRepository, InstancesRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
-import endpoints from './endpoints.js';
+import endpoints, { IEndpoint } from './endpoints.js';
 import { ApiCallService } from './ApiCallService.js';
 import { SignupApiService } from './SignupApiService.js';
 import { SigninApiService } from './SigninApiService.js';
 import { SigninWithPasskeyApiService } from './SigninWithPasskeyApiService.js';
-import type { FastifyInstance, FastifyPluginOptions } from 'fastify';
+import type { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
+import { IP2LocationService } from "@/core/IP2LocationService.js";
 
 @Injectable()
 export class ApiServerService {
@@ -40,6 +41,7 @@ export class ApiServerService {
 		private signupApiService: SignupApiService,
 		private signinApiService: SigninApiService,
 		private signinWithPasskeyApiService: SigninWithPasskeyApiService,
+		private iP2LocationService: IP2LocationService,
 	) {
 		//this.createServer = this.createServer.bind(this);
 	}
@@ -65,6 +67,34 @@ export class ApiServerService {
 			done();
 		});
 
+		const limitEndpoints = ['notes/create', 'notes/renotes', 'notes/reactions/create', 'channels/create'];
+
+		const checkEP = async (request: FastifyRequest, reply: FastifyReply, endpoint: IEndpoint): Promise<boolean> => {
+			if (limitEndpoints.includes(endpoint.name)) {
+				if (request.ip) {
+					return await new Promise<boolean>((resolve) => {
+						this.iP2LocationService.checkIPsync(request.ip, (result: boolean) => {
+							if (!result) {
+								reply.code(403);
+								reply.send({
+									error: {
+										message: 'Access is Actively Denied',
+										code: 'ACCESS_DENIED',
+										id: '1ac836e0-c8b5-11ef-bed9-7724be24f9c5',
+										kind: 'server',
+									},
+								});
+								resolve(false);
+							} else {
+								resolve(true);
+							}
+						});
+					});
+				}
+			}
+			return true;
+		};
+
 		for (const endpoint of endpoints) {
 			const ep = {
 				name: endpoint.name,
@@ -79,6 +109,10 @@ export class ApiServerService {
 					Body: Record<string, unknown>,
 					Querystring: Record<string, unknown>,
 				}>('/' + endpoint.name, async (request, reply) => {
+					const isAllow = await checkEP(request, reply, endpoint);
+					if (!isAllow) {
+						return;
+					}
 					if (request.method === 'GET' && !endpoint.meta.allowGet) {
 						reply.code(405);
 						reply.send();
@@ -95,6 +129,10 @@ export class ApiServerService {
 					Body: Record<string, unknown>,
 					Querystring: Record<string, unknown>,
 				}>('/' + endpoint.name, { bodyLimit: 1024 * 1024 }, async (request, reply) => {
+					const isAllow = await checkEP(request, reply, endpoint);
+					if (!isAllow) {
+						return;
+					}
 					if (request.method === 'GET' && !endpoint.meta.allowGet) {
 						reply.code(405);
 						reply.send();

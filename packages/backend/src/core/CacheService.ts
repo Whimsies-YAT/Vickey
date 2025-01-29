@@ -27,6 +27,8 @@ export class CacheService implements OnApplicationShutdown {
 	public renoteMutingsCache: RedisKVCache<Set<string>>;
 	public userFollowingsCache: RedisKVCache<Record<string, Pick<MiFollowing, 'withReplies'> | undefined>>;
 	public systemStatusCache: RedisKVCache<any>;
+	public checkIPCache: RedisKVCache<boolean>;
+	public checkLocationCache: RedisKVCache<string[]>;
 
 	constructor(
 		@Inject(DI.redis)
@@ -124,6 +126,26 @@ export class CacheService implements OnApplicationShutdown {
 				fromRedisConverter: (value) => JSON.parse(value),
 		});
 
+		this.checkIPCache = new RedisKVCache<boolean>(this.redisClient, 'checkIP', {
+			lifetime: 1000 * 60 * 30, // 30m
+			memoryCacheLifetime: 1000 * 60 * 5, // 5m
+			fetcher: async (ip) => {
+				return true;
+			},
+			toRedisConverter: (value) => JSON.stringify(value),
+			fromRedisConverter: (value) => JSON.parse(value) as boolean,
+		});
+
+		this.checkLocationCache = new RedisKVCache<string[]>(this.redisClient, 'checkLocation', {
+			lifetime: 1000 * 60 * 30, // 30m
+			memoryCacheLifetime: 1000 * 60 * 5, // 5m
+			fetcher: async (ip) => {
+				return [];
+			},
+			toRedisConverter: (value) => JSON.stringify(value),
+			fromRedisConverter: (value) => JSON.parse(value) as string[],
+		});
+
 		// NOTE: チャンネルのフォロー状況キャッシュはChannelFollowingServiceで行っている
 
 		this.redisForSub.on('message', this.onMessage);
@@ -132,14 +154,28 @@ export class CacheService implements OnApplicationShutdown {
 	private async fetchSystemStatus() {
 		const defaultValue = { security: true };
 		try {
-			let redisValue = await this.redisClient.get('systemStatus');
+			const redisValue = await this.redisClient.get('systemStatus');
 
 			if (redisValue === null) {
 				await this.redisClient.set('systemStatus', JSON.stringify(defaultValue));
-				redisValue = JSON.stringify(defaultValue);
+				return defaultValue;
 			}
-			return JSON.parse(redisValue);
+
+			try {
+				const parsedValue = JSON.parse(redisValue);
+
+				if (parsedValue && typeof parsedValue.security === 'undefined') {
+					await this.redisClient.set('systemStatus', JSON.stringify(defaultValue));
+					return defaultValue;
+				}
+
+				return parsedValue;
+			} catch (parseError) {
+				await this.redisClient.set('systemStatus', JSON.stringify(defaultValue));
+				return defaultValue;
+			}
 		} catch (error) {
+			console.error('Error fetching system status from Redis:', error);
 			return defaultValue;
 		}
 	}

@@ -6,6 +6,7 @@ declare global {
 			registerUser(
 				username: string,
 				password: string,
+				reason?: string,
 				isAdmin?: boolean
 			): Chainable<void>;
 
