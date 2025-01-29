@@ -31,24 +31,26 @@ const themeColor = chalk.hex('#86b300');
 
 function greet() {
 	if (!envOption.quiet) {
-		//#region Misskey logo
+		//#region Vickey logo
 		const v = `v${meta.version}`;
-		console.log(themeColor('  _____ _         _           '));
-		console.log(themeColor(' |     |_|___ ___| |_ ___ _ _ '));
-		console.log(themeColor(' | | | | |_ -|_ -| \'_| -_| | |'));
-		console.log(themeColor(' |_|_|_|_|___|___|_,_|___|_  |'));
-		console.log(' ' + chalk.gray(v) + themeColor('                        |___|\n'.substring(v.length)));
+		console.log(themeColor(' __     ___      _                   '));
+		console.log(themeColor(' \\ \\   / (_) ___| | _____ _   _    '));
+		console.log(themeColor('  \\ \\ / /| |/ __| |/ / _ \\ | | |  '));
+		console.log(themeColor('   \\ V / | | (__|   <  __/ |_| |    '));
+		console.log(themeColor('    \\_/  |_|\\___|_|\\_\\___|\\__, |'));
+		console.log(themeColor('                          |___/      '));
+		console.log(' ' + chalk.gray(v) + themeColor('                         \n'.substring(v.length)));
 		//#endregion
 
-		console.log(' Misskey is an open-source decentralized microblogging platform.');
-		console.log(chalk.rgb(255, 136, 0)(' If you like Misskey, please donate to support development. https://www.patreon.com/syuilo'));
+		console.log(' Vickey Is Not Just Key, It\'s Yours!');
+		console.log(chalk.rgb(255, 136, 0)(' If you like Vickey, please donate to support development. https://ko-fi.com/yateam'));
 
 		console.log('');
 		console.log(chalkTemplate`--- ${os.hostname()} {gray (PID: ${process.pid.toString()})} ---`);
 	}
 
-	bootLogger.info('Welcome to Misskey!');
-	bootLogger.info(`Misskey v${meta.version}`, null, true);
+	bootLogger.info('Welcome to Vickey!');
+	bootLogger.info(`Vickey v${meta.version}`, null, true);
 }
 
 /**
@@ -71,7 +73,7 @@ export async function masterMain() {
 		process.exit(1);
 	}
 
-	bootLogger.succ('Misskey initialized');
+	bootLogger.succ('Vickey initialized');
 
 	if (config.sentryForBackend) {
 		Sentry.init({

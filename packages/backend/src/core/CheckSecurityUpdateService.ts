@@ -36,7 +36,7 @@ export class CheckSecurityUpdateService {
 		const version = this.config.version;
 
 		let repoUrl = this.meta.repositoryUrl;
-		if (!repoUrl) repoUrl = "https://github.com/Whimsies-YAT/misskey";
+		if (!repoUrl) repoUrl = "https://github.com/Whimsies-YAT/Vickey";
 
 		if (repoUrl.includes('github.com')) {
 			const githubApiUrl = this.convertToGitHubApiUrl(repoUrl);
