@@ -24,7 +24,7 @@ registerApprovalEmailRecommended: "为了确保发送有关服务器注册审核
 HaveSecurityUpdate: "立即执行安全更新！"
 customAvatarDecoration: "头像挂件"
 optionalReason: "拒绝理由(可选)"
-emailTemplates: "Email Templates"
+emailTemplates: "邮件模板"
 _signup:
   approvalPending: "您的注册申请已提交成功，目前正在等待审核。"
   reasonInfo: "请输入您希望加入该实例的原因。"
@@ -41,7 +41,7 @@ _webhookSettings:
   _systemEvents:
     inactiveModeratorsApprovalOnlyChanged: "当管理员一定时间内未活跃，服务器将更改为需要批准才能注册。"
 _emailTemplates:
-  global: "Global switch"
+  global: "全局开关"
   globalDescription: "Email templates will only take effect if the global switch is turned on."
   globalVars: "The email templates have some predefined variables that are available in all templates:\n${instanceHost}: instance domain name\n${instanceName}: instance name or instance domain (if no instance name)\n${maintainerName}: maintainer name (if available)\n${maintainerEmail}: maintainer email (if available)\n${contact}: contact information (if available)\n${senderEmail}: sender email (if available)\n${receiverName}: receiver name (if available)\n${receiverEmail}: receiver email"
   globalEditWarning: "The templates require HTML implementation!"
