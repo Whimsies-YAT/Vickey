@@ -3,15 +3,14 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { action } from '@storybook/addon-actions';
-import type { StoryObj } from '@storybook/vue3';
-import MkDrive_file from './MkDrive.file.vue';
+import { StoryObj } from '@storybook/vue3';
 import { file } from '../../.storybook/fakes.js';
+import MkImgPreviewDialog from './MkImgPreviewDialog.vue';
 export const Default = {
 	render(args) {
 		return {
 			components: {
-				MkDrive_file,
+				MkImgPreviewDialog,
 			},
 			setup() {
 				return {
@@ -24,15 +23,8 @@ export const Default = {
 						...this.args,
 					};
 				},
-				events() {
-					return {
-						chosen: action('chosen'),
-						dragstart: action('dragstart'),
-						dragend: action('dragend'),
-					};
-				},
 			},
-			template: '<MkDrive_file v-bind="props" v-on="events" />',
+			template: '<MkImgPreviewDialog v-bind="props" />',
 		};
 	},
 	args: {
@@ -45,4 +37,4 @@ export const Default = {
 		},
 		layout: 'centered',
 	},
-} satisfies StoryObj<typeof MkDrive_file>;
+} satisfies StoryObj<typeof MkImgPreviewDialog>;
