@@ -246,6 +246,8 @@ function reportAbuse() {
 	const pageUrl = `${url}/play/${flash.value.id}`;
 
 	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkAbuseReportWindow.vue')), {
+		type: "flash",
+		id: flash.value.id,
 		user: flash.value.user,
 		initialComment: `Play: ${pageUrl}\n-----\n`,
 	}, {

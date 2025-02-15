@@ -11000,6 +11000,52 @@ export interface Locale extends ILocale {
             };
         };
     };
+    "_bootErrors": {
+        /**
+         * 読み込みに失敗しました
+         */
+        "title": string;
+        /**
+         * 少し待ってからリロードしてもまだ問題が解決されない場合、以下のError IDを添えてサーバー管理者に連絡してください。
+         */
+        "serverError": string;
+        /**
+         * 以下を行うと解決する可能性があります。
+         */
+        "solution": string;
+        /**
+         * ブラウザおよびOSを最新バージョンに更新する
+         */
+        "solution1": string;
+        /**
+         * アドブロッカーを無効にする
+         */
+        "solution2": string;
+        /**
+         * ブラウザのキャッシュをクリアする
+         */
+        "solution3": string;
+        /**
+         * (Tor Browser) dom.webaudio.enabledをtrueに設定する
+         */
+        "solution4": string;
+        /**
+         * その他のオプション
+         */
+        "otherOption": string;
+        /**
+         * クライアント設定とキャッシュを削除
+         */
+        "otherOption1": string;
+        /**
+         * 簡易クライアントを起動
+         */
+        "otherOption2": string;
+        /**
+         * 修復ツールを起動
+         */
+        "otherOption3": string;
+    };
     /**
      * Automatic TTS feature needed.
      */
@@ -11084,6 +11130,10 @@ export interface Locale extends ILocale {
      * Email Templates
      */
     "emailTemplates": string;
+    /**
+     * Automated processing of abuse reports
+     */
+    "abuseReportAutoProcessing": string;
     "_aboutVickey": {
         /**
          * Vickey is a soft fork of Misskey.
@@ -11272,51 +11322,59 @@ export interface Locale extends ILocale {
          */
         "secReleaseVars": string;
     };
-    "_bootErrors": {
+    "_abuseReportAutoProcessing": {
         /**
-         * 読み込みに失敗しました
+         * Enable
          */
-        "title": string;
+        "enable": string;
         /**
-         * 少し待ってからリロードしてもまだ問題が解決されない場合、以下のError IDを添えてサーバー管理者に連絡してください。
+         * Record Only
          */
-        "serverError": string;
+        "record": string;
         /**
-         * 以下を行うと解決する可能性があります。
+         * Igore
          */
-        "solution": string;
+        "ignore": string;
         /**
-         * ブラウザおよびOSを最新バージョンに更新する
+         * Delete
          */
-        "solution1": string;
+        "delete": string;
         /**
-         * アドブロッカーを無効にする
+         * API URL for scoring abuse reports
          */
-        "solution2": string;
+        "url": string;
         /**
-         * ブラウザのキャッシュをクリアする
+         * Token for the API that scores abuse reports
          */
-        "solution3": string;
+        "token": string;
         /**
-         * (Tor Browser) dom.webaudio.enabledをtrueに設定する
+         * Scoring thresholds for triggering processing mechanisms
          */
-        "solution4": string;
+        "score": string;
         /**
-         * その他のオプション
+         * Note
          */
-        "otherOption": string;
+        "note": string;
         /**
-         * クライアント設定とキャッシュを削除
+         * Page
          */
-        "otherOption1": string;
+        "page": string;
         /**
-         * 簡易クライアントを起動
+         * Gallery
          */
-        "otherOption2": string;
+        "gallery": string;
         /**
-         * 修復ツールを起動
+         * Flash
          */
-        "otherOption3": string;
+        "flash": string;
+        /**
+         * User
+         */
+        "user": string;
+        /**
+         * Status
+         */
+        "status": string;
     };
 }
 declare const locales: {

@@ -87,6 +87,19 @@ export const meta = {
 					type: 'string',
 					nullable: false, optional: false,
 				},
+				type: {
+					type: 'string',
+					nullable: true, optional: false,
+				},
+				targetId: {
+					type: 'string',
+					nullable: true, optional: false,
+					format: 'id',
+				},
+				status: {
+					type: 'number',
+					nullable: false, optional: false,
+				},
 			},
 		},
 	},

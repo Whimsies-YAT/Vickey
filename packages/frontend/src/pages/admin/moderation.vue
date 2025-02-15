@@ -126,6 +126,35 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<MkButton primary @click="save_blockedHosts">{{ i18n.ts.save }}</MkButton>
 						</div>
 					</MkFolder>
+
+					<MkFolder>
+						<template #icon><i class="ti ti-info-circle"></i></template>
+						<template #label>{{ i18n.ts.abuseReportAutoProcessing }}<span class="_beta">{{ i18n.ts.beta }}</span></template>
+
+						<div class="_gaps">
+							<MkSwitch v-model="abuseMLCheck">
+								<template #label>{{ i18n.ts._abuseReportAutoProcessing.enable }}</template>
+							</MkSwitch>
+							<div v-if="abuseMLCheck">
+								<span>{{ i18n.ts._sensitiveMediaDetection.description }}</span>
+								<MkRadios v-model="abuseReportMLAction">
+									<option value="record">{{ i18n.ts._abuseReportAutoProcessing.record }}</option>
+									<option value="ignore">{{ i18n.ts._abuseReportAutoProcessing.ignore }} ({{i18n.ts.recommended}})</option>
+									<option value="delete">{{ i18n.ts._abuseReportAutoProcessing.delete }}</option>
+								</MkRadios>
+								<MkInput v-model="abuseMLInfoUrl">
+									<template #label>{{i18n.ts._abuseReportAutoProcessing.url}}</template>
+								</MkInput>
+								<MkInput v-model="abuseMLInfoToken">
+									<template #label>{{i18n.ts._abuseReportAutoProcessing.token}}</template>
+								</MkInput>
+								<MkInput v-model.number="abuseMLInfoScore" type="range" :min="0" :max="1" :step="0.01">
+									<template #label>{{i18n.ts._abuseReportAutoProcessing.score}}: {{ abuseMLInfoScore }}</template>
+								</MkInput>
+							</div>
+							<MkButton primary @click="save_abuseReportAutoProcessing">{{ i18n.ts.save }}</MkButton>
+						</div>
+					</MkFolder>
 				</div>
 			</FormSuspense>
 		</MkSpacer>
@@ -148,6 +177,7 @@ import { definePageMetadata } from '@/scripts/page-metadata.js';
 import MkButton from '@/components/MkButton.vue';
 import FormLink from '@/components/form/link.vue';
 import MkFolder from '@/components/MkFolder.vue';
+import MkRadios from "@/components/MkRadios.vue";
 
 const enableRegistration = ref<boolean>(false);
 const emailRequiredForSignup = ref<boolean>(false);
@@ -160,6 +190,11 @@ const preservedUsernames = ref<string>('');
 const blockedHosts = ref<string>('');
 const silencedHosts = ref<string>('');
 const mediaSilencedHosts = ref<string>('');
+const abuseMLCheck = ref<boolean>(false);
+const abuseReportMLAction = ref<string>('record');
+const abuseMLInfoUrl = ref<string>('');
+const abuseMLInfoToken = ref<string>('');
+const abuseMLInfoScore = ref<number>(0.5);
 
 async function init() {
 	const meta = await misskeyApi('admin/meta');
@@ -174,6 +209,11 @@ async function init() {
 	blockedHosts.value = meta.blockedHosts.join('\n');
 	silencedHosts.value = meta.silencedHosts?.join('\n') ?? '';
 	mediaSilencedHosts.value = meta.mediaSilencedHosts.join('\n');
+	abuseMLCheck.value = meta.abuseMLCheck;
+	abuseReportMLAction.value = meta.reportMLAction;
+	abuseMLInfoUrl.value = meta.abuseMLInfo.url;
+	abuseMLInfoToken.value = meta.abuseMLInfo.token;
+	abuseMLInfoScore.value = meta.abuseMLInfo.score;
 }
 
 async function onChange_enableRegistration(value: boolean) {
@@ -269,6 +309,21 @@ function save_silencedHosts() {
 function save_mediaSilencedHosts() {
 	os.apiWithDialog('admin/update-meta', {
 		mediaSilencedHosts: mediaSilencedHosts.value.split('\n') || [],
+	}).then(() => {
+		fetchInstance(true);
+	});
+}
+
+function save_abuseReportAutoProcessing() {
+	const abuseMLInfo = {
+		"url": abuseMLInfoUrl,
+		"token": abuseMLInfoToken,
+		"score": abuseMLInfoScore,
+	}
+	os.apiWithDialog('admin/update-meta', {
+		abuseMLCheck: abuseMLCheck.value,
+		abuseReportMLAction: abuseReportMLAction.value,
+		abuseMLInfo: abuseMLInfo,
 	}).then(() => {
 		fetchInstance(true);
 	});

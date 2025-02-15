@@ -49,6 +49,9 @@ export class AbuseReportService {
 		reporterId: MiAbuseUserReport['reporterId'],
 		reporterHost: MiAbuseUserReport['reporterHost'],
 		comment: string,
+		type: MiAbuseUserReport['type'],
+		targetId: MiAbuseUserReport['targetId'],
+		status: MiAbuseUserReport['status'],
 	}[]) {
 		const entities = params.map(param => {
 			return {
@@ -58,6 +61,9 @@ export class AbuseReportService {
 				reporterId: param.reporterId,
 				reporterHost: param.reporterHost,
 				comment: param.comment,
+				type: param.type,
+				targetId: param.targetId,
+				status: param.status,
 			};
 		});
 

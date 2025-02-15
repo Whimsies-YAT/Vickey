@@ -767,4 +767,22 @@ export class MiMeta {
 		default: false,
 	})
 	public enableEmailTemplates: boolean;
+
+	@Column('varchar', {
+		length: 64,
+		nullable: false,
+	})
+	public abuseReportMLAction: string;
+
+	@Column('boolean', {
+		default: false,
+	})
+	public abuseMLCheck: boolean;
+
+	@Column('varchar', {
+		nullable: false,
+		array: true,
+		default: '{}',
+	})
+	public abuseMLInfo: object;
 }

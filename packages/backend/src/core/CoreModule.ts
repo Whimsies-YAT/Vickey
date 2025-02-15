@@ -44,6 +44,7 @@ import { InternalStorageService } from './InternalStorageService.js';
 import { IP2LocationService } from './IP2LocationService.js';
 import { MetaService } from './MetaService.js';
 import { MfmService } from './MfmService.js';
+import { MLReportService } from './MLReportService.js';
 import { ModerationLogService } from './ModerationLogService.js';
 import { NoteCreateService } from './NoteCreateService.js';
 import { NoteDeleteService } from './NoteDeleteService.js';
@@ -190,6 +191,7 @@ const $InternalStorageService: Provider = { provide: 'InternalStorageService', u
 const $IP2LocationService: Provider = { provide: 'IP2LocationService', useExisting: IP2LocationService };
 const $MetaService: Provider = { provide: 'MetaService', useExisting: MetaService };
 const $MfmService: Provider = { provide: 'MfmService', useExisting: MfmService };
+const $MLReportService: Provider = { provide: 'MLReportService', useExisting: MLReportService };
 const $ModerationLogService: Provider = { provide: 'ModerationLogService', useExisting: ModerationLogService };
 const $NoteCreateService: Provider = { provide: 'NoteCreateService', useExisting: NoteCreateService };
 const $NoteDeleteService: Provider = { provide: 'NoteDeleteService', useExisting: NoteDeleteService };
@@ -344,6 +346,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		IP2LocationService,
 		MetaService,
 		MfmService,
+		MLReportService,
 		ModerationLogService,
 		NoteCreateService,
 		NoteDeleteService,
@@ -494,6 +497,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		$IP2LocationService,
 		$MetaService,
 		$MfmService,
+		$MLReportService,
 		$ModerationLogService,
 		$NoteCreateService,
 		$NoteDeleteService,
@@ -645,6 +649,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		IP2LocationService,
 		MetaService,
 		MfmService,
+		MLReportService,
 		ModerationLogService,
 		NoteCreateService,
 		NoteDeleteService,
@@ -794,6 +799,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		$IP2LocationService,
 		$MetaService,
 		$MfmService,
+		$MLReportService,
 		$ModerationLogService,
 		$NoteCreateService,
 		$NoteDeleteService,

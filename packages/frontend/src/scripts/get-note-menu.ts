@@ -140,6 +140,8 @@ export function getAbuseNoteMenu(note: Misskey.entities.Note, text: string): Men
 			if (note.url ?? note.uri != null) noteInfo = `Note: ${note.url ?? note.uri}\n`;
 			noteInfo += `Local Note: ${localUrl}\n`;
 			const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkAbuseReportWindow.vue')), {
+				type: "note",
+				id: note.id,
 				user: note.user,
 				initialComment: `${noteInfo}-----\n`,
 			}, {
@@ -304,15 +306,15 @@ export function getNoteMenu(props: {
 			if (res.body instanceof ReadableStream) {
 				const reader = res.body.getReader();
 				const chunks: Uint8Array[] = [];
-	
+
 				while (true) {
 					const { done, value } = await reader.read();
 					if (done) break;
 					chunks.push(value);
 				}
-	
+
 				const audioBlob = new Blob(chunks, { type: 'audio/flac' });
-	
+
 				props.convert.value = URL.createObjectURL(audioBlob);
 			} else {
 				console.error('Response body is not a ReadableStream');
@@ -320,7 +322,7 @@ export function getNoteMenu(props: {
 		} catch (errors) {
 			console.error('Failed to create Blob or Object URL:', errors);
 		}
-	
+
 		props.converting.value = false;
 	}
 

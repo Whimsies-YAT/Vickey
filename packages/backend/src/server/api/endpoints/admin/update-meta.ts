@@ -216,6 +216,9 @@ export const paramDef = {
 				type: 'string',
 			},
 		},
+		abuseMLCheck: { type: 'boolean', nullable: false },
+		abuseReportMLAction: { type: 'string', nullable: false },
+		abuseMLInfo: { type: 'array', nullable: false },
 	},
 	required: [],
 } as const;
@@ -821,6 +824,18 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (Array.isArray(ps.federationHosts)) {
 				set.federationHosts = ps.federationHosts.filter(Boolean).map(x => x.toLowerCase());
+			}
+
+			if (ps.abuseMLCheck !== undefined) {
+				set.abuseMLCheck = ps.abuseMLCheck;
+			}
+
+			if (ps.abuseReportMLAction !== undefined) {
+				set.abuseReportMLAction = ps.abuseReportMLAction;
+			}
+
+			if (typeof ps.abuseMLInfo === 'object' && ps.abuseMLInfo !== null) {
+				set.abuseMLInfo = ps.abuseMLInfo;
 			}
 
 			const before = await this.metaService.fetch(true);

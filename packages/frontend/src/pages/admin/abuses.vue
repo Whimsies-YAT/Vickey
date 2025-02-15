@@ -77,6 +77,8 @@ const reporterOrigin = ref('combined');
 const targetUserOrigin = ref('combined');
 const searchUsername = ref('');
 const searchHost = ref('');
+const type = ref('');
+const status = ref('');
 
 const pagination = {
 	endpoint: 'admin/abuse-user-reports' as const,
@@ -85,6 +87,8 @@ const pagination = {
 		state: state.value,
 		reporterOrigin: reporterOrigin.value,
 		targetUserOrigin: targetUserOrigin.value,
+		type: type.value,
+		status: status.value,
 	})),
 };
 

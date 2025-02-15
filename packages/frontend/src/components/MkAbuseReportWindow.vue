@@ -39,6 +39,8 @@ import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
 
 const props = defineProps<{
+	type?: string;
+	id?: string;
 	user: Misskey.entities.UserLite;
 	initialComment?: string;
 }>();
@@ -52,6 +54,8 @@ const comment = ref(props.initialComment ?? '');
 
 function send() {
 	os.apiWithDialog('users/report-abuse', {
+		type: props.type,
+		id: props.id,
 		userId: props.user.id,
 		comment: comment.value,
 	}, undefined).then(res => {

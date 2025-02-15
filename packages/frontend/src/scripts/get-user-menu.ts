@@ -95,6 +95,8 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 
 	function reportAbuse() {
 		const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkAbuseReportWindow.vue')), {
+			type: "user",
+			id: user.id,
 			user: user,
 		}, {
 			closed: () => dispose(),
