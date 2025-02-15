@@ -5185,6 +5185,9 @@ export type components = {
       maxFileSize: number;
       security: boolean;
       enableEmailTemplates: boolean;
+      abuseMLCheck: boolean;
+      abuseReportMLAction: string;
+      abuseMLInfo: Record<string, never>;
       /** @enum {string} */
       federation: 'all' | 'specified' | 'none';
     };
@@ -5595,6 +5598,10 @@ export type operations = {
               /** @enum {string|null} */
               resolvedAs: 'accept' | 'reject' | null;
               moderationNote: string;
+              type: string | null;
+              /** Format: id */
+              targetId: string | null;
+              status: number;
             })[];
         };
       };
@@ -8745,6 +8752,9 @@ export type operations = {
             federation: 'all' | 'specified' | 'none';
             federationHosts: string[];
             security: boolean;
+            abuseMLCheck: boolean;
+            abuseReportMLAction: string;
+            abuseMLInfo: Record<string, never>;
           };
         };
       };
@@ -11223,6 +11233,9 @@ export type operations = {
           /** @enum {string} */
           federation?: 'all' | 'none' | 'specified';
           federationHosts?: string[];
+          abuseMLCheck?: boolean;
+          abuseReportMLAction?: string;
+          abuseMLInfo?: unknown[];
         };
       };
     };
@@ -28563,6 +28576,9 @@ export type operations = {
     requestBody: {
       content: {
         'application/json': {
+          type?: string | null;
+          /** Format: misskey:id */
+          id?: string | null;
           /** Format: misskey:id */
           userId: string;
           comment: string;
