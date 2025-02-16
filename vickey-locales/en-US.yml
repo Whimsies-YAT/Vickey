@@ -85,7 +85,7 @@ _emailTemplates:
 _abuseReportAutoProcessing:
   enable: "Enable"
   record: "Record Only"
-  ignore: "Igore"
+  ignore: "Ignore"
   delete: "Delete"
   url: "API URL for scoring abuse reports"
   token: "Token for the API that scores abuse reports"
@@ -96,3 +96,4 @@ _abuseReportAutoProcessing:
   flash: "Flash"
   user: "User"
   status: "Status"
+  uncategorized: "Uncategorized"

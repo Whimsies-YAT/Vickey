@@ -114,6 +114,8 @@ export const paramDef = {
 		state: { type: 'string', nullable: true, default: null },
 		reporterOrigin: { type: 'string', enum: ['combined', 'local', 'remote'], default: 'combined' },
 		targetUserOrigin: { type: 'string', enum: ['combined', 'local', 'remote'], default: 'combined' },
+		type: { type: 'string', nullable: false, enum: ['all', 'note', 'flash', 'gallery', 'page', 'user'], default: 'all' },
+		status: { type: 'string', nullable: false,enum: ['record', 'ignore', 'delete'], default: 'record' },
 	},
 	required: [],
 } as const;
@@ -143,6 +145,21 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			switch (ps.targetUserOrigin) {
 				case 'local': query.andWhere('report.targetUserHost IS NULL'); break;
 				case 'remote': query.andWhere('report.targetUserHost IS NOT NULL'); break;
+			}
+
+			switch (ps.type) {
+				case 'all': query.andWhere('report.type IS NULL'); break;
+				case 'note': query.andWhere('report.type = :type', { type: 'note' }); break;
+				case 'flash': query.andWhere('report.type = :type', { type: 'flash' }); break;
+				case 'gallery': query.andWhere('report.type = :type', { type: 'gallery' }); break;
+				case 'page': query.andWhere('report.type = :type', { type: 'page' }); break;
+				case 'user': query.andWhere('report.type = :type', { type: 'user' }); break;
+			}
+
+			switch (ps.status) {
+				case 'record': query.andWhere('report.status = 0'); break;
+				case 'ignore': query.andWhere('report.status = 1'); break;
+				case 'delete': query.andWhere('report.status = 2'); break;
 			}
 
 			const reports = await query.limit(ps.limit).getMany();

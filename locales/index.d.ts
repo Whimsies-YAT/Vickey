@@ -11332,7 +11332,7 @@ export interface Locale extends ILocale {
          */
         "record": string;
         /**
-         * Igore
+         * Ignore
          */
         "ignore": string;
         /**
@@ -11375,6 +11375,10 @@ export interface Locale extends ILocale {
          * Status
          */
         "status": string;
+        /**
+         * Uncategorized
+         */
+        "uncategorized": string;
     };
 }
 declare const locales: {

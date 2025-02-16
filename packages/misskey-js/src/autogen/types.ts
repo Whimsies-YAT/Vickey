@@ -5567,6 +5567,16 @@ export type operations = {
            * @enum {string}
            */
           targetUserOrigin?: 'combined' | 'local' | 'remote';
+          /**
+           * @default all
+           * @enum {string}
+           */
+          type?: 'all' | 'note' | 'flash' | 'gallery' | 'page' | 'user';
+          /**
+           * @default record
+           * @enum {string}
+           */
+          status?: 'record' | 'ignore' | 'delete';
         };
       };
     };

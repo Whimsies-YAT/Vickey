@@ -35,6 +35,21 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<option value="local">{{ i18n.ts.local }}</option>
 					<option value="remote">{{ i18n.ts.remote }}</option>
 				</MkSelect>
+				<MkSelect v-model="type" style="margin: 0; flex: 1;">
+					<template #label>{{ i18n.ts.type }}</template>
+					<option value="all">{{ i18n.ts.all }}</option>
+					<option value="note">{{ i18n.ts._abuseReportAutoProcessing.note }}</option>
+					<option value=“flash”>{{ i18n.ts._abuseReportAutoProcessing.flash }}</option>
+					<option value="gallery">{{ i18n.ts._abuseReportAutoProcessing.gallery }}</option>
+					<option value="page">{{ i18n.ts._abuseReportAutoProcessing.page }}</option>
+					<option value=“user”>{{ i18n.ts._abuseReportAutoProcessing.user }}</option>
+				</MkSelect>
+				<MkSelect v-model="status" style="margin: 0; flex: 1;">
+					<template #label>{{ i18n.ts._abuseReportAutoProcessing.status }}</template>
+					<option value="record">{{ i18n.ts._abuseReportAutoProcessing.record }}</option>
+					<option value="ignore">{{ i18n.ts._abuseReportAutoProcessing.ignore }}</option>
+					<option value="delete">{{ i18n.ts._abuseReportAutoProcessing.delete }}</option>
+				</MkSelect>
 			</div>
 
 			<!-- TODO
@@ -77,8 +92,8 @@ const reporterOrigin = ref('combined');
 const targetUserOrigin = ref('combined');
 const searchUsername = ref('');
 const searchHost = ref('');
-const type = ref('');
-const status = ref('');
+const type = ref('all');
+const status = ref('record');
 
 const pagination = {
 	endpoint: 'admin/abuse-user-reports' as const,
