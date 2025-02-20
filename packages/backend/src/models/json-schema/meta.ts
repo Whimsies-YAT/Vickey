@@ -285,8 +285,16 @@ export const packedMetaLiteSchema = {
 			type: 'string',
 			optional: false, nullable: false,
 		},
-		abuseMLInfo: {
-			type: 'object',
+		abuseMLInfoUrl: {
+			type: 'string',
+			optional: false, nullable: false,
+		},
+		abuseMLInfoToken: {
+			type: 'string',
+			optional: false, nullable: false,
+		},
+		abuseMLInfoScore: {
+			type: 'number',
 			optional: false, nullable: false,
 		},
 		federation: {

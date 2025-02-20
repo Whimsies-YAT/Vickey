@@ -190,7 +190,8 @@
 		"vary": "1.1.2",
 		"web-push": "3.6.7",
 		"ws": "8.18.0",
-		"xev": "3.0.2"
+		"xev": "3.0.2",
+		"xlsx": "0.18.5"
 	},
 	"devDependencies": {
 		"@jest/globals": "29.7.0",

@@ -780,9 +780,20 @@ export class MiMeta {
 	public abuseMLCheck: boolean;
 
 	@Column('varchar', {
+		length: 512,
 		nullable: false,
-		array: true,
-		default: '{}',
 	})
-	public abuseMLInfo: object;
+	public abuseMLInfoUrl: string;
+
+	@Column('varchar', {
+		length: 8192,
+		nullable: false,
+	})
+	public abuseMLInfoToken: string;
+
+	@Column('varchar', {
+		default: 0.5,
+		nullable: false,
+	})
+	public abuseMLInfoScore: number;
 }

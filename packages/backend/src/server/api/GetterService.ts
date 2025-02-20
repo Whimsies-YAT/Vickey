@@ -9,6 +9,7 @@ import type { NotesRepository, UsersRepository } from '@/models/_.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import type { MiLocalUser, MiRemoteUser, MiUser } from '@/models/User.js';
 import type { MiNote } from '@/models/Note.js';
+import { CacheService } from '@/core/CacheService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
 
@@ -21,6 +22,7 @@ export class GetterService {
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
 
+		private cacheService: CacheService,
 		private userEntityService: UserEntityService,
 	) {
 	}
@@ -30,17 +32,20 @@ export class GetterService {
 	 */
 	@bindThis
 	public async getNote(noteId: MiNote['id']) {
-		const note = await this.notesRepository.findOneBy({ id: noteId });
+		const isIgnored = await this.cacheService.abuseAutoIgnoreCache.fetch('abuseAutoIgnore');
+		if (isIgnored.has(noteId)) throw new IdentifiableError('9725d0ce-ba28-4dde-95a7-2cbb2c15de24', 'This note is invisible.');
 
-		if (note == null) {
-			throw new IdentifiableError('9725d0ce-ba28-4dde-95a7-2cbb2c15de24', 'No such note.');
-		}
+		const note = await this.notesRepository.findOneBy({ id: noteId });
+		if (!note) throw new IdentifiableError('9725d0ce-ba28-4dde-95a7-2cbb2c15de24', 'No such note.');
 
 		return note;
 	}
 
 	@bindThis
 	public async getNoteWithUser(noteId: MiNote['id']) {
+		const isIgnored = await this.cacheService.abuseAutoIgnoreCache.fetch('abuseAutoIgnore');
+		if (isIgnored.has(noteId)) throw new IdentifiableError('9725d0ce-ba28-4dde-95a7-2cbb2c15de24', 'This note is invisible.');
+
 		const note = await this.notesRepository.findOne({ where: { id: noteId }, relations: ['user'] });
 
 		if (note == null) {
@@ -92,4 +97,3 @@ export class GetterService {
 		return user;
 	}
 }
-

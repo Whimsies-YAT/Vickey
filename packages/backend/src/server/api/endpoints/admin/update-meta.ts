@@ -218,7 +218,9 @@ export const paramDef = {
 		},
 		abuseMLCheck: { type: 'boolean', nullable: false },
 		abuseReportMLAction: { type: 'string', nullable: false },
-		abuseMLInfo: { type: 'array', nullable: false },
+		abuseMLInfoUrl: { type: 'string', nullable: false },
+		abuseMLInfoToken: { type: 'string', nullable: false },
+		abuseMLInfoScore: { type: 'number', nullable: false },
 	},
 	required: [],
 } as const;
@@ -834,8 +836,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				set.abuseReportMLAction = ps.abuseReportMLAction;
 			}
 
-			if (typeof ps.abuseMLInfo === 'object' && ps.abuseMLInfo !== null) {
-				set.abuseMLInfo = ps.abuseMLInfo;
+			if (ps.abuseMLInfoUrl !== undefined) {
+				set.abuseMLInfoUrl = ps.abuseMLInfoUrl;
+			}
+
+			if (ps.abuseMLInfoToken !== undefined) {
+				set.abuseMLInfoToken = ps.abuseMLInfoToken;
+			}
+
+			if (ps.abuseMLInfoScore !== undefined && ps.abuseMLInfoScore >= 0 && ps.abuseMLInfoScore <= 1) {
+				set.abuseMLInfoScore = ps.abuseMLInfoScore;
 			}
 
 			const before = await this.metaService.fetch(true);

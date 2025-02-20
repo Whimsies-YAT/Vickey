@@ -11324,6 +11324,10 @@ export interface Locale extends ILocale {
     };
     "_abuseReportAutoProcessing": {
         /**
+         * Reports on Automated Abuse Reports Processing
+         */
+        "title": string;
+        /**
          * Enable
          */
         "enable": string;

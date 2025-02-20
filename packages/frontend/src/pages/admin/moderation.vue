@@ -210,10 +210,10 @@ async function init() {
 	silencedHosts.value = meta.silencedHosts?.join('\n') ?? '';
 	mediaSilencedHosts.value = meta.mediaSilencedHosts.join('\n');
 	abuseMLCheck.value = meta.abuseMLCheck;
-	abuseReportMLAction.value = meta.reportMLAction;
-	abuseMLInfoUrl.value = meta.abuseMLInfo.url;
-	abuseMLInfoToken.value = meta.abuseMLInfo.token;
-	abuseMLInfoScore.value = meta.abuseMLInfo.score;
+	abuseReportMLAction.value = meta.abuseReportMLAction;
+	abuseMLInfoUrl.value = meta.abuseMLInfoUrl;
+	abuseMLInfoToken.value = meta.abuseMLInfoToken;
+	abuseMLInfoScore.value = meta.abuseMLInfoScore;
 }
 
 async function onChange_enableRegistration(value: boolean) {
@@ -315,15 +315,12 @@ function save_mediaSilencedHosts() {
 }
 
 function save_abuseReportAutoProcessing() {
-	const abuseMLInfo = {
-		"url": abuseMLInfoUrl,
-		"token": abuseMLInfoToken,
-		"score": abuseMLInfoScore,
-	}
 	os.apiWithDialog('admin/update-meta', {
 		abuseMLCheck: abuseMLCheck.value,
 		abuseReportMLAction: abuseReportMLAction.value,
-		abuseMLInfo: abuseMLInfo,
+		abuseMLInfoUrl: abuseMLInfoUrl.value,
+		abuseMLInfoToken: abuseMLInfoToken.value,
+		abuseMLInfoScore: Number(abuseMLInfoScore.value),
 	}).then(() => {
 		fetchInstance(true);
 	});

@@ -12,6 +12,26 @@ type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> &
 type OneOf<T extends any[]> = T extends [infer Only] ? Only : T extends [infer A, infer B, ...infer Rest] ? OneOf<[XOR<A, B>, ...Rest]> : never;
 
 export type paths = {
+  '/admin/abuse-report/auto-processed/export': {
+    /**
+     * admin/abuse-report/auto-processed/export
+     * @description No description provided.
+     *
+     * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+     * **Credential required**: *Yes* / **Permission**: *read:admin:abuse-report:auto-processed*
+     */
+    post: operations['admin___abuse-report___auto-processed___export'];
+  };
+  '/admin/abuse-report/auto-processed/show': {
+    /**
+     * admin/abuse-report/auto-processed/show
+     * @description No description provided.
+     *
+     * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+     * **Credential required**: *Yes* / **Permission**: *read:admin:abuse-report:auto-processed*
+     */
+    post: operations['admin___abuse-report___auto-processed___show'];
+  };
   '/admin/abuse-report/notification-recipient/create': {
     /**
      * admin/abuse-report/notification-recipient/create
@@ -5187,7 +5207,9 @@ export type components = {
       enableEmailTemplates: boolean;
       abuseMLCheck: boolean;
       abuseReportMLAction: string;
-      abuseMLInfo: Record<string, never>;
+      abuseMLInfoUrl: string;
+      abuseMLInfoToken: string;
+      abuseMLInfoScore: number;
       /** @enum {string} */
       federation: 'all' | 'specified' | 'none';
     };
@@ -5253,6 +5275,112 @@ export type external = Record<string, never>;
 
 export type operations = {
 
+  /**
+   * admin/abuse-report/auto-processed/export
+   * @description No description provided.
+   *
+   * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+   * **Credential required**: *Yes* / **Permission**: *read:admin:abuse-report:auto-processed*
+   */
+  'admin___abuse-report___auto-processed___export': {
+    requestBody: {
+      content: {
+        'application/json': {
+          limit?: Record<string, never>;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * admin/abuse-report/auto-processed/show
+   * @description No description provided.
+   *
+   * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+   * **Credential required**: *Yes* / **Permission**: *read:admin:abuse-report:auto-processed*
+   */
+  'admin___abuse-report___auto-processed___show': {
+    requestBody: {
+      content: {
+        'application/json': {
+          limitObj?: Record<string, never>;
+          /** @default 10 */
+          limit?: number;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
   /**
    * admin/abuse-report/notification-recipient/create
    * @description No description provided.
@@ -8764,7 +8892,9 @@ export type operations = {
             security: boolean;
             abuseMLCheck: boolean;
             abuseReportMLAction: string;
-            abuseMLInfo: Record<string, never>;
+            abuseMLInfoUrl: string;
+            abuseMLInfoToken: string;
+            abuseMLInfoScore: number;
           };
         };
       };
@@ -11245,7 +11375,9 @@ export type operations = {
           federationHosts?: string[];
           abuseMLCheck?: boolean;
           abuseReportMLAction?: string;
-          abuseMLInfo?: unknown[];
+          abuseMLInfoUrl?: string;
+          abuseMLInfoToken?: string;
+          abuseMLInfoScore?: number;
         };
       };
     };

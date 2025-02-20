@@ -181,6 +181,11 @@ const menuDef = computed<SuperMenuDef[]>(() => [{
 		text: i18n.ts.abuseReports,
 		to: '/admin/abuses',
 		active: currentPage.value?.route.name === 'abuses',
+	}, {
+		icon: 'ti ti-exclamation-circle',
+		text: i18n.ts._abuseReportAutoProcessing.title,
+		to: '/admin/abuses-auto-processed',
+		active: currentPage.value?.route.name === 'abuses-auto-processed',
 	}, ...(isAdmin.value ? [{
 		icon: 'ti ti-list-search',
 		text: i18n.ts.moderationLogs,

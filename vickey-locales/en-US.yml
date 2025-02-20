@@ -83,6 +83,7 @@ _emailTemplates:
   secRelease: "New Security Release"
   secReleaseVars: "tag: name of the version to update to"
 _abuseReportAutoProcessing:
+  title: "Reports on Automated Abuse Reports Processing"
   enable: "Enable"
   record: "Record Only"
   ignore: "Ignore"

@@ -429,6 +429,10 @@ const routes: RouteDef[] = [{
 		name: 'database',
 		component: page(() => import('@/pages/admin/database.vue')),
 	}, {
+		path: '/abuses-auto-processed',
+		name: 'abuses-auto-processed',
+		component: page(() => import('@/pages/admin/abuse-report/auto-processed/page.vue')),
+	}, {
 		path: '/abuses',
 		name: 'abuses',
 		component: page(() => import('@/pages/admin/abuses.vue')),

@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import * as Redis from 'ioredis';
-import type { BlockingsRepository, FollowingsRepository, MutingsRepository, RenoteMutingsRepository, MiUserProfile, UserProfilesRepository, UsersRepository, MiFollowing } from '@/models/_.js';
+import type { AbuseUserReportsRepository ,BlockingsRepository, FollowingsRepository, MutingsRepository, RenoteMutingsRepository, MiUserProfile, UserProfilesRepository, UsersRepository, MiFollowing } from '@/models/_.js';
 import { MemoryKVCache, RedisKVCache } from '@/misc/cache.js';
 import type { MiLocalUser, MiUser } from '@/models/User.js';
 import { DI } from '@/di-symbols.js';
@@ -29,6 +29,7 @@ export class CacheService implements OnApplicationShutdown {
 	public systemStatusCache: RedisKVCache<any>;
 	public checkIPCache: RedisKVCache<boolean>;
 	public checkLocationCache: RedisKVCache<string[]>;
+	public abuseAutoIgnoreCache: RedisKVCache<Set<string>>;
 
 	constructor(
 		@Inject(DI.redis)
@@ -36,6 +37,9 @@ export class CacheService implements OnApplicationShutdown {
 
 		@Inject(DI.redisForSub)
 		private redisForSub: Redis.Redis,
+
+		@Inject(DI.abuseUserReportsRepository)
+		private abuseUserReportsRepository: AbuseUserReportsRepository,
 
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
@@ -146,13 +150,21 @@ export class CacheService implements OnApplicationShutdown {
 			fromRedisConverter: (value) => JSON.parse(value) as string[],
 		});
 
+		this.abuseAutoIgnoreCache = new RedisKVCache<Set<string>>(this.redisClient, 'abuseAutoIgnore', {
+			lifetime: 1000 * 60 * 30, // 30m
+			memoryCacheLifetime: 1000 * 60, // 1m
+			fetcher: () => this.abuseUserReportsRepository.find({ where: { status: 1, type: "note", resolved: false }, select: ['targetId'] }).then(xs => new Set(xs.map(x => x.targetId ?? ""))),
+			toRedisConverter: (value) => JSON.stringify(Array.from(value)),
+			fromRedisConverter: (value) => new Set(JSON.parse(value)),
+		});
+
 		// NOTE: チャンネルのフォロー状況キャッシュはChannelFollowingServiceで行っている
 
 		this.redisForSub.on('message', this.onMessage);
 	}
 
 	private async fetchSystemStatus() {
-		const defaultValue = { security: true };
+		const defaultValue: object = { security: true };
 		try {
 			const redisValue = await this.redisClient.get('systemStatus');
 
@@ -253,6 +265,7 @@ export class CacheService implements OnApplicationShutdown {
 		this.renoteMutingsCache.dispose();
 		this.userFollowingsCache.dispose();
 		this.systemStatusCache.dispose();
+		this.abuseAutoIgnoreCache.dispose();
 	}
 
 	@bindThis

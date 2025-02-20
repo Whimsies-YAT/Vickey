@@ -148,7 +148,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			switch (ps.type) {
-				case 'all': query.andWhere('report.type IS NULL'); break;
+				case 'all': break;
 				case 'note': query.andWhere('report.type = :type', { type: 'note' }); break;
 				case 'flash': query.andWhere('report.type = :type', { type: 'flash' }); break;
 				case 'gallery': query.andWhere('report.type = :type', { type: 'gallery' }); break;

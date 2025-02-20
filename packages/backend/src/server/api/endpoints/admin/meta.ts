@@ -619,8 +619,16 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: false,
 			},
-			abuseMLInfo: {
-				type: 'object',
+			abuseMLInfoUrl: {
+				type: 'string',
+				optional: false, nullable: false,
+			},
+			abuseMLInfoToken: {
+				type: 'string',
+				optional: false, nullable: false,
+			},
+			abuseMLInfoScore: {
+				type: 'number',
 				optional: false, nullable: false,
 			},
 		},
@@ -785,7 +793,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				federationHosts: instance.federationHosts,
 				security: instance.security,
 				abuseMLCheck: instance.abuseMLCheck,
-				abuseMLInfo: instance.abuseMLInfo,
+				abuseMLInfoUrl: instance.abuseMLInfoUrl,
+				abuseMLInfoToken: instance.abuseMLInfoToken,
+				abuseMLInfoScore: instance.abuseMLInfoScore,
 				abuseReportMLAction: instance.abuseReportMLAction,
 			};
 		});

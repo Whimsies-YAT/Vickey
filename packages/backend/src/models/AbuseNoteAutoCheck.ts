@@ -6,8 +6,8 @@
 import { PrimaryColumn, Entity, Index, Column } from 'typeorm';
 import { id } from './util/id.js';
 
-@Entity('abuse_note_auto_check')
-@Index(['key', 'content'], { unique: true })
+@Entity('abuse_note_autocheck')
+@Index(['id'], { unique: true })
 export class MiAbuseNoteAutoCheck {
 	@PrimaryColumn(id())
 	public id: string;
@@ -15,10 +15,9 @@ export class MiAbuseNoteAutoCheck {
 	@Index()
 	@Column('varchar', {
 		nullable: false,
-		array: true,
 		default: '{}',
 	})
-	public detail: string[];
+	public detail: object;
 
 	@Column('numeric', {
 		nullable: false,
