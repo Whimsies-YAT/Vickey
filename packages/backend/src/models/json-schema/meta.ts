@@ -277,6 +277,26 @@ export const packedMetaLiteSchema = {
 			type: 'boolean',
 			optional: false, nullable: false,
 		},
+		abuseMLCheck: {
+			type: 'boolean',
+			optional: false, nullable: false,
+		},
+		abuseReportMLAction: {
+			type: 'string',
+			optional: false, nullable: false,
+		},
+		abuseMLInfoUrl: {
+			type: 'string',
+			optional: false, nullable: false,
+		},
+		abuseMLInfoToken: {
+			type: 'string',
+			optional: false, nullable: false,
+		},
+		abuseMLInfoScore: {
+			type: 'number',
+			optional: false, nullable: false,
+		},
 		federation: {
 			type: 'string',
 			enum: ['all', 'specified', 'none'],

@@ -140,6 +140,11 @@ export class MetaEntityService {
 			maxFileSize: this.config.maxFileSize,
 			security: secData.security,
 			federation: this.meta.federation,
+			abuseMLCheck: this.meta.abuseMLCheck,
+			abuseReportMLAction: this.meta.abuseReportMLAction,
+			abuseMLInfoUrl: this.meta.abuseMLInfoUrl,
+			abuseMLInfoToken: this.meta.abuseMLInfoToken,
+			abuseMLInfoScore: this.meta.abuseMLInfoScore,
 		};
 
 		return packed;

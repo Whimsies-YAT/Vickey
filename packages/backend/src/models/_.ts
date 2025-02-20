@@ -10,6 +10,7 @@ import { RelationIdLoader } from 'typeorm/query-builder/relation-id/RelationIdLo
 import { RawSqlResultsToEntityTransformer } from 'typeorm/query-builder/transformer/RawSqlResultsToEntityTransformer.js';
 import { ObjectUtils } from 'typeorm/util/ObjectUtils.js';
 import { OrmUtils } from 'typeorm/util/OrmUtils.js';
+import { MiAbuseNoteAutoCheck } from '@/models/AbuseNoteAutoCheck.js';
 import { MiAbuseUserReport } from '@/models/AbuseUserReport.js';
 import { MiAbuseReportNotificationRecipient } from '@/models/AbuseReportNotificationRecipient.js';
 import { MiAccessToken } from '@/models/AccessToken.js';
@@ -126,6 +127,7 @@ export const miRepository = {
 } satisfies MiRepository<ObjectLiteral>;
 
 export {
+	MiAbuseNoteAutoCheck,
 	MiAbuseUserReport,
 	MiAbuseReportNotificationRecipient,
 	MiAccessToken,
@@ -198,6 +200,7 @@ export {
 	MiReversiGame,
 };
 
+export type AbuseNoteAutoCheckRepository = Repository<MiAbuseNoteAutoCheck> & MiRepository<MiAbuseNoteAutoCheck>;
 export type AbuseUserReportsRepository = Repository<MiAbuseUserReport> & MiRepository<MiAbuseUserReport>;
 export type AbuseReportNotificationRecipientRepository = Repository<MiAbuseReportNotificationRecipient> & MiRepository<MiAbuseReportNotificationRecipient>;
 export type AccessTokensRepository = Repository<MiAccessToken> & MiRepository<MiAccessToken>;

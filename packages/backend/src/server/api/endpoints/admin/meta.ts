@@ -596,6 +596,7 @@ export const meta = {
 			},
 			federation: {
 				type: 'string',
+				enum: ['all', 'specified', 'none'],
 				optional: false, nullable: false,
 			},
 			federationHosts: {
@@ -608,6 +609,26 @@ export const meta = {
 			},
 			security: {
 				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			abuseMLCheck: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			abuseReportMLAction: {
+				type: 'string',
+				optional: false, nullable: false,
+			},
+			abuseMLInfoUrl: {
+				type: 'string',
+				optional: false, nullable: false,
+			},
+			abuseMLInfoToken: {
+				type: 'string',
+				optional: false, nullable: false,
+			},
+			abuseMLInfoScore: {
+				type: 'number',
 				optional: false, nullable: false,
 			},
 		},
@@ -771,6 +792,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				federation: instance.federation,
 				federationHosts: instance.federationHosts,
 				security: instance.security,
+				abuseMLCheck: instance.abuseMLCheck,
+				abuseMLInfoUrl: instance.abuseMLInfoUrl,
+				abuseMLInfoToken: instance.abuseMLInfoToken,
+				abuseMLInfoScore: instance.abuseMLInfoScore,
+				abuseReportMLAction: instance.abuseReportMLAction,
 			};
 		});
 	}

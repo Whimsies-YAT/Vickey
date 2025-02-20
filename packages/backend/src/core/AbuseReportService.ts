@@ -9,6 +9,8 @@ import { DI } from '@/di-symbols.js';
 import { bindThis } from '@/decorators.js';
 import type { AbuseUserReportsRepository, MiAbuseUserReport, MiUser, UsersRepository } from '@/models/_.js';
 import { AbuseReportNotificationService } from '@/core/AbuseReportNotificationService.js';
+import { CacheService } from '@/core/CacheService.js';
+import { MLReportService } from '@/core/MLReportService.js';
 import { QueueService } from '@/core/QueueService.js';
 import { InstanceActorService } from '@/core/InstanceActorService.js';
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
@@ -26,9 +28,11 @@ export class AbuseReportService {
 
 		private idService: IdService,
 		private abuseReportNotificationService: AbuseReportNotificationService,
+		private cacheService: CacheService,
 		private queueService: QueueService,
 		private instanceActorService: InstanceActorService,
 		private apRendererService: ApRendererService,
+		private mLReportService: MLReportService,
 		private moderationLogService: ModerationLogService,
 	) {
 	}
@@ -49,6 +53,9 @@ export class AbuseReportService {
 		reporterId: MiAbuseUserReport['reporterId'],
 		reporterHost: MiAbuseUserReport['reporterHost'],
 		comment: string,
+		type: MiAbuseUserReport['type'],
+		targetId: MiAbuseUserReport['targetId'],
+		status: MiAbuseUserReport['status'],
 	}[]) {
 		const entities = params.map(param => {
 			return {
@@ -58,12 +65,19 @@ export class AbuseReportService {
 				reporterId: param.reporterId,
 				reporterHost: param.reporterHost,
 				comment: param.comment,
+				type: param.type,
+				targetId: param.targetId,
+				status: param.status,
 			};
 		});
 
 		const reports = Array.of<MiAbuseUserReport>();
 		for (const entity of entities) {
 			const report = await this.abuseUserReportsRepository.insertOne(entity);
+			if (entity.reporterHost === null && entity.type === "note" && entity.targetId) {
+				// No need to await
+				this.mLReportService.MLCheck("abuseCheck", entity.targetId);
+			}
 			reports.push(report);
 		}
 
@@ -112,6 +126,8 @@ export class AbuseReportService {
 					resolvedAs: ps.resolvedAs,
 				});
 		}
+
+		await this.cacheService.abuseAutoIgnoreCache.refresh('abuseAutoIgnore');
 
 		return this.abuseUserReportsRepository.findBy({ id: In(reports.map(it => it.id)) })
 			.then(reports => this.abuseReportNotificationService.notifySystemWebhook(reports, 'abuseReportResolved'));

@@ -1,6 +1,8 @@
 import type {
 	EmptyRequest,
 	EmptyResponse,
+	AdminAbuseReportAutoProcessedExportRequest,
+	AdminAbuseReportAutoProcessedShowRequest,
 	AdminAbuseReportNotificationRecipientCreateRequest,
 	AdminAbuseReportNotificationRecipientCreateResponse,
 	AdminAbuseReportNotificationRecipientDeleteRequest,
@@ -599,6 +601,8 @@ import type {
 } from './entities.js';
 
 export type Endpoints = {
+	'admin/abuse-report/auto-processed/export': { req: AdminAbuseReportAutoProcessedExportRequest; res: EmptyResponse };
+	'admin/abuse-report/auto-processed/show': { req: AdminAbuseReportAutoProcessedShowRequest; res: EmptyResponse };
 	'admin/abuse-report/notification-recipient/create': { req: AdminAbuseReportNotificationRecipientCreateRequest; res: AdminAbuseReportNotificationRecipientCreateResponse };
 	'admin/abuse-report/notification-recipient/delete': { req: AdminAbuseReportNotificationRecipientDeleteRequest; res: EmptyResponse };
 	'admin/abuse-report/notification-recipient/list': { req: AdminAbuseReportNotificationRecipientListRequest; res: AdminAbuseReportNotificationRecipientListResponse };
@@ -996,7 +1000,7 @@ export type Endpoints = {
 	'users/show': { req: UsersShowRequest; res: UsersShowResponse };
 	'users/update-memo': { req: UsersUpdateMemoRequest; res: EmptyResponse };
 	'v2/admin/emoji/list': { req: V2AdminEmojiListRequest; res: V2AdminEmojiListResponse };
-}
+};
 
 /**
  * NOTE: The content-type for all endpoints not listed here is application/json.

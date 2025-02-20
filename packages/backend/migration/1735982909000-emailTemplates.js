@@ -21,14 +21,14 @@ export class EmailTemplates1735982909000 {
 			await queryRunner.query(`INSERT INTO "email_templates" ("key", "content", "enabled") VALUES ('accountSuspended', '{"Account Suspended", "Your account has been suspended. Please contact moderators for more details."}', false)`);
 			await queryRunner.query(`INSERT INTO "email_templates" ("key", "content", "enabled") VALUES ('approvalPending', '{"Approval pending", "Congratulations! Your account is now pending approval. You will get notified when you have been accepted."}', false)`);
 			await queryRunner.query(`INSERT INTO "email_templates" ("key", "content", "enabled") VALUES ('newUserApproval', '{"New user awaiting approval", "A new user called \\\${username} (Email: \\\${email}) is awaiting approval with the following reason: \\\"\\\${reason}\\\""}', false)`);
-		  	await queryRunner.query(`INSERT INTO "email_templates" ("key", "content", "enabled") VALUES ('newUserApprovalWithoutEmail', '{"New user awaiting approval", "A new user called \\\${username} is awaiting approval with the following reason: \\\"\\\${reason}\\\""}', false)`);
+			await queryRunner.query(`INSERT INTO "email_templates" ("key", "content", "enabled") VALUES ('newUserApprovalWithoutEmail', '{"New user awaiting approval", "A new user called \\\${username} is awaiting approval with the following reason: \\\"\\\${reason}\\\""}', false)`);
 			await queryRunner.query(`INSERT INTO "email_templates" ("key", "content", "enabled") VALUES ('accountReinstated', '{"Account Reinstated", "Your account has been reinstated. You can now access it again. If you have any further questions, please contact moderators."}', false)`);
 			await queryRunner.query(`INSERT INTO "email_templates" ("key", "content", "enabled") VALUES ('accountDeclined', '{"Account declined", "Your Account has been declined!"}', false)`);
-		  	await queryRunner.query(`INSERT INTO "email_templates" ("key", "content", "enabled") VALUES ('accountDeclinedWithReason', '{"Account declined", "Your account has been declined due to: \\\${reason}"}', false)`);
+			await queryRunner.query(`INSERT INTO "email_templates" ("key", "content", "enabled") VALUES ('accountDeclinedWithReason', '{"Account declined", "Your account has been declined due to: \\\${reason}"}', false)`);
 			await queryRunner.query(`INSERT INTO "email_templates" ("key", "content", "enabled") VALUES ('newFollower', '{"You have a new follower", "\\\${name} (@\\\${username}@\\\${host})"}', false)`);
 			await queryRunner.query(`INSERT INTO "email_templates" ("key", "content", "enabled") VALUES ('newFollowRequest', '{"You have received a new follow request", "\\\${name} (@\\\${username}@\\\${host})"}', false)`);
 			await queryRunner.query(`INSERT INTO "email_templates" ("key", "content", "enabled") VALUES ('secRelease', '{"New Security Release Detected", "Version \\\${tag} contains security updates!"}', false)`);
-		  	await queryRunner.query(`ALTER TABLE "meta" ADD "enableEmailTemplates" boolean NOT NULL DEFAULT false`);
+			await queryRunner.query(`ALTER TABLE "meta" ADD "enableEmailTemplates" boolean NOT NULL DEFAULT false`);
 	}
 
 	async down(queryRunner) {

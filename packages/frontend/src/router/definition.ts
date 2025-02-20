@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { AsyncComponentLoader, defineAsyncComponent } from 'vue';
+import { defineAsyncComponent } from 'vue';
+import type { AsyncComponentLoader } from 'vue';
 import type { IRouter, RouteDef } from '@/nirax.js';
 import { Router } from '@/nirax.js';
 import { $i, iAmModerator } from '@/account.js';
@@ -427,6 +428,10 @@ const routes: RouteDef[] = [{
 		path: '/database',
 		name: 'database',
 		component: page(() => import('@/pages/admin/database.vue')),
+	}, {
+		path: '/abuses-auto-processed',
+		name: 'abuses-auto-processed',
+		component: page(() => import('@/pages/admin/abuse-report/auto-processed/page.vue')),
 	}, {
 		path: '/abuses',
 		name: 'abuses',

@@ -51,47 +51,47 @@ SPDX-License-Identifier: AGPL-3.0-only
                             </MkInput>
                         </div>
                         <MkSelect v-model="hfexampleLang">
-							<template #label>Example Language</template>
+														<template #label>Example Language</template>
                             <option value="" disabled> </option>
                             <option value="Chinese">中文</option>
                             <option value="English">English</option>
                             <option value="Japanese">日本語</option>
                             <option value="Yue">中文 (粤语)</option>
-							<option value="Korean">한국어</option>
-							<option value="Chinese-English Mixed">中文 - English</option>
-							<option value="Japanese-English Mixed">日本語 - English</option>
-							<option value="Yue-English Mixed">中文 (粤语) - English</option>
-							<option value="Korean-English Mixed">한국어 - English</option>
-							<option value="Multilingual Mixed">Multilingual Mixed</option>
-							<option value="Multilingual Mixed(Yue)">Multilingual Mixed (Yue)</option>
+														<option value="Korean">한국어</option>
+														<option value="Chinese-English Mixed">中文 - English</option>
+														<option value="Japanese-English Mixed">日本語 - English</option>
+														<option value="Yue-English Mixed">中文 (粤语) - English</option>
+														<option value="Korean-English Mixed">한국어 - English</option>
+														<option value="Multilingual Mixed">Multilingual Mixed</option>
+														<option value="Multilingual Mixed(Yue)">Multilingual Mixed (Yue)</option>
                         </MkSelect>
 						<br />
                         <MkSwitch v-model="hfdas">
                             <template #label>Whether to directly adjust the speech rate and timebre of the last synthesis result to prevent randomness</template>
                         </MkSwitch>
 						<br />
-						<MkSelect v-model="hfslice">
-							<template #label>Slice</template>
+												<MkSelect v-model="hfslice">
+														<template #label>Slice</template>
                             <option value="" disabled> </option>
                             <option value="No slice">No slice</option>
                             <option value="Slice once every 4 sentences">Slice once every 4 sentences</option>
                             <option value="Slice per 50 characters">Slice per 50 characters</option>
                             <option value="Slice by Chinese punct">Slice by Chinese punct</option>
-							<option value="Slice by English punct">Slice by English punct</option>
-							<option value="Slice by every punct">Slice by every punct</option>
+														<option value="Slice by English punct">Slice by English punct</option>
+														<option value="Slice by every punct">Slice by every punct</option>
                         </MkSelect>
                         <MkInput v-model.number="hftopK" type="range" :min="0" :max="100" :step="1">
-							<template #label>Set top_k Value: {{ hftopK }}</template>
-						</MkInput>
+														<template #label>Set top_k Value: {{ hftopK }}</template>
+												</MkInput>
                         <MkInput v-model.number="hftopP" type="range" :min="0" :max="100" :step="5">
-							<template #label>Set top_p Value: {{ hftopP }}</template>
-						</MkInput>
-                        <MkInput v-model.number="hfTemperature" type="range" :min="0" :max="100" :step="5">
-							<template #label>Set Temperature Value: {{ hfTemperature }}</template>
-						</MkInput>
-                        <MkInput v-model.number="hfSpeedRate" type="range" :min="60" :max="165" :step="5">
-							<template #label>Set Speed Rate Value: {{ hfSpeedRate }}</template>
-						</MkInput>
+														<template #label>Set top_p Value: {{ hftopP }}</template>
+												</MkInput>
+												<MkInput v-model.number="hfTemperature" type="range" :min="0" :max="100" :step="5">
+														<template #label>Set Temperature Value: {{ hfTemperature }}</template>
+												</MkInput>
+												<MkInput v-model.number="hfSpeedRate" type="range" :min="60" :max="165" :step="5">
+														<template #label>Set Speed Rate Value: {{ hfSpeedRate }}</template>
+												</MkInput>
                     </div>
                     <MkButton primary @click="save_tts">Save</MkButton>
                 </div>

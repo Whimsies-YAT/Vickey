@@ -161,6 +161,8 @@ function reportAbuse() {
 	const pageUrl = `${url}/gallery/${post.value.id}`;
 
 	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkAbuseReportWindow.vue')), {
+		type: "gallery",
+		id: post.value.id,
 		user: post.value.user,
 		initialComment: `Post: ${pageUrl}\n-----\n`,
 	}, {

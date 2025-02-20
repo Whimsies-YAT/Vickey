@@ -567,6 +567,9 @@ export class ApInboxService {
 		await this.abuseReportService.report([{
 			targetUserId: users[0].id,
 			targetUserHost: users[0].host,
+			type: null,
+			targetId: null,
+			status: 0,
 			reporterId: actor.id,
 			reporterHost: actor.host,
 			comment: `${activity.content}\n${JSON.stringify(uris, null, 2)}`,

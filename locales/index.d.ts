@@ -5258,6 +5258,14 @@ export interface Locale extends ILocale {
      * このサーバーは連合が無効化されています。他のサーバーのユーザーとやり取りすることはできません。
      */
     "federationDisabled": string;
+    /**
+     * リアクションする際に確認する
+     */
+    "confirmOnReact": string;
+    /**
+     * " {emoji} " をリアクションしますか？
+     */
+    "reactAreYouSure": ParameterizedString<"emoji">;
     "_accountSettings": {
         /**
          * コンテンツの表示にログインを必須にする
@@ -9500,6 +9508,14 @@ export interface Locale extends ILocale {
          * ログインがありました
          */
         "login": string;
+        /**
+         * アクセストークンが作成されました
+         */
+        "createToken": string;
+        /**
+         * 心当たりがない場合は「{text}」を通じてアクセストークンを削除してください。
+         */
+        "createTokenDescription": ParameterizedString<"text">;
         "_types": {
             /**
              * すべて
@@ -10984,6 +11000,52 @@ export interface Locale extends ILocale {
             };
         };
     };
+    "_bootErrors": {
+        /**
+         * 読み込みに失敗しました
+         */
+        "title": string;
+        /**
+         * 少し待ってからリロードしてもまだ問題が解決されない場合、以下のError IDを添えてサーバー管理者に連絡してください。
+         */
+        "serverError": string;
+        /**
+         * 以下を行うと解決する可能性があります。
+         */
+        "solution": string;
+        /**
+         * ブラウザおよびOSを最新バージョンに更新する
+         */
+        "solution1": string;
+        /**
+         * アドブロッカーを無効にする
+         */
+        "solution2": string;
+        /**
+         * ブラウザのキャッシュをクリアする
+         */
+        "solution3": string;
+        /**
+         * (Tor Browser) dom.webaudio.enabledをtrueに設定する
+         */
+        "solution4": string;
+        /**
+         * その他のオプション
+         */
+        "otherOption": string;
+        /**
+         * クライアント設定とキャッシュを削除
+         */
+        "otherOption1": string;
+        /**
+         * 簡易クライアントを起動
+         */
+        "otherOption2": string;
+        /**
+         * 修復ツールを起動
+         */
+        "otherOption3": string;
+    };
     /**
      * Automatic TTS feature needed.
      */
@@ -11068,6 +11130,10 @@ export interface Locale extends ILocale {
      * Email Templates
      */
     "emailTemplates": string;
+    /**
+     * Automated processing of abuse reports
+     */
+    "abuseReportAutoProcessing": string;
     "_aboutVickey": {
         /**
          * Vickey is a soft fork of Misskey.
@@ -11255,6 +11321,68 @@ export interface Locale extends ILocale {
          * tag: name of the version to update to
          */
         "secReleaseVars": string;
+    };
+    "_abuseReportAutoProcessing": {
+        /**
+         * Reports on Automated Abuse Reports Processing
+         */
+        "title": string;
+        /**
+         * Enable
+         */
+        "enable": string;
+        /**
+         * Record Only
+         */
+        "record": string;
+        /**
+         * Ignore
+         */
+        "ignore": string;
+        /**
+         * Delete
+         */
+        "delete": string;
+        /**
+         * API URL for scoring abuse reports
+         */
+        "url": string;
+        /**
+         * Token for the API that scores abuse reports
+         */
+        "token": string;
+        /**
+         * Scoring thresholds for triggering processing mechanisms
+         */
+        "score": string;
+        /**
+         * Note
+         */
+        "note": string;
+        /**
+         * Page
+         */
+        "page": string;
+        /**
+         * Gallery
+         */
+        "gallery": string;
+        /**
+         * Flash
+         */
+        "flash": string;
+        /**
+         * User
+         */
+        "user": string;
+        /**
+         * Status
+         */
+        "status": string;
+        /**
+         * Uncategorized
+         */
+        "uncategorized": string;
     };
 }
 declare const locales: {
