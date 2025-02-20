@@ -7,7 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { DI } from '@/di-symbols.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { QueryService } from '@/core/QueryService.js';
-import type { AbuseNoteAutoCheckRepository, MiAbuseNoteAutoCheck } from '@/models/_.js'
+import type { AbuseNoteAutoCheckRepository, MiAbuseNoteAutoCheck } from '@/models/_.js';
 
 export const meta = {
 	tags: ['admin', 'abuse-report', 'auto-processed'],

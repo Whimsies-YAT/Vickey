@@ -74,7 +74,7 @@ export class AbuseReportService {
 		const reports = Array.of<MiAbuseUserReport>();
 		for (const entity of entities) {
 			const report = await this.abuseUserReportsRepository.insertOne(entity);
-			if (entity.reporterHost == null && entity.type == "note" && entity.targetId) {
+			if (entity.reporterHost === null && entity.type === "note" && entity.targetId) {
 				// No need to await
 				this.mLReportService.MLCheck("abuseCheck", entity.targetId);
 			}

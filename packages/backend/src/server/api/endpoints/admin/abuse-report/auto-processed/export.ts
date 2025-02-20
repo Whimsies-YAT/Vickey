@@ -34,6 +34,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			let results;
+			// eslint-disable-next-line no-useless-catch
 			try {
 				if (ps.limit) {
 					results = await this.abuseNoteAutoCheckRepository.findBy(ps.limit);
@@ -66,6 +67,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 	}
 
 	async exportToExcel(data: any[], me: MiUser) {
+		// eslint-disable-next-line no-useless-catch
 		try {
 			const [xlsPath, xlsCleanup] = await createTemp();
 
@@ -89,6 +91,5 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		} catch (error) {
 			throw error;
 		}
-
 	}
 }

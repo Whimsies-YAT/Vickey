@@ -19,17 +19,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</template>
 							<div class="_gaps">
 								<MkInfo>ID: {{item.detail.id}}}</MkInfo>
-								<MkFolder :default-open="true">
+								<MkFolder :defaultOpen="true">
 									<template #icon><i class="ti ti-message-2"></i></template>
 									<template #label>{{ i18n.ts.details }}</template>
 									<Mfm :text="item.detail.note.text" :linkNavigationBehavior="'window'"/>
 								</MkFolder>
-								<MkFolder :default-open="true">
+								<MkFolder :defaultOpen="true">
 									<template #icon><i class="ti ti-message-2"></i></template>
 									<template #label>{{ i18n.ts._abuseReportAutoProcessing.score }}</template>
 									<MkInfo>{{ item.score }} ({{ item.detail.label }})</MkInfo>
 								</MkFolder>
-								<MkFolder :default-open="true">
+								<MkFolder :defaultOpen="true">
 									<template #icon><i class="ti ti-message-2"></i></template>
 									<template #label>{{ i18n.ts._abuseReportAutoProcessing.status }}</template>
 									<MkInfo>{{ i18n.ts._abuseReportAutoProcessing[ item.detail.status === 0 ? 'record' : (item.detail.status === 1 ? 'ignore' : 'delete') ]}}</MkInfo>
@@ -50,7 +50,6 @@ import MkPagination from '@/components/MkPagination.vue';
 import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
 import MkInfo from '@/components/MkInfo.vue';
-import { defaultStore } from '@/store.js';
 import * as os from "@/os";
 import { misskeyApi } from "@/scripts/misskey-api";
 import MkFolder from "@/components/MkFolder.vue";

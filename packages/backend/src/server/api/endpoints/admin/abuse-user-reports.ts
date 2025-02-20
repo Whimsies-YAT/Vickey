@@ -115,7 +115,7 @@ export const paramDef = {
 		reporterOrigin: { type: 'string', enum: ['combined', 'local', 'remote'], default: 'combined' },
 		targetUserOrigin: { type: 'string', enum: ['combined', 'local', 'remote'], default: 'combined' },
 		type: { type: 'string', nullable: false, enum: ['all', 'note', 'flash', 'gallery', 'page', 'user'], default: 'all' },
-		status: { type: 'string', nullable: false,enum: ['record', 'ignore', 'delete'], default: 'record' },
+		status: { type: 'string', nullable: false, enum: ['record', 'ignore', 'delete'], default: 'record' },
 	},
 	required: [],
 } as const;

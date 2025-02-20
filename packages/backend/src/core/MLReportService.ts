@@ -4,7 +4,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import type { MiAbuseNoteAutoCheck ,AbuseNoteAutoCheckRepository ,AbuseUserReportsRepository, UsersRepository, NotesRepository, MiMeta, MiUser } from '@/models/_.js';
+import type { MiAbuseNoteAutoCheck, AbuseNoteAutoCheckRepository, AbuseUserReportsRepository, UsersRepository, NotesRepository, MiMeta, MiUser } from '@/models/_.js';
 import { CacheService } from '@/core/CacheService.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { NoteDeleteService } from '@/core/NoteDeleteService.js';
@@ -68,6 +68,7 @@ export class MLReportService {
 				});
 				if (res.ok) {
 					const result = await res.json() as { label: string; score: number };
+					// eslint-disable-next-line prefer-const -- Must be let
 					let { label, score } = result;
 					if (label === "spam") score = 1 - score;
 					let ignore: boolean = false;
@@ -114,11 +115,7 @@ export class MLReportService {
 						ignore,
 					} as MiAbuseNoteAutoCheck;
 
-					await Promise.all([this.abuseUserReportsRepository.update({
-						targetId: id,
-						type: "note"
-					}, {status}),
-						this.abuseNoteAutoCheckRepository.insertOne(data)]);
+					await Promise.all([this.abuseUserReportsRepository.update({ targetId: id, type: "note" }, { status }), this.abuseNoteAutoCheckRepository.insertOne(data)]);
 
 					const resolve = await this.abuseUserReportsRepository.findOneBy({ targetId: id });
 					if (!resolve || !resolve.resolved) {
