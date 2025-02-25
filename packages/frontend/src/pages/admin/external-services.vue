@@ -5,11 +5,24 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <MkStickyContainer>
-    <template #header><XHeader :actions="headerActions" :tabs="headerTabs"/></template>
-    <MkSpacer :contentMax="700" :marginMin="16" :marginMax="32">
-        <FormSuspense :p="init">
-            <MkFolder>
-                <template #label>DeepL Translation</template>
+	<template #header><XHeader :actions="headerActions" :tabs="headerTabs"/></template>
+	<MkSpacer :contentMax="700" :marginMin="16" :marginMax="32">
+		<FormSuspense :p="init">
+			<div class="_gaps_m">
+				<MkFolder>
+					<template #label>Google Analytics<span class="_beta">{{ i18n.ts.beta }}</span></template>
+
+					<div class="_gaps_m">
+						<MkInput v-model="googleAnalyticsMeasurementId">
+							<template #prefix><i class="ti ti-key"></i></template>
+							<template #label>Measurement ID</template>
+						</MkInput>
+						<MkButton primary @click="save_googleAnalytics">Save</MkButton>
+					</div>
+				</MkFolder>
+
+				<MkFolder>
+					<template #label>DeepL Translation</template>
 
                 <div class="_gaps_m">
                     <MkInput v-model="deeplAuthKey">
@@ -159,7 +172,13 @@ const ip2lIsPro = ref<boolean>(false);
 const banCountry = ref<string>('');
 const exemptIP = ref<string>('');
 
+const googleAnalyticsMeasurementId = ref<string>('');
+
 async function init() {
+	const meta = await misskeyApi('admin/meta');
+	deeplAuthKey.value = meta.deeplAuthKey ?? '';
+	deeplIsPro.value = meta.deeplIsPro;
+	googleAnalyticsMeasurementId.value = meta.googleAnalyticsMeasurementId ?? '';
     const meta = await misskeyApi('admin/meta');
     deeplAuthKey.value = meta.deeplAuthKey;
     deeplIsPro.value = meta.deeplIsPro;
@@ -209,6 +228,14 @@ function save_tts() {
     }).then(() => {
         fetchInstance(true);
     });
+}
+
+function save_googleAnalytics() {
+	os.apiWithDialog('admin/update-meta', {
+		googleAnalyticsMeasurementId: googleAnalyticsMeasurementId.value,
+	}).then(() => {
+		fetchInstance(true);
+	});
 }
 
 function save_ra() {
