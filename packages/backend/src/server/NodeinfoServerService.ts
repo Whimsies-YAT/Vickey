@@ -78,7 +78,7 @@ export class NodeinfoServerService {
 			const document: any = {
 				software: {
 					name: 'misskey',
-					version: this.config.version,
+					version: this.config.version + '_vk',
 					homepage: nodeinfo_homepage,
 					repository: meta.repositoryUrl,
 				},
@@ -126,6 +126,7 @@ export class NodeinfoServerService {
 					enableServiceWorker: meta.enableServiceWorker,
 					proxyAccountName: proxyAccount ? proxyAccount.username : null,
 					themeColor: meta.themeColor ?? '#86b300',
+					restrictedAccessAreas: meta.banCountry,
 				},
 			};
 			if (version >= 21) {
