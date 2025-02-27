@@ -8506,6 +8506,34 @@ export interface Locale extends ILocale {
          * 違反を報告する
          */
         "write:report-abuse": string;
+        /**
+         * Approve registration application
+         */
+        "write:admin:approve-account": string;
+        /**
+         * Decline registration application
+         */
+        "write:admin:decline-account": string;
+        /**
+         * View application list
+         */
+        "read:admin:show-pending": string;
+        /**
+         * View whether there are registration applications
+         */
+        "read:admin:show-pendings": string;
+        /**
+         * Manage email templates
+         */
+        "write:admin:email-templates": string;
+        /**
+         * View email templates
+         */
+        "read:admin:email-templates": string;
+        /**
+         * View automated results of reports
+         */
+        "read:admin:abuse-report:auto-processed": string;
     };
     "_auth": {
         /**
@@ -11040,6 +11068,36 @@ export interface Locale extends ILocale {
          */
         "otherOption3": string;
     };
+    "_search": {
+        /**
+         * 全て
+         */
+        "searchScopeAll": string;
+        /**
+         * ローカル
+         */
+        "searchScopeLocal": string;
+        /**
+         * サーバー指定
+         */
+        "searchScopeServer": string;
+        /**
+         * ユーザー指定
+         */
+        "searchScopeUser": string;
+        /**
+         * サーバーのホストを入力してください
+         */
+        "pleaseEnterServerHost": string;
+        /**
+         * ユーザーを選択してください
+         */
+        "pleaseSelectUser": string;
+        /**
+         * 例: misskey.example.com
+         */
+        "serverHostPlaceholder": string;
+    };
     /**
      * Automatic TTS feature needed.
      */
@@ -11377,36 +11435,6 @@ export interface Locale extends ILocale {
          * Uncategorized
          */
         "uncategorized": string;
-    };
-    "_search": {
-        /**
-         * 全て
-         */
-        "searchScopeAll": string;
-        /**
-         * ローカル
-         */
-        "searchScopeLocal": string;
-        /**
-         * サーバー指定
-         */
-        "searchScopeServer": string;
-        /**
-         * ユーザー指定
-         */
-        "searchScopeUser": string;
-        /**
-         * サーバーのホストを入力してください
-         */
-        "pleaseEnterServerHost": string;
-        /**
-         * ユーザーを選択してください
-         */
-        "pleaseSelectUser": string;
-        /**
-         * 例: misskey.example.com
-         */
-        "serverHostPlaceholder": string;
     };
 }
 declare const locales: {

@@ -24,7 +24,7 @@ import { HttpRequestService } from '@/core/HttpRequestService.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
 import { bindThis } from '@/decorators.js';
-import type { AccessTokensRepository, UsersRepository } from '@/models/_.js';
+import type { AccessTokensRepository, UsersRepository, AppsRepository } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
 import { CacheService } from '@/core/CacheService.js';
 import type { MiLocalUser } from '@/models/User.js';
@@ -93,8 +93,10 @@ function validateClientId(raw: string): URL {
 
 interface ClientInformation {
 	id: string;
+	registered: boolean;
 	redirectUris: string[];
 	name: string;
+	secret?: string;
 }
 
 // https://indieauth.spec.indieweb.org/#client-information-discovery
@@ -134,6 +136,7 @@ async function discoverClientInformation(logger: Logger, httpRequestService: Htt
 
 		return {
 			id,
+			registered: false,
 			redirectUris: redirectUris.map(uri => new URL(uri, res.url).toString()),
 			name: typeof name === 'string' ? name : id,
 		};
@@ -243,11 +246,18 @@ export class OAuth2ProviderService {
 		private usersRepository: UsersRepository,
 		private cacheService: CacheService,
 		loggerService: LoggerService,
+
+		// Nya: inject app table
+		@Inject(DI.appsRepository)
+		private appsRepository: AppsRepository,
 	) {
 		this.#logger = loggerService.getLogger('oauth');
 
 		const grantCodeCache = new MemoryKVCache<{
 			clientId: string,
+			clientName: string,
+			clientSecret?: string,
+			clientRegistered: boolean,
 			userId: string,
 			redirectUri: string,
 			codeChallenge: string,
@@ -282,6 +292,9 @@ export class OAuth2ProviderService {
 				const code = secureRndstr(128);
 				grantCodeCache.set(code, {
 					clientId: client.id,
+					clientName: client.name,
+					clientSecret: client.secret,
+					clientRegistered: client.registered,
 					userId: user.id,
 					redirectUri,
 					codeChallenge: (areq as OAuthParsedRequest).codeChallenge,
@@ -313,29 +326,54 @@ export class OAuth2ProviderService {
 				}
 				granted.used = true;
 
+				// this.#logger.info(`Log request body for debug use only: ${JSON.stringify(body)}`);
+
 				// https://datatracker.ietf.org/doc/html/rfc6749.html#section-4.1.3
-				if (body.client_id !== granted.clientId) return;
-				if (redirectUri !== granted.redirectUri) return;
+				if (!granted.clientRegistered && body.client_id !== granted.clientId) {
+					// REQUIRED, if the client is not authenticating with the authorization server
+					this.#logger.info(`Client ID mismatch. (expect ${granted.clientId}, got ${body.client_id})`);
+					return;
+				}
+				if (redirectUri !== granted.redirectUri) {
+					this.#logger.info(`Redirect URI mismatch. (expect ${granted.redirectUri}, got ${redirectUri})`);
+					return;
+				}
 
 				// https://datatracker.ietf.org/doc/html/rfc7636.html#section-4.6
-				if (!body.code_verifier) return;
-				if (!(await verifyChallenge(body.code_verifier as string, granted.codeChallenge))) return;
+				if (!body.code_verifier) {
+					this.#logger.info('Missing code verifier.');
+					return;
+				}
+				if (!(await verifyChallenge(body.code_verifier as string, granted.codeChallenge))) {
+					this.#logger.info('Incorrect code verifier, cannot verify challenge.');
+					return;
+				}
 
 				const accessToken = secureRndstr(128);
 				const now = new Date();
 
-				// NOTE: we don't have a setup for automatic token expiration
-				await accessTokensRepository.insert({
-					id: idService.gen(now.getTime()),
-					lastUsedAt: now,
-					userId: granted.userId,
-					token: accessToken,
-					hash: accessToken,
-					name: granted.clientId,
-					permission: granted.scopes,
-				});
+				// Nya: Revoke old tokens and generate new one
+				if (granted.clientRegistered) {
+					await accessTokensRepository.delete({
+						userId: granted.userId,
+						appId: granted.clientId,
+					});
+				}
 
-				if (granted.revoked) {
+				if (!granted.revoked) {
+					// NOTE: we don't have a setup for automatic token expiration
+					await accessTokensRepository.insert({
+						id: idService.gen(now.getTime()),
+						lastUsedAt: now,
+						userId: granted.userId,
+						token: accessToken,
+						hash: accessToken,
+						name: granted.clientName,
+						permission: granted.scopes,
+						appId: granted.clientRegistered ? granted.clientId : null,
+					});
+				} else {
+					// Token been revoked
 					this.#logger.info('Canceling the token as the authorization code was revoked in parallel during the process.');
 					await accessTokensRepository.delete({ token: accessToken });
 					return;
@@ -403,21 +441,51 @@ export class OAuth2ProviderService {
 
 				this.#logger.info(`Validating authorization parameters, with client_id: ${clientID}, redirect_uri: ${redirectURI}, scope: ${scope}`);
 
-				const clientUrl = validateClientId(clientID);
+				// Prepare client information
+				let clientInfo: ClientInformation | null = null;
 
-				// https://indieauth.spec.indieweb.org/#client-information-discovery
-				// "the server may want to resolve the domain name first and avoid fetching the document
-				// if the IP address is within the loopback range defined by [RFC5735]
-				// or any other implementation-specific internal IP address."
-				if (process.env.NODE_ENV !== 'test' || process.env.MISSKEY_TEST_CHECK_IP_RANGE === '1') {
-					const lookup = await dns.lookup(clientUrl.hostname);
-					if (ipaddr.parse(lookup.address).range() !== 'unicast') {
-						throw new AuthorizationError('client_id resolves to disallowed IP range.', 'invalid_request');
+				// Nya: Check App table to use already registered applications
+				const clientApp = await this.appsRepository.findOneBy({ id: clientID });
+				if (clientApp != null) {
+					// Validate callback url
+					if (clientApp.callbackUrl == null) {
+						throw new AuthorizationError('client doesn\'t have a valid callback url.', 'invalid_request');
 					}
-				}
 
-				// Find client information from the remote.
-				const clientInfo = await discoverClientInformation(this.#logger, this.httpRequestService, clientUrl.href);
+					// Validate scopes field
+					for (const s of scope) {
+						if (!clientApp.permission.includes(s)) {
+							throw new AuthorizationError(`request scope exceeds authority: ${s}`, 'invalid_request');
+						}
+					}
+
+					clientInfo = {
+						id: clientID,
+						registered: true,
+						redirectUris: [clientApp.callbackUrl],
+						name: clientApp.name,
+						secret: clientApp.secret,
+					};
+
+					// TODO: Check whether can be skipped -> if already authorized, not revoked, and request no more scopes
+				} else {
+					// No such client, check with client method
+					const clientUrl = validateClientId(clientID);
+
+					// https://indieauth.spec.indieweb.org/#client-information-discovery
+					// "the server may want to resolve the domain name first and avoid fetching the document
+					// if the IP address is within the loopback range defined by [RFC5735]
+					// or any other implementation-specific internal IP address."
+					if (process.env.NODE_ENV !== 'test' || process.env.MISSKEY_TEST_CHECK_IP_RANGE === '1') {
+						const lookup = await dns.lookup(clientUrl.hostname);
+						if (ipaddr.parse(lookup.address).range() !== 'unicast') {
+							throw new AuthorizationError('client_id resolves to disallowed IP range.', 'invalid_request');
+						}
+					}
+
+					// Find client information from the remote.
+					clientInfo = await discoverClientInformation(this.#logger, this.httpRequestService, clientUrl.href);
+				}
 
 				// Require the redirect URI to be included in an explicit list, per
 				// https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics#section-4.1.3
