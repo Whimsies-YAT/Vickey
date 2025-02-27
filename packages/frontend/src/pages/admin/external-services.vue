@@ -5,11 +5,24 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <MkStickyContainer>
-    <template #header><XHeader :actions="headerActions" :tabs="headerTabs"/></template>
-    <MkSpacer :contentMax="700" :marginMin="16" :marginMax="32">
-        <FormSuspense :p="init">
-            <MkFolder>
-                <template #label>DeepL Translation</template>
+	<template #header><XHeader :actions="headerActions" :tabs="headerTabs"/></template>
+	<MkSpacer :contentMax="700" :marginMin="16" :marginMax="32">
+		<FormSuspense :p="init">
+			<div class="_gaps_m">
+				<MkFolder>
+					<template #label>Google Analytics<span class="_beta">{{ i18n.ts.beta }}</span></template>
+
+					<div class="_gaps_m">
+						<MkInput v-model="googleAnalyticsMeasurementId">
+							<template #prefix><i class="ti ti-key"></i></template>
+							<template #label>Measurement ID</template>
+						</MkInput>
+						<MkButton primary @click="save_googleAnalytics">Save</MkButton>
+					</div>
+				</MkFolder>
+
+				<MkFolder>
+					<template #label>DeepL Translation</template>
 
                 <div class="_gaps_m">
                     <MkInput v-model="deeplAuthKey">
@@ -22,7 +35,7 @@ SPDX-License-Identifier: AGPL-3.0-only
                     <MkButton primary @click="save_deepl">Save</MkButton>
                 </div>
             </MkFolder>
-            <br />
+
             <MkFolder>
                 <template #label>Text-To-Speech</template>
                 <div class="_gaps_m">
@@ -96,7 +109,7 @@ SPDX-License-Identifier: AGPL-3.0-only
                     <MkButton primary @click="save_tts">Save</MkButton>
                 </div>
             </MkFolder>
-					  <br />
+
 					  <MkFolder>
 						  <template #label>Restricted Regions</template>
 
@@ -118,7 +131,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 							  <MkButton primary @click="save_ra">Save</MkButton>
 						  </div>
 					  </MkFolder>
-        </FormSuspense>
+			</div>
+		</FormSuspense>
     </MkSpacer>
 </MkStickyContainer>
 </template>
@@ -159,27 +173,30 @@ const ip2lIsPro = ref<boolean>(false);
 const banCountry = ref<string>('');
 const exemptIP = ref<string>('');
 
+const googleAnalyticsMeasurementId = ref<string>('');
+
 async function init() {
-    const meta = await misskeyApi('admin/meta');
-    deeplAuthKey.value = meta.deeplAuthKey;
-    deeplIsPro.value = meta.deeplIsPro;
-    hfAuthKey.value = meta.hfAuthKey;
-    hfSpace.value = meta.hfSpace;
-    hfSpaceName.value = meta.hfSpaceName;
-    hfexampleAudioURL.value = meta.hfexampleAudioURL;
-    hfexampleText.value = meta.hfexampleText;
-    hfexampleLang.value = meta.hfexampleLang;
-    hfslice.value = meta.hfslice;
-    hftopK.value = meta.hftopK;
-    hftopP.value = meta.hftopP;
-    hfTemperature.value = meta.hfTemperature;
-    hfnrm.value = meta.hfnrm;
-    hfSpeedRate.value = meta.hfSpeedRate;
-    hfdas.value = meta.hfdas;
-	  ip2lAuthKey.value = meta.ip2lAuthKey;
-		ip2lIsPro.value = meta.ip2lIsPro;
-		banCountry.value = meta.banCountry.join('\n');
-		exemptIP.value = meta.exemptIP.join('\n');
+	const meta = await misskeyApi('admin/meta');
+  deeplAuthKey.value = meta.deeplAuthKey ?? '';
+  deeplIsPro.value = meta.deeplIsPro;
+  hfAuthKey.value = meta.hfAuthKey;
+	googleAnalyticsMeasurementId.value = meta.googleAnalyticsMeasurementId ?? '';
+  hfSpace.value = meta.hfSpace;
+  hfSpaceName.value = meta.hfSpaceName;
+  hfexampleAudioURL.value = meta.hfexampleAudioURL;
+  hfexampleText.value = meta.hfexampleText;
+  hfexampleLang.value = meta.hfexampleLang;
+  hfslice.value = meta.hfslice;
+  hftopK.value = meta.hftopK;
+  hftopP.value = meta.hftopP;
+  hfTemperature.value = meta.hfTemperature;
+  hfnrm.value = meta.hfnrm;
+  hfSpeedRate.value = meta.hfSpeedRate;
+  hfdas.value = meta.hfdas;
+	ip2lAuthKey.value = meta.ip2lAuthKey;
+	ip2lIsPro.value = meta.ip2lIsPro;
+	banCountry.value = meta.banCountry.join('\n');
+	exemptIP.value = meta.exemptIP.join('\n');
 }
 
 function save_deepl() {
@@ -209,6 +226,14 @@ function save_tts() {
     }).then(() => {
         fetchInstance(true);
     });
+}
+
+function save_googleAnalytics() {
+	os.apiWithDialog('admin/update-meta', {
+		googleAnalyticsMeasurementId: googleAnalyticsMeasurementId.value,
+	}).then(() => {
+		fetchInstance(true);
+	});
 }
 
 function save_ra() {

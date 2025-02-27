@@ -796,4 +796,10 @@ export class MiMeta {
 		nullable: false,
 	})
 	public abuseMLInfoScore: number;
+
+	@Column('varchar', {
+		length: 64,
+		nullable: true,
+	})
+	public googleAnalyticsMeasurementId: string | null;
 }
