@@ -93,7 +93,7 @@ _abuseReportAutoProcessing:
   title: "Reports on Automated Abuse Reports Processing"
   enable: "Enable"
   record: "Record Only"
-  ignore: "Ignore"
+  ignore: "Igore"
   delete: "Delete"
   url: "API URL for scoring abuse reports"
   token: "Token for the API that scores abuse reports"
