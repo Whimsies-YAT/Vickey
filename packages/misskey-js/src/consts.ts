@@ -64,6 +64,7 @@ export const permissions = [
 	'read:flash-likes',
 	'write:flash-likes',
 	'read:admin:abuse-user-reports',
+	'read:admin:abuse-report:auto-processed',
 	'write:admin:delete-account',
 	'write:admin:delete-all-files-of-a-user',
 	'write:admin:approve-account',

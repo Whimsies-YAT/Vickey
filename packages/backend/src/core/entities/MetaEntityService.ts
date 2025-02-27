@@ -101,6 +101,7 @@ export class MetaEntityService {
 			enableTurnstile: instance.enableTurnstile,
 			turnstileSiteKey: instance.turnstileSiteKey,
 			enableTestcaptcha: instance.enableTestcaptcha,
+			googleAnalyticsMeasurementId: instance.googleAnalyticsMeasurementId,
 			swPublickey: instance.swPublicKey,
 			themeColor: instance.themeColor,
 			mascotImageUrl: instance.mascotImageUrl ?? '/assets/ai.png',
@@ -140,6 +141,11 @@ export class MetaEntityService {
 			maxFileSize: this.config.maxFileSize,
 			security: secData.security,
 			federation: this.meta.federation,
+			abuseMLCheck: this.meta.abuseMLCheck,
+			abuseReportMLAction: this.meta.abuseReportMLAction,
+			abuseMLInfoUrl: this.meta.abuseMLInfoUrl,
+			abuseMLInfoToken: this.meta.abuseMLInfoToken,
+			abuseMLInfoScore: this.meta.abuseMLInfoScore,
 		};
 
 		return packed;

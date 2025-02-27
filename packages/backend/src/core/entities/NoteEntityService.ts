@@ -17,10 +17,12 @@ import { DebounceLoader } from '@/misc/loader.js';
 import { IdService } from '@/core/IdService.js';
 import { ReactionsBufferingService } from '@/core/ReactionsBufferingService.js';
 import type { OnModuleInit } from '@nestjs/common';
+import { CacheService } from '@/core/CacheService.js';
 import type { CustomEmojiService } from '../CustomEmojiService.js';
 import type { ReactionService } from '../ReactionService.js';
 import type { UserEntityService } from './UserEntityService.js';
 import type { DriveFileEntityService } from './DriveFileEntityService.js';
+import * as console from "node:console";
 
 // is-renote.tsとよしなにリンク
 function isPureRenote(note: MiNote): note is MiNote & { renoteId: MiNote['id']; renote: MiNote } {
@@ -83,6 +85,7 @@ export class NoteEntityService implements OnModuleInit {
 		@Inject(DI.channelsRepository)
 		private channelsRepository: ChannelsRepository,
 
+		private cacheService: CacheService,
 		//private userEntityService: UserEntityService,
 		//private driveFileEntityService: DriveFileEntityService,
 		//private customEmojiService: CustomEmojiService,
@@ -119,10 +122,12 @@ export class NoteEntityService implements OnModuleInit {
 
 	@bindThis
 	private async hideNote(packedNote: Packed<'Note'>, meId: MiUser['id'] | null): Promise<void> {
-		if (meId === packedNote.userId) return;
-
 		// TODO: isVisibleForMe を使うようにしても良さそう(型違うけど)
 		let hide = false;
+
+		const isIgnored = await this.cacheService.abuseAutoIgnoreCache.fetch('abuseAutoIgnore');
+		if (isIgnored?.has(packedNote.id)) hide = true;
+		if (meId === packedNote.userId) return;
 
 		if (packedNote.user.requireSigninToViewContents && meId == null) {
 			hide = true;
@@ -278,6 +283,8 @@ export class NoteEntityService implements OnModuleInit {
 	public async isVisibleForMe(note: MiNote, meId: MiUser['id'] | null): Promise<boolean> {
 		// This code must always be synchronized with the checks in generateVisibilityQuery.
 		// visibility が specified かつ自分が指定されていなかったら非表示
+		const isIgnored = await this.cacheService.abuseAutoIgnoreCache.fetch('abuseAutoIgnore');
+		if (isIgnored?.has(note.id)) return false;
 		if (note.visibility === 'specified') {
 			if (meId == null) {
 				return false;

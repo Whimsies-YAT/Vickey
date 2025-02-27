@@ -14,7 +14,7 @@ import { misskeyApi } from '@/scripts/misskey-api.js';
 import { defaultStore, userActions } from '@/store.js';
 import { $i, iAmModerator } from '@/account.js';
 import { notesSearchAvailable, canSearchNonLocalNotes } from '@/scripts/check-permissions.js';
-import { IRouter } from '@/nirax.js';
+import type { IRouter } from '@/nirax.js';
 import { antennasCache, rolesCache, userListsCache } from '@/cache.js';
 import { mainRouter } from '@/router/main.js';
 import { genEmbedCode } from '@/scripts/get-embed-code.js';
@@ -95,6 +95,8 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 
 	function reportAbuse() {
 		const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkAbuseReportWindow.vue')), {
+			type: "user",
+			id: user.id,
 			user: user,
 		}, {
 			closed: () => dispose(),

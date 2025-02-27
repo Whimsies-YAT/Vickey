@@ -5258,6 +5258,14 @@ export interface Locale extends ILocale {
      * このサーバーは連合が無効化されています。他のサーバーのユーザーとやり取りすることはできません。
      */
     "federationDisabled": string;
+    /**
+     * リアクションする際に確認する
+     */
+    "confirmOnReact": string;
+    /**
+     * " {emoji} " をリアクションしますか？
+     */
+    "reactAreYouSure": ParameterizedString<"emoji">;
     "_accountSettings": {
         /**
          * コンテンツの表示にログインを必須にする
@@ -8498,6 +8506,34 @@ export interface Locale extends ILocale {
          * 違反を報告する
          */
         "write:report-abuse": string;
+        /**
+         * Approve registration application
+         */
+        "write:admin:approve-account": string;
+        /**
+         * Decline registration application
+         */
+        "write:admin:decline-account": string;
+        /**
+         * View application list
+         */
+        "read:admin:show-pending": string;
+        /**
+         * View whether there are registration applications
+         */
+        "read:admin:show-pendings": string;
+        /**
+         * Manage email templates
+         */
+        "write:admin:email-templates": string;
+        /**
+         * View email templates
+         */
+        "read:admin:email-templates": string;
+        /**
+         * View automated results of reports
+         */
+        "read:admin:abuse-report:auto-processed": string;
     };
     "_auth": {
         /**
@@ -9500,6 +9536,14 @@ export interface Locale extends ILocale {
          * ログインがありました
          */
         "login": string;
+        /**
+         * アクセストークンが作成されました
+         */
+        "createToken": string;
+        /**
+         * 心当たりがない場合は「{text}」を通じてアクセストークンを削除してください。
+         */
+        "createTokenDescription": ParameterizedString<"text">;
         "_types": {
             /**
              * すべて
@@ -10920,13 +10964,7 @@ export interface Locale extends ILocale {
              */
             "title": string;
             /**
-             * このサーバーと通信することはできましたが、得られたデータが不正なものでした。
-             */
-            "description": string;
-        };
-        "_responseInvalidIdHostNotMatch": {
-            /**
-             * 入力されたURIのドメインと最終的に得られたURIのドメインとが異なります。第三者のサーバーを介してリモートのコンテンツを照会している場合は、発信元のサーバーで取得できるURIを使用して照会し直してください。
+             * このサーバーと通信することはできましたが、得られたデータが不正なものでした。第三者のサーバーを介してリモートのコンテンツを照会している場合は、発信元のサーバーで取得できるURIを使用して照会し直してください。
              */
             "description": string;
         };
@@ -10983,6 +11021,82 @@ export interface Locale extends ILocale {
                 "text": string;
             };
         };
+    };
+    "_bootErrors": {
+        /**
+         * 読み込みに失敗しました
+         */
+        "title": string;
+        /**
+         * 少し待ってからリロードしてもまだ問題が解決されない場合、以下のError IDを添えてサーバー管理者に連絡してください。
+         */
+        "serverError": string;
+        /**
+         * 以下を行うと解決する可能性があります。
+         */
+        "solution": string;
+        /**
+         * ブラウザおよびOSを最新バージョンに更新する
+         */
+        "solution1": string;
+        /**
+         * アドブロッカーを無効にする
+         */
+        "solution2": string;
+        /**
+         * ブラウザのキャッシュをクリアする
+         */
+        "solution3": string;
+        /**
+         * (Tor Browser) dom.webaudio.enabledをtrueに設定する
+         */
+        "solution4": string;
+        /**
+         * その他のオプション
+         */
+        "otherOption": string;
+        /**
+         * クライアント設定とキャッシュを削除
+         */
+        "otherOption1": string;
+        /**
+         * 簡易クライアントを起動
+         */
+        "otherOption2": string;
+        /**
+         * 修復ツールを起動
+         */
+        "otherOption3": string;
+    };
+    "_search": {
+        /**
+         * 全て
+         */
+        "searchScopeAll": string;
+        /**
+         * ローカル
+         */
+        "searchScopeLocal": string;
+        /**
+         * サーバー指定
+         */
+        "searchScopeServer": string;
+        /**
+         * ユーザー指定
+         */
+        "searchScopeUser": string;
+        /**
+         * サーバーのホストを入力してください
+         */
+        "pleaseEnterServerHost": string;
+        /**
+         * ユーザーを選択してください
+         */
+        "pleaseSelectUser": string;
+        /**
+         * 例: misskey.example.com
+         */
+        "serverHostPlaceholder": string;
     };
     /**
      * Automatic TTS feature needed.
@@ -11068,6 +11182,10 @@ export interface Locale extends ILocale {
      * Email Templates
      */
     "emailTemplates": string;
+    /**
+     * Automated processing of abuse reports
+     */
+    "abuseReportAutoProcessing": string;
     "_aboutVickey": {
         /**
          * Vickey is a soft fork of Misskey.
@@ -11255,6 +11373,68 @@ export interface Locale extends ILocale {
          * tag: name of the version to update to
          */
         "secReleaseVars": string;
+    };
+    "_abuseReportAutoProcessing": {
+        /**
+         * Reports on Automated Abuse Reports Processing
+         */
+        "title": string;
+        /**
+         * Enable
+         */
+        "enable": string;
+        /**
+         * Record Only
+         */
+        "record": string;
+        /**
+         * Ignore
+         */
+        "ignore": string;
+        /**
+         * Delete
+         */
+        "delete": string;
+        /**
+         * API URL for scoring abuse reports
+         */
+        "url": string;
+        /**
+         * Token for the API that scores abuse reports
+         */
+        "token": string;
+        /**
+         * Scoring thresholds for triggering processing mechanisms
+         */
+        "score": string;
+        /**
+         * Note
+         */
+        "note": string;
+        /**
+         * Page
+         */
+        "page": string;
+        /**
+         * Gallery
+         */
+        "gallery": string;
+        /**
+         * Flash
+         */
+        "flash": string;
+        /**
+         * User
+         */
+        "user": string;
+        /**
+         * Status
+         */
+        "status": string;
+        /**
+         * Uncategorized
+         */
+        "uncategorized": string;
     };
 }
 declare const locales: {

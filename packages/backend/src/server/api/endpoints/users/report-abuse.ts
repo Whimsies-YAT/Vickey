@@ -42,6 +42,8 @@ export const meta = {
 export const paramDef = {
 	type: 'object',
 	properties: {
+		type: { type: 'string', nullable: true },
+		id: { type: 'string', format: 'misskey:id', nullable: true },
 		userId: { type: 'string', format: 'misskey:id' },
 		comment: { type: 'string', minLength: 1, maxLength: 2048 },
 	},
@@ -70,12 +72,18 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new ApiError(meta.errors.cannotReportAdmin);
 			}
 
+			ps.type = ps.type ?? null;
+			ps.id = ps.id ?? null;
+
 			await this.abuseReportService.report([{
 				targetUserId: targetUser.id,
 				targetUserHost: targetUser.host,
 				reporterId: me.id,
 				reporterHost: null,
 				comment: ps.comment,
+				type: ps.type,
+				targetId: ps.id,
+				status: 0,
 			}]);
 		});
 	}

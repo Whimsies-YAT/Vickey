@@ -89,6 +89,7 @@ export const paramDef = {
 		turnstileSiteKey: { type: 'string', nullable: true },
 		turnstileSecretKey: { type: 'string', nullable: true },
 		enableTestcaptcha: { type: 'boolean' },
+		googleAnalyticsMeasurementId: { type: 'string', nullable: true },
 		sensitiveMediaDetection: { type: 'string', enum: ['none', 'all', 'local', 'remote'] },
 		sensitiveMediaDetectionSensitivity: { type: 'string', enum: ['medium', 'low', 'high', 'veryLow', 'veryHigh'] },
 		setSensitiveFlagAutomatically: { type: 'boolean' },
@@ -148,7 +149,7 @@ export const paramDef = {
 		useObjectStorage: { type: 'boolean' },
 		objectStorageBaseUrl: { type: 'string', nullable: true },
 		objectStorageBucket: { type: 'string', nullable: true },
-		objectStoragePrefix: { type: 'string', nullable: true },
+		objectStoragePrefix: { type: 'string', pattern: /^[a-zA-Z0-9-._]*$/.source, nullable: true },
 		objectStorageEndpoint: { type: 'string', nullable: true },
 		objectStorageRegion: { type: 'string', nullable: true },
 		objectStoragePort: { type: 'integer', nullable: true },
@@ -216,6 +217,11 @@ export const paramDef = {
 				type: 'string',
 			},
 		},
+		abuseMLCheck: { type: 'boolean', nullable: false },
+		abuseReportMLAction: { type: 'string', nullable: false },
+		abuseMLInfoUrl: { type: 'string', nullable: false },
+		abuseMLInfoToken: { type: 'string', nullable: false },
+		abuseMLInfoScore: { type: 'number', nullable: false },
 	},
 	required: [],
 } as const;
@@ -421,6 +427,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (ps.enableTestcaptcha !== undefined) {
 				set.enableTestcaptcha = ps.enableTestcaptcha;
+			}
+
+			if (ps.googleAnalyticsMeasurementId !== undefined) {
+				// 空文字列をnullにしたいので??は使わない
+				// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+				set.googleAnalyticsMeasurementId = ps.googleAnalyticsMeasurementId || null;
 			}
 
 			if (ps.sensitiveMediaDetection !== undefined) {
@@ -821,6 +833,26 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (Array.isArray(ps.federationHosts)) {
 				set.federationHosts = ps.federationHosts.filter(Boolean).map(x => x.toLowerCase());
+			}
+
+			if (ps.abuseMLCheck !== undefined) {
+				set.abuseMLCheck = ps.abuseMLCheck;
+			}
+
+			if (ps.abuseReportMLAction !== undefined) {
+				set.abuseReportMLAction = ps.abuseReportMLAction;
+			}
+
+			if (ps.abuseMLInfoUrl !== undefined) {
+				set.abuseMLInfoUrl = ps.abuseMLInfoUrl;
+			}
+
+			if (ps.abuseMLInfoToken !== undefined) {
+				set.abuseMLInfoToken = ps.abuseMLInfoToken;
+			}
+
+			if (ps.abuseMLInfoScore !== undefined && ps.abuseMLInfoScore >= 0 && ps.abuseMLInfoScore <= 1) {
+				set.abuseMLInfoScore = ps.abuseMLInfoScore;
 			}
 
 			const before = await this.metaService.fetch(true);

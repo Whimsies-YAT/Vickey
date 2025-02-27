@@ -6,6 +6,7 @@
 import { PrimaryColumn, Entity, Index, JoinColumn, Column, ManyToOne } from 'typeorm';
 import { id } from './util/id.js';
 import { MiUser } from './User.js';
+import { MiNote } from './Note.js';
 
 export type AbuseReportResolveType = 'accept' | 'reject';
 
@@ -17,6 +18,10 @@ export class MiAbuseUserReport {
 	@Index()
 	@Column(id())
 	public targetUserId: MiUser['id'];
+
+	@Index()
+	@Column(id())
+	public targetId: MiNote['id'] | null;
 
 	@ManyToOne(type => MiUser, {
 		onDelete: 'CASCADE',
@@ -94,5 +99,16 @@ export class MiAbuseUserReport {
 		comment: '[Denormalized]',
 	})
 	public reporterHost: string | null;
+
+	@Column('varchar', {
+		length: 32,
+		nullable: true,
+	})
+	public type: string | null;
+
+	@Column('varchar', {
+		default: 0,
+	})
+	public status: number;
 	//#endregion
 }

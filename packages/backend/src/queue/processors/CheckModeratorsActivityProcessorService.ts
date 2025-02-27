@@ -30,7 +30,7 @@ export type ModeratorInactivityEvaluationResult = {
 	isModeratorsInactive: boolean;
 	inactiveModerators: MiUser[];
 	remainingTime: ModeratorInactivityRemainingTime;
-}
+};
 
 export type ModeratorInactivityRemainingTime = {
 	time: number;

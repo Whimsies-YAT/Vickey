@@ -7,6 +7,7 @@ import type { Provider } from '@nestjs/common';
 import { Module } from '@nestjs/common';
 import { DI } from '@/di-symbols.js';
 import {
+	MiAbuseNoteAutoCheck,
 	MiAbuseReportNotificationRecipient,
 	MiAbuseUserReport,
 	MiAccessToken,
@@ -298,6 +299,12 @@ const $hashtagsRepository: Provider = {
 	inject: [DI.db],
 };
 
+const $abuseNoteAutoCheckRepository: Provider = {
+	provide: DI.abuseNoteAutoCheckRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiAbuseNoteAutoCheck).extend(miRepository as MiRepository<MiAbuseNoteAutoCheck>),
+	inject: [DI.db],
+};
+
 const $abuseUserReportsRepository: Provider = {
 	provide: DI.abuseUserReportsRepository,
 	useFactory: (db: DataSource) => db.getRepository(MiAbuseUserReport).extend(miRepository as MiRepository<MiAbuseUserReport>),
@@ -541,6 +548,7 @@ const $reversiGamesRepository: Provider = {
 		$blockingsRepository,
 		$swSubscriptionsRepository,
 		$hashtagsRepository,
+		$abuseNoteAutoCheckRepository,
 		$abuseUserReportsRepository,
 		$abuseReportNotificationRecipientRepository,
 		$registrationTicketsRepository,
@@ -613,6 +621,7 @@ const $reversiGamesRepository: Provider = {
 		$blockingsRepository,
 		$swSubscriptionsRepository,
 		$hashtagsRepository,
+		$abuseNoteAutoCheckRepository,
 		$abuseUserReportsRepository,
 		$abuseReportNotificationRecipientRepository,
 		$registrationTicketsRepository,

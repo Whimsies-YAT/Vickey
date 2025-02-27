@@ -767,4 +767,39 @@ export class MiMeta {
 		default: false,
 	})
 	public enableEmailTemplates: boolean;
+
+	@Column('varchar', {
+		length: 64,
+		nullable: false,
+	})
+	public abuseReportMLAction: string;
+
+	@Column('boolean', {
+		default: false,
+	})
+	public abuseMLCheck: boolean;
+
+	@Column('varchar', {
+		length: 512,
+		nullable: false,
+	})
+	public abuseMLInfoUrl: string;
+
+	@Column('varchar', {
+		length: 8192,
+		nullable: false,
+	})
+	public abuseMLInfoToken: string;
+
+	@Column('varchar', {
+		default: 0.5,
+		nullable: false,
+	})
+	public abuseMLInfoScore: number;
+
+	@Column('varchar', {
+		length: 64,
+		nullable: true,
+	})
+	public googleAnalyticsMeasurementId: string | null;
 }

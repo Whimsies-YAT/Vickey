@@ -12,6 +12,26 @@ type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> &
 type OneOf<T extends any[]> = T extends [infer Only] ? Only : T extends [infer A, infer B, ...infer Rest] ? OneOf<[XOR<A, B>, ...Rest]> : never;
 
 export type paths = {
+  '/admin/abuse-report/auto-processed/export': {
+    /**
+     * admin/abuse-report/auto-processed/export
+     * @description No description provided.
+     *
+     * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+     * **Credential required**: *Yes* / **Permission**: *read:admin:abuse-report:auto-processed*
+     */
+    post: operations['admin___abuse-report___auto-processed___export'];
+  };
+  '/admin/abuse-report/auto-processed/show': {
+    /**
+     * admin/abuse-report/auto-processed/show
+     * @description No description provided.
+     *
+     * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+     * **Credential required**: *Yes* / **Permission**: *read:admin:abuse-report:auto-processed*
+     */
+    post: operations['admin___abuse-report___auto-processed___show'];
+  };
   '/admin/abuse-report/notification-recipient/create': {
     /**
      * admin/abuse-report/notification-recipient/create
@@ -4449,6 +4469,13 @@ export type components = {
       createdAt: string;
       /** @enum {string} */
       type: 'login';
+    } | {
+      /** Format: id */
+      id: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** @enum {string} */
+      type: 'createToken';
     } | ({
       /** Format: id */
       id: string;
@@ -5131,6 +5158,7 @@ export type components = {
       enableTurnstile: boolean;
       turnstileSiteKey: string | null;
       enableTestcaptcha: boolean;
+      googleAnalyticsMeasurementId: string | null;
       swPublickey: string | null;
       /** @default /assets/ai.png */
       mascotImageUrl: string;
@@ -5178,6 +5206,11 @@ export type components = {
       maxFileSize: number;
       security: boolean;
       enableEmailTemplates: boolean;
+      abuseMLCheck: boolean;
+      abuseReportMLAction: string;
+      abuseMLInfoUrl: string;
+      abuseMLInfoToken: string;
+      abuseMLInfoScore: number;
       /** @enum {string} */
       federation: 'all' | 'specified' | 'none';
     };
@@ -5243,6 +5276,112 @@ export type external = Record<string, never>;
 
 export type operations = {
 
+  /**
+   * admin/abuse-report/auto-processed/export
+   * @description No description provided.
+   *
+   * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+   * **Credential required**: *Yes* / **Permission**: *read:admin:abuse-report:auto-processed*
+   */
+  'admin___abuse-report___auto-processed___export': {
+    requestBody: {
+      content: {
+        'application/json': {
+          limit?: Record<string, never>;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * admin/abuse-report/auto-processed/show
+   * @description No description provided.
+   *
+   * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+   * **Credential required**: *Yes* / **Permission**: *read:admin:abuse-report:auto-processed*
+   */
+  'admin___abuse-report___auto-processed___show': {
+    requestBody: {
+      content: {
+        'application/json': {
+          limitObj?: Record<string, never>;
+          /** @default 10 */
+          limit?: number;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
   /**
    * admin/abuse-report/notification-recipient/create
    * @description No description provided.
@@ -5557,6 +5696,16 @@ export type operations = {
            * @enum {string}
            */
           targetUserOrigin?: 'combined' | 'local' | 'remote';
+          /**
+           * @default all
+           * @enum {string}
+           */
+          type?: 'all' | 'note' | 'flash' | 'gallery' | 'page' | 'user';
+          /**
+           * @default record
+           * @enum {string}
+           */
+          status?: 'record' | 'ignore' | 'delete';
         };
       };
     };
@@ -5588,6 +5737,10 @@ export type operations = {
               /** @enum {string|null} */
               resolvedAs: 'accept' | 'reject' | null;
               moderationNote: string;
+              type: string | null;
+              /** Format: id */
+              targetId: string | null;
+              status: number;
             })[];
         };
       };
@@ -8610,6 +8763,7 @@ export type operations = {
             enableTurnstile: boolean;
             turnstileSiteKey: string | null;
             enableTestcaptcha: boolean;
+            googleAnalyticsMeasurementId: string | null;
             swPublickey: string | null;
             /** @default /assets/ai.png */
             mascotImageUrl: string | null;
@@ -8734,9 +8888,15 @@ export type operations = {
             urlPreviewRequireContentLength: boolean;
             urlPreviewUserAgent: string | null;
             urlPreviewSummaryProxyUrl: string | null;
-            federation: string;
+            /** @enum {string} */
+            federation: 'all' | 'specified' | 'none';
             federationHosts: string[];
             security: boolean;
+            abuseMLCheck: boolean;
+            abuseReportMLAction: string;
+            abuseMLInfoUrl: string;
+            abuseMLInfoToken: string;
+            abuseMLInfoScore: number;
           };
         };
       };
@@ -11110,6 +11270,7 @@ export type operations = {
           turnstileSiteKey?: string | null;
           turnstileSecretKey?: string | null;
           enableTestcaptcha?: boolean;
+          googleAnalyticsMeasurementId?: string | null;
           /** @enum {string} */
           sensitiveMediaDetection?: 'none' | 'all' | 'local' | 'remote';
           /** @enum {string} */
@@ -11215,6 +11376,11 @@ export type operations = {
           /** @enum {string} */
           federation?: 'all' | 'none' | 'specified';
           federationHosts?: string[];
+          abuseMLCheck?: boolean;
+          abuseReportMLAction?: string;
+          abuseMLInfoUrl?: string;
+          abuseMLInfoToken?: string;
+          abuseMLInfoScore?: number;
         };
       };
     };
@@ -20547,8 +20713,8 @@ export type operations = {
           untilId?: string;
           /** @default true */
           markAsRead?: boolean;
-          includeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'achievementEarned' | 'exportCompleted' | 'login' | 'app' | 'test' | 'pollVote' | 'groupInvited')[];
-          excludeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'achievementEarned' | 'exportCompleted' | 'login' | 'app' | 'test' | 'pollVote' | 'groupInvited')[];
+          includeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'pollVote' | 'groupInvited')[];
+          excludeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'pollVote' | 'groupInvited')[];
         };
       };
     };
@@ -20615,8 +20781,8 @@ export type operations = {
           untilId?: string;
           /** @default true */
           markAsRead?: boolean;
-          includeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'achievementEarned' | 'exportCompleted' | 'login' | 'app' | 'test' | 'reaction:grouped' | 'renote:grouped' | 'pollVote' | 'groupInvited')[];
-          excludeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'achievementEarned' | 'exportCompleted' | 'login' | 'app' | 'test' | 'reaction:grouped' | 'renote:grouped' | 'pollVote' | 'groupInvited')[];
+          includeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'reaction:grouped' | 'renote:grouped' | 'pollVote' | 'groupInvited')[];
+          excludeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'reaction:grouped' | 'renote:grouped' | 'pollVote' | 'groupInvited')[];
         };
       };
     };
@@ -28555,6 +28721,9 @@ export type operations = {
     requestBody: {
       content: {
         'application/json': {
+          type?: string | null;
+          /** Format: misskey:id */
+          id?: string | null;
           /** Format: misskey:id */
           userId: string;
           comment: string;

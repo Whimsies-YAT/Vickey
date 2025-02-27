@@ -55,6 +55,9 @@ export class AbuseUserReportEntityService {
 			forwarded: report.forwarded,
 			resolvedAs: report.resolvedAs,
 			moderationNote: report.moderationNote,
+			type: report.type,
+			targetId: report.targetId,
+			status: report.status,
 		});
 	}
 

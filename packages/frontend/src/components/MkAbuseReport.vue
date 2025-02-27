@@ -42,11 +42,31 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<MkFolder :defaultOpen="true">
 			<template #icon><i class="ti ti-message-2"></i></template>
-			<template #label>{{ i18n.ts.details }}</template>
+			<template #label>{{ i18n.ts.details }}<div v-if="report.type">({{ i18n.ts._abuseReportAutoProcessing[report.type] }})</div></template>
 			<div class="_gaps_s">
 				<Mfm :text="report.comment" :linkNavigationBehavior="'window'"/>
 			</div>
 		</MkFolder>
+
+		<div v-if="report.targetId">
+			<MkFolder :defaultOpen="true">
+				<template #icon><i class="ti ti-message-2"></i></template>
+				<template #label>ID</template>
+				<div class="_gaps_s">
+					<Mfm :text="report.targetId" :linkNavigationBehavior="'window'"/>
+				</div>
+			</MkFolder>
+		</div>
+
+		<div v-if="report.status">
+			<MkFolder :defaultOpen="true">
+				<template #icon><i :class=statusIcon></i></template>
+				<template #label>{{ i18n.ts._abuseReportAutoProcessing.status }}</template>
+				<div class="_gaps_s">
+					<Mfm :text="status" :linkNavigationBehavior="'window'"/>
+				</div>
+			</MkFolder>
+		</div>
 
 		<MkFolder :withSpacer="false">
 			<template #icon><MkAvatar :user="report.reporter" style="width: 18px; height: 18px;"/></template>
@@ -78,7 +98,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { provide, ref, watch } from 'vue';
+import { computed, provide, ref, watch } from 'vue';
 import * as Misskey from 'misskey-js';
 import MkButton from '@/components/MkButton.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
@@ -107,6 +127,22 @@ const reporterRouter = routerFactory(`/admin/user/${props.report.reporterId}`);
 reporterRouter.init();
 
 const moderationNote = ref(props.report.moderationNote ?? '');
+
+const statusIcon = computed(() => {
+	return {
+		0: "ti ti-alert-circle",
+		1: "ti ti-circle-dotted-letter-i",
+		2: "ti ti-trash"
+	}[props.report.status] || '';
+});
+
+const status = computed(() => {
+	return {
+		0: i18n.ts._abuseReportAutoProcessing.record,
+		1: i18n.ts._abuseReportAutoProcessing.ignore,
+		2: i18n.ts._abuseReportAutoProcessing.delete
+	}[props.report.status] || '';
+});
 
 watch(moderationNote, async () => {
 	os.apiWithDialog('admin/update-abuse-user-report', {

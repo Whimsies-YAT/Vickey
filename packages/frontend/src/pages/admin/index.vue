@@ -43,7 +43,8 @@ import * as os from '@/os.js';
 import { $i, iAmAdmin } from '@/account.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { lookupUser, lookupUserByEmail, lookupFile } from '@/scripts/admin-lookup.js';
-import { PageMetadata, definePageMetadata, provideMetadataReceiver, provideReactiveMetadata } from '@/scripts/page-metadata.js';
+import { definePageMetadata, provideMetadataReceiver, provideReactiveMetadata } from '@/scripts/page-metadata.js';
+import type { PageMetadata } from '@/scripts/page-metadata.js';
 import { useRouter } from '@/router/supplier.js';
 
 const isEmpty = (x: string | null) => x == null || x === '';
@@ -180,6 +181,11 @@ const menuDef = computed<SuperMenuDef[]>(() => [{
 		text: i18n.ts.abuseReports,
 		to: '/admin/abuses',
 		active: currentPage.value?.route.name === 'abuses',
+	}, {
+		icon: 'ti ti-exclamation-circle',
+		text: i18n.ts._abuseReportAutoProcessing.title,
+		to: '/admin/abuses-auto-processed',
+		active: currentPage.value?.route.name === 'abuses-auto-processed',
 	}, ...(isAdmin.value ? [{
 		icon: 'ti ti-list-search',
 		text: i18n.ts.moderationLogs,

@@ -5,11 +5,24 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <MkStickyContainer>
-    <template #header><XHeader :actions="headerActions" :tabs="headerTabs"/></template>
-    <MkSpacer :contentMax="700" :marginMin="16" :marginMax="32">
-        <FormSuspense :p="init">
-            <MkFolder>
-                <template #label>DeepL Translation</template>
+	<template #header><XHeader :actions="headerActions" :tabs="headerTabs"/></template>
+	<MkSpacer :contentMax="700" :marginMin="16" :marginMax="32">
+		<FormSuspense :p="init">
+			<div class="_gaps_m">
+				<MkFolder>
+					<template #label>Google Analytics<span class="_beta">{{ i18n.ts.beta }}</span></template>
+
+					<div class="_gaps_m">
+						<MkInput v-model="googleAnalyticsMeasurementId">
+							<template #prefix><i class="ti ti-key"></i></template>
+							<template #label>Measurement ID</template>
+						</MkInput>
+						<MkButton primary @click="save_googleAnalytics">Save</MkButton>
+					</div>
+				</MkFolder>
+
+				<MkFolder>
+					<template #label>DeepL Translation</template>
 
                 <div class="_gaps_m">
                     <MkInput v-model="deeplAuthKey">
@@ -22,7 +35,7 @@ SPDX-License-Identifier: AGPL-3.0-only
                     <MkButton primary @click="save_deepl">Save</MkButton>
                 </div>
             </MkFolder>
-            <br />
+
             <MkFolder>
                 <template #label>Text-To-Speech</template>
                 <div class="_gaps_m">
@@ -51,52 +64,52 @@ SPDX-License-Identifier: AGPL-3.0-only
                             </MkInput>
                         </div>
                         <MkSelect v-model="hfexampleLang">
-							<template #label>Example Language</template>
+														<template #label>Example Language</template>
                             <option value="" disabled> </option>
                             <option value="Chinese">中文</option>
                             <option value="English">English</option>
                             <option value="Japanese">日本語</option>
                             <option value="Yue">中文 (粤语)</option>
-							<option value="Korean">한국어</option>
-							<option value="Chinese-English Mixed">中文 - English</option>
-							<option value="Japanese-English Mixed">日本語 - English</option>
-							<option value="Yue-English Mixed">中文 (粤语) - English</option>
-							<option value="Korean-English Mixed">한국어 - English</option>
-							<option value="Multilingual Mixed">Multilingual Mixed</option>
-							<option value="Multilingual Mixed(Yue)">Multilingual Mixed (Yue)</option>
+														<option value="Korean">한국어</option>
+														<option value="Chinese-English Mixed">中文 - English</option>
+														<option value="Japanese-English Mixed">日本語 - English</option>
+														<option value="Yue-English Mixed">中文 (粤语) - English</option>
+														<option value="Korean-English Mixed">한국어 - English</option>
+														<option value="Multilingual Mixed">Multilingual Mixed</option>
+														<option value="Multilingual Mixed(Yue)">Multilingual Mixed (Yue)</option>
                         </MkSelect>
 						<br />
                         <MkSwitch v-model="hfdas">
                             <template #label>Whether to directly adjust the speech rate and timebre of the last synthesis result to prevent randomness</template>
                         </MkSwitch>
 						<br />
-						<MkSelect v-model="hfslice">
-							<template #label>Slice</template>
+												<MkSelect v-model="hfslice">
+														<template #label>Slice</template>
                             <option value="" disabled> </option>
                             <option value="No slice">No slice</option>
                             <option value="Slice once every 4 sentences">Slice once every 4 sentences</option>
                             <option value="Slice per 50 characters">Slice per 50 characters</option>
                             <option value="Slice by Chinese punct">Slice by Chinese punct</option>
-							<option value="Slice by English punct">Slice by English punct</option>
-							<option value="Slice by every punct">Slice by every punct</option>
+														<option value="Slice by English punct">Slice by English punct</option>
+														<option value="Slice by every punct">Slice by every punct</option>
                         </MkSelect>
                         <MkInput v-model.number="hftopK" type="range" :min="0" :max="100" :step="1">
-							<template #label>Set top_k Value: {{ hftopK }}</template>
-						</MkInput>
+														<template #label>Set top_k Value: {{ hftopK }}</template>
+												</MkInput>
                         <MkInput v-model.number="hftopP" type="range" :min="0" :max="100" :step="5">
-							<template #label>Set top_p Value: {{ hftopP }}</template>
-						</MkInput>
-                        <MkInput v-model.number="hfTemperature" type="range" :min="0" :max="100" :step="5">
-							<template #label>Set Temperature Value: {{ hfTemperature }}</template>
-						</MkInput>
-                        <MkInput v-model.number="hfSpeedRate" type="range" :min="60" :max="165" :step="5">
-							<template #label>Set Speed Rate Value: {{ hfSpeedRate }}</template>
-						</MkInput>
+														<template #label>Set top_p Value: {{ hftopP }}</template>
+												</MkInput>
+												<MkInput v-model.number="hfTemperature" type="range" :min="0" :max="100" :step="5">
+														<template #label>Set Temperature Value: {{ hfTemperature }}</template>
+												</MkInput>
+												<MkInput v-model.number="hfSpeedRate" type="range" :min="60" :max="165" :step="5">
+														<template #label>Set Speed Rate Value: {{ hfSpeedRate }}</template>
+												</MkInput>
                     </div>
                     <MkButton primary @click="save_tts">Save</MkButton>
                 </div>
             </MkFolder>
-					  <br />
+
 					  <MkFolder>
 						  <template #label>Restricted Regions</template>
 
@@ -118,7 +131,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 							  <MkButton primary @click="save_ra">Save</MkButton>
 						  </div>
 					  </MkFolder>
-        </FormSuspense>
+			</div>
+		</FormSuspense>
     </MkSpacer>
 </MkStickyContainer>
 </template>
@@ -159,27 +173,30 @@ const ip2lIsPro = ref<boolean>(false);
 const banCountry = ref<string>('');
 const exemptIP = ref<string>('');
 
+const googleAnalyticsMeasurementId = ref<string>('');
+
 async function init() {
-    const meta = await misskeyApi('admin/meta');
-    deeplAuthKey.value = meta.deeplAuthKey;
-    deeplIsPro.value = meta.deeplIsPro;
-    hfAuthKey.value = meta.hfAuthKey;
-    hfSpace.value = meta.hfSpace;
-    hfSpaceName.value = meta.hfSpaceName;
-    hfexampleAudioURL.value = meta.hfexampleAudioURL;
-    hfexampleText.value = meta.hfexampleText;
-    hfexampleLang.value = meta.hfexampleLang;
-    hfslice.value = meta.hfslice;
-    hftopK.value = meta.hftopK;
-    hftopP.value = meta.hftopP;
-    hfTemperature.value = meta.hfTemperature;
-    hfnrm.value = meta.hfnrm;
-    hfSpeedRate.value = meta.hfSpeedRate;
-    hfdas.value = meta.hfdas;
-	  ip2lAuthKey.value = meta.ip2lAuthKey;
-		ip2lIsPro.value = meta.ip2lIsPro;
-		banCountry.value = meta.banCountry.join('\n');
-		exemptIP.value = meta.exemptIP.join('\n');
+	const meta = await misskeyApi('admin/meta');
+  deeplAuthKey.value = meta.deeplAuthKey ?? '';
+  deeplIsPro.value = meta.deeplIsPro;
+  hfAuthKey.value = meta.hfAuthKey;
+	googleAnalyticsMeasurementId.value = meta.googleAnalyticsMeasurementId ?? '';
+  hfSpace.value = meta.hfSpace;
+  hfSpaceName.value = meta.hfSpaceName;
+  hfexampleAudioURL.value = meta.hfexampleAudioURL;
+  hfexampleText.value = meta.hfexampleText;
+  hfexampleLang.value = meta.hfexampleLang;
+  hfslice.value = meta.hfslice;
+  hftopK.value = meta.hftopK;
+  hftopP.value = meta.hftopP;
+  hfTemperature.value = meta.hfTemperature;
+  hfnrm.value = meta.hfnrm;
+  hfSpeedRate.value = meta.hfSpeedRate;
+  hfdas.value = meta.hfdas;
+	ip2lAuthKey.value = meta.ip2lAuthKey;
+	ip2lIsPro.value = meta.ip2lIsPro;
+	banCountry.value = meta.banCountry.join('\n');
+	exemptIP.value = meta.exemptIP.join('\n');
 }
 
 function save_deepl() {
@@ -209,6 +226,14 @@ function save_tts() {
     }).then(() => {
         fetchInstance(true);
     });
+}
+
+function save_googleAnalytics() {
+	os.apiWithDialog('admin/update-meta', {
+		googleAnalyticsMeasurementId: googleAnalyticsMeasurementId.value,
+	}).then(() => {
+		fetchInstance(true);
+	});
 }
 
 function save_ra() {

@@ -384,6 +384,9 @@ describe('AbuseReportNotificationService', () => {
 					resolvedAs: null,
 					targetUserHost: null,
 					reporterHost: null,
+					type: null,
+					targetId: null,
+					status: 0,
 				},
 			];
 
