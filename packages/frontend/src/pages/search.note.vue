@@ -287,9 +287,9 @@ async function search() {
 				text: i18n.ts.lookupConfirm,
 			});
 			if (!confirm.canceled) {
-				if (query.endsWith('.bsky.social')) {
+				if (searchParams.value.query.endsWith('.bsky.social')) {
 					// convert to bsky bridge
-					router.push(`/${query}@bsky.brid.gy`);
+					router.push(`/${searchParams.value.query}@bsky.brid.gy`);
 				} else {
 					router.push(`/${searchParams.value.query}`);
 				}

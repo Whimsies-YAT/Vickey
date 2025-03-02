@@ -31,7 +31,7 @@ export class DownloadService {
 
 		private httpRequestService: HttpRequestService,
 		private loggerService: LoggerService,
-		private  securityCoreService: SecurityCoreService,
+		private securityCoreService: SecurityCoreService,
 	) {
 		this.logger = this.loggerService.getLogger('download');
 	}
@@ -104,7 +104,7 @@ export class DownloadService {
 						filename = parsed.parameters.filename;
 					}
 				} catch (e) {
-					this.logger.warn(`Failed to parse content-disposition: ${contentDisposition}`, {stack: e});
+					this.logger.warn(`Failed to parse content-disposition: ${contentDisposition}`, { stack: e });
 				}
 			}
 		}).on('downloadProgress', (progress: Got.Progress) => {

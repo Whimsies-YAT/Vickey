@@ -27,7 +27,7 @@ export class VideoProcessingService {
 
 	@bindThis
 	public async generateVideoThumbnail(source: string): Promise<IImage> {
-		if (!await this.fileInfoService.checkFile(source)) throw new Error("The file is invalid!")
+		if (!await this.fileInfoService.checkFile(source)) throw new Error("The file is invalid!");
 
 		const [dir, cleanup] = await createTempDir();
 

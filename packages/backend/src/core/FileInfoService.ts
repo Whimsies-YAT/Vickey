@@ -195,7 +195,7 @@ export class FileInfoService {
 				[sensitive, porn] = judgePrediction(result);
 			}
 		} else if (analyzeVideo && (mime === 'image/apng' || mime.startsWith('video/'))) {
-			if (!await this.checkFile(source)) throw new Error("The file is invalid!")
+			if (!await this.checkFile(source)) throw new Error("The file is invalid!");
 			const [outDir, disposeOutDir] = await createTempDir();
 			try {
 				const command = FFmpeg()
@@ -334,7 +334,7 @@ export class FileInfoService {
 	 */
 	@bindThis
 	private async hasVideoTrackOnVideoFile(path: string): Promise<boolean> {
-		if (!await this.checkFile(path)) throw new Error("The file is invalid!")
+		if (!await this.checkFile(path)) throw new Error("The file is invalid!");
 		const sublogger = this.logger.createSubLogger('ffprobe');
 		sublogger.info(`Checking the video file. File path: ${path}`);
 		return new Promise((resolve) => {

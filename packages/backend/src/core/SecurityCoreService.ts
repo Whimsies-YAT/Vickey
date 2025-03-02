@@ -39,7 +39,7 @@ export class SecurityCoreService {
 				try {
 					const parsed = JSON.parse(output);
 					const result = parsed.result;
-					const reason = parsed.hasOwnProperty('reason') ? parsed.reason : null;
+					const reason = parsed?.reason ?? null;
 					resolve({ result, reason });
 				} catch (e) {
 					reject(new Error(`Failed to parse JSON output: ${e}`));
