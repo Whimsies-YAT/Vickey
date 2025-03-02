@@ -7,6 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import FFmpeg from 'fluent-ffmpeg';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
+import { FileInfoService } from '@/core/FileInfoService.js';
 import { ImageProcessingService } from '@/core/ImageProcessingService.js';
 import type { IImage } from '@/core/ImageProcessingService.js';
 import { createTempDir } from '@/misc/create-temp.js';
@@ -19,12 +20,15 @@ export class VideoProcessingService {
 		@Inject(DI.config)
 		private config: Config,
 
+		private fileInfoService: FileInfoService,
 		private imageProcessingService: ImageProcessingService,
 	) {
 	}
 
 	@bindThis
 	public async generateVideoThumbnail(source: string): Promise<IImage> {
+		if (!await this.fileInfoService.checkFile(source)) throw new Error("The file is invalid!")
+
 		const [dir, cleanup] = await createTempDir();
 
 		try {

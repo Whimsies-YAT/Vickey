@@ -15,7 +15,9 @@ import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { createTemp } from '@/misc/create-temp.js';
 import { StatusError } from '@/misc/status-error.js';
 import { LoggerService } from '@/core/LoggerService.js';
+import { SecurityCoreService } from '@/core/SecurityCoreService.js';
 import type Logger from '@/logger.js';
+import { fileTypeFromFile as FileType } from "file-type";
 
 import { bindThis } from '@/decorators.js';
 
@@ -29,6 +31,7 @@ export class DownloadService {
 
 		private httpRequestService: HttpRequestService,
 		private loggerService: LoggerService,
+		private  securityCoreService: SecurityCoreService,
 	) {
 		this.logger = this.loggerService.getLogger('download');
 	}
@@ -69,10 +72,19 @@ export class DownloadService {
 			},
 			enableUnixSockets: false,
 			followRedirect: true,
-		}).on('response', (res: Got.Response) => {
+		}).on('response', async (res: Got.Response) => {
 			if (errorCode && (res.statusCode.toString().startsWith("4")) || res.statusCode.toString().startsWith("5")) {
 				this.logger.error("Download failed. The status code is " + res.statusCode.toString());
 				return;
+			}
+
+			const fileInfo = await FileType(path);
+			if (fileInfo?.mime === 'application/zip') {
+				const check = await this.securityCoreService.checkZip(path);
+				if (!check.result) {
+					this.logger.error(`Failed to check zip: ${check.reason}`);
+					return;
+				}
 			}
 
 			const contentLength = res.headers['content-length'];
@@ -92,7 +104,7 @@ export class DownloadService {
 						filename = parsed.parameters.filename;
 					}
 				} catch (e) {
-					this.logger.warn(`Failed to parse content-disposition: ${contentDisposition}`, { stack: e });
+					this.logger.warn(`Failed to parse content-disposition: ${contentDisposition}`, {stack: e});
 				}
 			}
 		}).on('downloadProgress', (progress: Got.Progress) => {

@@ -37,12 +37,14 @@ import { InternalStorageService } from '@/core/InternalStorageService.js';
 import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { FileInfoService } from '@/core/FileInfoService.js';
+import { SecurityCoreService } from '@/core/SecurityCoreService.js';
 import { bindThis } from '@/decorators.js';
 import { RoleService } from '@/core/RoleService.js';
 import { correctFilename } from '@/misc/correct-filename.js';
 import { isMimeImage } from '@/misc/is-mime-image.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { UtilityService } from '@/core/UtilityService.js';
+import { fileTypeFromFile as FileType } from "file-type";
 
 type AddFileArgs = {
 	/** User who wish to add file */
@@ -120,6 +122,7 @@ export class DriveService {
 		private downloadService: DownloadService,
 		private internalStorageService: InternalStorageService,
 		private s3Service: S3Service,
+		private securityCoreService: SecurityCoreService,
 		private imageProcessingService: ImageProcessingService,
 		private videoProcessingService: VideoProcessingService,
 		private globalEventService: GlobalEventService,
@@ -457,6 +460,13 @@ export class DriveService {
 		requestHeaders = null,
 		ext = null,
 	}: AddFileArgs): Promise<MiDriveFile> {
+		const fileInfo = await FileType(path);
+		if (fileInfo?.mime === 'application/zip') {
+			const check = await this.securityCoreService.checkZip(path);
+			if (!check.result) {
+				throw new Error(`Failed to check zip: ${check.reason}`);
+			}
+		}
 		let skipNsfwCheck = false;
 		const userRoleNSFW = user && (await this.roleService.getUserPolicies(user.id)).alwaysMarkNsfw;
 		if (user == null) {
