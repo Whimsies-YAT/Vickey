@@ -384,6 +384,7 @@ export class NoteEntityService implements OnModuleInit {
 				myReactions: Map<MiNote['id'], string | null>;
 				packedFiles: Map<MiNote['fileIds'][number], Packed<'DriveFile'> | null>;
 				packedUsers: Map<MiUser['id'], Packed<'UserLite'>>
+			removeHide?: boolean;
 			};
 		},
 	): Promise<Packed<'Note'>> {
@@ -391,6 +392,7 @@ export class NoteEntityService implements OnModuleInit {
 			detail: true,
 			skipHide: false,
 			withReactionAndUserPairCache: false,
+			removeHide: false,
 		}, options);
 
 		const meId = me ? me.id : null;
@@ -505,6 +507,7 @@ export class NoteEntityService implements OnModuleInit {
 		options?: {
 			detail?: boolean;
 			skipHide?: boolean;
+			removeHide?: boolean;
 		},
 	) {
 		if (notes.length === 0) return [];
@@ -579,15 +582,23 @@ export class NoteEntityService implements OnModuleInit {
 		const packedUsers = await this.userEntityService.packMany(users, me)
 			.then(users => new Map(users.map(u => [u.id, u])));
 
-		return await Promise.all(notes.map(n => this.pack(n, me, {
-			...options,
-			_hint_: {
-				bufferedReactions,
-				myReactions: myReactionsMap,
-				packedFiles,
-				packedUsers,
-			},
-		})));
+		const packedNotes = await Promise.all(
+			notes.map(n => this.pack(n, me, {
+				...options,
+				_hint_: {
+					bufferedReactions,
+					myReactions: myReactionsMap,
+					packedFiles,
+					packedUsers,
+				},
+			}))
+		);
+
+		if (options?.removeHide) {
+			return packedNotes.filter(note => !note.isHidden);
+		}
+
+		return packedNotes;
 	}
 
 	@bindThis
