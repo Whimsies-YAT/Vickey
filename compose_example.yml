@@ -2,6 +2,8 @@ services:
   web:
     build: .
     restart: always
+    sysctls:
+      - kernel.randomize_va_space=2
     links:
       - db
       - redis

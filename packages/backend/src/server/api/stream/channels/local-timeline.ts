@@ -54,7 +54,6 @@ class LocalTimelineChannel extends Channel {
 		if (note.user.host !== null) return;
 		if (note.visibility !== 'public') return;
 		if (note.channelId != null) return;
-		await this.noteEntityService.hideNote(note, user);
 
 		// 関係ない返信は除外
 		if (note.reply && this.user && !this.following[note.userId]?.withReplies && !this.withReplies) {
@@ -74,9 +73,14 @@ class LocalTimelineChannel extends Channel {
 			}
 		}
 
-		this.connection.cacheNote(note);
-
-		this.send('note', note);
+		if (user) {
+			this.connection.cacheNote(note);
+			this.send('note', note);
+		} else {
+			await this.noteEntityService.hideNote(note, user);
+			this.connection.cacheNote(note);
+			this.send('note', note);
+		}
 	}
 
 	@bindThis

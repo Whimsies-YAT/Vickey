@@ -51,7 +51,6 @@ class GlobalTimelineChannel extends Channel {
 
 		if (note.visibility !== 'public') return;
 		if (note.channelId != null) return;
-		await this.noteEntityService.hideNote(note, user);
 
 		if (isRenotePacked(note) && !isQuotePacked(note) && !this.withRenotes) return;
 
@@ -64,9 +63,14 @@ class GlobalTimelineChannel extends Channel {
 			}
 		}
 
-		this.connection.cacheNote(note);
-
-		this.send('note', note);
+		if (user) {
+			this.connection.cacheNote(note);
+			this.send('note', note);
+		} else {
+			await this.noteEntityService.hideNote(note, user);
+			this.connection.cacheNote(note);
+			this.send('note', note);
+		}
 	}
 
 	@bindThis
