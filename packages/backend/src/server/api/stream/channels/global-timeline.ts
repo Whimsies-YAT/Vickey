@@ -63,14 +63,9 @@ class GlobalTimelineChannel extends Channel {
 			}
 		}
 
-		if (user) {
-			this.connection.cacheNote(note);
-			this.send('note', note);
-		} else {
-			await this.noteEntityService.hideNote(note, user);
-			this.connection.cacheNote(note);
-			this.send('note', note);
-		}
+		if (!user) await this.noteEntityService.hideNote(note, user);
+		this.connection.cacheNote(note);
+		this.send('note', note);
 	}
 
 	@bindThis
