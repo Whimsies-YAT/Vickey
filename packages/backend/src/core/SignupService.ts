@@ -132,8 +132,7 @@ export class SignupService {
 				usernameLower: username.toLowerCase(),
 				host: this.utilityService.toPunyNullable(host),
 				token: secret,
-				isRoot: isTheFirstUser,
-				approved: isTheFirstUser || (opts.approved ?? !this.meta.approvalRequiredForSignup),
+				approved: (this.meta.rootUserId === null) || (opts.approved ?? !this.meta.approvalRequiredForSignup),
 				signupReason: reason,
 			}));
 
