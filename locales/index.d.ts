@@ -10119,6 +10119,10 @@ export interface Locale extends ILocale {
          */
         "deleteGalleryPost": string;
         /**
+         * プロキシアカウントの説明を更新
+         */
+        "updateProxyAccountDescription": string;
+        /**
          * Approved
          */
         "approve": string;
@@ -10126,10 +10130,6 @@ export interface Locale extends ILocale {
          * Declined
          */
         "decline": string;
-        /**
-         * プロキシアカウントの説明を更新
-         */
-        "updateProxyAccountDescription": string;
     };
     "_fileViewer": {
         /**

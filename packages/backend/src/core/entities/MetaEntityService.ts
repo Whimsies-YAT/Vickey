@@ -11,9 +11,7 @@ import type { MiMeta } from '@/models/Meta.js';
 import type { AdsRepository } from '@/models/_.js';
 import { MAX_NOTE_TEXT_LENGTH } from '@/const.js';
 import { bindThis } from '@/decorators.js';
-import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { CacheService } from '@/core/CacheService.js';
-import { InstanceActorService } from '@/core/InstanceActorService.js';
 import { SystemAccountService } from '@/core/SystemAccountService.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
@@ -32,8 +30,6 @@ export class MetaEntityService {
 		private adsRepository: AdsRepository,
 
 		private cacheService: CacheService,
-		private userEntityService: UserEntityService,
-		private instanceActorService: InstanceActorService,
 		private systemAccountService: SystemAccountService,
 	) { }
 
