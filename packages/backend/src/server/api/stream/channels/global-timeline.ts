@@ -46,10 +46,12 @@ class GlobalTimelineChannel extends Channel {
 
 	@bindThis
 	private async onNote(note: Packed<'Note'>) {
+		const user = this.user?.id ?? this.user?.id ?? null;
 		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;
 
 		if (note.visibility !== 'public') return;
 		if (note.channelId != null) return;
+		await this.noteEntityService.hideNote(note, user);
 
 		if (isRenotePacked(note) && !isQuotePacked(note) && !this.withRenotes) return;
 

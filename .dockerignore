@@ -28,3 +28,6 @@ fluent-emojis/
 .idea/
 packages/*/.vscode/
 packages/backend/test/compose.yml
+
+.env
+.env.example

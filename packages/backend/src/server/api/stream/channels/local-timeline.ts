@@ -48,11 +48,13 @@ class LocalTimelineChannel extends Channel {
 
 	@bindThis
 	private async onNote(note: Packed<'Note'>) {
+		const user = this.user?.id ?? this.user?.id ?? null;
 		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;
 
 		if (note.user.host !== null) return;
 		if (note.visibility !== 'public') return;
 		if (note.channelId != null) return;
+		await this.noteEntityService.hideNote(note, user);
 
 		// 関係ない返信は除外
 		if (note.reply && this.user && !this.following[note.userId]?.withReplies && !this.withReplies) {
