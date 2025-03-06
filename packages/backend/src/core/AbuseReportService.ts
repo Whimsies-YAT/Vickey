@@ -12,9 +12,9 @@ import { AbuseReportNotificationService } from '@/core/AbuseReportNotificationSe
 import { CacheService } from '@/core/CacheService.js';
 import { MLReportService } from '@/core/MLReportService.js';
 import { QueueService } from '@/core/QueueService.js';
-import { InstanceActorService } from '@/core/InstanceActorService.js';
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
+import { SystemAccountService } from '@/core/SystemAccountService.js';
 import { IdService } from './IdService.js';
 
 @Injectable()
@@ -30,7 +30,7 @@ export class AbuseReportService {
 		private abuseReportNotificationService: AbuseReportNotificationService,
 		private cacheService: CacheService,
 		private queueService: QueueService,
-		private instanceActorService: InstanceActorService,
+		private systemAccountService: SystemAccountService,
 		private apRendererService: ApRendererService,
 		private mLReportService: MLReportService,
 		private moderationLogService: ModerationLogService,
@@ -152,7 +152,7 @@ export class AbuseReportService {
 			forwarded: true,
 		});
 
-		const actor = await this.instanceActorService.getInstanceActor();
+		const actor = await this.systemAccountService.fetch('actor');
 		const targetUser = await this.usersRepository.findOneByOrFail({ id: report.targetUserId });
 
 		const flag = this.apRendererService.renderFlag(actor, targetUser.uri!, report.comment);

@@ -89,12 +89,12 @@ export class MLReportService {
 
 					if (status === 2) {
 						try {
-							const uid = await this.usersRepository.findOneBy({ isRoot: true });
+							const uid = this.meta.rootUserId;
 							const virtualUser = {
-								id: uid ? uid.id : "0",
+								id: uid ? uid : "0",
 								uri: null,
 								host: null,
-								isBot: uid ? uid.isBot : true,
+								isBot: true,
 							} as MiUser;
 							await this.noteDeleteService.delete(virtualUser, note, false);
 						} catch (err) {

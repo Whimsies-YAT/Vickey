@@ -15,6 +15,7 @@ import { DriveService } from '@/core/DriveService.js';
 import { DownloadService } from '@/core/DownloadService.js';
 import { bindThis } from '@/decorators.js';
 import { QueueLoggerService } from '../QueueLoggerService.js';
+import { SecurityCoreService } from '@/core/SecurityCoreService.js';
 import type * as Bull from 'bullmq';
 import type { DbUserImportJobData } from '../types.js';
 
@@ -34,6 +35,7 @@ export class ImportCustomEmojisProcessorService {
 		private driveService: DriveService,
 		private downloadService: DownloadService,
 		private queueLoggerService: QueueLoggerService,
+		private securityCoreService: SecurityCoreService,
 	) {
 		this.logger = this.queueLoggerService.logger.createSubLogger('import-custom-emojis');
 	}
@@ -54,6 +56,12 @@ export class ImportCustomEmojisProcessorService {
 		this.logger.info(`Temp dir is ${path}`);
 
 		const destPath = path + '/emojis.zip';
+
+		const check = await this.securityCoreService.checkZip(destPath);
+		if (!check.result) {
+			this.logger.error(`Failed to check emojis: ${check.reason}`);
+			return;
+		}
 
 		try {
 			fs.writeFileSync(destPath, '', 'binary');
