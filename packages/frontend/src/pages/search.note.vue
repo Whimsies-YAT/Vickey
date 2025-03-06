@@ -120,6 +120,7 @@ import { i18n } from '@/i18n.js';
 import { instance } from '@/instance.js';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
+import { apLookup } from '@/scripts/lookup.js';
 import { useRouter } from '@/router/supplier.js';
 import MkButton from '@/components/MkButton.vue';
 import MkFoldableSection from '@/components/MkFoldableSection.vue';
@@ -260,13 +261,7 @@ async function search() {
 			text: i18n.ts.lookupConfirm,
 		});
 		if (!confirm.canceled) {
-			const promise = misskeyApi('ap/show', {
-				uri: searchParams.value.query,
-			});
-
-			os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
-
-			const res = await promise;
+			const res = await apLookup(searchParams.value.query);
 
 			if (res.type === 'User') {
 				router.push(`/@${res.object.username}@${res.object.host}`);
@@ -287,9 +282,9 @@ async function search() {
 				text: i18n.ts.lookupConfirm,
 			});
 			if (!confirm.canceled) {
-				if (query.endsWith('.bsky.social')) {
+				if (searchParams.value.query.endsWith('.bsky.social')) {
 					// convert to bsky bridge
-					router.push(`/${query}@bsky.brid.gy`);
+					router.push(`/${searchParams.value.query}@bsky.brid.gy`);
 				} else {
 					router.push(`/${searchParams.value.query}`);
 				}

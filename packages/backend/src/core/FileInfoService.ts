@@ -21,6 +21,8 @@ import { LoggerService } from '@/core/LoggerService.js';
 import type Logger from '@/logger.js';
 import { bindThis } from '@/decorators.js';
 import type { PredictionType } from 'nsfwjs';
+import { promisify } from "node:util";
+import { fileTypeFromFile as FileType } from "file-type";
 
 export type FileInfo = {
 	size: number;
@@ -193,6 +195,7 @@ export class FileInfoService {
 				[sensitive, porn] = judgePrediction(result);
 			}
 		} else if (analyzeVideo && (mime === 'image/apng' || mime.startsWith('video/'))) {
+			if (!await this.checkFile(source)) throw new Error("The file is invalid!");
 			const [outDir, disposeOutDir] = await createTempDir();
 			try {
 				const command = FFmpeg()
@@ -330,7 +333,8 @@ export class FileInfoService {
 	 * @returns ビデオトラックがあるかどうか（エラー発生時は常に`true`を返す）
 	 */
 	@bindThis
-	private hasVideoTrackOnVideoFile(path: string): Promise<boolean> {
+	private async hasVideoTrackOnVideoFile(path: string): Promise<boolean> {
+		if (!await this.checkFile(path)) throw new Error("The file is invalid!");
 		const sublogger = this.logger.createSubLogger('ffprobe');
 		sublogger.info(`Checking the video file. File path: ${path}`);
 		return new Promise((resolve) => {
@@ -475,5 +479,20 @@ export class FileInfoService {
 					resolve(hash);
 				});
 		});
+	}
+
+	@bindThis
+	public async checkFile(path: string): Promise<boolean> {
+		try {
+			await promisify(fs.access)(path, fs.constants.R_OK);
+		} catch (err) {
+			return false;
+		}
+
+		const fileType = await FileType(path);
+		if (!fileType) {
+			return false;
+		}
+		return /^(video|audio)\//.test(fileType.mime);
 	}
 }
