@@ -177,6 +177,11 @@ const menuDef = computed<SuperMenuDef[]>(() => [{
 		to: '/admin/ads',
 		active: currentPage.value?.route.name === 'ads',
 	}, {
+		icon: 'ti ti-planet',
+		text: i18n.ts.relays,
+		to: '/admin/relays',
+		active: currentPage.value?.route.name === 'relays',
+	}, {
 		icon: 'ti ti-exclamation-circle',
 		text: i18n.ts.abuseReports,
 		to: '/admin/abuses',
@@ -230,11 +235,6 @@ const menuDef = computed<SuperMenuDef[]>(() => [{
 		text: i18n.ts.security,
 		to: '/admin/security',
 		active: currentPage.value?.route.name === 'security',
-	}, {
-		icon: 'ti ti-planet',
-		text: i18n.ts.relays,
-		to: '/admin/relays',
-		active: currentPage.value?.route.name === 'relays',
 	}, {
 		icon: 'ti ti-link',
 		text: i18n.ts.externalServices,
