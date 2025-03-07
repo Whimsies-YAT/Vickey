@@ -457,6 +457,24 @@ export class OAuth2ProviderService {
 
 				// Nya: Check App table to use already registered applications
 				const clientApp = await this.appsRepository.findOneBy({ id: clientID });
+
+				// No such client, check with client method
+				const clientUrl = validateClientId(clientID);
+
+				// https://indieauth.spec.indieweb.org/#client-information-discovery
+				// "the server may want to resolve the domain name first and avoid fetching the document
+				// if the IP address is within the loopback range defined by [RFC5735]
+				// or any other implementation-specific internal IP address."
+				if (process.env.NODE_ENV !== 'test' || process.env.MISSKEY_TEST_CHECK_IP_RANGE === '1') {
+					const lookup = await dns.lookup(clientUrl.hostname);
+					if (ipaddr.parse(lookup.address).range() !== 'unicast') {
+						throw new AuthorizationError('client_id resolves to disallowed IP range.', 'invalid_request');
+					}
+				}
+
+				// Find client information from the remote.
+				const clientInfoPre = await discoverClientInformation(this.#logger, this.httpRequestService, clientUrl.href);
+
 				if (clientApp != null) {
 					// Validate callback url
 					if (clientApp.callbackUrl == null) {
@@ -475,27 +493,13 @@ export class OAuth2ProviderService {
 						registered: true,
 						redirectUris: [clientApp.callbackUrl],
 						name: clientApp.name,
+						logo: clientInfoPre.logo,
 						secret: clientApp.secret,
 					};
 
 					// TODO: Check whether can be skipped -> if already authorized, not revoked, and request no more scopes
 				} else {
-					// No such client, check with client method
-					const clientUrl = validateClientId(clientID);
-
-					// https://indieauth.spec.indieweb.org/#client-information-discovery
-					// "the server may want to resolve the domain name first and avoid fetching the document
-					// if the IP address is within the loopback range defined by [RFC5735]
-					// or any other implementation-specific internal IP address."
-					if (process.env.NODE_ENV !== 'test' || process.env.MISSKEY_TEST_CHECK_IP_RANGE === '1') {
-						const lookup = await dns.lookup(clientUrl.hostname);
-						if (ipaddr.parse(lookup.address).range() !== 'unicast') {
-							throw new AuthorizationError('client_id resolves to disallowed IP range.', 'invalid_request');
-						}
-					}
-
-					// Find client information from the remote.
-					clientInfo = await discoverClientInformation(this.#logger, this.httpRequestService, clientUrl.href);
+					clientInfo = clientInfoPre;
 				}
 
 				// Require the redirect URI to be included in an explicit list, per
