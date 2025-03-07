@@ -712,6 +712,17 @@ export class UserFollowingService implements OnModuleInit {
 
 		await this.followRequestsRepository.delete(request.id);
 		this.cacheService.userFollowingsCache.refresh(follower.id);
+
+		const beforeNotifications = await this.notificationService.getAllNotifications(followee.id);
+		for (const notification of beforeNotifications) {
+			if (
+				notification.data &&
+				notification.data.type === 'receiveFollowRequest' &&
+				notification.data.notifierId === follower.id
+			) {
+				await this.notificationService.deleteNotification(followee.id, notification.redisId);
+			}
+		}
 	}
 
 	/**

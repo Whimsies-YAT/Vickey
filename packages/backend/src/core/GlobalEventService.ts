@@ -182,6 +182,7 @@ export interface ReversiGameEventTypes {
 		key: string;
 		value: any;
 	};
+	// @ts-expect-error: Nothing to do
 	log: Reversi.Serializer.Log & { id: string | null };
 	started: {
 		game: Packed<'ReversiGameDetailed'>;

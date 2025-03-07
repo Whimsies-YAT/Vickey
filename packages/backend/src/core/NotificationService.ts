@@ -188,11 +188,51 @@ export class NotificationService implements OnApplicationShutdown {
 			this.globalEventService.publishMainStream(notifieeId, 'unreadNotification', packed);
 			this.pushNotificationService.pushNotification(notifieeId, 'notification', packed);
 
+			if (type === 'followRequestAccepted' && notifierId) {
+				const beforeNotifications = await this.getAllNotifications(notifierId);
+				for (const notification of beforeNotifications) {
+					if (
+						notification.data &&
+						notification.data.type === 'receiveFollowRequest' &&
+						notification.data.notifierId === notifieeId
+					) {
+						await this.deleteNotification(notifierId, notification.redisId);
+					}
+				}
+			}
+
 			if (type === 'follow') this.emailNotificationFollow(notifieeId, await this.usersRepository.findOneByOrFail({ id: notifierId! }), this.config);
 			if (type === 'receiveFollowRequest') this.emailNotificationReceiveFollowRequest(notifieeId, await this.usersRepository.findOneByOrFail({ id: notifierId! }), this.config);
 		}, () => { /* aborted, ignore it */ });
 
 		return notification;
+	}
+
+	public async deleteNotification(notifieeId: MiUser['id'], redisNotificationId: string): Promise<void> {
+		await this.redisClient.xdel(`notificationTimeline:${notifieeId}`, redisNotificationId);
+	}
+
+	@bindThis
+	public async getAllNotifications(userId: MiUser['id']): Promise<any[]> {
+		const records = await this.redisClient.xrange(`notificationTimeline:${ userId }`, '-', '+');
+		return records.map(record => {
+			const [redisId, fields] = record as [string, string[]];
+			const notification: any = { redisId };
+			for (let i = 0; i < fields.length; i += 2) {
+				const key = fields[i];
+				const value = fields[i + 1];
+				if (key === 'data') {
+					try {
+						notification.data = JSON.parse(value);
+					} catch (error) {
+						notification.data = value;
+					}
+				} else {
+					notification[key] = value;
+				}
+			}
+			return notification;
+		});
 	}
 
 	// TODO
