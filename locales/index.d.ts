@@ -7556,6 +7556,10 @@ export interface Locale extends ILocale {
          * 控えめに警告
          */
         "quiet": string;
+        /**
+         * Unprompted
+         */
+        "null": string;
     };
     "_channel": {
         /**

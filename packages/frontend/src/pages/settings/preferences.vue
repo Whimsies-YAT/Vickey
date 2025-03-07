@@ -13,7 +13,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<template #caption>
 					<I18n :src="i18n.ts.i18nInfo" tag="span">
 						<template #link>
-							<MkLink url="https://crowdin.com/project/vickey">Vickey Crowdin</MkLink>
+							<MkLink url="https://crowdin.com/project/vickey">Vickey Crowdin</MkLink>/
 							<MkLink url="https://crowdin.com/project/misskey">Misskey Crowdin</MkLink>
 						</template>
 					</I18n>
@@ -175,7 +175,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<SearchMarker :keywords="['server', 'disconnect', 'reconnect', 'reload', 'streaming']">
 						<MkSelect v-model="serverDisconnectedBehavior">
 							<template #label><SearchLabel>{{ i18n.ts.whenServerDisconnected }}</SearchLabel></template>
-							<option :value="null">Unprompted</option>
+							<option :value="null">{{ i18n.ts._serverDisconnectedBehavior.null }}</option>
 							<option value="reload">{{ i18n.ts._serverDisconnectedBehavior.reload }}</option>
 							<option value="dialog">{{ i18n.ts._serverDisconnectedBehavior.dialog }}</option>
 							<option value="quiet">{{ i18n.ts._serverDisconnectedBehavior.quiet }}</option>

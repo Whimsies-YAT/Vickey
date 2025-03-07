@@ -90,6 +90,8 @@ _emailTemplates:
   newFollowRequestVars: "name: follower's name\nusername: follower's username\nhost: the host of the instance where the follower is located"
   secRelease: "New Security Release"
   secReleaseVars: "tag: name of the version to update to"
+_serverDisconnectedBehavior:
+  null: Unprompted
 _abuseReportAutoProcessing:
   title: "Reports on Automated Abuse Reports Processing"
   enable: "Enable"
