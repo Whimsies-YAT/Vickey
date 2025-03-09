@@ -48,10 +48,10 @@ import { computed, shallowRef } from 'vue';
 import XHeader from '../../_header_.vue';
 import MkPagination from '@/components/MkPagination.vue';
 import { i18n } from '@/i18n.js';
-import { definePageMetadata } from '@/scripts/page-metadata.js';
+import { definePageMetadata } from '@/utility/page-metadata.js';
 import MkInfo from '@/components/MkInfo.vue';
 import * as os from "@/os";
-import { misskeyApi } from "@/scripts/misskey-api";
+import { misskeyApi } from "@/utility/misskey-api";
 import MkFolder from "@/components/MkFolder.vue";
 
 const reports = shallowRef<InstanceType<typeof MkPagination>>();
