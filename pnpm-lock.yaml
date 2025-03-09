@@ -9,6 +9,11 @@ overrides:
   lodash: 4.17.21
   '@aiscript-dev/aiscript-languageserver': '-'
 
+patchedDependencies:
+  re2:
+    hash: 018babd22b7ce951bcd10d6246f1e541a7ac7ba212f7fa8985e774ece67d08e1
+    path: scripts/dependency-patches/re2.patch
+
 importers:
 
   .:
@@ -395,7 +400,7 @@ importers:
         version: 3.4.1
       re2:
         specifier: 1.21.4
-        version: 1.21.4
+        version: 1.21.4(patch_hash=018babd22b7ce951bcd10d6246f1e541a7ac7ba212f7fa8985e774ece67d08e1)
       redis-lock:
         specifier: 0.1.4
         version: 0.1.4
@@ -896,6 +901,9 @@ importers:
       vuedraggable:
         specifier: next
         version: 4.1.0(vue@3.5.13(typescript@5.8.2))
+      wanakana:
+        specifier: 5.3.1
+        version: 5.3.1
     devDependencies:
       '@misskey-dev/summaly':
         specifier: 5.2.0
@@ -10732,6 +10740,10 @@ packages:
 
   walker@1.0.8:
     resolution: {integrity: sha512-ts/8E8l5b7kY0vlWLewOkDXMmPdLcVV4GmOQLyxuSswIJsweeFZtAsMF7k1Nszz+TYBQrlYRmzOnr398y1JemQ==}
+
+  wanakana@5.3.1:
+    resolution: {integrity: sha512-OSDqupzTlzl2LGyqTdhcXcl6ezMiFhcUwLBP8YKaBIbMYW1wAwDvupw2T9G9oVaKT9RmaSpyTXjxddFPUcFFIw==}
+    engines: {node: '>=12'}
 
   web-push@3.6.7:
     resolution: {integrity: sha512-OpiIUe8cuGjrj3mMBFWY+e4MMIkW3SVT+7vEIjvD9kejGUypv8GPDf84JdPWskK8zMRIJ6xYGm+Kxr8YkPyA0A==}
@@ -20750,7 +20762,7 @@ snapshots:
     dependencies:
       setimmediate: 1.0.5
 
-  re2@1.21.4:
+  re2@1.21.4(patch_hash=018babd22b7ce951bcd10d6246f1e541a7ac7ba212f7fa8985e774ece67d08e1):
     dependencies:
       install-artifact-from-github: 1.3.5
       nan: 2.20.0
@@ -22410,6 +22422,8 @@ snapshots:
   walker@1.0.8:
     dependencies:
       makeerror: 1.0.12
+
+  wanakana@5.3.1: {}
 
   web-push@3.6.7:
     dependencies:
