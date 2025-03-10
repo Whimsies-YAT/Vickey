@@ -258,7 +258,7 @@ export const searchIndexes: SearchIndexItem[] = [
 						keywords: ['follower', i18n.ts._accountSettings.makeNotesFollowersOnlyBeforeDescription],
 					},
 					{
-						id: '2prkeWRSd',
+						id: 'ebJ9IUbik',
 						label: i18n.ts._accountSettings.makeNotesHiddenBefore,
 						keywords: ['hidden', i18n.ts._accountSettings.makeNotesHiddenBeforeDescription],
 					},
