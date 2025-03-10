@@ -43,8 +43,8 @@ import * as os from '@/os.js';
 import { $i, iAmAdmin } from '@/account.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { lookupUser, lookupUserByEmail, lookupFile } from '@/utility/admin-lookup.js';
-import { definePageMetadata, provideMetadataReceiver, provideReactiveMetadata } from '@/utility/page-metadata.js';
-import type { PageMetadata } from '@/utility/page-metadata.js';
+import { definePage, provideMetadataReceiver, provideReactiveMetadata } from '@/page.js';
+import type { PageMetadata } from '@/page.js';
 import { useRouter } from '@/router/supplier.js';
 
 const isEmpty = (x: string | null) => x == null || x === '';
@@ -347,7 +347,7 @@ const headerActions = computed(() => []);
 
 const headerTabs = computed(() => []);
 
-definePageMetadata(() => INFO.value);
+definePage(() => INFO.value);
 
 defineExpose({
 	header: {

@@ -91,7 +91,7 @@ import { i18n } from '@/i18n.js';
 import { instance } from '@/instance.js';
 import { uniqueBy } from '@/utility/array.js';
 import { getThemes } from '@/theme-store.js';
-import { definePageMetadata } from '@/utility/page-metadata.js';
+import { definePage } from '@/page.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { reloadAsk } from '@/utility/reload-ask.js';
 import { prefer } from '@/preferences.js';
@@ -179,7 +179,7 @@ const darkThemeId = computed({
 	set(id) {
 		const t = themes.value.find(x => x.id === id);
 		if (t) { // テーマエディタでテーマを作成したときなどは、themesに反映されないため undefined になる
-			prefer.set('darkTheme', t);
+			prefer.commit('darkTheme', t);
 		}
 	},
 });
@@ -191,7 +191,7 @@ const lightThemeId = computed({
 	set(id) {
 		const t = themes.value.find(x => x.id === id);
 		if (t) { // テーマエディタでテーマを作成したときなどは、themesに反映されないため undefined になる
-			prefer.set('lightTheme', t);
+			prefer.commit('lightTheme', t);
 		}
 	},
 });
@@ -230,7 +230,7 @@ const headerActions = computed(() => []);
 
 const headerTabs = computed(() => []);
 
-definePageMetadata(() => ({
+definePage(() => ({
 	title: i18n.ts.theme,
 	icon: 'ti ti-palette',
 }));

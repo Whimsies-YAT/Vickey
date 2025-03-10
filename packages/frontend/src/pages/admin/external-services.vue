@@ -149,7 +149,7 @@ import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { fetchInstance } from '@/instance.js';
 import { i18n } from '@/i18n.js';
-import { definePageMetadata } from '@/utility/page-metadata.js';
+import { definePage } from '@/page.js';
 import MkFolder from '@/components/MkFolder.vue';
 import MkTextarea from "@/components/MkTextarea.vue";
 
@@ -267,8 +267,8 @@ const headerActions = computed(() => []);
 
 const headerTabs = computed(() => []);
 
-definePageMetadata(() => ({
-    title: i18n.ts.externalServices,
-    icon: 'ti ti-link',
+definePage(() => ({
+	title: i18n.ts.externalServices,
+	icon: 'ti ti-link',
 }));
 </script>
