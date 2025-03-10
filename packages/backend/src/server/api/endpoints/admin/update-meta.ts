@@ -117,6 +117,7 @@ export const paramDef = {
 		hfSpeedRate: { type: 'integer', default: 125 },
 		hfdas: { type: 'boolean', default: false },
 		ip2lAuthKey: { type: 'string', nullable: true },
+		ip2lProxyAuthKey: { type: 'string', nullable: true },
 		banCountry: {
 			type: 'array', items: {
 				type: 'string',
@@ -128,6 +129,7 @@ export const paramDef = {
 			},
 		},
 		ip2lIsPro: { type: 'boolean' },
+		ip2lProxyIsPro: { type: 'boolean' },
 		enableEmailTemplates: { type: 'boolean' },
 		enableEmail: { type: 'boolean' },
 		email: { type: 'string', nullable: true },
@@ -685,6 +687,24 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				set.ip2lIsPro = ps.ip2lIsPro;
 				if (set.ip2lIsPro !== this.mMeta.ip2lIsPro) {
 					this.iP2LocationService.syncIP2L(null, set.ip2lIsPro);
+				}
+			}
+
+			if (ps.ip2lProxyAuthKey !== undefined) {
+				if (ps.ip2lProxyAuthKey === '') {
+					set.ip2lProxyAuthKey = null;
+				} else {
+					set.ip2lProxyAuthKey = ps.ip2lProxyAuthKey;
+					if (set.ip2lProxyAuthKey !== this.mMeta.ip2lProxyAuthKey) {
+						this.iP2LocationService.syncIP2LProxy(set.ip2lProxyAuthKey);
+					}
+				}
+			}
+
+			if (ps.ip2lProxyIsPro !== undefined) {
+				set.ip2lProxyIsPro = ps.ip2lProxyIsPro;
+				if (set.ip2lProxyIsPro !== this.mMeta.ip2lProxyIsPro) {
+					this.iP2LocationService.syncIP2LProxy(null, set.ip2lProxyIsPro);
 				}
 			}
 

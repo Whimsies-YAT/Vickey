@@ -131,6 +131,21 @@ SPDX-License-Identifier: AGPL-3.0-only
 							  <MkButton primary @click="save_ra">Save</MkButton>
 						  </div>
 					  </MkFolder>
+
+				<MkFolder>
+					<template #label>Proxy Database</template>
+
+					<div class="_gaps_m">
+						<MkInput v-model="ip2lProxyAuthKey">
+							<template #prefix><i class="ti ti-key"></i></template>
+							<template #label>IP2Proxy Auth Key</template>
+						</MkInput>
+						<MkSwitch v-model="ip2lProxyIsPro">
+							<template #label>Pro</template>
+						</MkSwitch>
+						<MkButton primary @click="save_pd">Save</MkButton>
+					</div>
+				</MkFolder>
 			</div>
 		</FormSuspense>
     </MkSpacer>
@@ -172,6 +187,8 @@ const ip2lAuthKey = ref<string>('');
 const ip2lIsPro = ref<boolean>(false);
 const banCountry = ref<string>('');
 const exemptIP = ref<string>('');
+const ip2lProxyAuthKey = ref<string>('');
+const ip2lProxyIsPro = ref<boolean>(false);
 
 const googleAnalyticsMeasurementId = ref<string>('');
 
@@ -197,6 +214,8 @@ async function init() {
 	ip2lIsPro.value = meta.ip2lIsPro;
 	banCountry.value = meta.banCountry.join('\n');
 	exemptIP.value = meta.exemptIP.join('\n');
+	ip2lProxyAuthKey.value = meta.ip2lProxyAuthKey;
+	ip2lProxyIsPro.value = meta.ip2lProxyIsPro;
 }
 
 function save_deepl() {
@@ -245,6 +264,15 @@ function save_ra() {
 		ip2lIsPro: ip2lIsPro.value,
 		banCountry: banCountryArray,
 		exemptIP: exemptIPArray,
+	}).then(() => {
+		fetchInstance(true);
+	});
+}
+
+function save_pd() {
+	os.apiWithDialog('admin/update-meta', {
+		ip2lProxyAuthKey: ip2lProxyAuthKey.value,
+		ip2lProxyIsPro: ip2lProxyIsPro.value,
 	}).then(() => {
 		fetchInstance(true);
 	});

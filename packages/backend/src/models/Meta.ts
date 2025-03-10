@@ -448,6 +448,17 @@ export class MiMeta {
 	public ip2lIsPro: boolean;
 
 	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public ip2lProxyAuthKey: string | null;
+
+	@Column('boolean', {
+		default: false,
+	})
+	public ip2lProxyIsPro: boolean;
+
+	@Column('varchar', {
 		length: 1024, array: true, default: '{}',
 	})
 	public banCountry: string[];

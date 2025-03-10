@@ -8867,6 +8867,8 @@ export type operations = {
             hfdas: boolean;
             ip2lAuthKey: string | null;
             ip2lIsPro: boolean;
+            ip2lProxyAuthKey: string | null;
+            ip2lProxyIsPro: boolean;
             banCountry: string[];
             exemptIP: string[];
             defaultDarkTheme: string | null;
@@ -11313,9 +11315,11 @@ export type operations = {
           /** @default false */
           hfdas?: boolean;
           ip2lAuthKey?: string | null;
+          ip2lProxyAuthKey?: string | null;
           banCountry?: string[];
           exemptIP?: string[];
           ip2lIsPro?: boolean;
+          ip2lProxyIsPro?: boolean;
           enableEmailTemplates?: boolean;
           enableEmail?: boolean;
           email?: string | null;

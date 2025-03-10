@@ -63,7 +63,7 @@ export class IP2LocationService {
 	}
 
 	@bindThis
-	public async syncIP2LProxy(auth: string | null = this.meta.ip2lAuthKey, pro: boolean = this.meta.ip2lIsPro): Promise<void> {
+	public async syncIP2LProxy(auth: string | null = this.meta.ip2lProxyAuthKey, pro: boolean = this.meta.ip2lProxyIsPro): Promise<void> {
 		if (!auth) return;
 
 		const dbUrl = `https://www.ip2location.com/download/?token=${auth}&file=${pro ? "PX12BIN" : "PX12LITEBIN"}`;
