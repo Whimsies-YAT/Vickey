@@ -73,7 +73,7 @@ export class ApiServerService {
 			if (limitEndpoints.includes(endpoint.name)) {
 				if (request.ip) {
 					return await new Promise<boolean>((resolve) => {
-						this.iP2LocationService.checkIPsync(request.ip, (result: boolean) => {
+						this.iP2LocationService.checkIPSync(request.ip, (result: boolean) => {
 							if (!result) {
 								reply.code(403);
 								reply.send({

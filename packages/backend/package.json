@@ -131,6 +131,7 @@
 		"ioredis": "5.5.0",
 		"ip-cidr": "4.0.2",
 		"ip2location-nodejs": "^9.6.3",
+		"ip2proxy-nodejs": "^4.4.0",
 		"ipaddr.js": "2.2.0",
 		"is-svg": "5.1.0",
 		"iso-3166-1": "^2.1.1",

@@ -16,6 +16,8 @@ import { bindThis } from '@/decorators.js';
 import { DI } from "@/di-symbols.js";
 import { IP2Location, IPTools } from 'ip2location-nodejs';
 import is_ip_private from 'private-ip';
+import { IP2Proxy } from 'ip2proxy-nodejs';
+import * as Redis from 'ioredis';
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
@@ -24,6 +26,8 @@ const CONFIG = {
 	path: Path.resolve(_dirname, '../../../../files/ip2l'),
 	fileName: 'ipdb.bin',
 	zipFileName: 'file.zip',
+	proxyFileName: 'ipdbP.bin',
+	proxyZipFileName: 'fileP.zip',
 };
 
 if (!fs.existsSync(CONFIG.path)) {
@@ -33,6 +37,9 @@ if (!fs.existsSync(CONFIG.path)) {
 @Injectable()
 export class IP2LocationService {
 	constructor(
+		@Inject(DI.redis)
+		private redisClient: Redis.Redis,
+
 		@Inject(DI.meta)
 		private meta: MiMeta,
 
@@ -50,6 +57,21 @@ export class IP2LocationService {
 		try {
 			await this.downloadService.downloadUrl(dbUrl, zipFilePath, true);
 			await this.extractAndRenameBinFile(zipFilePath, CONFIG.path, CONFIG.fileName);
+		} catch (error) {
+			console.error(error instanceof Error ? error : new Error('Unknown error occurred.'));
+		}
+	}
+
+	@bindThis
+	public async syncIP2LProxy(auth: string | null = this.meta.ip2lAuthKey, pro: boolean = this.meta.ip2lIsPro): Promise<void> {
+		if (!auth) return;
+
+		const dbUrl = `https://www.ip2location.com/download/?token=${auth}&file=${pro ? "PX12BIN" : "PX12LITEBIN"}`;
+		const zipFilePath = Path.join(CONFIG.path, CONFIG.proxyZipFileName);
+
+		try {
+			await this.downloadService.downloadUrl(dbUrl, zipFilePath, true);
+			await this.extractAndRenameBinFile(zipFilePath, CONFIG.path, CONFIG.proxyFileName);
 		} catch (error) {
 			console.error(error instanceof Error ? error : new Error('Unknown error occurred.'));
 		}
@@ -77,8 +99,118 @@ export class IP2LocationService {
 	}
 
 	@bindThis
-	public checkIPsync(ip: string, callback: (result: boolean) => void): void {
+	public checkIPSync(ip: string, callback: (result: boolean) => void): void {
 		this.checkIP(ip).then(callback).catch(() => callback(true));
+	}
+
+	@bindThis
+	public async checkIPProxy(ip: string): Promise<Record<string, any>> {
+		if (!(await this.isValidIP(ip))) return {};
+
+		const REDIS_KEY = `ipProxyCheck:${ip}`;
+		const CACHE_TTL = 3600;
+		const LOCK_TTL = 5;
+
+		const LOAD_SCRIPT = `
+    local key = KEYS[1]
+    local lockKey = key..':lock'
+    local ttl = ARGV[1]
+    local lockTtl = ARGV[2]
+
+    local data = redis.call('GET', key)
+    if data then return data end
+
+    if redis.call('SET', lockKey, '1', 'NX', 'EX', lockTtl) then
+      return 'load_required'
+    end
+
+    return 'wait'
+  `;
+
+		const result = await this.redisClient.eval(
+			LOAD_SCRIPT,
+			1,
+			REDIS_KEY,
+			CACHE_TTL.toString(),
+			LOCK_TTL.toString()
+		);
+
+		if (result !== 'load_required' && result !== 'wait') {
+			return JSON.parse(result as string);
+		}
+
+		const transformData = (data: any): any => {
+			if (data && typeof data === "object") {
+				for (const key in data) {
+					if (data[key] === "MISSING FILE") {
+						data[key] = "-";
+					}
+					if (key === "isProxy" && data[key] === -1) {
+						data[key] = 0;
+					}
+					if (key === "fraudScore" && data[key] === "-") {
+						data[key] = "0";
+					}
+				}
+			}
+			return data;
+		};
+
+		if (result === 'load_required') {
+			try {
+				const data = transformData(await this.getIPProxyDetails(ip));
+				const jsonData = JSON.stringify(data);
+
+				await this.redisClient
+					.pipeline()
+					.set(REDIS_KEY, jsonData, 'EX', CACHE_TTL)
+					.del(`${REDIS_KEY}:lock`)
+					.exec();
+
+				return data;
+			} catch (err) {
+				await this.redisClient.del(`${REDIS_KEY}:lock`);
+				throw err;
+			}
+		}
+
+		let retry = 0;
+		let waitTime = 50;
+		while (retry++ < 10) {
+			await new Promise(resolve => setTimeout(resolve, waitTime));
+			waitTime *= 2;
+
+			const cached = await this.redisClient.get(REDIS_KEY);
+			if (cached) {
+				try {
+					return JSON.parse(cached);
+				} catch (err) {
+					break;
+				}
+			}
+		}
+
+		return transformData(await this.getIPProxyDetails(ip));
+	}
+
+	@bindThis
+	public checkIPProxySync(ip: string, callback: (result: Record<string, any>) => void): void {
+		const wrappedCallback = (result: Record<string, any>) => {
+			try {
+				callback(result);
+			} catch (err) {
+				console.error('Callback error:', err);
+			}
+		};
+
+		this.checkIPProxy(ip)
+			.then((result: Record<string, any>) => {
+				wrappedCallback(result);
+			})
+			.catch((err) => {
+				console.error(`IP check failed [${ip}]:`, err);
+				wrappedCallback({ error: 'IP check failed', details: err.message });
+			});
 	}
 
 	@bindThis
@@ -151,5 +283,11 @@ export class IP2LocationService {
 		const ip2location = new IP2Location();
 		await ip2location.openAsync(Path.join(CONFIG.path, CONFIG.fileName));
 		return ip2location.getAllAsync(ip);
+	}
+
+	private async getIPProxyDetails(ip: string): Promise<Record<string, any>> {
+		const ip2proxy = new IP2Proxy();
+		await ip2proxy.openAsync(Path.join(CONFIG.path, CONFIG.proxyFileName));
+		return ip2proxy.getAllAsync(ip);
 	}
 }
