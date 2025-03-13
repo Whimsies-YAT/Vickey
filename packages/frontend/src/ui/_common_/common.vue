@@ -55,7 +55,7 @@ import { popups } from '@/os.js';
 import { pendingApiRequestsCount } from '@/utility/misskey-api.js';
 import { uploads } from '@/utility/upload.js';
 import * as sound from '@/utility/sound.js';
-import { $i } from '@/i.js';
+import { $i, iAmAdmin } from '@/i.js';
 import { useStream } from '@/stream.js';
 import { i18n } from '@/i18n.js';
 import { prefer } from '@/preferences.js';
@@ -64,8 +64,6 @@ import { globalEvents } from '@/events.js';
 let state = reactive({
 	security: true as boolean | null,
 });
-
-export const iAmAdmin = $i != null && $i.isAdmin;
 
 async function fetchSec() {
 	if (iAmAdmin) {

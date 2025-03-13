@@ -181,6 +181,11 @@ export const searchIndexes: SearchIndexItem[] = [
 						label: i18n.ts.flagAsBot,
 						keywords: ['bot'],
 					},
+					{
+						id: 'cdqZBOrdl',
+						label: i18n.ts.flagAsVI,
+						keywords: ['VI'],
+					},
 				],
 				label: i18n.ts.advancedSettings,
 				keywords: [],
@@ -279,47 +284,47 @@ export const searchIndexes: SearchIndexItem[] = [
 						keywords: ['language'],
 					},
 					{
-						id: 'apz9AutPm',
+						id: '9ragaff40',
 						label: i18n.ts.overridedDeviceKind,
 						keywords: ['device', 'type', 'kind', 'smartphone', 'tablet', 'desktop'],
 					},
 					{
-						id: 'nqRVtw1xw',
+						id: 'lfI3yMX9g',
 						label: i18n.ts.useBlurEffect,
 						keywords: ['blur'],
 					},
 					{
-						id: 'EO5WHBeG8',
+						id: '31Y4IcGEf',
 						label: i18n.ts.useBlurEffectForModal,
 						keywords: ['blur', 'modal'],
 					},
 					{
-						id: 'CWpyT9vLK',
+						id: '78q2asrLS',
 						label: i18n.ts.showAvatarDecorations,
 						keywords: ['avatar', 'icon', 'decoration', 'show'],
 					},
 					{
-						id: '1wwACqQz1',
+						id: 'zydOfGYip',
 						label: i18n.ts.alwaysConfirmFollow,
 						keywords: ['follow', 'confirm', 'always'],
 					},
 					{
-						id: '1x3JNXj8N',
+						id: 'wqpOC22Zm',
 						label: i18n.ts.highlightSensitiveMedia,
 						keywords: ['highlight', 'sensitive', 'nsfw', 'image', 'photo', 'picture', 'media', 'thumbnail'],
 					},
 					{
-						id: 'CfAg0Qekq',
+						id: 'c98gbF9c6',
 						label: i18n.ts.confirmWhenRevealingSensitiveMedia,
 						keywords: ['sensitive', 'nsfw', 'media', 'image', 'photo', 'picture', 'attachment', 'confirm'],
 					},
 					{
-						id: '4LxdiOMNh',
+						id: '6ANRSOaNg',
 						label: i18n.ts.emojiStyle,
 						keywords: ['emoji', 'style', 'native', 'system', 'fluent', 'twemoji'],
 					},
 					{
-						id: '67knC3FWp',
+						id: 'wo0s0CaI1',
 						label: i18n.ts.pinnedList,
 						keywords: ['pinned', 'list'],
 					},
@@ -328,35 +333,35 @@ export const searchIndexes: SearchIndexItem[] = [
 				keywords: ['general'],
 			},
 			{
-				id: 'hDdVkBFJP',
+				id: 'l78F2W9Ok',
 				children: [
 					{
-						id: 'igFN7RIUa',
+						id: 'c3xhLyXZ5',
 						label: i18n.ts.showFixedPostForm,
 						keywords: ['post', 'form', 'timeline'],
 					},
 					{
-						id: '9uxocbLO0',
+						id: 'wRpIPnyzi',
 						label: i18n.ts.showFixedPostFormInChannel,
 						keywords: ['post', 'form', 'timeline', 'channel'],
 					},
 					{
-						id: 'eaT1O1Fao',
+						id: 'kMB2hPyq3',
 						label: i18n.ts.collapseRenotes,
 						keywords: ['renote', i18n.ts.collapseRenotesDescription],
 					},
 					{
-						id: 'jC7LtTnmc',
+						id: 'cyl7EjDIV',
 						label: i18n.ts.showGapBetweenNotesInTimeline,
 						keywords: ['note', 'timeline', 'gap'],
 					},
 					{
-						id: 'p2wlrnwLo',
+						id: 'DJQukjgAA',
 						label: i18n.ts.enableInfiniteScroll,
 						keywords: ['load', 'auto', 'more'],
 					},
 					{
-						id: 'eqMBMY6LU',
+						id: '6SFn3t8VS',
 						label: i18n.ts.disableStreamingTimeline,
 						keywords: ['disable', 'streaming', 'timeline'],
 					},
@@ -365,65 +370,65 @@ export const searchIndexes: SearchIndexItem[] = [
 				keywords: ['timeline'],
 			},
 			{
-				id: '2LNjwv1cr',
+				id: 'c8gA9Xj2a',
 				children: [
 					{
-						id: '6ylW3eIcD',
+						id: 'whKYKvaQB',
 						label: i18n.ts.showNoteActionsOnlyHover,
 						keywords: ['hover', 'show', 'footer', 'action'],
 					},
 					{
-						id: 'lBbtAg0Hm',
+						id: 'nf4kcPeYw',
 						label: i18n.ts.showClipButtonInNoteFooter,
 						keywords: ['footer', 'action', 'clip', 'show'],
 					},
 					{
-						id: 'E9whefUtX',
+						id: 'rRisK1YYQ',
 						label: i18n.ts.enableAdvancedMfm,
 						keywords: ['mfm', 'enable', 'show', 'advanced'],
 					},
 					{
-						id: 'iQaBbJBva',
+						id: '6AH0lnjf1',
 						label: i18n.ts.showReactionsCount,
 						keywords: ['reaction', 'count', 'show'],
 					},
 					{
-						id: 'hgEVGgJa1',
+						id: '5w5vDx7Ce',
 						label: i18n.ts.confirmOnReact,
 						keywords: ['reaction', 'confirm'],
 					},
 					{
-						id: 'yxehrHZ6x',
+						id: 'mGHnKOFij',
 						label: i18n.ts.loadRawImages,
 						keywords: ['image', 'photo', 'picture', 'media', 'thumbnail', 'quality', 'raw', 'attachment'],
 					},
 					{
-						id: 'DdoFLaSG8',
+						id: 'k1qTdyfzM',
 						label: i18n.ts.useReactionPickerForContextMenu,
 						keywords: ['reaction', 'picker', 'contextmenu', 'open'],
 					},
 					{
-						id: 'fyod6U3QX',
+						id: 'zCcU7ZaT4',
 						label: i18n.ts.reactionsDisplaySize,
 						keywords: ['reaction', 'size', 'scale', 'display'],
 					},
 					{
-						id: 'kmdsnVIQX',
+						id: 'vs0ybY6cW',
 						label: i18n.ts.limitWidthOfReaction,
 						keywords: ['reaction', 'size', 'scale', 'display', 'width', 'limit'],
 					},
 					{
-						id: 'hacQ9br20',
+						id: 'mNRK0pt8L',
 						label: i18n.ts.mediaListWithOneImageAppearance,
 						keywords: ['attachment', 'image', 'photo', 'picture', 'media', 'thumbnail', 'list', 'size', 'height'],
 					},
 					{
-						id: 'vE7KeV4U4',
+						id: '3v42ApO9J',
 						label: i18n.ts.instanceTicker,
 						keywords: ['ticker', 'information', 'label', 'instance', 'server', 'host', 'federation'],
 					},
 					{
-						id: '3reoOxO26',
+						id: '1LNzYwii7',
 						label: i18n.ts.displayOfSensitiveMedia,
 						keywords: ['attachment', 'image', 'photo', 'picture', 'media', 'thumbnail', 'nsfw', 'sensitive', 'display', 'show', 'hide', 'visibility'],
 					},
@@ -432,25 +437,25 @@ export const searchIndexes: SearchIndexItem[] = [
 				keywords: ['note'],
 			},
 			{
-				id: 'eROFRMtXv',
+				id: 'uItIge5hw',
 				children: [
 					{
-						id: 'bezWaWd6M',
+						id: 'BaQfrVO82',
 						label: i18n.ts.keepCw,
 						keywords: ['remember', 'keep', 'note', 'cw'],
 					},
 					{
-						id: '90ngq28Nx',
+						id: 'vFerPo2he',
 						label: i18n.ts.rememberNoteVisibility,
 						keywords: ['remember', 'keep', 'note', 'visibility'],
 					},
 					{
-						id: 'ERGQVw6ml',
+						id: 'dcAC0yJcH',
 						label: i18n.ts.enableQuickAddMfmFunction,
 						keywords: ['mfm', 'enable', 'show', 'advanced', 'picker', 'form', 'function', 'fn'],
 					},
 					{
-						id: 'g0otcvWv3',
+						id: 'bECeWZVMb',
 						label: i18n.ts.defaultNoteVisibility,
 						keywords: ['default', 'note', 'visibility'],
 					},
@@ -459,20 +464,20 @@ export const searchIndexes: SearchIndexItem[] = [
 				keywords: ['post', 'form'],
 			},
 			{
-				id: 'AWLIP02IT',
+				id: 'tsSP93Cc6',
 				children: [
 					{
-						id: 'rDLJRu99',
+						id: 'EyyNU8se',
 						label: i18n.ts.useGroupedNotifications,
 						keywords: ['group'],
 					},
 					{
-						id: '70WDijfPH',
+						id: 'gzzkreTNs',
 						label: i18n.ts.position,
 						keywords: ['position'],
 					},
 					{
-						id: 'xKUzsSrKy',
+						id: 'gDVCqZfxm',
 						label: i18n.ts.stackAxis,
 						keywords: ['stack', 'axis', 'direction'],
 					},
@@ -481,55 +486,55 @@ export const searchIndexes: SearchIndexItem[] = [
 				keywords: ['notification'],
 			},
 			{
-				id: '2E7vdIUQd',
+				id: 'ltZHn5Av1',
 				label: i18n.ts.dataSaver,
 				keywords: ['datasaver'],
 			},
 			{
-				id: '6ZbRRIhA6',
+				id: 'oWHCVLjn0',
 				children: [
 					{
-						id: 'soNZaKfiW',
+						id: 'Cbjosj3TG',
 						label: i18n.ts.squareAvatars,
 						keywords: ['avatar', 'icon', 'square'],
 					},
 					{
-						id: 'nhwHJJ2tl',
+						id: 'yygNLYGju',
 						label: i18n.ts.seasonalScreenEffect,
 						keywords: ['effect', 'show'],
 					},
 					{
-						id: 'oMAVUuxTm',
+						id: 'CEYxpc3Q4',
 						label: i18n.ts.openImageInNewTab,
 						keywords: ['image', 'photo', 'picture', 'media', 'thumbnail', 'new', 'tab'],
 					},
 					{
-						id: 'hSqX5JKM7',
+						id: 'fY9Gv4pRF',
 						label: i18n.ts.withRepliesByDefaultForNewlyFollowed,
 						keywords: ['follow', 'replies'],
 					},
 					{
-						id: 'fm98eqzke',
+						id: 'zVRIlk3wT',
 						label: i18n.ts.whenServerDisconnected,
 						keywords: ['server', 'disconnect', 'reconnect', 'reload', 'streaming'],
 					},
 					{
-						id: '1rWDVig8Y',
+						id: 'fnR7PRww5',
 						label: i18n.ts.numberOfPageCache,
 						keywords: ['cache', 'page'],
 					},
 					{
-						id: 'vXLtihtCp',
+						id: 'bTcAsPvNz',
 						label: i18n.ts.forceShowAds,
 						keywords: ['ad', 'show'],
 					},
 					{
-						id: '77YljFpiH',
+						id: 'Fd0rFTSry',
 						label: i18n.ts.hemisphere,
 						keywords: [],
 					},
 					{
-						id: 'CZgDNPP1h',
+						id: '6FVdHPhhv',
 						label: i18n.ts.additionalEmojiDictionary,
 						keywords: ['emoji', 'dictionary', 'additional', 'extra'],
 					},

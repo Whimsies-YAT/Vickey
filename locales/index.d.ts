@@ -10,7 +10,7 @@ export interface ILocale {
 }
 export interface Locale extends ILocale {
     /**
-     * English
+     * 日本語
      */
     "_lang_": string;
     /**

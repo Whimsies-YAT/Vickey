@@ -40,7 +40,7 @@ import MkInfo from '@/components/MkInfo.vue';
 import { instance } from '@/instance.js';
 import { lookup } from '@/utility/lookup.js';
 import * as os from '@/os.js';
-import { $i, iAmAdmin } from '@/account.js';
+import { $i, iAmAdmin } from '@/i.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { lookupUser, lookupUserByEmail, lookupFile } from '@/utility/admin-lookup.js';
 import { definePage, provideMetadataReceiver, provideReactiveMetadata } from '@/page.js';
