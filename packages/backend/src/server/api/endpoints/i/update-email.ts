@@ -112,6 +112,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new ApiError(meta.errors.emailRequired);
 			}
 
+			if (ps.email && ps.email === (await this.userProfilesRepository.findOneBy({ email: ps.email, emailVerified: true }))?.email) throw new ApiError(meta.errors.unavailable);
+
 			await this.userProfilesRepository.update(me.id, {
 				email: ps.email,
 				emailVerified: false,

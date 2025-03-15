@@ -11339,6 +11339,10 @@ export interface Locale extends ILocale {
         "serverHostPlaceholder": string;
     };
     /**
+     * Result
+     */
+    "result": string;
+    /**
      * Automatic TTS feature needed.
      */
     "flagAsVI": string;

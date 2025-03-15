@@ -929,7 +929,7 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
-     * **Credential required**: *Yes* / **Permission**: *read:admin:show-pendings*
+     * **Credential required**: *Yes* / **Permission**: *read:admin:show-pending*
      */
     request<E extends 'admin/show-pending', P extends Endpoints[E]['req']>(
       endpoint: E,

@@ -774,7 +774,7 @@ export type paths = {
      * admin/show-pending
      * @description No description provided.
      *
-     * **Credential required**: *Yes* / **Permission**: *read:admin:show-pendings*
+     * **Credential required**: *Yes* / **Permission**: *read:admin:show-pending*
      */
     post: operations['admin___show-pending'];
   };
@@ -10228,7 +10228,7 @@ export type operations = {
    * admin/show-pending
    * @description No description provided.
    *
-   * **Credential required**: *Yes* / **Permission**: *read:admin:show-pendings*
+   * **Credential required**: *Yes* / **Permission**: *read:admin:show-pending*
    */
   'admin___show-pending': {
     requestBody: {
@@ -10296,6 +10296,8 @@ export type operations = {
           offset?: number;
           /** @enum {string} */
           sort?: '+createdAt' | '-createdAt';
+          /** @default false */
+          noProcessed?: boolean;
         };
       };
     };

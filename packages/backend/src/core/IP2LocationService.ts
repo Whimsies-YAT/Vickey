@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 import { CacheService } from '@/core/CacheService.js';
 import { DownloadService } from '@/core/DownloadService.js';
+import { HttpRequestService } from '@/core/HttpRequestService.js';
 import type { MiMeta } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { DI } from "@/di-symbols.js";
@@ -44,7 +45,8 @@ export class IP2LocationService {
 		private meta: MiMeta,
 
 		private cacheService: CacheService,
-		private downloadService: DownloadService
+		private downloadService: DownloadService,
+		private httpRequestService: HttpRequestService
 	) {}
 
 	@bindThis
@@ -139,14 +141,22 @@ export class IP2LocationService {
 			return JSON.parse(result as string);
 		}
 
-		const transformData = (data: any): any => {
+		const transformData = async (data: any): Promise<any> => {
 			if (data && typeof data === "object") {
 				for (const key in data) {
 					if (data[key] === "MISSING FILE") {
 						data[key] = "-";
 					}
-					if (key === "isProxy" && data[key] === -1) {
-						data[key] = 0;
+					if (key === "isProxy") {
+						if (data[key] === -1) {
+							data[key] = 0;
+						} else if (data[key] === 0) {
+							if (await this.isTorExitNode(ip)) {
+								data[key] = 1;
+								data['proxyType'] = 'TOR';
+								data['fraudScore'] = '85';
+							}
+						}
 					}
 					if (key === "fraudScore" && data[key] === "-") {
 						data[key] = "0";
@@ -243,6 +253,83 @@ export class IP2LocationService {
 			return [];
 		}
 	}
+
+	@bindThis
+	public async syncTorExitNodesSet(): Promise<void> {
+		const REDIS_KEY = 'torExitNodesSet';
+		const LOCK_KEY = REDIS_KEY + ':lock';
+		const CACHE_TTL = 3600;
+		const LOCK_TTL = 5;
+
+		const LOAD_SCRIPT = `
+    if redis.call('EXISTS', KEYS[1]) == 1 then
+      return 'exists'
+    end
+    if redis.call('SET', KEYS[2], '1', 'NX', 'EX', ARGV[1]) then
+      return 'load_required'
+    end
+    return 'wait'
+  `;
+
+		const result = await this.redisClient.eval(
+			LOAD_SCRIPT,
+			2,
+			REDIS_KEY, LOCK_KEY,
+			LOCK_TTL.toString()
+		);
+
+		if (result === 'exists') {
+			return;
+		}
+		if (result === 'wait') {
+			return;
+		}
+
+		if (result === 'load_required') {
+			try {
+				let responseData: string;
+				try {
+					const response = await this.httpRequestService.send('https://check.torproject.org/exit-addresses', { timeout: 30000 });
+					responseData = String(response.body);
+				} catch (error) {
+					responseData = '';
+				}
+
+				const ips = responseData.split('\n')
+					.filter(line => line.startsWith('ExitAddress'))
+					.map(line => {
+						const parts = line.split(' ');
+						return parts[1];
+					});
+
+				const pipeline = this.redisClient.pipeline();
+				pipeline.del(REDIS_KEY);
+				if (ips.length > 0) {
+					pipeline.sadd(REDIS_KEY, ...ips);
+				}
+				pipeline.expire(REDIS_KEY, CACHE_TTL);
+				pipeline.del(LOCK_KEY);
+				await pipeline.exec();
+			} catch (err) {
+				await this.redisClient.del(LOCK_KEY);
+				throw err;
+			}
+		}
+	}
+
+	@bindThis
+	public async isTorExitNode(ip: string): Promise<boolean> {
+		const REDIS_KEY = 'torExitNodesSet';
+
+		let exists = await this.redisClient.sismember(REDIS_KEY, ip);
+		const keyExists = await this.redisClient.exists(REDIS_KEY);
+		if (!keyExists) {
+			await this.syncTorExitNodesSet();
+			exists = await this.redisClient.sismember(REDIS_KEY, ip);
+		}
+		return exists === 1;
+	}
+
 
 	private async extractAndRenameBinFile(zipFilePath: string, outputDir: string, newFileName: string): Promise<void> {
 		try {

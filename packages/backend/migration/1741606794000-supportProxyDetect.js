@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-
-export class SupportBanArea1735560438000 {
-    name = 'SupportBanArea1735560438000'
+export class SupportProxyDetect1741606794000 {
+    name = 'SupportProxyDetect1741606794000'
 
     async up(queryRunner) {
         await queryRunner.query(`ALTER TABLE "meta" ADD "ip2lProxyAuthKey" character varying(128)`);

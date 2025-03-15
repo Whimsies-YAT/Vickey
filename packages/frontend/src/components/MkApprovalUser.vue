@@ -5,14 +5,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <MkFolder :expanded="false">
-	<template #icon><i class="ti ti-user-check"></i></template>
+	<template #icon>
+		<i v-if="!isProcessed" class="ti ti-user-check"></i>
+		<i v-else class="ti ti-archive"></i>
+	</template>
 	<template #label>{{ i18n.ts.user }}: {{ user.username }}</template>
 
 	<div class="_gaps_s" :class="$style.root">
 		<div :class="$style.items">
 			<div>
 				<div :class="$style.label">{{ i18n.ts.createdAt }}</div>
-				<div><MkTime :time="user.createdAt" mode="absolute"/></div>
+				<div><MkTime :time="time" mode="absolute"/></div>
 			</div>
 			<div v-if="email">
 				<div :class="$style.label">{{ i18n.ts.emailAddress }}</div>
@@ -22,10 +25,20 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div :class="$style.label">{{ i18n.ts.registerReason }}</div>
 				<div>{{ reason }}</div>
 			</div>
+			<div>
+				<div :class="$style.label">IP</div>
+				<div>{{ ip }}</div>
+			</div>
+			<div v-if="isProcessed">
+				<div :class="$style.label">{{ i18n.ts.result }}</div>
+				<div>{{ result }}</div>
+			</div>
 		</div>
-		<div :class="$style.buttons">
-			<MkButton inline success @click="approveAccount()">{{ i18n.ts.approveAccount }}</MkButton>
-			<MkButton inline danger @click="deleteAccount()">{{ i18n.ts.denyAccount }}</MkButton>
+		<div v-if="!isProcessed">
+			<div :class="$style.buttons">
+				<MkButton inline success @click="approveAccount()">{{ i18n.ts.approveAccount }}</MkButton>
+				<MkButton inline danger @click="deleteAccount()">{{ i18n.ts.denyAccount }}</MkButton>
+			</div>
 		</div>
 	</div>
 </MkFolder>
@@ -46,6 +59,10 @@ const props = defineProps<{
 
 const reason = ref('');
 const email = ref('');
+const time = ref('');
+const isProcessed = ref('');
+const result = ref('');
+const ip = ref('');
 
 function getReason() {
 	return misskeyApi('admin/show-pending', {
@@ -53,6 +70,10 @@ function getReason() {
 	}).then(info => {
 		reason.value = info.signupReason;
 		email.value = info.email;
+		time.value = String(new Date(info.time).toLocaleString());
+		isProcessed.value = info.isProcessed;
+		result.value = info.result;
+		ip.value = info.ip;
 	});
 }
 

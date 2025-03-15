@@ -23,6 +23,7 @@ import { SigninService } from './SigninService.js';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { RoleService } from '@/core/RoleService.js';
 import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
+import { uuidv7 } from "uuidv7";
 
 @Injectable()
 export class SignupApiService {
@@ -136,7 +137,7 @@ export class SignupApiService {
 		const emailAddress = body['emailAddress'];
 
 		if (this.meta.emailRequiredForSignup) {
-			if (emailAddress == null || typeof emailAddress !== 'string') {
+			if (emailAddress == null || typeof emailAddress !== 'string' || emailAddress === (await this.userProfilesRepository.findOneBy({ email: emailAddress, emailVerified: true }))?.email) {
 				reply.code(400);
 				return;
 			}
@@ -200,7 +201,7 @@ export class SignupApiService {
 			throw new FastifyReplyError(400, 'DUPLICATED_USERNAME');
 		}
 
-		if (await this.userPendingsRepository.exists({ where: { username: username.toLowerCase() } })) {
+		if (await this.userPendingsRepository.exists({ where: { username: username.toLowerCase(), isProcessed: false } })) {
 			throw new FastifyReplyError(400, 'TEMP_DUPLICATED_USERNAME');
 		}
 
@@ -214,7 +215,7 @@ export class SignupApiService {
 			throw new FastifyReplyError(400, 'DENIED_USERNAME');
 		}
 
-		const code = secureRndstr(16, { chars: L_CHARS });
+		const code = uuidv7() + secureRndstr(16, { chars: L_CHARS });
 
 		// Generate hash of password
 		const salt = await bcrypt.genSalt(8);
@@ -227,6 +228,8 @@ export class SignupApiService {
 			username: username,
 			password: hash,
 			reason: reason,
+			isProcessed: false,
+			ip,
 		});
 
 		if (this.meta.emailRequiredForSignup && pendingUser.email) {
@@ -397,9 +400,7 @@ export class SignupApiService {
 				approved: true,
 			});
 
-			this.userPendingsRepository.delete({
-				id: pendingUser.id,
-			});
+			this.userPendingsRepository.update({ id: pendingUser.id }, { isProcessed: true, result: "Approved" });
 
 			const profile = await this.userProfilesRepository.findOneByOrFail({ userId: account.id });
 

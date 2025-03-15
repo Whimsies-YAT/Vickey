@@ -46,7 +46,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private emailTemplatesService: EmailTemplatesService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const pendingUser = await this.userPendingsRepository.findOneByOrFail({ id: ps.userId });
+			const pendingUser = await this.userPendingsRepository.findOneByOrFail({ id: ps.userId, isProcessed: false });
 
 			const { account, secret } = await this.signupService.signup({
 				username: pendingUser.username,
@@ -63,27 +63,23 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			const profile = await this.userProfilesRepository.findOneBy({ userId: account.id });
 			if (pendingUser.email && pendingUser.emailVerified) {
-				await this.userProfilesRepository.update({ userId: profile?.userId }, {
+				this.userProfilesRepository.update({ userId: profile?.userId }, {
 					email: pendingUser.email,
 					emailVerified: true,
 					emailVerifyCode: null,
 				});
 			}
 
-			console.log(profile);
-
 			if (pendingUser.email && pendingUser.emailVerified) {
 				const result = await this.emailTemplatesService.sendEmailWithTemplates(pendingUser.email, 'accountApproved');
 				if (!result) {
-					await this.emailService.sendEmail(pendingUser.email, 'Account Approved',
+					this.emailService.sendEmail(pendingUser.email, 'Account Approved',
 						'Your Account has been approved. Have fun socializing!',
 						'Your Account has been approved. Have fun socializing!');
 				}
 			}
 
-			await this.userPendingsRepository.delete({
-				id: pendingUser.id,
-			});
+			this.userPendingsRepository.update({ id: pendingUser.id }, { isProcessed: true, result: "Approved" });
 
 			this.moderationLogService.log(me, 'approve', {
 				userId: user.id,

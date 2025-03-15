@@ -86,6 +86,7 @@ misskeyApi('admin/show-pendings', {
 		sort: '+createdAt',
 	})),
 	limit: 1,
+	noProcessed: true,
 }).then(approvals => {
 	if (approvals.length > 0) pendingUserApprovals.value = true;
 });
