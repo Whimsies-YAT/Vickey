@@ -330,7 +330,6 @@ export class IP2LocationService {
 		return exists === 1;
 	}
 
-
 	private async extractAndRenameBinFile(zipFilePath: string, outputDir: string, newFileName: string): Promise<void> {
 		try {
 			const zipBuffer = await fs.promises.readFile(zipFilePath);
