@@ -214,11 +214,6 @@ rt {
 	text-overflow: ellipsis;
 }
 
-._ghost {
-	@extend ._noSelect;
-	pointer-events: none;
-}
-
 ._modalBg {
 	position: fixed;
 	top: 0;
@@ -439,6 +434,10 @@ rt {
 
 ._link {
 	color: var(--MI_THEME-link);
+}
+
+._love {
+	color: var(--MI_THEME-love);
 }
 
 ._caption {
