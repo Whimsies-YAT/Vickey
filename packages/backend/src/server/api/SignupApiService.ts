@@ -137,7 +137,7 @@ export class SignupApiService {
 		const emailAddress = body['emailAddress'];
 
 		if (this.meta.emailRequiredForSignup) {
-			if (emailAddress == null || typeof emailAddress !== 'string' || emailAddress === (await this.userProfilesRepository.findOneBy({ email: emailAddress, emailVerified: true }))?.email || emailAddress === (await this.userPendingsRepository.findOneBy({ email: emailAddress, emailVerified: true }))?.email) {
+			if (emailAddress == null || typeof emailAddress !== 'string' || emailAddress === (await this.userProfilesRepository.findOneBy({ email: emailAddress, emailVerified: true }))?.email || emailAddress === (await this.userPendingsRepository.findOneBy({ email: emailAddress, emailVerified: true, isProcessed: false }))?.email) {
 				reply.code(400);
 				return;
 			}
