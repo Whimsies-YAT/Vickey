@@ -19,6 +19,7 @@ import { IP2Location, IPTools } from 'ip2location-nodejs';
 import is_ip_private from 'private-ip';
 import { IP2Proxy } from 'ip2proxy-nodejs';
 import * as Redis from 'ioredis';
+import * as console from "node:console";
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
@@ -166,9 +167,9 @@ export class IP2LocationService {
 			return data;
 		};
 
+		const data = await transformData(await this.getIPProxyDetails(ip));
 		if (result === 'load_required') {
 			try {
-				const data = transformData(await this.getIPProxyDetails(ip));
 				const jsonData = JSON.stringify(data);
 
 				await this.redisClient
@@ -200,7 +201,7 @@ export class IP2LocationService {
 			}
 		}
 
-		return transformData(await this.getIPProxyDetails(ip));
+		return data;
 	}
 
 	@bindThis
@@ -290,7 +291,7 @@ export class IP2LocationService {
 				let responseData: string;
 				try {
 					const response = await this.httpRequestService.send('https://check.torproject.org/exit-addresses', { timeout: 30000 });
-					responseData = String(response.body);
+					responseData = await response.text();
 				} catch (error) {
 					responseData = '';
 				}
