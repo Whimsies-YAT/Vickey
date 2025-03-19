@@ -31,7 +31,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { onMounted, shallowRef, ref } from 'vue';
+import { onMounted, useTemplateRef, ref } from 'vue';
 import * as Misskey from 'misskey-js';
 import Cropper from 'cropperjs';
 import tinycolor from 'tinycolor2';
@@ -55,9 +55,9 @@ const props = defineProps<{
 	uploadFolder?: string | null;
 }>();
 
-const imgUrl = getProxiedImageUrl(props.file.url, undefined, true).replace(/^https?:\/\/[^/]+/, location.origin);
-const dialogEl = shallowRef<InstanceType<typeof MkModalWindow>>();
-const imgEl = shallowRef<HTMLImageElement>();
+const imgUrl = getProxiedImageUrl(props.file.url, undefined, true).replace(/^https?:\/\/[^/]+/, location.origin);;
+const dialogEl = useTemplateRef('dialogEl');
+const imgEl = useTemplateRef('imgEl');
 let cropper: Cropper | null = null;
 const loading = ref(true);
 
