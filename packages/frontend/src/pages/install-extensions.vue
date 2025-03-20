@@ -4,9 +4,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<MkStickyContainer>
-	<template #header><MkPageHeader :actions="headerActions" :tabs="headerTabs"/></template>
-	<MkSpacer :contentMax="550">
+<PageWithAnimBg>
+	<MkSpacer :contentMax="550" :marginMax="50">
 		<MkLoading v-if="uiPhase === 'fetching'"/>
 		<MkExtensionInstaller v-else-if="uiPhase === 'confirm' && data" :extension="data" @confirm="install()" @cancel="close_()">
 			<template #additionalInfo>
@@ -38,7 +37,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 		</div>
 	</MkSpacer>
-</MkStickyContainer>
+</PageWithAnimBg>
 </template>
 
 <script lang="ts" setup>
@@ -231,10 +230,6 @@ const urlParams = new URLSearchParams(window.location.search);
 url.value = urlParams.get('url');
 hash.value = urlParams.get('hash');
 fetch();
-
-const headerActions = computed(() => []);
-
-const headerTabs = computed(() => []);
 
 definePage(() => ({
 	title: i18n.ts._externalResourceInstaller.title,
