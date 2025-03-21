@@ -55,7 +55,7 @@ const props = defineProps<{
 	uploadFolder?: string | null;
 }>();
 
-const imgUrl = getProxiedImageUrl(props.file.url, undefined, true).replace(/^https?:\/\/[^/]+/, location.origin);;
+const imgUrl = getProxiedImageUrl(props.file.url, undefined, true).replace(/^https?:\/\/[^/]+/, window.location.origin);
 const dialogEl = useTemplateRef('dialogEl');
 const imgEl = useTemplateRef('imgEl');
 let cropper: Cropper | null = null;
@@ -63,12 +63,12 @@ const loading = ref(true);
 
 const ok = async () => {
 	const promise = new Promise<Misskey.entities.DriveFile>(async (res) => {
-		const croppedImage = await cropper?.getCropperImage();
-		const croppedSection = await cropper?.getCropperSelection();
+		const croppedImage = (await cropper?.getCropperImage()) ?? null;
+		const croppedSection = (await cropper?.getCropperSelection()) ?? null;
 
 		// 拡大率を計算し、(ほぼ)元の大きさに戻す
-		const zoomedRate = croppedImage.getBoundingClientRect().width / croppedImage.clientWidth;
-		const widthToRender = croppedSection.getBoundingClientRect().width / zoomedRate;
+		const zoomedRate = croppedImage ? (croppedImage.getBoundingClientRect().width ?? 0) / (croppedImage.clientWidth ?? 0) : 0;
+		const widthToRender = croppedSection?.getBoundingClientRect().width ?? 0 / zoomedRate;
 
 		const croppedCanvas = await croppedSection?.$toCanvas({ width: widthToRender });
 		croppedCanvas?.toBlob(blob => {
