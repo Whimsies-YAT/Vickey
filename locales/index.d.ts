@@ -9944,6 +9944,10 @@ export interface Locale extends ILocale {
          */
         "roleAssigned": string;
         /**
+         * チャットルームへ招待されました
+         */
+        "chatRoomInvitationReceived": string;
+        /**
          * プッシュ通知の更新をしました
          */
         "emptyPushNotificationMessage": string;
@@ -10052,6 +10056,10 @@ export interface Locale extends ILocale {
              * ロールが付与された
              */
             "roleAssigned": string;
+            /**
+             * チャットルームへ招待された
+             */
+            "chatRoomInvitationReceived": string;
             /**
              * 実績の獲得
              */
@@ -10585,6 +10593,10 @@ export interface Locale extends ILocale {
          * ギャラリーの投稿を削除
          */
         "deleteGalleryPost": string;
+        /**
+         * チャットルームを削除
+         */
+        "deleteChatRoom": string;
         /**
          * プロキシアカウントの説明を更新
          */

@@ -14,9 +14,10 @@ import type {
 	ReversiGameDetailed,
 	SystemWebhook,
 	UserLite,
+	ChatRoom,
 } from './autogen/models.js';
 
-export const notificationTypes = ['note', 'follow', 'mention', 'reply', 'renote', 'quote', 'reaction', 'pollVote', 'pollEnded', 'receiveFollowRequest', 'followRequestAccepted', 'groupInvited', 'app', 'roleAssigned', 'achievementEarned'] as const;
+export const notificationTypes = ['note', 'follow', 'mention', 'reply', 'renote', 'quote', 'reaction', 'pollVote', 'pollEnded', 'receiveFollowRequest', 'followRequestAccepted', 'groupInvited', 'app', 'roleAssigned', 'chatRoomInvitationReceived', 'achievementEarned'] as const;
 
 export const noteVisibilities = ['public', 'home', 'followers', 'specified'] as const;
 
@@ -173,6 +174,7 @@ export const moderationLogTypes = [
 	'deletePage',
 	'deleteFlash',
 	'deleteGalleryPost',
+	'deleteChatRoom',
 ] as const;
 
 // See: packages/backend/src/core/ReversiService.ts@L410
@@ -454,5 +456,9 @@ export type ModerationLogPayloads = {
 		postUserId: string;
 		postUserUsername: string;
 		post: GalleryPost;
+	};
+	deleteChatRoom: {
+		roomId: string;
+		room: ChatRoom;
 	};
 };
