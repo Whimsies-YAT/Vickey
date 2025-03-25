@@ -8928,6 +8928,14 @@ export interface Locale extends ILocale {
          */
         "write:report-abuse": string;
         /**
+         * チャットを操作する
+         */
+        "write:chat": string;
+        /**
+         * チャットを閲覧する
+         */
+        "read:chat": string;
+        /**
          * Approve registration application
          */
         "write:admin:approve-account": string;
@@ -8955,14 +8963,6 @@ export interface Locale extends ILocale {
          * View automated results of reports
          */
         "read:admin:abuse-report:auto-processed": string;
-        /**
-         * チャットを操作する
-         */
-        "write:chat": string;
-        /**
-         * チャットを閲覧する
-         */
-        "read:chat": string;
     };
     "_auth": {
         /**
