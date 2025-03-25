@@ -22,7 +22,7 @@ export class SnowfallEffect {
 
 		void main() {
 			v_color = a_color;
-			v_rotation = a_rotation.x + (u_time * u_spin_factor) * a_rotation.y;
+			v_rotation = mod(a_rotation.x + (u_time * u_spin_factor) * a_rotation.y, 6.283185307179586);
 
 			vec3 pos = a_position.xyz;
 
@@ -420,9 +420,9 @@ export class SnowfallEffect {
 		const { gl } = this;
 
 		gl.enable(gl.BLEND);
-		gl.enable(gl.CULL_FACE);
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 		gl.disable(gl.DEPTH_TEST);
+		gl.disable(gl.CULL_FACE);
 
 		this.updateBuffers();
 		this.updateUniforms();
@@ -452,7 +452,7 @@ export class SnowfallEffect {
 		gl.viewport(0, 0, vw * dpi, vh * dpi);
 		gl.clearColor(0, 0, 0, 0);
 
-		if (updateSnowflakes === true) {
+		if (updateSnowflakes) {
 			this.initSnowflakes(vw, vh, dpi);
 		}
 
@@ -461,8 +461,17 @@ export class SnowfallEffect {
 
 	private update(timestamp: number) {
 		const { gl, buffers, wind } = this;
-		const elapsed = (timestamp - this.time.start) * this.speed;
-		const delta = timestamp - this.time.previous;
+		const elapsed = (timestamp * this.speed) % 100000;
+		this.setUniform('time', elapsed);
+
+		if (timestamp - this.time.start > 60000) {
+			this.initSnowflakes(
+				this.canvas.offsetWidth,
+				this.canvas.offsetHeight,
+				window.devicePixelRatio
+			);
+			this.time.start = timestamp;
+		}
 
 		gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.drawArrays(
@@ -478,7 +487,7 @@ export class SnowfallEffect {
 		}
 
 		wind.force += (wind.target - wind.force) * wind.easing;
-		wind.current += wind.force * (delta * 0.2);
+		wind.current += wind.force * (timestamp - this.time.previous) * 0.2;
 
 		this.setUniform('wind', wind.current);
 		this.setUniform('time', elapsed);
