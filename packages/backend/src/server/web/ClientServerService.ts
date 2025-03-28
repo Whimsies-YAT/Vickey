@@ -31,6 +31,7 @@ import type {
 	UserWebhookDeliverQueue,
 	SystemWebhookDeliverQueue,
 } from '@/core/QueueModule.js';
+import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { PageEntityService } from '@/core/entities/PageEntityService.js';
@@ -116,6 +117,7 @@ export class ClientServerService {
 		private announcementsRepository: AnnouncementsRepository,
 
 		private flashEntityService: FlashEntityService,
+		private driveFileEntityService: DriveFileEntityService,
 		private userEntityService: UserEntityService,
 		private noteEntityService: NoteEntityService,
 		private pageEntityService: PageEntityService,
@@ -535,7 +537,7 @@ export class ClientServerService {
 
 				return await reply.view('user', {
 					user, profile, me,
-					avatarUrl: user.avatarUrl ?? this.userEntityService.getIdenticonUrl(user),
+					avatarUrl: user.avatarUrl ? this.driveFileEntityService.getProxiedUrl(user.avatarUrl, 'avatar') : this.userEntityService.getIdenticonUrl(user),
 					sub: request.params.sub,
 					...await this.generateCommonPugData(this.meta),
 					clientCtx: htmlSafeJsonStringify({
@@ -589,7 +591,7 @@ export class ClientServerService {
 				return await reply.view('note', {
 					note: _note,
 					profile,
-					avatarUrl: _note.user.avatarUrl,
+					avatarUrl: _note.user.avatarUrl ? this.driveFileEntityService.getProxiedUrl(_note.user.avatarUrl) : null,
 					// TODO: Let locale changeable by instance setting
 					summary: getNoteSummary(_note),
 					...await this.generateCommonPugData(this.meta),
@@ -632,7 +634,7 @@ export class ClientServerService {
 				return await reply.view('page', {
 					page: _page,
 					profile,
-					avatarUrl: _page.user.avatarUrl,
+					avatarUrl: _page.user.avatarUrl ? this.driveFileEntityService.getProxiedUrl(_page.user.avatarUrl) : null,
 					...await this.generateCommonPugData(this.meta),
 				});
 			} else {
@@ -657,7 +659,7 @@ export class ClientServerService {
 				return await reply.view('flash', {
 					flash: _flash,
 					profile,
-					avatarUrl: _flash.user.avatarUrl,
+					avatarUrl: _flash.user.avatarUrl ? this.driveFileEntityService.getProxiedUrl(_flash.user.avatarUrl) : null,
 					...await this.generateCommonPugData(this.meta),
 				});
 			} else {
@@ -682,7 +684,7 @@ export class ClientServerService {
 				return await reply.view('clip', {
 					clip: _clip,
 					profile,
-					avatarUrl: _clip.user.avatarUrl,
+					avatarUrl: _clip.user.avatarUrl ? this.driveFileEntityService.getProxiedUrl(_clip.user.avatarUrl) : null,
 					...await this.generateCommonPugData(this.meta),
 					clientCtx: htmlSafeJsonStringify({
 						clip: _clip,
@@ -708,7 +710,7 @@ export class ClientServerService {
 				return await reply.view('gallery-post', {
 					post: _post,
 					profile,
-					avatarUrl: _post.user.avatarUrl,
+					avatarUrl: _post.user.avatarUrl ? this.driveFileEntityService.getProxiedUrl(_post.user.avatarUrl) : null,
 					...await this.generateCommonPugData(this.meta),
 				});
 			} else {

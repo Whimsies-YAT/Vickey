@@ -11,6 +11,7 @@ import { type AbuseReportPayload, SystemWebhookPayload, SystemWebhookService } f
 import { type Packed } from '@/misc/json-schema.js';
 import { type WebhookEventTypes } from '@/models/Webhook.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
+import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import { type UserWebhookPayload, UserWebhookService } from '@/core/UserWebhookService.js';
 import { QueueService } from '@/core/QueueService.js';
 import { ModeratorInactivityRemainingTime } from '@/queue/processors/CheckModeratorsActivityProcessorService.js';
@@ -145,6 +146,7 @@ export class WebhookTestService {
 
 	constructor(
 		private customEmojiService: CustomEmojiService,
+		private driveFileEntityService: DriveFileEntityService,
 		private userWebhookService: UserWebhookService,
 		private systemWebhookService: SystemWebhookService,
 		private queueService: QueueService,
@@ -423,7 +425,7 @@ export class WebhookTestService {
 			name: user.name,
 			username: user.username,
 			host: user.host,
-			avatarUrl: user.avatarUrl,
+			avatarUrl: user.avatarUrl ? this.driveFileEntityService.getProxiedUrl(user.avatarUrl, 'avatar') : null,
 			avatarBlurhash: user.avatarBlurhash,
 			avatarDecorations: user.avatarDecorations.map(it => ({
 				id: it.id,
@@ -453,7 +455,8 @@ export class WebhookTestService {
 			createdAt: new Date().toISOString(),
 			updatedAt: user.updatedAt?.toISOString() ?? null,
 			lastFetchedAt: user.lastFetchedAt?.toISOString() ?? null,
-			bannerUrl: user.bannerUrl,
+			canChat: false,
+			bannerUrl: user.bannerUrl ? this.driveFileEntityService.getProxiedUrl(user.bannerUrl) : null,
 			bannerBlurhash: user.bannerBlurhash,
 			isLocked: user.isLocked,
 			isSilenced: false,

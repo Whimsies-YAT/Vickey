@@ -366,7 +366,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				if (!avatar.type.startsWith('image/')) throw new ApiError(meta.errors.avatarNotAnImage);
 
 				updates.avatarId = avatar.id;
-				updates.avatarUrl = this.driveFileEntityService.getPublicUrl(avatar, 'avatar');
+				updates.avatarUrl = this.driveFileEntityService.getPublicUrl(avatar, 'avatar', true);
 				updates.avatarBlurhash = avatar.blurhash;
 			} else if (ps.avatarId === null) {
 				updates.avatarId = null;
@@ -384,7 +384,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				if (!banner.type.startsWith('image/')) throw new ApiError(meta.errors.bannerNotAnImage);
 
 				updates.bannerId = banner.id;
-				updates.bannerUrl = this.driveFileEntityService.getPublicUrl(banner);
+				updates.bannerUrl = this.driveFileEntityService.getPublicUrl(banner, undefined, true);
 				updates.bannerBlurhash = banner.blurhash;
 			} else if (ps.bannerId === null) {
 				updates.bannerId = null;
