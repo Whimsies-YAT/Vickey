@@ -91,7 +91,6 @@ export class DriveFileEntityService {
 		return this.getProxiedUrlPrivate(url, mode);
 	}
 
-
 	@bindThis
 	public getThumbnailUrl(file: MiDriveFile): string | null {
 		if (file.type.startsWith('video')) {
