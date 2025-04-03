@@ -2,58 +2,59 @@
  * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
+
 export class AvatarBannerFixup1743129826143 {
     name = 'AvatarBannerFixup1743129826143'
 
     async up(queryRunner) {
-			await queryRunner.query(`CREATE OR REPLACE FUNCTION url_decode(input TEXT) RETURNS TEXT AS $$
-				DECLARE
-    			result TEXT := '';
-			    i INT := 1;
-    			len INT := length(input);
-    			hex TEXT;
-    			decoded_char CHAR(1);
-				BEGIN
-    			WHILE i <= len LOOP
-      			IF substring(input FROM i FOR 1) = '%' AND i + 2 <= len THEN
-          	  hex := substring(input FROM i + 1 FOR 2);
-          	  decoded_char := chr(('x' || hex)::bit(8)::int);
-            	result := result || decoded_char;
-            	i := i + 3;
-        		ELSE
-          	  result := result || substring(input FROM i FOR 1);
-            	i := i + 1;
-        		END IF;
-    			END LOOP;
-    			RETURN result;
-				EXCEPTION
-    			WHEN others THEN
-        	RETURN input;
-				END;
-				$$ LANGUAGE plpgsql IMMUTABLE;`)
-			await queryRunner.query(`UPDATE "user"
-        SET "avatarUrl" =
-            CASE
-                WHEN "avatarUrl" LIKE '%url=%' THEN
-									url_decode(
-										substring("avatarUrl" FROM 'url=([^&]+)')
-									)
-                ELSE "avatarUrl"
-            END
-        WHERE "avatarUrl" LIKE '%url=%';
-    `);
-			await queryRunner.query(`UPDATE "user"
-        SET "bannerUrl" =
-            CASE
-                WHEN "bannerUrl" LIKE '%url=%' THEN
-									url_decode(
-										substring("bannerUrl" FROM 'url=([^&]+)')
-									)
-                ELSE "bannerUrl"
-            END
-        WHERE "bannerUrl" LIKE '%url=%';
-    `);
-		}
+        const batchSize = 1000;
+        let lastId = 0;
+
+        while (true) {
+            const users = await queryRunner.query(
+                `SELECT id, "avatarUrl", "bannerUrl" FROM "user"
+                 WHERE id > $1
+                   AND ("avatarUrl" LIKE '%url=%' OR "bannerUrl" LIKE '%url=%')
+                 ORDER BY id ASC
+                 LIMIT ${batchSize}`,
+                [lastId]
+            );
+
+            if (users.length === 0) {
+                break;
+            }
+
+            for (const user of users) {
+                let newAvatar = this.processUrl(user.avatarUrl);
+                let newBanner = this.processUrl(user.bannerUrl);
+
+                if (newAvatar !== user.avatarUrl || newBanner !== user.bannerUrl) {
+                    await queryRunner.query(
+                        `UPDATE "user"
+                         SET "avatarUrl" = $1,
+                             "bannerUrl" = $2
+                         WHERE id = $3`,
+                        [newAvatar, newBanner, user.id]
+                    );
+                }
+            }
+
+            lastId = users[users.length - 1].id;
+        }
+    }
+
+    processUrl(url) {
+        if (!url?.includes('url=')) return url;
+
+        const match = url.match(/url=([^&]+)/i);
+        if (!match) return url;
+
+        try {
+            return decodeURIComponent(match[1]);
+        } catch {
+            return url;
+        }
+    }
 
     async down(queryRunner) {
         // fixup migration, no down migration
