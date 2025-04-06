@@ -1,8 +1,4 @@
-0: <<<<<<< HEAD
-_lang_: "简体中文"
-1: '======='
 result: "Result"
-2: '>>>>>>> d84d277669a6ce3a63aa5456e617285f22932a06'
 flagAsVI: "需要自动 TTS 功能。"
 flagAsVIDescription: "如果需要自动 TTS 功能，请启用此选项。如果您属于授权用户组，自动 TTS 功能将在特定范围内激活。"
 _role:
