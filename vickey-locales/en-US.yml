@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-_lang_: "English"
-=======
 result: "Result"
->>>>>>> d84d277669a6ce3a63aa5456e617285f22932a06
 flagAsVI: "Automatic TTS feature needed."
 flagAsVIDescription: "Enable this if you need the automatic TTS feature. If you belong to an authorized user group, the automatic TTS feature will be activated within a specific scope."
 _role:
