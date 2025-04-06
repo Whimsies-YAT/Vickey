@@ -7,7 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import ms from 'ms';
 import bcrypt from 'bcryptjs';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { MiMeta, UserProfilesRepository } from '@/models/_.js';
+import type { MiMeta, UserProfilesRepository, UserPendingsRepository } from '@/models/_.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { EmailService } from '@/core/EmailService.js';
 import type { Config } from '@/config.js';
@@ -73,6 +73,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.meta)
 		private serverSettings: MiMeta,
 
+		@Inject(DI.userPendingsRepository)
+		private userPendingsRepository: UserPendingsRepository,
+
 		@Inject(DI.userProfilesRepository)
 		private userProfilesRepository: UserProfilesRepository,
 
@@ -111,6 +114,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			} else if (this.serverSettings.emailRequiredForSignup) {
 				throw new ApiError(meta.errors.emailRequired);
 			}
+
+			if (ps.email && ps.email === (await this.userProfilesRepository.findOneBy({ email: ps.email, emailVerified: true }))?.email) throw new ApiError(meta.errors.unavailable);
+			if (ps.email && ps.email === (await this.userPendingsRepository.findOneBy({ email: ps.email, emailVerified: true, isProcessed: false }))?.email) throw new ApiError(meta.errors.unavailable);
 
 			await this.userProfilesRepository.update(me.id, {
 				email: ps.email,

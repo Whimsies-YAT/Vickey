@@ -136,7 +136,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<template #label>{{ i18n.ts._abuseReportAutoProcessing.enable }}</template>
 							</MkSwitch>
 							<div v-if="abuseMLCheck">
-								<span>{{ i18n.ts._sensitiveMediaDetection.description }}</span>
+								<span>{{ i18n.ts._abuseReportAutoProcessing.description }}</span>
 								<MkRadios v-model="abuseReportMLAction">
 									<option value="record">{{ i18n.ts._abuseReportAutoProcessing.record }}</option>
 									<option value="ignore">{{ i18n.ts._abuseReportAutoProcessing.ignore }} ({{i18n.ts.recommended}})</option>
@@ -170,10 +170,10 @@ import MkInput from '@/components/MkInput.vue';
 import MkTextarea from '@/components/MkTextarea.vue';
 import FormSuspense from '@/components/form/suspense.vue';
 import * as os from '@/os.js';
-import { misskeyApi } from '@/scripts/misskey-api.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
 import { fetchInstance } from '@/instance.js';
 import { i18n } from '@/i18n.js';
-import { definePageMetadata } from '@/scripts/page-metadata.js';
+import { definePage } from '@/page.js';
 import MkButton from '@/components/MkButton.vue';
 import FormLink from '@/components/form/link.vue';
 import MkFolder from '@/components/MkFolder.vue';
@@ -328,7 +328,7 @@ function save_abuseReportAutoProcessing() {
 
 const headerTabs = computed(() => []);
 
-definePageMetadata(() => ({
+definePage(() => ({
 	title: i18n.ts.moderation,
 	icon: 'ti ti-shield',
 }));

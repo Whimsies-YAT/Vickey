@@ -32,7 +32,6 @@ import type {
 	MiUserNotePining,
 	MiUserProfile,
 	MutingsRepository,
-	NoteUnreadsRepository,
 	RenoteMutingsRepository,
 	UserMemoRepository,
 	UserNotePiningsRepository,
@@ -43,14 +42,15 @@ import type {
 import { bindThis } from '@/decorators.js';
 import { RoleService } from '@/core/RoleService.js';
 import { ApPersonService } from '@/core/activitypub/models/ApPersonService.js';
+import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import { FederatedInstanceService } from '@/core/FederatedInstanceService.js';
 import { IdService } from '@/core/IdService.js';
 import type { AnnouncementService } from '@/core/AnnouncementService.js';
 import type { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
+import { ChatService } from '@/core/ChatService.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { NoteEntityService } from './NoteEntityService.js';
-import type { DriveFileEntityService } from './DriveFileEntityService.js';
 import type { PageEntityService } from './PageEntityService.js';
 
 const Ajv = _Ajv.default;
@@ -86,6 +86,7 @@ export type UserRelation = {
 @Injectable()
 export class UserEntityService implements OnModuleInit {
 	private apPersonService: ApPersonService;
+	private driveFileEntityService: DriveFileEntityService;
 	private noteEntityService: NoteEntityService;
 	private pageEntityService: PageEntityService;
 	private customEmojiService: CustomEmojiService;
@@ -94,6 +95,7 @@ export class UserEntityService implements OnModuleInit {
 	private federatedInstanceService: FederatedInstanceService;
 	private idService: IdService;
 	private avatarDecorationService: AvatarDecorationService;
+	private chatService: ChatService;
 
 	constructor(
 		private moduleRef: ModuleRef,
@@ -128,9 +130,6 @@ export class UserEntityService implements OnModuleInit {
 		@Inject(DI.renoteMutingsRepository)
 		private renoteMutingsRepository: RenoteMutingsRepository,
 
-		@Inject(DI.noteUnreadsRepository)
-		private noteUnreadsRepository: NoteUnreadsRepository,
-
 		@Inject(DI.userNotePiningsRepository)
 		private userNotePiningsRepository: UserNotePiningsRepository,
 
@@ -144,6 +143,7 @@ export class UserEntityService implements OnModuleInit {
 
 	onModuleInit() {
 		this.apPersonService = this.moduleRef.get('ApPersonService');
+		this.driveFileEntityService = this.moduleRef.get('DriveFileEntityService');
 		this.noteEntityService = this.moduleRef.get('NoteEntityService');
 		this.pageEntityService = this.moduleRef.get('PageEntityService');
 		this.customEmojiService = this.moduleRef.get('CustomEmojiService');
@@ -152,6 +152,7 @@ export class UserEntityService implements OnModuleInit {
 		this.federatedInstanceService = this.moduleRef.get('FederatedInstanceService');
 		this.idService = this.moduleRef.get('IdService');
 		this.avatarDecorationService = this.moduleRef.get('AvatarDecorationService');
+		this.chatService = this.moduleRef.get('ChatService');
 	}
 
 	//#region Validators
@@ -379,7 +380,7 @@ export class UserEntityService implements OnModuleInit {
 
 		return ignoredCount < count;
 	}
-	
+
 	@bindThis
 	public getOnlineStatus(user: MiUser): 'unknown' | 'online' | 'active' | 'offline' {
 		if (user.hideOnlineStatus) return 'unknown';
@@ -497,7 +498,7 @@ export class UserEntityService implements OnModuleInit {
 			name: user.name,
 			username: user.username,
 			host: user.host,
-			avatarUrl: user.avatarUrl ?? this.getIdenticonUrl(user),
+			avatarUrl: user.avatarUrl ? (user.host === null ? user.avatarUrl : this.driveFileEntityService.getProxiedUrl(user.avatarUrl, 'avatar')) : this.getIdenticonUrl(user),
 			avatarBlurhash: user.avatarBlurhash,
 			avatarDecorations: user.avatarDecorations.length > 0 ? this.avatarDecorationService.getAll().then(decorations => user.avatarDecorations.filter(ud => decorations.some(d => d.id === ud.id)).map(ud => ({
 				id: ud.id,
@@ -545,7 +546,7 @@ export class UserEntityService implements OnModuleInit {
 				createdAt: this.idService.parse(user.id).date.toISOString(),
 				updatedAt: user.updatedAt ? user.updatedAt.toISOString() : null,
 				lastFetchedAt: user.lastFetchedAt ? user.lastFetchedAt.toISOString() : null,
-				bannerUrl: user.bannerUrl,
+				bannerUrl: user.bannerUrl ? (user.host === null ? user.bannerUrl : this.driveFileEntityService.getProxiedUrl(user.bannerUrl)) : null,
 				bannerBlurhash: user.bannerBlurhash,
 				isLocked: user.isLocked,
 				isSilenced: this.roleService.getUserPolicies(user.id).then(r => !r.canPublicNote),
@@ -568,6 +569,8 @@ export class UserEntityService implements OnModuleInit {
 				publicReactions: this.isLocalUser(user) ? profile!.publicReactions : false, // https://github.com/misskey-dev/misskey/issues/12964
 				followersVisibility: profile!.followersVisibility,
 				followingVisibility: profile!.followingVisibility,
+				chatScope: user.chatScope,
+				canChat: this.roleService.getUserPolicies(user.id).then(r => r.canChat),
 				roles: this.roleService.getUserRoles(user.id).then(roles => roles.filter(role => role.isPublic).sort((a, b) => b.displayOrder - a.displayOrder).map(role => ({
 					id: role.id,
 					name: role.name,
@@ -609,14 +612,9 @@ export class UserEntityService implements OnModuleInit {
 				isDeleted: user.isDeleted,
 				twoFactorBackupCodesStock: profile?.twoFactorBackupSecret?.length === 5 ? 'full' : (profile?.twoFactorBackupSecret?.length ?? 0) > 0 ? 'partial' : 'none',
 				hideOnlineStatus: user.hideOnlineStatus,
-				hasUnreadSpecifiedNotes: this.noteUnreadsRepository.count({
-					where: { userId: user.id, isSpecified: true },
-					take: 1,
-				}).then(count => count > 0),
-				hasUnreadMentions: this.noteUnreadsRepository.count({
-					where: { userId: user.id, isMentioned: true },
-					take: 1,
-				}).then(count => count > 0),
+				hasUnreadSpecifiedNotes: false, // 後方互換性のため
+				hasUnreadMentions: false, // 後方互換性のため
+				hasUnreadChatMessages: this.chatService.hasUnreadMessages(user.id),
 				hasUnreadAnnouncement: unreadAnnouncements!.length > 0,
 				unreadAnnouncements,
 				hasUnreadAntenna: this.getHasUnreadAntenna(user.id),

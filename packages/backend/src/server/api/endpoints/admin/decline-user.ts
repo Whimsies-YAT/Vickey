@@ -63,25 +63,23 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				if (!reason) {
 					const result = await this.emailTemplatesService.sendEmailWithTemplates(pendingUser.email, 'accountDeclined');
 					if (!result) {
-						await this.emailService.sendEmail(pendingUser.email, 'Account declined',
+						this.emailService.sendEmail(pendingUser.email, 'Account declined',
 							'Your Account has been declined!',
 							'Your Account has been declined!');
 					}
 				} else {
 					const result = await this.emailTemplatesService.sendEmailWithTemplates(pendingUser.email, 'accountDeclinedWithReason', { reason });
 					if (!result) {
-						await this.emailService.sendEmail(pendingUser.email, 'Account declined',
-							`Your account has been declined due to: ${reason}`,
-							`Your account has been declined due to: ${reason}`);
+						this.emailService.sendEmail(pendingUser.email, 'Account declined',
+							`Your account has been declined due to: ${ reason }`,
+							`Your account has been declined due to: ${ reason }`);
 					}
 				}
 			}
 
 			const log_reason = reason ? reason : 'Reason not provided';
 
-			this.userPendingsRepository.delete({
-				id: pendingUser.id,
-			});
+			this.userPendingsRepository.update({ id: pendingUser.id }, { isProcessed: true, result: `Declined (${ log_reason })` });
 
 			this.moderationLogService.log(me, 'decline', {
 				userId: pendingUser.id,

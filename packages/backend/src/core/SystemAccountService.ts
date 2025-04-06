@@ -114,6 +114,7 @@ export class SystemAccountService {
 				isExplorable: false,
 				isBot: true,
 				name: extra.name,
+				approved: true,
 			}).then(x => transactionalEntityManager.findOneByOrFail(MiUser, x.identifiers[0]));
 
 			await transactionalEntityManager.insert(MiUserKeypair, {

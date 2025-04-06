@@ -74,14 +74,21 @@ export class DriveFileEntityService {
 	}
 
 	@bindThis
-	private getProxiedUrl(url: string, mode?: 'static' | 'avatar'): string {
+	private getProxiedUrlPrivate(url: string, mode?: 'static' | 'avatar'): string {
+		const modeType = mode || 'image';
 		return appendQuery(
-			`${this.config.mediaProxy}/${mode ?? 'image'}.webp`,
-			query({
-				url,
-				...(mode ? { [mode]: '1' } : {}),
-			}),
+			`${this.config.mediaProxy}/${modeType}.webp`,
+			query(mode ? { url, [mode]: '1' } : { url })
 		);
+	}
+
+	@bindThis
+	public getProxiedUrl(url: string, mode?: 'static' | 'avatar'): string {
+		if (!this.config.externalMediaProxyEnabled) {
+			return url;
+		}
+
+		return this.getProxiedUrlPrivate(url, mode);
 	}
 
 	@bindThis
@@ -92,14 +99,14 @@ export class DriveFileEntityService {
 			return this.videoProcessingService.getExternalVideoThumbnailUrl(file.webpublicUrl ?? file.url);
 		} else if (file.uri != null && file.userHost != null && this.config.externalMediaProxyEnabled) {
 			// 動画ではなくリモートかつメディアプロキシ
-			return this.getProxiedUrl(file.uri, 'static');
+			return this.getProxiedUrlPrivate(file.uri, 'static');
 		}
 
 		if (file.uri != null && file.isLink && this.config.proxyRemoteFiles) {
 			// リモートかつ期限切れはローカルプロキシを試みる
 			// 従来は/files/${thumbnailAccessKey}にアクセスしていたが、
 			// /filesはメディアプロキシにリダイレクトするようにしたため直接メディアプロキシを指定する
-			return this.getProxiedUrl(file.uri, 'static');
+			return this.getProxiedUrlPrivate(file.uri, 'static');
 		}
 
 		const url = file.webpublicUrl ?? file.url;
@@ -108,10 +115,10 @@ export class DriveFileEntityService {
 	}
 
 	@bindThis
-	public getPublicUrl(file: MiDriveFile, mode?: 'avatar'): string { // static = thumbnail
+	public getPublicUrl(file: MiDriveFile, mode?: 'avatar', bypassProxy?: boolean): string { // static = thumbnail
 		// リモートかつメディアプロキシ
-		if (file.uri != null && file.userHost != null && this.config.externalMediaProxyEnabled) {
-			return this.getProxiedUrl(file.uri, mode);
+		if (!bypassProxy && file.uri != null && file.userHost != null && this.config.externalMediaProxyEnabled) {
+			return this.getProxiedUrlPrivate(file.uri, mode);
 		}
 
 		// リモートかつ期限切れはローカルプロキシを試みる
@@ -120,15 +127,15 @@ export class DriveFileEntityService {
 
 			if (key && !key.match('/')) {	// 古いものはここにオブジェクトストレージキーが入ってるので除外
 				const url = `${this.config.url}/files/${key}`;
-				if (mode === 'avatar') return this.getProxiedUrl(file.uri, 'avatar');
+				if (!bypassProxy && mode === 'avatar') return this.getProxiedUrlPrivate(file.uri, 'avatar');
 				return url;
 			}
 		}
 
 		const url = file.webpublicUrl ?? file.url;
 
-		if (mode === 'avatar') {
-			return this.getProxiedUrl(url, 'avatar');
+		if (!bypassProxy && mode === 'avatar') {
+			return this.getProxiedUrlPrivate(url, 'avatar');
 		}
 		return url;
 	}

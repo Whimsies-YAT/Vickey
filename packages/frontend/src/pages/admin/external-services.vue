@@ -131,6 +131,21 @@ SPDX-License-Identifier: AGPL-3.0-only
 							  <MkButton primary @click="save_ra">Save</MkButton>
 						  </div>
 					  </MkFolder>
+
+				<MkFolder>
+					<template #label>Proxy Database</template>
+
+					<div class="_gaps_m">
+						<MkInput v-model="ip2lProxyAuthKey">
+							<template #prefix><i class="ti ti-key"></i></template>
+							<template #label>IP2Proxy Auth Key</template>
+						</MkInput>
+						<MkSwitch v-model="ip2lProxyIsPro">
+							<template #label>Pro</template>
+						</MkSwitch>
+						<MkButton primary @click="save_pd">Save</MkButton>
+					</div>
+				</MkFolder>
 			</div>
 		</FormSuspense>
     </MkSpacer>
@@ -146,10 +161,10 @@ import MkSelect from '@/components/MkSelect.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import FormSuspense from '@/components/form/suspense.vue';
 import * as os from '@/os.js';
-import { misskeyApi } from '@/scripts/misskey-api.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
 import { fetchInstance } from '@/instance.js';
 import { i18n } from '@/i18n.js';
-import { definePageMetadata } from '@/scripts/page-metadata.js';
+import { definePage } from '@/page.js';
 import MkFolder from '@/components/MkFolder.vue';
 import MkTextarea from "@/components/MkTextarea.vue";
 
@@ -172,6 +187,8 @@ const ip2lAuthKey = ref<string>('');
 const ip2lIsPro = ref<boolean>(false);
 const banCountry = ref<string>('');
 const exemptIP = ref<string>('');
+const ip2lProxyAuthKey = ref<string>('');
+const ip2lProxyIsPro = ref<boolean>(false);
 
 const googleAnalyticsMeasurementId = ref<string>('');
 
@@ -197,6 +214,8 @@ async function init() {
 	ip2lIsPro.value = meta.ip2lIsPro;
 	banCountry.value = meta.banCountry.join('\n');
 	exemptIP.value = meta.exemptIP.join('\n');
+	ip2lProxyAuthKey.value = meta.ip2lProxyAuthKey;
+	ip2lProxyIsPro.value = meta.ip2lProxyIsPro;
 }
 
 function save_deepl() {
@@ -250,6 +269,15 @@ function save_ra() {
 	});
 }
 
+function save_pd() {
+	os.apiWithDialog('admin/update-meta', {
+		ip2lProxyAuthKey: ip2lProxyAuthKey.value,
+		ip2lProxyIsPro: ip2lProxyIsPro.value,
+	}).then(() => {
+		fetchInstance(true);
+	});
+}
+
 function addRestrictedArea() {
 	const gdprRegions = [
 		'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR',
@@ -267,8 +295,8 @@ const headerActions = computed(() => []);
 
 const headerTabs = computed(() => []);
 
-definePageMetadata(() => ({
-    title: i18n.ts.externalServices,
-    icon: 'ti ti-link',
+definePage(() => ({
+	title: i18n.ts.externalServices,
+	icon: 'ti ti-link',
 }));
 </script>

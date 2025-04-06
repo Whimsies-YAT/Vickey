@@ -5,7 +5,7 @@
 
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { IsNull } from 'typeorm';
+import { Brackets, IsNull } from 'typeorm';
 import type { MiLocalUser, MiPartialLocalUser, MiPartialRemoteUser, MiRemoteUser, MiUser } from '@/models/User.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { QueueService } from '@/core/QueueService.js';
@@ -712,6 +712,17 @@ export class UserFollowingService implements OnModuleInit {
 
 		await this.followRequestsRepository.delete(request.id);
 		this.cacheService.userFollowingsCache.refresh(follower.id);
+
+		const beforeNotifications = await this.notificationService.getAllNotifications(followee.id);
+		for (const notification of beforeNotifications) {
+			if (
+				notification.data &&
+				notification.data.type === 'receiveFollowRequest' &&
+				notification.data.notifierId === follower.id
+			) {
+				await this.notificationService.deleteNotification(followee.id, notification.redisId);
+			}
+		}
 	}
 
 	/**
@@ -770,5 +781,31 @@ export class UserFollowingService implements OnModuleInit {
 			.select('following.followeeId')
 			.where('following.followerId = :followerId', { followerId: userId })
 			.getMany();
+	}
+
+	@bindThis
+	public isFollowing(followerId: MiUser['id'], followeeId: MiUser['id']) {
+		return this.followingsRepository.exists({
+			where: {
+				followerId,
+				followeeId,
+			},
+		});
+	}
+
+	@bindThis
+	public async isMutual(aUserId: MiUser['id'], bUserId: MiUser['id']) {
+		const count = await this.followingsRepository.createQueryBuilder('following')
+			.where(new Brackets(qb => {
+				qb.where('following.followerId = :aUserId', { aUserId })
+					.andWhere('following.followeeId = :bUserId', { bUserId });
+			}))
+			.orWhere(new Brackets(qb => {
+				qb.where('following.followerId = :bUserId', { bUserId })
+					.andWhere('following.followeeId = :aUserId', { aUserId });
+			}))
+			.getCount();
+
+		return count === 2;
 	}
 }

@@ -286,12 +286,12 @@ export class ApPersonService implements OnModuleInit {
 		return {
 			...( avatar ? {
 				avatarId: avatar.id,
-				avatarUrl: avatar.url ? this.driveFileEntityService.getPublicUrl(avatar, 'avatar') : null,
+				avatarUrl: avatar.url ? this.driveFileEntityService.getPublicUrl(avatar, 'avatar', true) : null,
 				avatarBlurhash: avatar.blurhash,
 			} : {}),
 			...( banner ? {
 				bannerId: banner.id,
-				bannerUrl: banner.url ? this.driveFileEntityService.getPublicUrl(banner) : null,
+				bannerUrl: banner.url ? this.driveFileEntityService.getPublicUrl(banner, undefined, true) : null,
 				bannerBlurhash: banner.blurhash,
 			} : {}),
 		};
@@ -561,7 +561,7 @@ export class ApPersonService implements OnModuleInit {
 			inbox: person.inbox,
 			sharedInbox: person.sharedInbox ?? person.endpoints?.sharedInbox ?? null,
 			followersUri: person.followers ? getApId(person.followers) : undefined,
-			featured: person.featured,
+			featured: person.featured ? getApId(person.featured) : undefined,
 			emojis: emojiNames,
 			name: truncate(person.name, nameLength),
 			tags,

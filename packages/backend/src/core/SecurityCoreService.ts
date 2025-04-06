@@ -51,4 +51,44 @@ export class SecurityCoreService {
 			});
 		});
 	}
+
+	@bindThis
+	public async checkContainer(): Promise<{ in_container: boolean; confidence: number }> {
+		const checker = process.cwd() + '/tools/detect';
+		return new Promise((resolve, reject) => {
+			if (!existsSync(checker)) {
+				console.log(`Checker not found, ignored.`);
+				return resolve({ in_container: false, confidence: 100 });
+			}
+
+			const newProcess = spawn(checker, ['--json']);
+			let output = '';
+
+			newProcess.stdout.on('data', (data: Buffer) => {
+				output += data.toString();
+			});
+
+			newProcess.stderr.on('data', (data: Buffer) => {
+				console.error('Binary stderr:', data.toString());
+			});
+
+			newProcess.on('close', (code: number) => {
+				if (code !== 0) {
+					return reject(new Error(`Binary process exited with code ${code}`));
+				}
+				try {
+					const parsed = JSON.parse(output);
+					const in_container = Boolean(parsed.in_container);
+					const confidence = Number(parsed.confidence);
+					resolve({ in_container, confidence });
+				} catch (e) {
+					reject(new Error(`Failed to parse JSON output: ${e}`));
+				}
+			});
+
+			newProcess.on('error', (err) => {
+				reject(err);
+			});
+		});
+	}
 }

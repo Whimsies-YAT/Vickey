@@ -34,6 +34,7 @@ export const paramDef = {
 		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
 		offset: { type: 'integer', default: 0 },
 		sort: { type: 'string', enum: ['+createdAt', '-createdAt'] },
+		noProcessed: { type: 'boolean', default: false },
 	},
 	required: [],
 } as const;
@@ -52,10 +53,23 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		super(meta, paramDef, async (ps) => {
 			const query = this.userPendingsRepository.createQueryBuilder('user_pending');
 
+			if (ps.noProcessed) {
+				query.andWhere("user_pending.isProcessed = false");
+			}
+
 			switch (ps.sort) {
-				case '+createdAt': query.orderBy('user_pending.id', 'DESC'); break;
-				case '-createdAt': query.orderBy('user_pending.id', 'ASC'); break;
-				default: query.orderBy('user_pending.id', 'ASC'); break;
+				case '+createdAt':
+					query.orderBy("CASE WHEN user_pending.isProcessed THEN 1 ELSE 0 END", "ASC");
+					query.addOrderBy("user_pending.id", "DESC");
+					break;
+				case '-createdAt':
+					query.orderBy("CASE WHEN user_pending.isProcessed THEN 1 ELSE 0 END", "ASC");
+					query.addOrderBy("user_pending.id", "ASC");
+					break;
+				default:
+					query.orderBy("CASE WHEN user_pending.isProcessed THEN 1 ELSE 0 END", "ASC");
+					query.addOrderBy("user_pending.id", "ASC");
+					break;
 			}
 
 			query.limit(ps.limit);

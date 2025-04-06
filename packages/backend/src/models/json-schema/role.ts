@@ -296,6 +296,10 @@ export const packedRolePoliciesSchema = {
 			type: 'boolean',
 			optional: false, nullable: false,
 		},
+		canChat: {
+			type: 'boolean',
+			optional: false, nullable: false,
+		},
 	},
 } as const;
 
@@ -385,6 +389,11 @@ export const packedRoleSchema = {
 					example: false,
 				},
 				asBadge: {
+					type: 'boolean',
+					optional: false, nullable: false,
+					example: false,
+				},
+				preserveAssignmentOnMoveAccount: {
 					type: 'boolean',
 					optional: false, nullable: false,
 					example: false,

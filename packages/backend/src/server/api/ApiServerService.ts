@@ -6,7 +6,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
-import fastifyCookie from '@fastify/cookie';
 import { ModuleRef } from '@nestjs/core';
 import { AuthenticationResponseJSON } from '@simplewebauthn/types';
 import type { Config } from '@/config.js';
@@ -59,8 +58,6 @@ export class ApiServerService {
 			},
 		});
 
-		fastify.register(fastifyCookie, {});
-
 		// Prevent cache
 		fastify.addHook('onRequest', (request, reply, done) => {
 			reply.header('Cache-Control', 'private, max-age=0, must-revalidate');
@@ -73,7 +70,7 @@ export class ApiServerService {
 			if (limitEndpoints.includes(endpoint.name)) {
 				if (request.ip) {
 					return await new Promise<boolean>((resolve) => {
-						this.iP2LocationService.checkIPsync(request.ip, (result: boolean) => {
+						this.iP2LocationService.checkIPSync(request.ip, (result: boolean) => {
 							if (!result) {
 								reply.code(403);
 								reply.send({

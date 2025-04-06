@@ -31,17 +31,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { onMounted, shallowRef, ref } from 'vue';
+import { onMounted, useTemplateRef, ref } from 'vue';
 import * as Misskey from 'misskey-js';
 import Cropper from 'cropperjs';
 import tinycolor from 'tinycolor2';
+import { apiUrl } from '@@/js/config.js';
 import MkModalWindow from '@/components/MkModalWindow.vue';
 import * as os from '@/os.js';
-import { $i } from '@/account.js';
-import { defaultStore } from '@/store.js';
-import { apiUrl } from '@@/js/config.js';
+import { $i } from '@/i.js';
 import { i18n } from '@/i18n.js';
-import { getProxiedImageUrl } from '@/scripts/media-proxy.js';
+import { getProxiedImageUrl } from '@/utility/media-proxy.js';
+import { prefer } from '@/preferences.js';
 
 const emit = defineEmits<{
 	(ev: 'ok', cropped: Misskey.entities.DriveFile): void;
@@ -55,20 +55,20 @@ const props = defineProps<{
 	uploadFolder?: string | null;
 }>();
 
-const imgUrl = getProxiedImageUrl(props.file.url, undefined, true).replace(/^https?:\/\/[^/]+/, location.origin);
-const dialogEl = shallowRef<InstanceType<typeof MkModalWindow>>();
-const imgEl = shallowRef<HTMLImageElement>();
+const imgUrl = getProxiedImageUrl(props.file.url, undefined, true).replace(/^https?:\/\/[^/]+/, window.location.origin);
+const dialogEl = useTemplateRef('dialogEl');
+const imgEl = useTemplateRef('imgEl');
 let cropper: Cropper | null = null;
 const loading = ref(true);
 
 const ok = async () => {
 	const promise = new Promise<Misskey.entities.DriveFile>(async (res) => {
-		const croppedImage = await cropper?.getCropperImage();
-		const croppedSection = await cropper?.getCropperSelection();
+		const croppedImage = (await cropper?.getCropperImage()) ?? null;
+		const croppedSection = (await cropper?.getCropperSelection()) ?? null;
 
 		// 拡大率を計算し、(ほぼ)元の大きさに戻す
-		const zoomedRate = croppedImage.getBoundingClientRect().width / croppedImage.clientWidth;
-		const widthToRender = croppedSection.getBoundingClientRect().width / zoomedRate;
+		const zoomedRate = croppedImage ? (croppedImage.getBoundingClientRect().width ?? 0) / (croppedImage.clientWidth ?? 0) : 0;
+		const widthToRender = croppedSection?.getBoundingClientRect().width ?? 0 / zoomedRate;
 
 		const croppedCanvas = await croppedSection?.$toCanvas({ width: widthToRender });
 		croppedCanvas?.toBlob(blob => {
@@ -81,8 +81,8 @@ const ok = async () => {
 			formData.append('i', $i!.token);
 			if (props.uploadFolder) {
 				formData.append('folderId', props.uploadFolder);
-			} else if (props.uploadFolder !== null && defaultStore.state.uploadFolder) {
-				formData.append('folderId', defaultStore.state.uploadFolder);
+			} else if (props.uploadFolder !== null && prefer.s.uploadFolder) {
+				formData.append('folderId', prefer.s.uploadFolder);
 			}
 
 			window.fetch(apiUrl + '/drive/files/create', {
@@ -122,7 +122,7 @@ onMounted(() => {
 	cropper = new Cropper(imgEl.value!, {
 	});
 
-	const computedStyle = getComputedStyle(document.documentElement);
+	const computedStyle = getComputedStyle(window.document.documentElement);
 
 	const selection = cropper.getCropperSelection()!;
 	selection.themeColor = tinycolor(computedStyle.getPropertyValue('--MI_THEME-accent')).toHexString();
