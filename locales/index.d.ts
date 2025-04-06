@@ -11899,6 +11899,10 @@ export interface Locale extends ILocale {
     };
     "_abuseReportAutoProcessing": {
         /**
+         * Reduces the effort of server moderation through automatically recognizing sensitive content via Machine Learning.
+         */
+        "description": string;
+        /**
          * Reports on Automated Abuse Reports Processing
          */
         "title": string;

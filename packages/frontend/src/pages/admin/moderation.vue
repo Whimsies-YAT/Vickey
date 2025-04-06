@@ -136,7 +136,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<template #label>{{ i18n.ts._abuseReportAutoProcessing.enable }}</template>
 							</MkSwitch>
 							<div v-if="abuseMLCheck">
-								<span>{{ i18n.ts._sensitiveMediaDetection.description }}</span>
+								<span>{{ i18n.ts._abuseReportAutoProcessing.description }}</span>
 								<MkRadios v-model="abuseReportMLAction">
 									<option value="record">{{ i18n.ts._abuseReportAutoProcessing.record }}</option>
 									<option value="ignore">{{ i18n.ts._abuseReportAutoProcessing.ignore }} ({{i18n.ts.recommended}})</option>

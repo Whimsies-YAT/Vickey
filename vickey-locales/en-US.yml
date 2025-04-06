@@ -92,6 +92,7 @@ _emailTemplates:
 _serverDisconnectedBehavior:
   null: Unprompted
 _abuseReportAutoProcessing:
+  description: "Reduces the effort of server moderation through automatically recognizing sensitive content via Machine Learning."
   title: "Reports on Automated Abuse Reports Processing"
   enable: "Enable"
   record: "Record Only"
