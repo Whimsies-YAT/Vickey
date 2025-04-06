@@ -292,38 +292,53 @@ export async function common(createVue: () => Promise<App<Element>>) {
 	})();
 
 	if (instance.sentryForFrontend) {
-		const Sentry = await import('@sentry/vue');
-		Sentry.init({
-			app,
-			integrations: [
-				...(instance.sentryForFrontend.vueIntegration !== undefined ? [
-					Sentry.vueIntegration(instance.sentryForFrontend.vueIntegration ?? undefined),
-				] : []),
-				...(instance.sentryForFrontend.browserTracingIntegration !== undefined ? [
-					Sentry.browserTracingIntegration(instance.sentryForFrontend.browserTracingIntegration ?? undefined),
-				] : []),
-				...(instance.sentryForFrontend.replayIntegration !== undefined ? [
-					Sentry.replayIntegration(instance.sentryForFrontend.replayIntegration ?? undefined),
-				] : []),
-			],
+		try {
+  		const Sentry = await import('@sentry/vue');
+			try {
+				Sentry.init({
+					app,
+					integrations: [
+						...(instance.sentryForFrontend.vueIntegration !== undefined
+							? [Sentry.vueIntegration(instance.sentryForFrontend.vueIntegration ?? undefined)]
+							: []),
+						...(instance.sentryForFrontend.browserTracingIntegration !== undefined
+							? [Sentry.browserTracingIntegration(instance.sentryForFrontend.browserTracingIntegration ?? undefined)]
+							: []),
+						...(instance.sentryForFrontend.replayIntegration !== undefined
+							? [Sentry.replayIntegration(instance.sentryForFrontend.replayIntegration ?? undefined)]
+							: []),
+					],
+					tracesSampleRate: 1.0,
+					replaysSessionSampleRate: 0.1,
+					replaysOnErrorSampleRate: 1.0,
+					...instance.sentryForFrontend.options,
+				});
 
-			// Set tracesSampleRate to 1.0 to capture 100%
-			tracesSampleRate: 1.0,
+				app.config.errorHandler = (error, vm, info) => {
+					try {
+						Sentry.captureException(error, { extra: { vm, info } });
+					} catch (e) {
+						console.error('Sentry failed: ', e);
+					}
+					console.error('Global Vue error handler:', error, info);
+					return false;
+				};
 
-			// Set `tracePropagationTargets` to control for which URLs distributed tracing should be enabled
-			...(instance.sentryForFrontend.browserTracingIntegration !== undefined ? {
-				tracePropagationTargets: [apiUrl],
-			} : {}),
-
-			// Capture Replay for 10% of all sessions,
-			// plus for 100% of sessions with an error
-			...(instance.sentryForFrontend.replayIntegration !== undefined ? {
-				replaysSessionSampleRate: 0.1,
-				replaysOnErrorSampleRate: 1.0,
-			} : {}),
-
-			...instance.sentryForFrontend.options,
-		});
+				window.addEventListener('unhandledrejection', event => {
+					try {
+						Sentry.captureException(event.reason);
+					} catch (e) {
+						console.error('Sentry failed: ', e);
+					}
+					console.error('Unhandled promise rejection:', event.reason);
+					event.preventDefault();
+				});
+			} catch (initError) {
+				console.error('An error occurred during Sentry initialization: ', initError);
+			}
+		} catch (importError) {
+			console.error('Failed to load Sentry module: ', importError);
+		}
 	}
 
 	app.mount(rootEl);
