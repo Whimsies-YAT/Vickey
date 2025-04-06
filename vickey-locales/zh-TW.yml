@@ -1,8 +1,4 @@
-0: <<<<<<< HEAD
-_lang_: "繁體中文"
-1: '======='
 result: "Result"
-2: '>>>>>>> d84d277669a6ce3a63aa5456e617285f22932a06'
 flagAsVI: "需要自動TTS功能"
 flagAsVIDescription: "如果需要自動TTS功能，請啟動此選項。如果您屬於授權用戶組，自動TTS功能將在特定的範圍內激活。"
 _role:
