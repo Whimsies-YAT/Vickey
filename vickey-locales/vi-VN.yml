@@ -1,8 +1,4 @@
-0: <<<<<<< HEAD
-_lang_: "Tiếng Việt"
-1: '======='
 result: "Result"
-2: '>>>>>>> d84d277669a6ce3a63aa5456e617285f22932a06'
 flagAsVI: "Cần tính năng TTS tự động."
 flagAsVIDescription: "Kích hoạt nếu bạn cần tính năng TTS tự động. Nếu bạn thuộc nhóm người dùng được ủy quyền, tính năng TTS tự động sẽ được kích hoạt trong một phạm vi cụ thể."
 _role:
