@@ -32,6 +32,98 @@ import { $i } from '@/i.js';
 export async function common(createVue: () => Promise<App<Element>>) {
 	console.info(`Misskey v${version}-Vickey_fork`);
 
+	const getBrowserFamily = () => {
+		const ua = navigator.userAgent;
+		if (ua.includes("Firefox")) {
+			return "gecko";
+		} else if (ua.includes("Chrome") || ua.includes("Edg") || ua.includes("OPR")) {
+			return "chromium";
+		} else if (ua.includes("Safari")) {
+			return "safari";
+		}
+		return "unknown";
+	};
+
+	const getExtensionScheme = (family) => {
+		switch (family) {
+			case "chromium":
+				return "chrome-extension";
+			case "gecko":
+				return "moz-extension";
+			case "safari":
+				return "safari-extension"; // Confirmation required
+			default:
+				return "";
+		}
+	};
+
+	const checkExtension = async (scheme, extensionId, resourcePath) => {
+		const extensionUrl = `${scheme}://${extensionId}/${resourcePath}`;
+		try {
+			const response = await fetch(extensionUrl, { method: "HEAD" });
+			if (response.status === 200) {
+				return true;
+			}
+			return false;
+		} catch (error) {
+			return false;
+		}
+	};
+
+	// Because it causes crashes, prohibit the following plugins from running with Misskey, noting the difference between download sources.
+	const prohibitedExtensions = {
+		chromium: [
+			{ extensionId: "apenkfbbpmhihehmihndmmcdanacolnh", resourcePath: "inpage.js", name: "SafePal Edge" },
+			{ extensionId: "lgmpcpglpngdoalbgeoldeajfclnhafa", resourcePath: "inpage.js", name: "SafePal Chrome" },
+		],
+		gecko: [
+			{ extensionId: "7b88262b-985e-4f6d-b4f1-25a43e96dbf8", resourcePath: "inpage.js", name: "SafePal Mozilla" },
+		],
+		safari: [
+		],
+	};
+
+	interface ExtensionInfo {
+		id: string;
+		name: string;
+		url: string;
+	}
+
+	const checkExtensionsInList = async () => {
+		const family = getBrowserFamily();
+		const scheme = getExtensionScheme(family);
+		const list = prohibitedExtensions[family] || [];
+		const detectedExtensions: ExtensionInfo[] = [];
+
+		for (const ext of list) {
+			const exists = await checkExtension(scheme, ext.extensionId, ext.resourcePath);
+			if (exists) {
+				detectedExtensions.push({
+					id: ext.extensionId,
+					name: ext.name,
+					url: `${scheme}://${ext.extensionId}/${ext.resourcePath}`,
+				});
+			}
+		}
+		return detectedExtensions;
+	};
+
+	checkExtensionsInList()
+		.then((detected) => {
+			if (detected.length > 0) {
+				let errorMsg = "[Detection Error] The following prohibited extensions have been detected: \n";
+				detected.forEach((ext) => {
+					errorMsg += `- ${ext.name} (${ext.url})\n`;
+				});
+				console.error(errorMsg);
+			} else {
+				console.log("No prohibited extensions were detected.");
+			}
+		})
+		.catch((error) => {
+			console.error(error.message);
+		});
+
 	if (_DEV_) {
 		console.warn('Development mode!!!');
 
@@ -297,6 +389,13 @@ export async function common(createVue: () => Promise<App<Element>>) {
 			try {
 				Sentry.init({
 					app,
+					beforeSend(event) {
+						const error = event.exception?.values?.[0];
+						if (error?.stacktrace?.frames?.some(frame => frame.filename?.includes('chrome-extension://'))) {
+							return null;
+						}
+						return event;
+					},
 					integrations: [
 						...(instance.sentryForFrontend.vueIntegration !== undefined
 							? [Sentry.vueIntegration(instance.sentryForFrontend.vueIntegration ?? undefined)]
