@@ -7,6 +7,10 @@
 
 window.onload = async () => {
 	const account = JSON.parse(localStorage.getItem('account'));
+	if (!account) {
+		window.alert("No account information detected");
+		window.history.length > 1 ? window.history.back() : window.location.href = '/';
+	}
 	const i = account.token;
 
 	const api = (endpoint, data = {}) => {
