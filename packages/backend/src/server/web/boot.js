@@ -181,6 +181,7 @@
 			<p>${messages.solution2}</p>
 			<p>${messages.solution3}</p>
 			<p>${messages.solution4}</p>
+			<p>${messages.solution5}</p>
 			<details style="color: #86b300;">
 				<summary>${messages.otherOption}</summary>
 				<a href="/flush">
