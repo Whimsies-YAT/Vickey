@@ -11586,6 +11586,10 @@ export interface Locale extends ILocale {
          * 修復ツールを起動
          */
         "otherOption3": string;
+        /**
+         * If none of the above works, report the problem to your instance administrator
+         */
+        "solution5": string;
     };
     "_search": {
         /**

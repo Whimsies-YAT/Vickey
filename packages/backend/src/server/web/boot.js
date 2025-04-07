@@ -155,6 +155,7 @@
 			solution2: 'Disable an adblocker',
 			solution3: 'Clear the browser cache',
 			solution4: '(Tor Browser) Set dom.webaudio.enabled to true',
+			solution5: 'If none of the above works, report the problem to your instance administrator',
 			otherOption: 'Other options',
 			otherOption1: 'Clear preferences and cache',
 			otherOption2: 'Start the simple client',
