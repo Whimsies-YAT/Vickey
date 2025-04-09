@@ -60,7 +60,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 	const checkExtension = async (scheme, extensionId, resourcePath) => {
 		const extensionUrl = `${scheme}://${extensionId}/${resourcePath}`;
 		try {
-			const response = await fetch(extensionUrl, { method: "HEAD" });
+			const response = await window.fetch(extensionUrl, { method: "HEAD" });
 			if (response.status === 200) {
 				return true;
 			}
