@@ -108,3 +108,5 @@ _abuseReportAutoProcessing:
   user: "User"
   status: "Status"
   uncategorized: "Uncategorized"
+_bootErrors:
+  solution5: "If none of the above works, report the problem to your instance administrator"
