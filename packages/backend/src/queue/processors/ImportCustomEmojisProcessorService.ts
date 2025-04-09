@@ -6,6 +6,7 @@
 import * as fs from 'node:fs';
 import { Inject, Injectable } from '@nestjs/common';
 import { ZipReader } from 'slacc';
+import { IsNull } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { EmojisRepository, DriveFilesRepository } from '@/models/_.js';
 import type Logger from '@/logger.js';
@@ -97,6 +98,7 @@ export class ImportCustomEmojisProcessorService {
 				if (emojiExist) {
 					await this.emojisRepository.delete({
 						name: emojiInfo.name,
+						host: IsNull(),
 					});
 					const file = await this.driveFilesRepository.findOneBy({ id: emojiExist.driveId });
 

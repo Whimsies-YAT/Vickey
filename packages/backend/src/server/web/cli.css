@@ -9,17 +9,61 @@
 }
 
 html {
-	background: #ffb4e1;
+	background: #b4e1ff;
 }
 
 main {
 	background: #dedede;
+	padding: 2rem 1rem;
+	max-width: 600px;
+	margin: 2rem auto;
+	border-radius: 12px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 #tl > div {
 	padding: 16px;
 	border-bottom: solid 1px #c3c3c3;
+	background-color: #f8f8f8;
+	border-radius: 6px;
+	margin-bottom: 12px;
 }
+
 #tl > div > header {
 	font-weight: bold;
+	margin-bottom: 0.5rem;
+}
+
+#form {
+	margin-bottom: 2rem;
+}
+
+#text {
+	width: 80%;
+	margin: 0 auto 1rem auto;
+	display: block;
+	height: 100px;
+	padding: 1rem;
+	border: 1px solid #bbb;
+	border-radius: 8px;
+	background-color: #ffffff;
+	font-size: 1rem;
+	resize: vertical;
+}
+
+#submit {
+	display: block;
+	margin: 0 auto;
+	padding: 0.6rem 1.5rem;
+	font-size: 1rem;
+	color: white;
+	background-color: #007bff;
+	border: none;
+	border-radius: 9999px;
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+}
+
+#submit:hover {
+	background-color: #0056b3;
 }

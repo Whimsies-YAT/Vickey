@@ -13,7 +13,7 @@ export class MiUserPending {
 
 	@Index({ unique: true })
 	@Column('varchar', {
-		length: 128,
+		length: 256,
 	})
 	public code: string;
 
@@ -42,4 +42,25 @@ export class MiUserPending {
 		default: false,
 	})
 	public emailVerified: boolean;
+
+	@Column('varchar', {
+		default: false,
+		nullable: false,
+	})
+	public isProcessed: boolean;
+
+	@Column('varchar', {
+		length: 1000,
+	})
+	public result: string;
+
+	@Column('timestamptz', {
+		default: () => 'CURRENT_TIMESTAMP'
+	})
+	public time: Date;
+
+	@Column('varchar', {
+		length: 256,
+	})
+	public ip: string;
 }

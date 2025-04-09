@@ -489,6 +489,14 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
+			ip2lProxyAuthKey: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			ip2lProxyIsPro: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
 			banCountry: {
 				type: 'array',
 				items: {
@@ -766,6 +774,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				hfdas: instance.hfdas,
 				ip2lAuthKey: instance.ip2lAuthKey,
 				ip2lIsPro: instance.ip2lIsPro,
+				ip2lProxyAuthKey: instance.ip2lProxyAuthKey,
+				ip2lProxyIsPro: instance.ip2lProxyIsPro,
 				banCountry: instance.banCountry,
 				exemptIP: instance.exemptIP,
 				enableIpLogging: instance.enableIpLogging,

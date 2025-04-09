@@ -11,7 +11,7 @@ export const meta = {
 	tags: ['admin'],
 	secure: true,
 	requireCredential: true,
-	requireRolePolicy: 'canManageAvatarDecorations',
+	requiredRolePolicy: 'canManageAvatarDecorations',
 	kind: 'write:admin:avatar-decorations',
 } as const;
 

@@ -13,7 +13,7 @@ export const meta = {
 
 	requireCredential: true,
 	requireModerator: true,
-	kind: 'read:admin:show-pendings',
+	kind: 'read:admin:show-pending',
 
 	res: {
 		type: 'object',
@@ -53,8 +53,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			return {
 				username: PendingUser.username,
 				email: PendingUser.email,
-				approved: false,
+				isProcessed: PendingUser.isProcessed,
 				signupReason: PendingUser.reason,
+				result: PendingUser.result,
+				time: PendingUser.time,
+				ip: PendingUser.ip,
 			};
 		});
 	}

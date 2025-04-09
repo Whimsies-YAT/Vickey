@@ -18,6 +18,7 @@ import { DI } from '@/di-symbols.js';
 import type Logger from '@/logger.js';
 import * as Acct from '@/misc/acct.js';
 import { genIdenticon } from '@/misc/gen-identicon.js';
+import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import { bindThis } from '@/decorators.js';
@@ -56,6 +57,7 @@ export class ServerService implements OnApplicationShutdown {
 		private emojisRepository: EmojisRepository,
 
 		private userEntityService: UserEntityService,
+		private driveFileEntityService: DriveFileEntityService,
 		private apiServerService: ApiServerService,
 		private openApiServerService: OpenApiServerService,
 		private streamingApiServerService: StreamingApiServerService,
@@ -221,7 +223,7 @@ export class ServerService implements OnApplicationShutdown {
 			reply.header('Cache-Control', 'public, max-age=86400');
 
 			if (user) {
-				reply.redirect(user.avatarUrl ?? this.userEntityService.getIdenticonUrl(user));
+				reply.redirect(user.avatarUrl ? this.driveFileEntityService.getProxiedUrl(user.avatarUrl, 'avatar') : this.userEntityService.getIdenticonUrl(user));
 			} else {
 				reply.redirect('/static-assets/user-unknown.png');
 			}

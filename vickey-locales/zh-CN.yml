@@ -1,4 +1,4 @@
-_lang_: "简体中文"
+result: "Result"
 flagAsVI: "需要自动 TTS 功能。"
 flagAsVIDescription: "如果需要自动 TTS 功能，请启用此选项。如果您属于授权用户组，自动 TTS 功能将在特定范围内激活。"
 _role:
@@ -89,7 +89,10 @@ _emailTemplates:
   newFollowRequestVars: "name: 关注者的名字\nusername: 关注者的用户名\nhost: 关注者所在服务器的主机地址"
   secRelease: "新的安全版本发布"
   secReleaseVars: "tag: 要更新到的版本名称"
+_serverDisconnectedBehavior:
+  null: Unprompted
 _abuseReportAutoProcessing:
+  description: "Reduces the effort of server moderation through automatically recognizing sensitive content via Machine Learning."
   title: "自动处理滥用报告的文档"
   enable: "启用"
   record: "仅记录"
@@ -105,3 +108,5 @@ _abuseReportAutoProcessing:
   user: "用户"
   status: "状态"
   uncategorized: "未分类"
+_bootErrors:
+  solution5: "If none of the above works, report the problem to your instance administrator"

@@ -191,6 +191,7 @@ export const paramDef = {
 		autoSensitive: { type: 'boolean' },
 		followingVisibility: { type: 'string', enum: ['public', 'followers', 'private'] },
 		followersVisibility: { type: 'string', enum: ['public', 'followers', 'private'] },
+		chatScope: { type: 'string', enum: ['everyone', 'followers', 'following', 'mutual', 'none'] },
 		pinnedPageId: { type: 'string', format: 'misskey:id', nullable: true },
 		mutedWords: muteWords,
 		hardMutedWords: muteWords,
@@ -212,6 +213,7 @@ export const paramDef = {
 				receiveFollowRequest: notificationRecieveConfig,
 				followRequestAccepted: notificationRecieveConfig,
 				roleAssigned: notificationRecieveConfig,
+				chatRoomInvitationReceived: notificationRecieveConfig,
 				achievementEarned: notificationRecieveConfig,
 				app: notificationRecieveConfig,
 				test: notificationRecieveConfig,
@@ -289,6 +291,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.birthday !== undefined) profileUpdates.birthday = ps.birthday;
 			if (ps.followingVisibility !== undefined) profileUpdates.followingVisibility = ps.followingVisibility;
 			if (ps.followersVisibility !== undefined) profileUpdates.followersVisibility = ps.followersVisibility;
+			if (ps.chatScope !== undefined) updates.chatScope = ps.chatScope;
 
 			function checkMuteWordCount(mutedWords: (string[] | string)[], limit: number) {
 				// TODO: ちゃんと数える
@@ -363,7 +366,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				if (!avatar.type.startsWith('image/')) throw new ApiError(meta.errors.avatarNotAnImage);
 
 				updates.avatarId = avatar.id;
-				updates.avatarUrl = this.driveFileEntityService.getPublicUrl(avatar, 'avatar');
+				updates.avatarUrl = this.driveFileEntityService.getPublicUrl(avatar, 'avatar', true);
 				updates.avatarBlurhash = avatar.blurhash;
 			} else if (ps.avatarId === null) {
 				updates.avatarId = null;
@@ -381,7 +384,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				if (!banner.type.startsWith('image/')) throw new ApiError(meta.errors.bannerNotAnImage);
 
 				updates.bannerId = banner.id;
-				updates.bannerUrl = this.driveFileEntityService.getPublicUrl(banner);
+				updates.bannerUrl = this.driveFileEntityService.getPublicUrl(banner, undefined, true);
 				updates.bannerBlurhash = banner.blurhash;
 			} else if (ps.bannerId === null) {
 				updates.bannerId = null;

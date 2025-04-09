@@ -33,6 +33,8 @@ export class CheckIP2LReleaseProcessorService {
 			await this.storeData(key, value);
 			await Promise.all([
 				this.iP2LocationService.syncIP2L(),
+				this.iP2LocationService.syncIP2LProxy(),
+				this.iP2LocationService.syncTorExitNodesSet(),
 			]);
 		}
 		this.logger.succ('Done.');
