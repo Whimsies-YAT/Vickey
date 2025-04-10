@@ -122,7 +122,7 @@ export class DriveFileEntityService {
 		}
 
 		// リモートかつ期限切れはローカルプロキシを試みる
-		if (file.uri != null && file.isLink && this.config.proxyRemoteFiles) {
+		if (!bypassProxy && file.uri != null && file.isLink && this.config.proxyRemoteFiles) {
 			const key = file.webpublicAccessKey;
 
 			if (key && !key.match('/')) {	// 古いものはここにオブジェクトストレージキーが入ってるので除外
