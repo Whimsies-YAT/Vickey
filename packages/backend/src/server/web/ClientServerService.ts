@@ -537,7 +537,7 @@ export class ClientServerService {
 
 				return await reply.view('user', {
 					user, profile, me,
-					avatarUrl: user.avatarUrl ? this.driveFileEntityService.getProxiedUrl(user.avatarUrl, 'avatar') : this.userEntityService.getIdenticonUrl(user),
+					avatarUrl: _user.avatarUrl ? this.driveFileEntityService.getProxiedUrl(_user.avatarUrl, 'avatar') : this.userEntityService.getIdenticonUrl(user),
 					sub: request.params.sub,
 					...await this.generateCommonPugData(this.meta),
 					clientCtx: htmlSafeJsonStringify({
