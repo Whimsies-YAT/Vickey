@@ -41,11 +41,15 @@ cluster.on('online', worker => {
 });
 
 // Listen for dying workers
-cluster.on('exit', worker => {
-	// Replace the dead worker,
-	// we're not sentimental
-	clusterLogger.error(chalk.red(`[${worker.id}] died :(`));
-	cluster.fork();
+cluster.on('exit', (worker, code, signal) => {
+	if (code === 0 || signal === 'SIGINT' || signal === 'SIGTERM') {
+		clusterLogger.info(`[${worker.id}] exited gracefully (code: ${code}, signal: ${signal})`);
+	} else {
+		// Replace the dead worker,
+		// we're not sentimental
+		clusterLogger.error(chalk.red(`[${worker.id}] died unexpectedly (code: ${code}, signal: ${signal}), restarting...`));
+		cluster.fork();
+	}
 });
 
 // Display detail of unhandled promise rejection

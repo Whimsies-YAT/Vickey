@@ -4,8 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-	<MkStickyContainer>
-		<template #header><XHeader :actions="headerActions" :tabs="headerTabs"/></template>
+	<PageWithHeader :tabs="headerTabs">
 		<MkSpacer :contentMax="900">
 			<div :class="$style.root" class="_gaps">
 				<MkPagination v-slot="{ items }" ref="reports" :pagination="pagination">
@@ -40,12 +39,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</MkPagination>
 			</div>
 		</MkSpacer>
-	</MkStickyContainer>
+	</PageWithHeader>
 </template>
 
 <script lang="ts" setup>
 import { computed, shallowRef } from 'vue';
-import XHeader from '../../_header_.vue';
 import MkPagination from '@/components/MkPagination.vue';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';

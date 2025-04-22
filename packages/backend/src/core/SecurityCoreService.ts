@@ -14,7 +14,9 @@ export class SecurityCoreService {
 
 	@bindThis
 	public async checkZip(path: string): Promise<{ result: boolean; reason: string | null }> {
-		const zipSafePath = process.cwd() + '/tools/zip_safe';
+		const isWindows = process.platform === 'win32';
+		const exeName = isWindows ? 'zip_safe.exe' : 'zip_safe';
+		const zipSafePath = process.cwd() + '/tools' + exeName;
 		return new Promise((resolve, reject) => {
 			if (!existsSync(zipSafePath)) {
 				console.log(`Checker not found, ignored.`);
@@ -55,8 +57,9 @@ export class SecurityCoreService {
 	@bindThis
 	public async checkContainer(): Promise<{ in_container: boolean; confidence: number }> {
 		const checker = process.cwd() + '/tools/detect';
+		const isWindows = process.platform === 'win32';
 		return new Promise((resolve, reject) => {
-			if (!existsSync(checker)) {
+			if (!existsSync(checker) || isWindows) {
 				console.log(`Checker not found, ignored.`);
 				return resolve({ in_container: false, confidence: 100 });
 			}

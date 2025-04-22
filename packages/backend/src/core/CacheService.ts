@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import {BeforeApplicationShutdown, Inject, Injectable} from '@nestjs/common';
 import * as Redis from 'ioredis';
 import type { AbuseUserReportsRepository, BlockingsRepository, FollowingsRepository, MutingsRepository, RenoteMutingsRepository, MiUserProfile, UserProfilesRepository, UsersRepository, MiFollowing } from '@/models/_.js';
 import { MemoryKVCache, RedisKVCache } from '@/misc/cache.js';
@@ -15,7 +15,7 @@ import type { GlobalEvents } from '@/core/GlobalEventService.js';
 import type { OnApplicationShutdown } from '@nestjs/common';
 
 @Injectable()
-export class CacheService implements OnApplicationShutdown {
+export class CacheService implements OnApplicationShutdown, BeforeApplicationShutdown {
 	public userByIdCache: MemoryKVCache<MiUser>;
 	public localUserByNativeTokenCache: MemoryKVCache<MiLocalUser | null>;
 	public localUserByIdCache: MemoryKVCache<MiLocalUser>;
@@ -266,6 +266,12 @@ export class CacheService implements OnApplicationShutdown {
 		this.userFollowingsCache.dispose();
 		this.systemStatusCache.dispose();
 		this.abuseAutoIgnoreCache.dispose();
+	}
+
+	@bindThis
+	public async beforeApplicationShutdown(): Promise<void> {
+		await this.systemStatusCache.delete('systemStatus');
+		await this.redisClient.del('systemStatus');
 	}
 
 	@bindThis

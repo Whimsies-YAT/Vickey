@@ -223,7 +223,7 @@ export class ServerService implements OnApplicationShutdown {
 			reply.header('Cache-Control', 'public, max-age=86400');
 
 			if (user) {
-				reply.redirect(user.avatarUrl ? this.driveFileEntityService.getProxiedUrl(user.avatarUrl, 'avatar') : this.userEntityService.getIdenticonUrl(user));
+				reply.redirect((user.avatarId == null ? null : (user.avatarUrl ? this.driveFileEntityService.getProxiedUrl(user.avatarUrl, 'avatar') : null)) ?? this.userEntityService.getIdenticonUrl(user));
 			} else {
 				reply.redirect('/static-assets/user-unknown.png');
 			}
