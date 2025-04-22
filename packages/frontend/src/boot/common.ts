@@ -463,7 +463,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 							};
 
 							app.config.errorHandler = (error, vm, info) => {
-								setTimeout(() => {
+								window.setTimeout(() => {
 									safeCapture(error, { extra: { vm, info } }).catch(() => {});
 								}, 0);
 								console.error('Global Vue error handler:', error, info);
@@ -475,7 +475,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 									event.preventDefault();
 								}
 
-								setTimeout(() => {
+								window.setTimeout(() => {
 									safeCapture(event.reason).catch(() => {});
 								}, 0);
 								console.error('Unhandled promise rejection (isolated):', event.reason);
@@ -503,7 +503,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 				};
 
 				await new Promise(resolve => {
-					setTimeout(async () => {
+					window.setTimeout(async () => {
 						try {
 							await setupSentry();
 						} catch (e) {
@@ -518,7 +518,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 			}
 		};
 
-		setTimeout(() => {
+		window.setTimeout(() => {
 			initSentryIsolated().catch(err => {
 				console.warn('Completely isolated Sentry init failed:', err);
 			});

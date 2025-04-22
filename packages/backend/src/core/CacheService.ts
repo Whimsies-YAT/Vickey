@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import {BeforeApplicationShutdown, Inject, Injectable} from '@nestjs/common';
+import { BeforeApplicationShutdown, Inject, Injectable } from '@nestjs/common';
 import * as Redis from 'ioredis';
 import type { AbuseUserReportsRepository, BlockingsRepository, FollowingsRepository, MutingsRepository, RenoteMutingsRepository, MiUserProfile, UserProfilesRepository, UsersRepository, MiFollowing } from '@/models/_.js';
 import { MemoryKVCache, RedisKVCache } from '@/misc/cache.js';
