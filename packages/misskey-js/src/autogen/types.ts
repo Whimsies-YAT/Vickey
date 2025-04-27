@@ -5331,6 +5331,7 @@ export type components = {
       canUseTTS: boolean;
       canHideAds: boolean;
       driveCapacityMb: number;
+      maxFileSizeMb: number;
       alwaysMarkNsfw: boolean;
       canUpdateBioMedia: boolean;
       pinLimit: number;
