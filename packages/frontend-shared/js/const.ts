@@ -92,6 +92,7 @@ export const ROLE_POLICIES = [
 	'canUseTTS',
 	'canHideAds',
 	'driveCapacityMb',
+	'maxFileSizeMb',
 	'alwaysMarkNsfw',
 	'canUpdateBioMedia',
 	'pinLimit',
