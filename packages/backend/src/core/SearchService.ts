@@ -4,7 +4,6 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import { In } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import { type Config, FulltextSearchProvider } from '@/config.js';
 import { bindThis } from '@/decorators.js';
@@ -382,7 +381,6 @@ export class SearchService {
 		const notes = (await query.getMany()).filter(note => {
 			if (me && isUserRelated(note, userIdsWhoBlockingMe)) return false;
 			return !(me && isUserRelated(note, userIdsWhoMeMuting));
-
 		});
 
 			return notes.sort((a, b) => a.id > b.id ? -1 : 1);
@@ -441,7 +439,6 @@ export class SearchService {
 			const notes = (await query.getMany()).filter(note => {
 				if (me && isUserRelated(note, userIdsWhoBlockingMe)) return false;
 				return !(me && isUserRelated(note, userIdsWhoMeMuting));
-
 			});
 			return notes.sort((a, b) => a.id > b.id ? -1 : 1);
 		} else {
