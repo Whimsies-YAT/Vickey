@@ -287,4 +287,125 @@ export class QueryService {
 				.andWhere(instanceSuspension('renoteUser'));
 		}
 	}
+
+	@bindThis
+	public generateBlockedHostQueryForElasticsearch(esFilter: any, excludeAuthor?: boolean): void {
+		if (this.meta.blockedHosts.length === 0) return;
+
+		const blockedHostsPatterns = this.meta.blockedHosts.flatMap(host => [host, `*.${host}`]);
+
+		if (excludeAuthor) {
+			const replyUserFilter = {
+				bool: {
+					should: [
+						{ bool: { must_not: [{ exists: { field: 'replyUserId' } }] } }, // replyUserId IS NULL
+						{ term: { replyUserId: null } },
+						{ script: { source: "doc['userId'].value == doc['replyUserId'].value" } }, // userId = replyUserId
+						{ bool: { must_not: [{ exists: { field: 'replyUserHost' } }] } }, // replyUserHost IS NULL
+						{ term: { replyUserHost: null } },
+						{
+							bool: {
+								must_not: {
+									terms: {
+										replyUserHost: blockedHostsPatterns
+									}
+								}
+							}
+						}
+					],
+					minimum_should_match: 1
+				}
+			};
+
+			const renoteUserFilter = {
+				bool: {
+					should: [
+						{ bool: { must_not: [{ exists: { field: 'renoteUserId' } }] } }, // renoteUserId IS NULL
+						{ term: { renoteUserId: null } },
+						{ script: { source: "doc['userId'].value == doc['renoteUserId'].value" } }, // userId = renoteUserId
+						{ bool: { must_not: [{ exists: { field: 'renoteUserHost' } }] } }, // renoteUserHost IS NULL
+						{ term: { renoteUserHost: null } },
+						{
+							bool: {
+								must_not: {
+									terms: {
+										renoteUserHost: blockedHostsPatterns
+									}
+								}
+							}
+						}
+					],
+					minimum_should_match: 1
+				}
+			};
+
+			esFilter.bool.must.push(replyUserFilter);
+			esFilter.bool.must.push(renoteUserFilter);
+		} else {
+			const userFilter = {
+				bool: {
+					should: [
+						{ bool: { must_not: [{ exists: { field: 'userHost' } }] } }, // userHost IS NULL
+						{ term: { userHost: null } },
+						{
+							bool: {
+								must_not: {
+									terms: {
+										userHost: blockedHostsPatterns
+									}
+								}
+							}
+						}
+					],
+					minimum_should_match: 1
+				}
+			};
+
+			const replyUserFilter = {
+				bool: {
+					should: [
+						{ bool: { must_not: [{ exists: { field: 'replyUserId' } }] } }, // replyUserId IS NULL
+						{ term: { replyUserId: null } },
+						{ bool: { must_not: [{ exists: { field: 'replyUserHost' } }] } }, // replyUserHost IS NULL
+						{ term: { replyUserHost: null } },
+						{
+							bool: {
+								must_not: {
+									terms: {
+										replyUserHost: blockedHostsPatterns
+									}
+								}
+							}
+						}
+					],
+					minimum_should_match: 1
+				}
+			};
+
+			const renoteUserFilter = {
+				bool: {
+					should: [
+						{ bool: { must_not: [{ exists: { field: 'renoteUserId' } }] } }, // renoteUserId IS NULL
+						{ term: { renoteUserId: null } },
+						{ bool: { must_not: [{ exists: { field: 'renoteUserHost' } }] } }, // renoteUserHost IS NULL
+						{ term: { renoteUserHost: null } },
+						{
+							bool: {
+								must_not: {
+									terms: {
+										renoteUserHost: blockedHostsPatterns
+									}
+								}
+							}
+						}
+					],
+					minimum_should_match: 1
+				}
+			};
+
+			esFilter.bool.must.push(userFilter);
+			esFilter.bool.must.push(replyUserFilter);
+			esFilter.bool.must.push(renoteUserFilter);
+		}
+	}
 }

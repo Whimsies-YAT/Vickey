@@ -207,7 +207,7 @@ export class SearchService {
 		}
 
 		if (!this.meilisearch && this.elasticsearch) {
-			const body = {
+			const document = {
 				createdAt: this.idService.parse(note.id).date.getTime(),
 				userId: note.userId,
 				userHost: note.userHost,
@@ -218,9 +218,9 @@ export class SearchService {
 			};
 
 			await this.elasticsearch.index({
-				index: this.elasticsearchNoteIndex + `-${new Date().toISOString().slice(0, 7).replace(/-/g, '')}` as string,
+				index: this.elasticsearchNoteIndex + `-${new Date().toISOString().slice(0, 7).replace(/-/g, '')}`,
 				id: note.id,
-				body: body,
+				document: document,
 			});
 		}
 	}
@@ -381,8 +381,8 @@ export class SearchService {
 
 		const notes = (await query.getMany()).filter(note => {
 			if (me && isUserRelated(note, userIdsWhoBlockingMe)) return false;
-			if (me && isUserRelated(note, userIdsWhoMeMuting)) return false;
-			return true;
+			return !(me && isUserRelated(note, userIdsWhoMeMuting));
+
 		});
 
 			return notes.sort((a, b) => a.id > b.id ? -1 : 1);
@@ -403,33 +403,31 @@ export class SearchService {
 					esFilter.bool.must.push({ term: { userHost: opts.host } });
 				}
 			}
-			const res = await (this.elasticsearch.search)({
+			const res = await this.elasticsearch.search({
 				index: this.elasticsearchNoteIndex + `*` as string,
-				body: {
-					query: {
-						bool: {
-							must: [
-								{
-									bool: {
-										should: [
-											{ wildcard: { "text": { value: `*${q}*` }, } },
-											{ simple_query_string: { fields: ["text"], "query": q, default_operator: 'and', } },
-										],
-										minimum_should_match: 1,
-									},
-								},
-								esFilter,
-							]
-						},
-					},
+				query: {
+					bool: {
+						must: [
+							{
+								bool: {
+									should: [
+										{ wildcard: { "text": { value: `*${q}*` } } },
+										{ simple_query_string: { fields: ["text"], query: q, default_operator: 'and' } }
+									],
+									minimum_should_match: 1
+								}
+							},
+							esFilter
+						]
+					}
 				},
 				sort: [{ createdAt: { order: "desc" } }],
 				_source: ['id', 'createdAt'],
-				size: pagination.limit,
-
+				size: pagination.limit
 			});
 			const noteIds = res.hits.hits.map((hit: any) => hit._id);
 			if (noteIds.length === 0) return [];
+
 			const [
 				userIdsWhoMeMuting,
 				userIdsWhoBlockingMe,
@@ -437,12 +435,13 @@ export class SearchService {
 				this.cacheService.userMutingsCache.fetch(me.id),
 				this.cacheService.userBlockedCache.fetch(me.id),
 			]) : [new Set<string>(), new Set<string>()];
-			const notes = (await this.notesRepository.findBy({
-				id: In(noteIds),
-			})).filter(note => {
+			const query = this.notesRepository.createQueryBuilder('note');
+			query.where('note.id IN (:...noteIds)', { noteIds: noteIds });
+			this.queryService.generateBlockedHostQueryForElasticsearch(query);
+			const notes = (await query.getMany()).filter(note => {
 				if (me && isUserRelated(note, userIdsWhoBlockingMe)) return false;
-				if (me && isUserRelated(note, userIdsWhoMeMuting)) return false;
-				return true;
+				return !(me && isUserRelated(note, userIdsWhoMeMuting));
+
 			});
 			return notes.sort((a, b) => a.id > b.id ? -1 : 1);
 		} else {
