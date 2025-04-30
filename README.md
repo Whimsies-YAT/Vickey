@@ -30,4 +30,12 @@
 
 Thanks to [Misskey](https://misskey-hub.net) for laying the groundwork for this project.
 
+<a href="https://crowdin.com/"><img src="https://user-images.githubusercontent.com/20679825/230709597-1299a011-171a-4294-a91e-355a9b37c672.svg" height="30" alt="Crowdin" /></a>
+
+Thanks to [Crowdin](https://crowdin.com/) for providing the localization platform that helps us translate Misskey and Vickey into many languages.
+
+<a href="https://hub.docker.com/"><img src="https://user-images.githubusercontent.com/20679825/230148221-f8e73a32-a49b-47c3-9029-9a15c3824f92.png" height="30" alt="Docker" /></a>
+
+Thanks to [Docker](https://hub.docker.com/) for providing the container platform that helps us run Misskey and Vickey in production.
+
 **Coming soon...**

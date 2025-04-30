@@ -75,6 +75,8 @@ export async function common(createVue: () => Promise<App<Element>>) {
 		chromium: [
 			{ extensionId: "apenkfbbpmhihehmihndmmcdanacolnh", resourcePath: "inpage.js", name: "SafePal Edge" },
 			{ extensionId: "lgmpcpglpngdoalbgeoldeajfclnhafa", resourcePath: "inpage.js", name: "SafePal Chrome" },
+			{ extensionId: "onepmapfbjohnegdmfhndpefjkppbjkm", resourcePath: "popup.html", name: "SuperCopy Chrome" },
+			{ extensionId: "adgoabeggndbnkchckgniickhhiejbpn", resourcePath: "popup.html", name: "SuperCopy Edge" },
 		],
 		gecko: [
 			{ extensionId: "7b88262b-985e-4f6d-b4f1-25a43e96dbf8", resourcePath: "inpage.js", name: "SafePal Mozilla" },
@@ -113,7 +115,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 			if (detected.length > 0) {
 				let errorMsg = "[Detection Error] The following prohibited extensions have been detected: \n";
 				detected.forEach((ext) => {
-					errorMsg += `- ${ext.name} (${ext.url})\n`;
+					errorMsg += `- ${ext.name}\n`;
 				});
 				console.error(errorMsg);
 			} else {
@@ -384,60 +386,143 @@ export async function common(createVue: () => Promise<App<Element>>) {
 	})();
 
 	if (instance.sentryForFrontend) {
-		try {
-  		const Sentry = await import('@sentry/vue');
+		const initSentryIsolated = async () => {
 			try {
-				Sentry.init({
-					app,
-					beforeSend(event) {
-						const error = event.exception?.values?.[0];
-						if (error?.stacktrace?.frames?.some(frame => frame.filename?.includes('chrome-extension://'))) {
+				const setupSentry = async () => {
+					try {
+						const Sentry = await import('@sentry/vue').catch(e => {
+							console.warn('Failed to load Sentry module:', e);
+							return null;
+						});
+
+						if (!Sentry) return null;
+
+						try {
+							const sentryInstance = Sentry.init({
+								app,
+								beforeSend(event) {
+									try {
+										const error = event.exception?.values?.[0];
+										if (error?.stacktrace?.frames?.some(frame => frame.filename?.includes('chrome-extension://'))) {
+											return null;
+										}
+										return event;
+									} catch (filterError) {
+										console.warn('Sentry beforeSend filter failed:', filterError);
+										return null;
+									}
+								},
+								integrations: [
+									...(instance.sentryForFrontend.vueIntegration !== undefined
+										? [(() => {
+											try {
+												return Sentry.vueIntegration(instance.sentryForFrontend.vueIntegration ?? undefined);
+											} catch (e) {
+												console.warn('Sentry Vue integration failed:', e);
+												return null;
+											}
+										})()].filter(Boolean)
+										: []),
+									...(instance.sentryForFrontend.browserTracingIntegration !== undefined
+										? [(() => {
+											try {
+												return Sentry.browserTracingIntegration(instance.sentryForFrontend.browserTracingIntegration ?? undefined);
+											} catch (e) {
+												console.warn('Sentry browser tracing integration failed:', e);
+												return null;
+											}
+										})()].filter(Boolean)
+										: []),
+									...(instance.sentryForFrontend.replayIntegration !== undefined
+										? [(() => {
+											try {
+												return Sentry.replayIntegration(instance.sentryForFrontend.replayIntegration ?? undefined);
+											} catch (e) {
+												console.warn('Sentry replay integration failed:', e);
+												return null;
+											}
+										})()].filter(Boolean)
+										: []),
+								].filter(Boolean),
+								tracesSampleRate: instance.sentryForFrontend.tracesSampleRate ?? 0.2,
+								replaysSessionSampleRate: instance.sentryForFrontend.replaysSessionSampleRate ?? 0.1,
+								replaysOnErrorSampleRate: instance.sentryForFrontend.replaysOnErrorSampleRate ?? 0.5,
+								...instance.sentryForFrontend.options,
+							});
+
+							const safeCapture = (exception, extras = {}) => {
+								return new Promise((resolve) => {
+									try {
+										Sentry.captureException(exception, extras);
+										resolve(true);
+									} catch (e) {
+										console.warn('Sentry capture failed:', e);
+										resolve(false);
+									}
+								});
+							};
+
+							app.config.errorHandler = (error, vm, info) => {
+								window.setTimeout(() => {
+									safeCapture(error, { extra: { vm, info } }).catch(() => {});
+								}, 0);
+								console.error('Global Vue error handler:', error, info);
+								return false;
+							};
+
+							const unhandledRejectionHandler = (event) => {
+								if (event.preventDefault) {
+									event.preventDefault();
+								}
+
+								window.setTimeout(() => {
+									safeCapture(event.reason).catch(() => {});
+								}, 0);
+								console.error('Unhandled promise rejection (isolated):', event.reason);
+							};
+
+							window.addEventListener('unhandledrejection', unhandledRejectionHandler);
+
+							return {
+								cleanup: () => {
+									try {
+										window.removeEventListener('unhandledrejection', unhandledRejectionHandler);
+									} catch (e) {
+										console.warn('Sentry cleanup failed:', e);
+									}
+								}
+							};
+						} catch (initError) {
+							console.warn('Sentry initialization failed:', initError);
 							return null;
 						}
-						return event;
-					},
-					integrations: [
-						...(instance.sentryForFrontend.vueIntegration !== undefined
-							? [Sentry.vueIntegration(instance.sentryForFrontend.vueIntegration ?? undefined)]
-							: []),
-						...(instance.sentryForFrontend.browserTracingIntegration !== undefined
-							? [Sentry.browserTracingIntegration(instance.sentryForFrontend.browserTracingIntegration ?? undefined)]
-							: []),
-						...(instance.sentryForFrontend.replayIntegration !== undefined
-							? [Sentry.replayIntegration(instance.sentryForFrontend.replayIntegration ?? undefined)]
-							: []),
-					],
-					tracesSampleRate: 1.0,
-					replaysSessionSampleRate: 0.1,
-					replaysOnErrorSampleRate: 1.0,
-					...instance.sentryForFrontend.options,
-				});
-
-				app.config.errorHandler = (error, vm, info) => {
-					try {
-						Sentry.captureException(error, { extra: { vm, info } });
-					} catch (e) {
-						console.error('Sentry failed: ', e);
+					} catch (setupError) {
+						console.warn('Sentry setup completely failed:', setupError);
+						return null;
 					}
-					console.error('Global Vue error handler:', error, info);
-					return false;
 				};
 
-				window.addEventListener('unhandledrejection', event => {
-					try {
-						Sentry.captureException(event.reason);
-					} catch (e) {
-						console.error('Sentry failed: ', e);
-					}
-					console.error('Unhandled promise rejection:', event.reason);
-					event.preventDefault();
+				await new Promise(resolve => {
+					window.setTimeout(async () => {
+						try {
+							await setupSentry();
+						} catch (e) {
+							console.warn('Fatal error in Sentry isolated context:', e);
+						} finally {
+							resolve(null);
+						}
+					}, 0);
 				});
-			} catch (initError) {
-				console.error('An error occurred during Sentry initialization: ', initError);
+			} catch (rootError) {
+				console.warn('Root Sentry isolation failed:', rootError);
 			}
-		} catch (importError) {
-			console.error('Failed to load Sentry module: ', importError);
-		}
+		};
+
+		window.setTimeout(() => {
+			initSentryIsolated().catch(err => {
+				console.warn('Completely isolated Sentry init failed:', err);
+			});
+		}, 0);
 	}
 
 	app.mount(rootEl);

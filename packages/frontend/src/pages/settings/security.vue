@@ -108,10 +108,18 @@ async function regenerateToken() {
 	const auth = await os.authenticateDialog();
 	if (auth.canceled) return;
 
-	misskeyApi('i/regenerate-token', {
-		password: auth.result.password,
-		token: auth.result.token,
-	});
+	try {
+		os.waiting();
+		await misskeyApi('i/regenerate-token', {
+			password: auth.result.password,
+			token: auth.result.token,
+		});
+	} catch (err) {
+		os.alert({
+			type: 'error',
+			text: err.message || 'Error regenerating token',
+		});
+	}
 }
 
 async function showIP(item) {
