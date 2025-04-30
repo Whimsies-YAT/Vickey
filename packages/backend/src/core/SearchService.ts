@@ -399,6 +399,8 @@ export class SearchService {
 					esFilter.bool.must.push({ term: { userHost: opts.host } });
 				}
 			}
+
+			this.queryService.generateBlockedHostQueryForElasticsearch(esFilter);
 			const res = await this.elasticsearch.search({
 				index: this.elasticsearchNoteIndex + `*` as string,
 				query: {
@@ -421,6 +423,7 @@ export class SearchService {
 				_source: ['id', 'createdAt'],
 				size: pagination.limit
 			});
+
 			const noteIds = res.hits.hits.map((hit: any) => hit._id);
 			if (noteIds.length === 0) return [];
 
@@ -431,9 +434,11 @@ export class SearchService {
 				this.cacheService.userMutingsCache.fetch(me.id),
 				this.cacheService.userBlockedCache.fetch(me.id),
 			]) : [new Set<string>(), new Set<string>()];
+
 			const query = this.notesRepository.createQueryBuilder('note');
+
 			query.where('note.id IN (:...noteIds)', { noteIds: noteIds });
-			this.queryService.generateBlockedHostQueryForElasticsearch(query);
+
 			const notes = (await query.getMany()).filter(note => {
 				if (me && isUserRelated(note, userIdsWhoBlockingMe)) return false;
 				return !(me && isUserRelated(note, userIdsWhoMeMuting));
