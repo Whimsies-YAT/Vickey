@@ -33,95 +33,89 @@ export class CheckSecurityUpdateService {
 
 	@bindThis
 	public async checkSecUpdate(): Promise<void> {
-		const version = this.config.version;
+		const currentVersion = this.config.version;
 
 		let repoUrl = this.meta.repositoryUrl;
 		if (!repoUrl) repoUrl = "https://github.com/Whimsies-YAT/Vickey";
 
-		if (repoUrl.includes('github.com')) {
+		if (!repoUrl.includes('github.com')) {
+			this.logger.warn('Repo URL is not a GitHub repository. Skipping GitHub API fetch.');
+			return;
+		}
+
+		try {
 			const githubApiUrl = this.convertToGitHubApiUrl(repoUrl);
+			this.logger.info(`Checking for security updates from: ${githubApiUrl}`);
 
-			try {
-				const res = await this.httpRequestService.send(githubApiUrl, {
-					method: 'GET',
-					headers: {
-						'Accept': 'application/vnd.github.v3+json',
-					},
-					timeout: 15000,
-				});
+			const res = await this.httpRequestService.send(githubApiUrl, {
+				method: 'GET',
+				headers: {
+					'Accept': 'application/vnd.github.v3+json',
+				},
+				timeout: 15000,
+			});
 
-				if (res.ok) {
-					const releases = await res.json() as { tag_name: string; body: string, prerelease: boolean }[];
+			if (!res.ok) {
+				this.logger.error(`Failed to fetch GitHub release info: HTTP ${res.status}`);
+				return;
+			}
 
-					const getVersionFromString = (str: string) => {
-						const match = str.match(/(\d+\.\d+\.\d+)/);
-						return match ? match[0] : null;
-					};
+			const releases = await res.json() as { tag_name: string; body: string, prerelease: boolean }[];
 
-					const latestRelease = releases[0];
-					const latestVersion = getVersionFromString(latestRelease.tag_name);
+			if (!releases || releases.length === 0) {
+				this.logger.warn('No releases found in the repository');
+				return;
+			}
 
-					if (latestVersion && !version.includes(latestVersion)) {
-						const compareVersions = (v1: string, v2: string) => {
-							const v1Parts = v1.split('.').map(Number);
-							const v2Parts = v2.split('.').map(Number);
-							const len = Math.max(v1Parts.length, v2Parts.length);
+			let securityUpdateFound = false;
 
-							for (let i = 0; i < len; i++) {
-								const part1 = v1Parts[i] || 0;
-								const part2 = v2Parts[i] || 0;
+			const latestRelease = releases[0];
 
-								if (part1 > part2) return 1;
-								if (part1 < part2) return -1;
+			if (!latestRelease.prerelease && this.needsUpdate(currentVersion, latestRelease.tag_name)) {
+				this.logger.info(`Newer version detected: ${latestRelease.tag_name}`);
+			}
+
+			for (const release of releases) {
+				if (release.prerelease) continue;
+
+				if (this.needsUpdate(currentVersion, release.tag_name) &&
+					release.body &&
+					release.body.includes('SecurityReleaseSignal')) {
+					securityUpdateFound = true;
+					const tag = release.tag_name;
+
+					this.logger.info(`Security update found in version ${tag}`);
+
+					if (this.meta.security && this.meta.maintainerEmail) {
+						// eslint-disable-next-line no-empty-character-class
+						const emailRe = /^([!#-'*+/-9=?A-Z^-~-]+(\.[!#-'*+/-9=?A-Z^-~-]+)*|"([]!#-[^-~ \t]|(\\[\t -~]))+")@([0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?(\.[0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?)*|\[((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|IPv6:((((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){6}|::((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){5}|[0-9A-Fa-f]{0,4}::((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){4}|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):)?(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){3}|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){0,2}(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){2}|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){0,3}(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){0,4}(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::)((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3})|(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3})|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){0,5}(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3})|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){0,6}(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::)|(?!IPv6:)[0-9A-Za-z-]*[0-9A-Za-z]:[!-Z^-~]+)])$/;
+
+						if (emailRe.test(this.meta.maintainerEmail)) {
+							const tag = release.tag_name;
+							const result = await this.emailTemplatesService.sendEmailWithTemplates(this.meta.maintainerEmail, 'secRelease', { tag });
+							if (!result) {
+								await this.emailService.sendEmail(
+									this.meta.maintainerEmail,
+									"New Security Release Detected",
+									sanitizeHtml(`Version ${tag} contains security updates!`),
+									sanitizeHtml(`Version ${tag} contains security updates!`)
+								);
 							}
-							return 0;
-						};
-
-						const versionComparison = compareVersions(version, latestVersion);
-						if (versionComparison < 0) {
-							for (const release of releases) {
-								if (!release.prerelease && release.body && release.body.includes('SecurityReleaseSignal')) {
-									if (this.meta.security) {
-										// eslint-disable-next-line no-empty-character-class
-										const emailRe = /^([!#-'*+/-9=?A-Z^-~-]+(\.[!#-'*+/-9=?A-Z^-~-]+)*|"([]!#-[^-~ \t]|(\\[\t -~]))+")@([0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?(\.[0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?)*|\[((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|IPv6:((((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){6}|::((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){5}|[0-9A-Fa-f]{0,4}::((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){4}|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):)?(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){3}|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){0,2}(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){2}|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){0,3}(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){0,4}(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::)((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3})|(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3})|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){0,5}(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3})|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){0,6}(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::)|(?!IPv6:)[0-9A-Za-z-]*[0-9A-Za-z]:[!-Z^-~]+)])$/;
-										if (
-											this.meta.maintainerEmail &&
-											emailRe.test(this.meta.maintainerEmail)
-										) {
-											const tag = release.tag_name;
-											const result = await this.emailTemplatesService.sendEmailWithTemplates(this.meta.maintainerEmail, 'secRelease', { tag });
-											if (!result) {
-												await this.emailService.sendEmail(
-													this.meta.maintainerEmail,
-													"New Security Release Detected",
-													sanitizeHtml(`Version ${tag} contains security updates!`),
-													sanitizeHtml(`Version ${tag} contains security updates!`)
-												);
-											}
-										}
-										const set = { security: false } as Partial<MiMeta>;
-										await this.metaService.update(set);
-									}
-									return;
-								}
-							}
+						} else {
+							this.logger.warn(`Invalid maintainer email: ${this.meta.maintainerEmail}`);
 						}
 					}
-					const set = { security: true } as Partial<MiMeta>;
-					await this.metaService.update(set);
-				} else {
-					console.error(`Failed to fetch GitHub release info: HTTP ${res.status}`);
-				}
-			} catch (e: unknown) {
-				if (e instanceof Error) {
-					console.error(e);
-					return;
-				} else {
-					throw new Error('An unknown error occurred.');
+
+					await this.metaService.update({ security: false } as Partial<MiMeta>);
+					break;
 				}
 			}
-		} else {
-			this.logger.warn('Repo URL is not a GitHub repository. Skipping GitHub API fetch.');
+
+			if (!securityUpdateFound) {
+				await this.metaService.update({ security: true } as Partial<MiMeta>);
+			}
+		} catch (error) {
+			this.logger.error('Error checking for security updates:', error ?? 'Unknown error occurred.');
 		}
 	}
 
@@ -132,5 +126,110 @@ export class CheckSecurityUpdateService {
 		}
 		const [_, owner, repo] = match;
 		return `https://api.github.com/repos/${owner}/${repo}/releases`;
+	}
+
+	private parseVersion(versionStr: string): {
+		major: number;
+		minor: number;
+		patch: number;
+		prerelease: string | null;
+		isPrerelease: boolean;
+	} | null {
+		versionStr = versionStr.replace(/^[^0-9]+/, '');
+
+		const regex = /^(\d+)\.(\d+)\.(\d+)(?:[.-]([a-zA-Z0-9._-]+))?/;
+		const match = versionStr.match(regex);
+
+		if (!match) return null;
+
+		const [_, majorStr, minorStr, patchStr, suffixStr] = match;
+
+		const isPrerelease = suffixStr
+			? /^(alpha|beta|rc|dev|preview|test)/i.test(suffixStr)
+			: false;
+
+		return {
+			major: parseInt(majorStr, 10),
+			minor: parseInt(minorStr, 10),
+			patch: parseInt(patchStr, 10),
+			prerelease: suffixStr || null,
+			isPrerelease
+		};
+	}
+
+	private compareVersions(v1: string, v2: string): number {
+		const parsedV1 = this.parseVersion(v1);
+		const parsedV2 = this.parseVersion(v2);
+
+		if (!parsedV1 || !parsedV2) {
+			this.logger.warn(`Could not parse versions: "${v1}" or "${v2}"`);
+			return 0;
+		}
+
+		if (parsedV1.major !== parsedV2.major) {
+			return parsedV1.major > parsedV2.major ? 1 : -1;
+		}
+
+		if (parsedV1.minor !== parsedV2.minor) {
+			return parsedV1.minor > parsedV2.minor ? 1 : -1;
+		}
+
+		if (parsedV1.patch !== parsedV2.patch) {
+			return parsedV1.patch > parsedV2.patch ? 1 : -1;
+		}
+
+		if (parsedV1.isPrerelease && !parsedV2.isPrerelease) {
+			return -1;
+		}
+
+		if (!parsedV1.isPrerelease && parsedV2.isPrerelease) {
+			return 1;
+		}
+
+		if (parsedV1.isPrerelease && parsedV2.isPrerelease) {
+			return (parsedV1.prerelease || '') < (parsedV2.prerelease || '') ? -1 : 1;
+		}
+
+		if (parsedV1.prerelease && !parsedV2.prerelease) {
+			return 1;
+		}
+
+		if (!parsedV1.prerelease && parsedV2.prerelease) {
+			return -1;
+		}
+
+		if (parsedV1.prerelease && parsedV2.prerelease) {
+			return (parsedV1.prerelease || '') < (parsedV2.prerelease || '') ? -1 : 1;
+		}
+
+		return 0;
+	}
+
+	private needsUpdate(currentVersion: string, releaseVersion: string): boolean {
+		const parsedCurrent = this.parseVersion(currentVersion);
+		const parsedRelease = this.parseVersion(releaseVersion);
+
+		if (!parsedCurrent || !parsedRelease) {
+			return false;
+		}
+
+		if (parsedCurrent.isPrerelease &&
+			parsedCurrent.major === parsedRelease.major &&
+			parsedCurrent.minor === parsedRelease.minor &&
+			parsedCurrent.patch === parsedRelease.patch &&
+			!parsedRelease.isPrerelease) {
+			return true;
+		}
+
+		if (!parsedCurrent.prerelease &&
+			parsedRelease.prerelease &&
+			!parsedRelease.isPrerelease &&
+			parsedCurrent.major === parsedRelease.major &&
+			parsedCurrent.minor === parsedRelease.minor &&
+			parsedCurrent.patch === parsedRelease.patch) {
+			return true;
+		}
+
+		return this.compareVersions(currentVersion, releaseVersion) < 0;
 	}
 }

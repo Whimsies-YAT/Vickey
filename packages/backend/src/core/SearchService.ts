@@ -135,21 +135,19 @@ export class SearchService {
 				if (!indexExists) {
 					this.elasticsearch?.indices.create({
 						index: indexName + `-${new Date().toISOString().slice(0, 7).replace(/-/g, '')}`,
-						body: {
-							mappings: {
-								properties: {
-									text: { type: 'text' },
-									cw: { type: 'text' },
-									createdAt: { type: 'long' },
-									userId: { type: 'keyword' },
-									userHost: { type: 'keyword' },
-									channelId: { type: 'keyword' },
-									tags: { type: 'keyword' },
-								},
+						mappings: {
+							properties: {
+								text: { type: 'text' },
+								cw: { type: 'text' },
+								createdAt: { type: 'long' },
+								userId: { type: 'keyword' },
+								userHost: { type: 'keyword' },
+								channelId: { type: 'keyword' },
+								tags: { type: 'keyword' },
 							},
-							settings: {
-								//TODO: Make settings for optimization.
-							},
+						},
+						settings: {
+							//TODO: Make settings for optimization.
 						},
 					}).catch((error) => {
 						console.error(error);
