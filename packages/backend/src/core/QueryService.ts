@@ -298,11 +298,9 @@ export class QueryService {
 			const replyUserFilter = {
 				bool: {
 					should: [
-						{ bool: { must_not: [{ exists: { field: 'replyUserId' } }] } }, // replyUserId IS NULL
-						{ term: { replyUserId: null } },
-						{ script: { source: "doc['userId'].value == doc['replyUserId'].value" } }, // userId = replyUserId
-						{ bool: { must_not: [{ exists: { field: 'replyUserHost' } }] } }, // replyUserHost IS NULL
-						{ term: { replyUserHost: null } },
+						{ bool: { must_not: [{ exists: { field: 'replyUserId' } }] } },
+						{ script: { script: { source: "doc['userId'].value == doc['replyUserId'].value" } } },
+						{ bool: { must_not: [{ exists: { field: 'replyUserHost' } }] } },
 						{
 							bool: {
 								must_not: {
@@ -320,11 +318,9 @@ export class QueryService {
 			const renoteUserFilter = {
 				bool: {
 					should: [
-						{ bool: { must_not: [{ exists: { field: 'renoteUserId' } }] } }, // renoteUserId IS NULL
-						{ term: { renoteUserId: null } },
-						{ script: { source: "doc['userId'].value == doc['renoteUserId'].value" } }, // userId = renoteUserId
-						{ bool: { must_not: [{ exists: { field: 'renoteUserHost' } }] } }, // renoteUserHost IS NULL
-						{ term: { renoteUserHost: null } },
+						{ bool: { must_not: [{ exists: { field: 'renoteUserId' } }] } },
+						{ script: { script: { source: "doc['userId'].value == doc['renoteUserId'].value" } } },
+						{ bool: { must_not: [{ exists: { field: 'renoteUserHost' } }] } },
 						{
 							bool: {
 								must_not: {
@@ -345,8 +341,7 @@ export class QueryService {
 			const userFilter = {
 				bool: {
 					should: [
-						{ bool: { must_not: [{ exists: { field: 'userHost' } }] } }, // userHost IS NULL
-						{ term: { userHost: null } },
+						{ bool: { must_not: [{ exists: { field: 'userHost' } }] } },
 						{
 							bool: {
 								must_not: {
@@ -364,10 +359,8 @@ export class QueryService {
 			const replyUserFilter = {
 				bool: {
 					should: [
-						{ bool: { must_not: [{ exists: { field: 'replyUserId' } }] } }, // replyUserId IS NULL
-						{ term: { replyUserId: null } },
-						{ bool: { must_not: [{ exists: { field: 'replyUserHost' } }] } }, // replyUserHost IS NULL
-						{ term: { replyUserHost: null } },
+						{ bool: { must_not: [{ exists: { field: 'replyUserId' } }] } },
+						{ bool: { must_not: [{ exists: { field: 'replyUserHost' } }] } },
 						{
 							bool: {
 								must_not: {
@@ -385,10 +378,8 @@ export class QueryService {
 			const renoteUserFilter = {
 				bool: {
 					should: [
-						{ bool: { must_not: [{ exists: { field: 'renoteUserId' } }] } }, // renoteUserId IS NULL
-						{ term: { renoteUserId: null } },
-						{ bool: { must_not: [{ exists: { field: 'renoteUserHost' } }] } }, // renoteUserHost IS NULL
-						{ term: { renoteUserHost: null } },
+						{ bool: { must_not: [{ exists: { field: 'renoteUserId' } }] } },
+						{ bool: { must_not: [{ exists: { field: 'renoteUserHost' } }] } },
 						{
 							bool: {
 								must_not: {
