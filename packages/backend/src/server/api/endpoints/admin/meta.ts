@@ -644,6 +644,24 @@ export const meta = {
 				type: 'number',
 				optional: false, nullable: false,
 			},
+			deliverSuspendedSoftware: {
+				type: 'array',
+				optional: false, nullable: false,
+				items: {
+					type: 'object',
+					optional: false, nullable: false,
+					properties: {
+						software: {
+							type: 'string',
+							optional: false, nullable: false,
+						},
+						versionRange: {
+							type: 'string',
+							optional: false, nullable: false,
+						},
+					},
+				},
+			},
 		},
 	},
 } as const;
@@ -816,6 +834,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				abuseMLInfoToken: instance.abuseMLInfoToken,
 				abuseMLInfoScore: instance.abuseMLInfoScore,
 				abuseReportMLAction: instance.abuseReportMLAction,
+				deliverSuspendedSoftware: instance.deliverSuspendedSoftware,
 			};
 		});
 	}
