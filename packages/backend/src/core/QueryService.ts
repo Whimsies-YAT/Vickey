@@ -428,4 +428,62 @@ export class QueryService {
 				.andWhere(brakets('renoteUser'));
 		}
 	}
+
+	@bindThis
+	public generateSuspendedUserQueryForElasticsearch(esFilter: any, excludeAuthor?: boolean): void {
+		if (excludeAuthor) {
+			const replyUserFilter = {
+				bool: {
+					should: [
+						{ bool: { must_not: [{ exists: { field: 'replyUserId' } }] } },
+						{ script: { script: { source: "doc['userId'].value == doc['replyUserId'].value" } } },
+						{ term: { 'replyUser.isSuspended': false } }
+					],
+					minimum_should_match: 1
+				}
+			};
+
+			const renoteUserFilter = {
+				bool: {
+					should: [
+						{ bool: { must_not: [{ exists: { field: 'renoteUserId' } }] } },
+						{ script: { script: { source: "doc['userId'].value == doc['renoteUserId'].value" } } },
+						{ term: { 'renoteUser.isSuspended': false } }
+					],
+					minimum_should_match: 1
+				}
+			};
+
+			esFilter.bool.must.push(replyUserFilter);
+			esFilter.bool.must.push(renoteUserFilter);
+		} else {
+			const userFilter = {
+				term: { 'user.isSuspended': false }
+			};
+
+			const replyUserFilter = {
+				bool: {
+					should: [
+						{ bool: { must_not: [{ exists: { field: 'replyUserId' } }] } },
+						{ term: { 'replyUser.isSuspended': false } }
+					],
+					minimum_should_match: 1
+				}
+			};
+
+			const renoteUserFilter = {
+				bool: {
+					should: [
+						{ bool: { must_not: [{ exists: { field: 'renoteUserId' } }] } },
+						{ term: { 'renoteUser.isSuspended': false } }
+					],
+					minimum_should_match: 1
+				}
+			};
+
+			esFilter.bool.must.push(userFilter);
+			esFilter.bool.must.push(replyUserFilter);
+			esFilter.bool.must.push(renoteUserFilter);
+		}
+	}
 }

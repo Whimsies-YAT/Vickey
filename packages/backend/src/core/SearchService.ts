@@ -408,6 +408,7 @@ export class SearchService {
 			}
 
 			this.queryService.generateBlockedHostQueryForElasticsearch(esFilter);
+			this.queryService.generateSuspendedUserQueryForElasticsearch(esFilter);
 			const res = await this.elasticsearch.search({
 				index: this.elasticsearchNoteIndex + `*` as string,
 				query: {
