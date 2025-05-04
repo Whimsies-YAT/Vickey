@@ -43,29 +43,36 @@ export class QueryService {
 	) {
 	}
 
-	public makePaginationQuery<T extends ObjectLiteral>(q: SelectQueryBuilder<T>, sinceId?: string | null, untilId?: string | null, sinceDate?: number | null, untilDate?: number | null): SelectQueryBuilder<T> {
+	public makePaginationQuery<T extends ObjectLiteral>(
+		q: SelectQueryBuilder<T>,
+		sinceId?: string | null,
+		untilId?: string | null,
+		sinceDate?: number | null,
+		untilDate?: number | null,
+		targetColumn = 'id',
+	): SelectQueryBuilder<T> {
 		if (sinceId && untilId) {
-			q.andWhere(`${q.alias}.id > :sinceId`, { sinceId: sinceId });
-			q.andWhere(`${q.alias}.id < :untilId`, { untilId: untilId });
-			q.orderBy(`${q.alias}.id`, 'DESC');
+			q.andWhere(`${q.alias}.${targetColumn} > :sinceId`, { sinceId: sinceId });
+			q.andWhere(`${q.alias}.${targetColumn} < :untilId`, { untilId: untilId });
+			q.orderBy(`${q.alias}.${targetColumn}`, 'DESC');
 		} else if (sinceId) {
-			q.andWhere(`${q.alias}.id > :sinceId`, { sinceId: sinceId });
-			q.orderBy(`${q.alias}.id`, 'ASC');
+			q.andWhere(`${q.alias}.${targetColumn} > :sinceId`, { sinceId: sinceId });
+			q.orderBy(`${q.alias}.${targetColumn}`, 'ASC');
 		} else if (untilId) {
-			q.andWhere(`${q.alias}.id < :untilId`, { untilId: untilId });
-			q.orderBy(`${q.alias}.id`, 'DESC');
+			q.andWhere(`${q.alias}.${targetColumn} < :untilId`, { untilId: untilId });
+			q.orderBy(`${q.alias}.${targetColumn}`, 'DESC');
 		} else if (sinceDate && untilDate) {
-			q.andWhere(`${q.alias}.id > :sinceId`, { sinceId: this.idService.gen(sinceDate) });
-			q.andWhere(`${q.alias}.id < :untilId`, { untilId: this.idService.gen(untilDate) });
-			q.orderBy(`${q.alias}.id`, 'DESC');
+			q.andWhere(`${q.alias}.${targetColumn} > :sinceId`, { sinceId: this.idService.gen(sinceDate) });
+			q.andWhere(`${q.alias}.${targetColumn} < :untilId`, { untilId: this.idService.gen(untilDate) });
+			q.orderBy(`${q.alias}.${targetColumn}`, 'DESC');
 		} else if (sinceDate) {
-			q.andWhere(`${q.alias}.id > :sinceId`, { sinceId: this.idService.gen(sinceDate) });
-			q.orderBy(`${q.alias}.id`, 'ASC');
+			q.andWhere(`${q.alias}.${targetColumn} > :sinceId`, { sinceId: this.idService.gen(sinceDate) });
+			q.orderBy(`${q.alias}.${targetColumn}`, 'ASC');
 		} else if (untilDate) {
-			q.andWhere(`${q.alias}.id < :untilId`, { untilId: this.idService.gen(untilDate) });
-			q.orderBy(`${q.alias}.id`, 'DESC');
+			q.andWhere(`${q.alias}.${targetColumn} < :untilId`, { untilId: this.idService.gen(untilDate) });
+			q.orderBy(`${q.alias}.${targetColumn}`, 'DESC');
 		} else {
-			q.orderBy(`${q.alias}.id`, 'DESC');
+			q.orderBy(`${q.alias}.${targetColumn}`, 'DESC');
 		}
 		return q;
 	}
@@ -389,6 +396,86 @@ export class QueryService {
 								}
 							}
 						}
+					],
+					minimum_should_match: 1
+				}
+			};
+
+			esFilter.bool.must.push(userFilter);
+			esFilter.bool.must.push(replyUserFilter);
+			esFilter.bool.must.push(renoteUserFilter);
+		}
+	}
+
+	// Requirements: user replyUser renoteUser must be joined
+	@bindThis
+	public generateSuspendedUserQueryForNote(q: SelectQueryBuilder<any>, excludeAuthor?: boolean): void {
+		if (excludeAuthor) {
+			const brakets = (user: string) => new Brackets(qb => qb
+				.where(`note.${user}Id IS NULL`)
+				.orWhere(`user.id = ${user}.id`)
+				.orWhere(`${user}.isSuspended = FALSE`));
+			q
+				.andWhere(brakets('replyUser'))
+				.andWhere(brakets('renoteUser'));
+		} else {
+			const brakets = (user: string) => new Brackets(qb => qb
+				.where(`note.${user}Id IS NULL`)
+				.orWhere(`${user}.isSuspended = FALSE`));
+			q
+				.andWhere('user.isSuspended = FALSE')
+				.andWhere(brakets('replyUser'))
+				.andWhere(brakets('renoteUser'));
+		}
+	}
+
+	@bindThis
+	public generateSuspendedUserQueryForElasticsearch(esFilter: any, excludeAuthor?: boolean): void {
+		if (excludeAuthor) {
+			const replyUserFilter = {
+				bool: {
+					should: [
+						{ bool: { must_not: [{ exists: { field: 'replyUserId' } }] } },
+						{ script: { script: { source: "doc['userId'].value == doc['replyUserId'].value" } } },
+						{ term: { 'replyUser.isSuspended': false } }
+					],
+					minimum_should_match: 1
+				}
+			};
+
+			const renoteUserFilter = {
+				bool: {
+					should: [
+						{ bool: { must_not: [{ exists: { field: 'renoteUserId' } }] } },
+						{ script: { script: { source: "doc['userId'].value == doc['renoteUserId'].value" } } },
+						{ term: { 'renoteUser.isSuspended': false } }
+					],
+					minimum_should_match: 1
+				}
+			};
+
+			esFilter.bool.must.push(replyUserFilter);
+			esFilter.bool.must.push(renoteUserFilter);
+		} else {
+			const userFilter = {
+				term: { 'user.isSuspended': false }
+			};
+
+			const replyUserFilter = {
+				bool: {
+					should: [
+						{ bool: { must_not: [{ exists: { field: 'replyUserId' } }] } },
+						{ term: { 'replyUser.isSuspended': false } }
+					],
+					minimum_should_match: 1
+				}
+			};
+
+			const renoteUserFilter = {
+				bool: {
+					should: [
+						{ bool: { must_not: [{ exists: { field: 'renoteUserId' } }] } },
+						{ term: { 'renoteUser.isSuspended': false } }
 					],
 					minimum_should_match: 1
 				}

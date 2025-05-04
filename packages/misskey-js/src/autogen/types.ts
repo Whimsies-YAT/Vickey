@@ -5103,7 +5103,7 @@ export type components = {
       isNotResponding: boolean;
       isSuspended: boolean;
       /** @enum {string} */
-      suspensionState: 'none' | 'manuallySuspended' | 'goneSuspended' | 'autoSuspendedForNotResponding';
+      suspensionState: 'none' | 'manuallySuspended' | 'goneSuspended' | 'autoSuspendedForNotResponding' | 'softwareSuspended';
       isBlocked: boolean;
       /** @example misskey */
       softwareName: string | null;
@@ -9303,6 +9303,10 @@ export type operations = {
             abuseMLInfoUrl: string;
             abuseMLInfoToken: string;
             abuseMLInfoScore: number;
+            deliverSuspendedSoftware: {
+                software: string;
+                versionRange: string;
+              }[];
           };
         };
       };
@@ -12119,6 +12123,10 @@ export type operations = {
           abuseMLInfoUrl?: string;
           abuseMLInfoToken?: string;
           abuseMLInfoScore?: number;
+          deliverSuspendedSoftware?: {
+              software: string;
+              versionRange: string;
+            }[];
         };
       };
     };
