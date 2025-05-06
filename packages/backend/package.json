@@ -193,7 +193,7 @@
 		"web-push": "3.6.7",
 		"ws": "8.18.1",
 		"xev": "3.0.2",
-		"xlsx": "0.18.5"
+		"xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
 	},
 	"devDependencies": {
 		"@jest/globals": "29.7.0",
