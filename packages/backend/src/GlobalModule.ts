@@ -181,6 +181,8 @@ const $meta: Provider = {
 	exports: [$config, $db, $meta, $meilisearch, $elasticsearch, $redis, $redisForPub, $redisForSub, $redisForTimelines, $redisForReactions, RepositoryModule],
 })
 export class GlobalModule implements OnApplicationShutdown {
+	private disposed = false;
+
 	constructor(
 		@Inject(DI.db) private db: DataSource,
 		@Inject(DI.redis) private redisClient: Redis.Redis,
@@ -191,17 +193,24 @@ export class GlobalModule implements OnApplicationShutdown {
 	) { }
 
 	public async dispose(): Promise<void> {
-		// Wait for all potential DB queries
-		await allSettled();
-		// And then disconnect from DB
-		await Promise.all([
-			this.db.destroy(),
-			this.redisClient.disconnect(),
-			this.redisForPub.disconnect(),
-			this.redisForSub.disconnect(),
-			this.redisForTimelines.disconnect(),
-			this.redisForReactions.disconnect(),
-		]);
+		if (this.disposed) return;
+		this.disposed = true;
+
+		try {
+			// Wait for all potential DB queries
+			await allSettled();
+			// And then disconnect from DB
+			await Promise.all([
+				this.db.destroy(),
+				this.redisClient.disconnect(),
+				this.redisForPub.disconnect(),
+				this.redisForSub.disconnect(),
+				this.redisForTimelines.disconnect(),
+				this.redisForReactions.disconnect(),
+			]);
+		} catch (err) {
+			console.error('Error when closing database connection:', err);
+		}
 	}
 
 	async onApplicationShutdown(signal: string): Promise<void> {
