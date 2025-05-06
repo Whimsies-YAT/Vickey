@@ -10,6 +10,7 @@ import { EmailService } from '@/core/EmailService.js';
 import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
 import { MetaService } from '@/core/MetaService.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
+import { LoggerService } from '@/core/LoggerService.js';
 import type { MiMeta } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import type { Config } from '@/config.js';
@@ -25,11 +26,14 @@ export class CheckSecurityUpdateService {
 		@Inject(DI.meta)
 		private meta: MiMeta,
 
+		private loggerService: LoggerService,
 		private emailService: EmailService,
 		private emailTemplatesService: EmailTemplatesService,
 		private metaService: MetaService,
 		private httpRequestService: HttpRequestService
-	) {}
+	) {
+		this.logger = this.loggerService.getLogger('checkSec');
+	}
 
 	@bindThis
 	public async checkSecUpdate(): Promise<void> {
