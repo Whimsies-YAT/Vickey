@@ -70,6 +70,28 @@ process.on('exit', code => {
 	logger.info(`The process is going to exit with code ${code}`);
 });
 
+if (cluster.isPrimary) {
+	const handleMasterSignal = (signal: string) => {
+		logger.info(`Master process received ${signal} signal, closing...`);
+
+		for (const id in cluster.workers) {
+			const worker = cluster.workers[id];
+			if (worker) {
+				worker.kill(signal);
+			}
+		}
+
+		setTimeout(() => {
+			logger.info('Master process exiting...');
+			process.exit(0);
+		}, 1000);
+	};
+
+	process.on('SIGINT', () => handleMasterSignal('SIGINT'));
+	process.on('SIGTERM', () => handleMasterSignal('SIGTERM'));
+	process.on('SIGHUP', () => handleMasterSignal('SIGHUP'));
+}
+
 //#endregion
 
 if (!envOption.disableClustering) {
