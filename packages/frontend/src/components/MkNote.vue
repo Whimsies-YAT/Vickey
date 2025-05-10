@@ -323,8 +323,6 @@ const canRenote = computed(() => ['public', 'home'].includes(appearNote.visibili
 const convert = ref<Blob | null>(null);
 const converting = ref(false);
 const converturl = ref<Misskey.entities.NotesTTSResponse | null>(null);
-const showTicker = (prefer.s.instanceTicker === 'always') || (prefer.s.instanceTicker === 'remote' && appearNote.value.user.instance);
-const canRenote = computed(() => ['public', 'home'].includes(appearNote.value.visibility) || (appearNote.value.visibility === 'followers' && appearNote.value.userId === $i?.id));
 const renoteCollapsed = ref(
 	prefer.s.collapseRenotes && isRenote && (
 		($i && ($i.id === note.userId || $i.id === appearNote.userId)) || // `||` must be `||`! See https://github.com/misskey-dev/misskey/issues/13131
