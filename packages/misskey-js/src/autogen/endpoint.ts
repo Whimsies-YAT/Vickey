@@ -525,6 +525,8 @@ import type {
 	NotesSearchByTagResponse,
 	NotesShowRequest,
 	NotesShowResponse,
+	NotesShowPartialBulkRequest,
+	NotesShowPartialBulkResponse,
 	NotesStateRequest,
 	NotesStateResponse,
 	NotesThreadMutingCreateRequest,
@@ -997,6 +999,7 @@ export type Endpoints = {
 	'notes/search': { req: NotesSearchRequest; res: NotesSearchResponse };
 	'notes/search-by-tag': { req: NotesSearchByTagRequest; res: NotesSearchByTagResponse };
 	'notes/show': { req: NotesShowRequest; res: NotesShowResponse };
+	'notes/show-partial-bulk': { req: NotesShowPartialBulkRequest; res: NotesShowPartialBulkResponse };
 	'notes/state': { req: NotesStateRequest; res: NotesStateResponse };
 	'notes/thread-muting/create': { req: NotesThreadMutingCreateRequest; res: EmptyResponse };
 	'notes/thread-muting/delete': { req: NotesThreadMutingDeleteRequest; res: EmptyResponse };
