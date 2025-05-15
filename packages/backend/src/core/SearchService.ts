@@ -79,7 +79,8 @@ export class SearchService {
 	private readonly meilisearchIndexScope: 'local' | 'global' | string[] = 'local';
 	private readonly meilisearchNoteIndex: Index | null = null;
 	private readonly provider: FulltextSearchProvider;
-	private elasticsearchNoteIndex: string | null = null;
+	private elasticsearchWriteIndex: string | null = null;
+	private elasticsearchSearchIndex: string | null = null;
 
 	constructor(
 		@Inject(DI.config)
@@ -125,39 +126,54 @@ export class SearchService {
 			});
 		}
 
-		if (!meilisearch && this.elasticsearch) {
-			const indexName = `${config.elasticsearch!.index}---notes`;
-			this.elasticsearchNoteIndex = indexName;
+		if (!this.meilisearch && this.elasticsearch) {
+			const base = `${config.elasticsearch!.index}---notes`;
+			const month = new Date().toISOString().slice(0,7).replace(/-/g, '');
+			const prefix = `${base}-${month}`;
+			const MAX_DOCS = 5_000_000;
 
-			this.elasticsearch.indices.exists({
-				index: indexName,
-			}).then((indexExists) => {
-				if (!indexExists) {
-					this.elasticsearch?.indices.create({
-						index: indexName + `-${new Date().toISOString().slice(0, 7).replace(/-/g, '')}`,
-						mappings: {
-							properties: {
-								text: { type: 'text' },
-								cw: { type: 'text' },
-								createdAt: { type: 'long' },
-								userId: { type: 'keyword' },
-								userHost: { type: 'keyword' },
-								channelId: { type: 'keyword' },
-								tags: { type: 'keyword' },
+			(async () => {
+				let i = 0;
+				while (true) {
+					const idx = i === 0 ? prefix : `${prefix}-${i}`;
+					const exists = await this.elasticsearch!.indices.exists({ index: idx });
+					if (!exists) {
+						await this.elasticsearch!.indices.create({
+							index: idx,
+							mappings: {
+								properties: {
+									text:      { type: 'text' },
+									cw:        { type: 'text' },
+									createdAt: { type: 'long' },
+									userId:    { type: 'keyword' },
+									userHost:  { type: 'keyword' },
+									channelId: { type: 'keyword' },
+									tags:      { type: 'keyword' },
+								},
 							},
-						},
-						settings: {
-							//TODO: Make settings for optimization.
-						},
-					}).catch((error) => {
-						console.error(error);
-					});
+							settings: {
+								//TODO: Make settings for optimization.
+							},
+						});
+						this.elasticsearchWriteIndex = idx;
+						break;
+					}
+
+					const { count } = await this.elasticsearch!.count({ index: idx });
+					if (count < MAX_DOCS) {
+						this.elasticsearchWriteIndex = idx;
+						break;
+					}
+
+					i++;
 				}
-			}).catch((error) => {
-				console.error(error);
+
+				this.elasticsearchSearchIndex = `${base}*`;
+			})().catch(err => {
+				console.error('Elasticsearch index initialization exception:', err);
+				this.elasticsearchWriteIndex  = prefix;
+				this.elasticsearchSearchIndex = `${base}*`;
 			});
-		} else {
-			this.elasticsearchNoteIndex = null;
 		}
 
 		if (config.meilisearch?.scope) {
@@ -214,11 +230,13 @@ export class SearchService {
 				tags: note.tags,
 			};
 
-			await this.elasticsearch.index({
-				index: this.elasticsearchNoteIndex + `-${new Date().toISOString().slice(0, 7).replace(/-/g, '')}`,
-				id: note.id,
-				document: document,
-			});
+			if (!this.meilisearch && this.elasticsearch && this.elasticsearchWriteIndex) {
+				await this.elasticsearch.index({
+					index: this.elasticsearchWriteIndex,
+					id: note.id,
+					document: document,
+				});
+			}
 		}
 	}
 
@@ -230,10 +248,14 @@ export class SearchService {
 			await this.meilisearchNoteIndex!.deleteDocument(note.id);
 		}
 
-		if (!this.meilisearch && this.elasticsearch) {
-			(this.elasticsearch.delete)({
-				index: this.elasticsearchNoteIndex + `-${new Date().toISOString().slice(0, 7).replace(/-/g, '')}` as string,
-				id: note.id,
+		if (!this.meilisearch && this.elasticsearch && this.elasticsearchSearchIndex) {
+			await this.elasticsearch.deleteByQuery({
+				index: this.elasticsearchSearchIndex,
+				query: {
+					term: {
+						_id: note.id
+					}
+				}
 			});
 		}
 	}
@@ -389,7 +411,7 @@ export class SearchService {
 		});
 
 			return notes.sort((a, b) => a.id > b.id ? -1 : 1);
-		} else if (this.elasticsearch) {
+		} else if (this.elasticsearch && this.elasticsearchSearchIndex) {
 			const esFilter: any = {
 				bool: {
 					must: [],
@@ -410,7 +432,7 @@ export class SearchService {
 			this.queryService.generateBlockedHostQueryForElasticsearch(esFilter);
 			this.queryService.generateSuspendedUserQueryForElasticsearch(esFilter);
 			const res = await this.elasticsearch.search({
-				index: this.elasticsearchNoteIndex + `*` as string,
+				index: this.elasticsearchSearchIndex,
 				query: {
 					bool: {
 						must: [
