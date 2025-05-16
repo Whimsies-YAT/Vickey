@@ -429,8 +429,6 @@ export class SearchService {
 				}
 			}
 
-			this.queryService.generateBlockedHostQueryForElasticsearch(esFilter);
-			this.queryService.generateSuspendedUserQueryForElasticsearch(esFilter);
 			const res = await this.elasticsearch.search({
 				index: this.elasticsearchSearchIndex,
 				query: {
@@ -465,14 +463,23 @@ export class SearchService {
 				this.cacheService.userBlockedCache.fetch(me.id),
 			]) : [new Set<string>(), new Set<string>()];
 
-			const query = this.notesRepository.createQueryBuilder('note');
+			const query = this.notesRepository.createQueryBuilder('note')
+				.innerJoinAndSelect('note.user', 'user')
+				.leftJoinAndSelect('note.reply', 'reply')
+				.leftJoinAndSelect('note.renote', 'renote')
+				.leftJoinAndSelect('reply.user', 'replyUser')
+				.leftJoinAndSelect('renote.user', 'renoteUser');
 
-			query.where('note.id IN (:...noteIds)', { noteIds: noteIds });
+			query.where('note.id IN (:...noteIds)', { noteIds });
+
+			this.queryService.generateBlockedHostQueryForNote(query);
+			this.queryService.generateSuspendedUserQueryForNote(query);
 
 			const notes = (await query.getMany()).filter(note => {
 				if (me && isUserRelated(note, userIdsWhoBlockingMe)) return false;
 				return !(me && isUserRelated(note, userIdsWhoMeMuting));
 			});
+
 			return notes.sort((a, b) => a.id > b.id ? -1 : 1);
 		} else {
 			const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), pagination.sinceId, pagination.untilId);
