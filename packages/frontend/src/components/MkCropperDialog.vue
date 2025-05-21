@@ -49,12 +49,6 @@ const emit = defineEmits<{
 	(ev: 'closed'): void;
 }>();
 
-const props = defineProps<{
-	file: Misskey.entities.DriveFile;
-	aspectRatio: number;
-	uploadFolder?: string | null;
-}>();
-
 const imgUrl = URL.createObjectURL(props.imageFile);
 const dialogEl = useTemplateRef('dialogEl');
 const imgEl = useTemplateRef('imgEl');
