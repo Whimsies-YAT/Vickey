@@ -14,6 +14,1630 @@ export interface Locale extends ILocale {
      */
     "_lang_": string;
     /**
+     * Result
+     */
+    "result": string;
+    /**
+     * Automatic TTS feature needed.
+     */
+    "flagAsVI": string;
+    /**
+     * Enable this if you need the automatic TTS feature. If you belong to an authorized user group, the automatic TTS feature will be activated within a specific scope.
+     */
+    "flagAsVIDescription": string;
+    "_role": {
+        "_options": {
+            /**
+             * TTS機能の利用
+             */
+            "canUseTTS": string;
+            /**
+             * グローバルタイムラインの閲覧
+             */
+            "gtlAvailable": string;
+            /**
+             * ローカルタイムラインの閲覧
+             */
+            "ltlAvailable": string;
+            /**
+             * パブリック投稿の許可
+             */
+            "canPublicNote": string;
+            /**
+             * ノート内の最大メンション数
+             */
+            "mentionMax": string;
+            /**
+             * サーバー招待コードの発行
+             */
+            "canInvite": string;
+            /**
+             * 招待コードの作成可能数
+             */
+            "inviteLimit": string;
+            /**
+             * 招待コードの発行間隔
+             */
+            "inviteLimitCycle": string;
+            /**
+             * 招待コードの有効期限
+             */
+            "inviteExpirationTime": string;
+            /**
+             * カスタム絵文字の管理
+             */
+            "canManageCustomEmojis": string;
+            /**
+             * アバターデコレーションの管理
+             */
+            "canManageAvatarDecorations": string;
+            /**
+             * ドライブ容量
+             */
+            "driveCapacity": string;
+            /**
+             * アップロード可能な最大ファイルサイズ
+             */
+            "maxFileSize": string;
+            /**
+             * ファイルにNSFWを常に付与
+             */
+            "alwaysMarkNsfw": string;
+            /**
+             * アイコンとバナーの更新を許可
+             */
+            "canUpdateBioMedia": string;
+            /**
+             * ノートのピン留めの最大数
+             */
+            "pinMax": string;
+            /**
+             * アンテナの作成可能数
+             */
+            "antennaMax": string;
+            /**
+             * ワードミュートの最大文字数
+             */
+            "wordMuteMax": string;
+            /**
+             * Webhookの作成可能数
+             */
+            "webhookMax": string;
+            /**
+             * クリップの作成可能数
+             */
+            "clipMax": string;
+            /**
+             * クリップ内のノートの最大数
+             */
+            "noteEachClipsMax": string;
+            /**
+             * ユーザーリストの作成可能数
+             */
+            "userListMax": string;
+            /**
+             * ユーザーリスト内のユーザーの最大数
+             */
+            "userEachUserListsMax": string;
+            /**
+             * レートリミット
+             */
+            "rateLimitFactor": string;
+            /**
+             * 小さいほど制限が緩和され、大きいほど制限が強化されます。
+             */
+            "descriptionOfRateLimitFactor": string;
+            /**
+             * 広告の非表示
+             */
+            "canHideAds": string;
+            /**
+             * ノート検索の利用
+             */
+            "canSearchNotes": string;
+            /**
+             * 翻訳機能の利用
+             */
+            "canUseTranslator": string;
+            /**
+             * アイコンデコレーションの最大取付個数
+             */
+            "avatarDecorationLimit": string;
+            /**
+             * アンテナのインポートを許可
+             */
+            "canImportAntennas": string;
+            /**
+             * ブロックのインポートを許可
+             */
+            "canImportBlocking": string;
+            /**
+             * フォローのインポートを許可
+             */
+            "canImportFollowing": string;
+            /**
+             * ミュートのインポートを許可
+             */
+            "canImportMuting": string;
+            /**
+             * リストのインポートを許可
+             */
+            "canImportUserLists": string;
+            /**
+             * チャットを許可
+             */
+            "chatAvailability": string;
+        };
+        "_condition": {
+            /**
+             * TTSユーザー
+             */
+            "isVI": string;
+            /**
+             * マニュアルロールにアサイン済み
+             */
+            "roleAssignedTo": string;
+            /**
+             * ローカルユーザー
+             */
+            "isLocal": string;
+            /**
+             * リモートユーザー
+             */
+            "isRemote": string;
+            /**
+             * 猫ユーザー
+             */
+            "isCat": string;
+            /**
+             * botユーザー
+             */
+            "isBot": string;
+            /**
+             * サスペンド済みユーザー
+             */
+            "isSuspended": string;
+            /**
+             * 鍵アカウントユーザー
+             */
+            "isLocked": string;
+            /**
+             * 「アカウントを見つけやすくする」が有効なユーザー
+             */
+            "isExplorable": string;
+            /**
+             * アカウント作成から～以内
+             */
+            "createdLessThan": string;
+            /**
+             * アカウント作成から～経過
+             */
+            "createdMoreThan": string;
+            /**
+             * フォロワー数が～以下
+             */
+            "followersLessThanOrEq": string;
+            /**
+             * フォロワー数が～以上
+             */
+            "followersMoreThanOrEq": string;
+            /**
+             * フォロー数が～以下
+             */
+            "followingLessThanOrEq": string;
+            /**
+             * フォロー数が～以上
+             */
+            "followingMoreThanOrEq": string;
+            /**
+             * 投稿数が～以下
+             */
+            "notesLessThanOrEq": string;
+            /**
+             * 投稿数が～以上
+             */
+            "notesMoreThanOrEq": string;
+            /**
+             * ～かつ～
+             */
+            "and": string;
+            /**
+             * ～または～
+             */
+            "or": string;
+            /**
+             * ～ではない
+             */
+            "not": string;
+        };
+        /**
+         * ロールの作成
+         */
+        "new": string;
+        /**
+         * ロールの編集
+         */
+        "edit": string;
+        /**
+         * ロール名
+         */
+        "name": string;
+        /**
+         * ロールの説明
+         */
+        "description": string;
+        /**
+         * ロールの権限
+         */
+        "permission": string;
+        /**
+         * <b>モデレーター</b>は基本的なモデレーションに関する操作を行えます。
+         * <b>管理者</b>はサーバーの全ての設定を変更できます。
+         */
+        "descriptionOfPermission": string;
+        /**
+         * アサイン
+         */
+        "assignTarget": string;
+        /**
+         * <b>マニュアル</b>は誰がこのロールに含まれるかを手動で管理します。
+         * <b>コンディショナル</b>は条件を設定し、それに合致するユーザーが自動で含まれるようになります。
+         */
+        "descriptionOfAssignTarget": string;
+        /**
+         * マニュアル
+         */
+        "manual": string;
+        /**
+         * マニュアルロール
+         */
+        "manualRoles": string;
+        /**
+         * コンディショナル
+         */
+        "conditional": string;
+        /**
+         * コンディショナルロール
+         */
+        "conditionalRoles": string;
+        /**
+         * 条件
+         */
+        "condition": string;
+        /**
+         * これはコンディショナルロールです。
+         */
+        "isConditionalRole": string;
+        /**
+         * 公開ロール
+         */
+        "isPublic": string;
+        /**
+         * ユーザーのプロフィールでこのロールが表示されます。
+         */
+        "descriptionOfIsPublic": string;
+        /**
+         * オプション
+         */
+        "options": string;
+        /**
+         * ポリシー
+         */
+        "policies": string;
+        /**
+         * ベースロール
+         */
+        "baseRole": string;
+        /**
+         * ベースロールの値を使用
+         */
+        "useBaseValue": string;
+        /**
+         * アサインするロールを選択
+         */
+        "chooseRoleToAssign": string;
+        /**
+         * アイコン画像のURL
+         */
+        "iconUrl": string;
+        /**
+         * バッジとして表示
+         */
+        "asBadge": string;
+        /**
+         * オンにすると、ユーザー名の横にロールのアイコンが表示されます。
+         */
+        "descriptionOfAsBadge": string;
+        /**
+         * ユーザーを見つけやすくする
+         */
+        "isExplorable": string;
+        /**
+         * オンにすると、「みつける」でメンバー一覧が公開されるほか、ロールのタイムラインが利用可能になります。
+         */
+        "descriptionOfIsExplorable": string;
+        /**
+         * 表示順
+         */
+        "displayOrder": string;
+        /**
+         * 数値が大きいほどUI上で先頭に表示されます。
+         */
+        "descriptionOfDisplayOrder": string;
+        /**
+         * アサイン状態を移行先アカウントにも引き継ぐ
+         */
+        "preserveAssignmentOnMoveAccount": string;
+        /**
+         * オンにすると、このロールが付与されたアカウントが移行された際に、移行先アカウントにもこのロールが引き継がれるようになります。
+         */
+        "preserveAssignmentOnMoveAccount_description": string;
+        /**
+         * モデレーターのメンバー編集を許可
+         */
+        "canEditMembersByModerator": string;
+        /**
+         * オンにすると、管理者に加えてモデレーターもこのロールへユーザーをアサイン/アサイン解除できるようになります。オフにすると管理者のみが行えます。
+         */
+        "descriptionOfCanEditMembersByModerator": string;
+        /**
+         * 優先度
+         */
+        "priority": string;
+        "_priority": {
+            /**
+             * 低
+             */
+            "low": string;
+            /**
+             * 中
+             */
+            "middle": string;
+            /**
+             * 高
+             */
+            "high": string;
+        };
+    };
+    /**
+     * Approvals
+     */
+    "approvals": string;
+    /**
+     * Do you want to approve the registration?
+     */
+    "registerApproveConfirm": string;
+    /**
+     * This action cannot be undone. Once approved, an email will be sent to notify the user that their registration has been approved.
+     */
+    "registerApproveConfirmDescription": string;
+    /**
+     * Make account registration approval-based
+     */
+    "approvalRequiredForSignup": string;
+    /**
+     * Pending account registration approvals
+     */
+    "signupPendingApprovals": string;
+    /**
+     * There are users awaiting approval.
+     */
+    "pendingUserApprovals": string;
+    /**
+     * Approve
+     */
+    "approveAccount": string;
+    /**
+     * Deny and delete account
+     */
+    "denyAccount": string;
+    /**
+     * Approved
+     */
+    "approved": string;
+    /**
+     * Not approved
+     */
+    "notApproved": string;
+    /**
+     * Approval status
+     */
+    "approvalStatus": string;
+    /**
+     * This instance currently requires approval to register. Please provide your reason for joining, and only those approved will be allowed to register.
+     */
+    "approvalRequiredToRegister": string;
+    /**
+     * Reason for registration
+     */
+    "registerReason": string;
+    /**
+     * Your registration for the server has not yet been approved. Please try again later. If you provided an email address during registration, you will be notified by email once your registration is approved.
+     */
+    "registerHasNotBeenApprovedYet": string;
+    /**
+     * To ensure notifications are sent regarding the approval of server registrations, it is strongly recommended to require an email address during account registration.
+     */
+    "registerApprovalEmailRecommended": string;
+    /**
+     * Perform a security update immediately!
+     */
+    "HaveSecurityUpdate": string;
+    /**
+     * Avatar decorations
+     */
+    "customAvatarDecoration": string;
+    /**
+     * Reason for Decline (Optional)
+     */
+    "optionalReason": string;
+    /**
+     * Email Templates
+     */
+    "emailTemplates": string;
+    /**
+     * Automated processing of abuse reports
+     */
+    "abuseReportAutoProcessing": string;
+    "_permissions": {
+        /**
+         * Approve registration application
+         */
+        "write:admin:approve-account": string;
+        /**
+         * Decline registration application
+         */
+        "write:admin:decline-account": string;
+        /**
+         * View application list
+         */
+        "read:admin:show-pending": string;
+        /**
+         * View whether there are registration applications
+         */
+        "read:admin:show-pendings": string;
+        /**
+         * Manage email templates
+         */
+        "write:admin:email-templates": string;
+        /**
+         * View email templates
+         */
+        "read:admin:email-templates": string;
+        /**
+         * View automated results of reports
+         */
+        "read:admin:abuse-report:auto-processed": string;
+        /**
+         * アカウントの情報を見る
+         */
+        "read:account": string;
+        /**
+         * アカウントの情報を変更する
+         */
+        "write:account": string;
+        /**
+         * ブロックを見る
+         */
+        "read:blocks": string;
+        /**
+         * ブロックを操作する
+         */
+        "write:blocks": string;
+        /**
+         * ドライブを見る
+         */
+        "read:drive": string;
+        /**
+         * ドライブを操作する
+         */
+        "write:drive": string;
+        /**
+         * お気に入りを見る
+         */
+        "read:favorites": string;
+        /**
+         * お気に入りを操作する
+         */
+        "write:favorites": string;
+        /**
+         * フォローの情報を見る
+         */
+        "read:following": string;
+        /**
+         * フォロー・フォロー解除する
+         */
+        "write:following": string;
+        /**
+         * チャットを見る
+         */
+        "read:messaging": string;
+        /**
+         * チャットを操作する
+         */
+        "write:messaging": string;
+        /**
+         * ミュートを見る
+         */
+        "read:mutes": string;
+        /**
+         * ミュートを操作する
+         */
+        "write:mutes": string;
+        /**
+         * ノートを作成・削除する
+         */
+        "write:notes": string;
+        /**
+         * 通知を見る
+         */
+        "read:notifications": string;
+        /**
+         * 通知を操作する
+         */
+        "write:notifications": string;
+        /**
+         * リアクションを見る
+         */
+        "read:reactions": string;
+        /**
+         * リアクションを操作する
+         */
+        "write:reactions": string;
+        /**
+         * 投票する
+         */
+        "write:votes": string;
+        /**
+         * ページを見る
+         */
+        "read:pages": string;
+        /**
+         * ページを操作する
+         */
+        "write:pages": string;
+        /**
+         * ページのいいねを見る
+         */
+        "read:page-likes": string;
+        /**
+         * ページのいいねを操作する
+         */
+        "write:page-likes": string;
+        /**
+         * ユーザーグループを見る
+         */
+        "read:user-groups": string;
+        /**
+         * ユーザーグループを操作する
+         */
+        "write:user-groups": string;
+        /**
+         * チャンネルを見る
+         */
+        "read:channels": string;
+        /**
+         * チャンネルを操作する
+         */
+        "write:channels": string;
+        /**
+         * ギャラリーを見る
+         */
+        "read:gallery": string;
+        /**
+         * ギャラリーを操作する
+         */
+        "write:gallery": string;
+        /**
+         * ギャラリーのいいねを見る
+         */
+        "read:gallery-likes": string;
+        /**
+         * ギャラリーのいいねを操作する
+         */
+        "write:gallery-likes": string;
+        /**
+         * Playを見る
+         */
+        "read:flash": string;
+        /**
+         * Playを操作する
+         */
+        "write:flash": string;
+        /**
+         * Playのいいねを見る
+         */
+        "read:flash-likes": string;
+        /**
+         * Playのいいねを操作する
+         */
+        "write:flash-likes": string;
+        /**
+         * ユーザーからの通報を見る
+         */
+        "read:admin:abuse-user-reports": string;
+        /**
+         * ユーザーアカウントを削除する
+         */
+        "write:admin:delete-account": string;
+        /**
+         * ユーザーのすべてのファイルを削除する
+         */
+        "write:admin:delete-all-files-of-a-user": string;
+        /**
+         * データベースインデックスに関する情報を見る
+         */
+        "read:admin:index-stats": string;
+        /**
+         * データベーステーブルに関する情報を見る
+         */
+        "read:admin:table-stats": string;
+        /**
+         * ユーザーのIPアドレスを見る
+         */
+        "read:admin:user-ips": string;
+        /**
+         * インスタンスのメタデータを見る
+         */
+        "read:admin:meta": string;
+        /**
+         * ユーザーのパスワードをリセットする
+         */
+        "write:admin:reset-password": string;
+        /**
+         * ユーザーからの通報を解決する
+         */
+        "write:admin:resolve-abuse-user-report": string;
+        /**
+         * メールを送る
+         */
+        "write:admin:send-email": string;
+        /**
+         * サーバーの情報を見る
+         */
+        "read:admin:server-info": string;
+        /**
+         * モデレーションログを見る
+         */
+        "read:admin:show-moderation-log": string;
+        /**
+         * ユーザーのプライベートな情報を見る
+         */
+        "read:admin:show-user": string;
+        /**
+         * ユーザーを凍結する
+         */
+        "write:admin:suspend-user": string;
+        /**
+         * ユーザーのアバターを削除する
+         */
+        "write:admin:unset-user-avatar": string;
+        /**
+         * ユーザーのバーナーを削除する
+         */
+        "write:admin:unset-user-banner": string;
+        /**
+         * ユーザーの凍結を解除する
+         */
+        "write:admin:unsuspend-user": string;
+        /**
+         * インスタンスのメタデータを操作する
+         */
+        "write:admin:meta": string;
+        /**
+         * モデレーションノートを操作する
+         */
+        "write:admin:user-note": string;
+        /**
+         * ロールを操作する
+         */
+        "write:admin:roles": string;
+        /**
+         * ロールを見る
+         */
+        "read:admin:roles": string;
+        /**
+         * リレーを操作する
+         */
+        "write:admin:relays": string;
+        /**
+         * リレーを見る
+         */
+        "read:admin:relays": string;
+        /**
+         * 招待コードを操作する
+         */
+        "write:admin:invite-codes": string;
+        /**
+         * 招待コードを見る
+         */
+        "read:admin:invite-codes": string;
+        /**
+         * お知らせを操作する
+         */
+        "write:admin:announcements": string;
+        /**
+         * お知らせを見る
+         */
+        "read:admin:announcements": string;
+        /**
+         * アバターデコレーションを操作する
+         */
+        "write:admin:avatar-decorations": string;
+        /**
+         * アバターデコレーションを見る
+         */
+        "read:admin:avatar-decorations": string;
+        /**
+         * 連合に関する情報を操作する
+         */
+        "write:admin:federation": string;
+        /**
+         * ユーザーアカウントを操作する
+         */
+        "write:admin:account": string;
+        /**
+         * ユーザーに関する情報を見る
+         */
+        "read:admin:account": string;
+        /**
+         * 絵文字を操作する
+         */
+        "write:admin:emoji": string;
+        /**
+         * 絵文字を見る
+         */
+        "read:admin:emoji": string;
+        /**
+         * ジョブキューを操作する
+         */
+        "write:admin:queue": string;
+        /**
+         * ジョブキューに関する情報を見る
+         */
+        "read:admin:queue": string;
+        /**
+         * プロモーションノートを操作する
+         */
+        "write:admin:promo": string;
+        /**
+         * ユーザーのドライブを操作する
+         */
+        "write:admin:drive": string;
+        /**
+         * ユーザーのドライブの関する情報を見る
+         */
+        "read:admin:drive": string;
+        /**
+         * 管理者用のWebsocket APIを使う
+         */
+        "read:admin:stream": string;
+        /**
+         * 広告を操作する
+         */
+        "write:admin:ad": string;
+        /**
+         * 広告を見る
+         */
+        "read:admin:ad": string;
+        /**
+         * 招待コードを作成する
+         */
+        "write:invite-codes": string;
+        /**
+         * 招待コードを取得する
+         */
+        "read:invite-codes": string;
+        /**
+         * クリップのいいねを操作する
+         */
+        "write:clip-favorite": string;
+        /**
+         * クリップのいいねを見る
+         */
+        "read:clip-favorite": string;
+        /**
+         * 連合に関する情報を取得する
+         */
+        "read:federation": string;
+        /**
+         * 違反を報告する
+         */
+        "write:report-abuse": string;
+        /**
+         * チャットを操作する
+         */
+        "write:chat": string;
+        /**
+         * チャットを閲覧する
+         */
+        "read:chat": string;
+    };
+    "_signup": {
+        /**
+         * アカウントが作成され、承認待ちの状態です。
+         */
+        "approvalPending": string;
+        /**
+         * このサーバーに参加したい理由を入力してください。
+         */
+        "reasonInfo": string;
+        /**
+         * ほとんど完了です
+         */
+        "almostThere": string;
+        /**
+         * あなたが使っているメールアドレスを入力してください。メールアドレスが公開されることはありません。
+         */
+        "emailAddressInfo": string;
+        /**
+         * 入力されたメールアドレス({email})宛に確認のメールが送信されました。メールに記載されたリンクにアクセスすると、アカウントの作成が完了します。メールに記載されているリンクの有効期限は30分です。
+         */
+        "emailSent": ParameterizedString<"email">;
+    };
+    "_moderationLogTypes": {
+        /**
+         * Approved
+         */
+        "approve": string;
+        /**
+         * Declined
+         */
+        "decline": string;
+        /**
+         * ロールを作成
+         */
+        "createRole": string;
+        /**
+         * ロールを削除
+         */
+        "deleteRole": string;
+        /**
+         * ロールを更新
+         */
+        "updateRole": string;
+        /**
+         * ロールへアサイン
+         */
+        "assignRole": string;
+        /**
+         * ロールのアサイン解除
+         */
+        "unassignRole": string;
+        /**
+         * 凍結
+         */
+        "suspend": string;
+        /**
+         * 凍結解除
+         */
+        "unsuspend": string;
+        /**
+         * カスタム絵文字追加
+         */
+        "addCustomEmoji": string;
+        /**
+         * カスタム絵文字更新
+         */
+        "updateCustomEmoji": string;
+        /**
+         * カスタム絵文字削除
+         */
+        "deleteCustomEmoji": string;
+        /**
+         * サーバー設定更新
+         */
+        "updateServerSettings": string;
+        /**
+         * ユーザーのモデレーションノート更新
+         */
+        "updateUserNote": string;
+        /**
+         * ファイルを削除
+         */
+        "deleteDriveFile": string;
+        /**
+         * ノートを削除
+         */
+        "deleteNote": string;
+        /**
+         * 全体のお知らせを作成
+         */
+        "createGlobalAnnouncement": string;
+        /**
+         * ユーザーへお知らせを作成
+         */
+        "createUserAnnouncement": string;
+        /**
+         * 全体のお知らせを更新
+         */
+        "updateGlobalAnnouncement": string;
+        /**
+         * ユーザーのお知らせを更新
+         */
+        "updateUserAnnouncement": string;
+        /**
+         * 全体のお知らせを削除
+         */
+        "deleteGlobalAnnouncement": string;
+        /**
+         * ユーザーのお知らせを削除
+         */
+        "deleteUserAnnouncement": string;
+        /**
+         * パスワードをリセット
+         */
+        "resetPassword": string;
+        /**
+         * リモートサーバーを停止
+         */
+        "suspendRemoteInstance": string;
+        /**
+         * リモートサーバーを再開
+         */
+        "unsuspendRemoteInstance": string;
+        /**
+         * リモートサーバーのモデレーションノート更新
+         */
+        "updateRemoteInstanceNote": string;
+        /**
+         * ファイルをセンシティブ付与
+         */
+        "markSensitiveDriveFile": string;
+        /**
+         * ファイルをセンシティブ解除
+         */
+        "unmarkSensitiveDriveFile": string;
+        /**
+         * 通報を解決
+         */
+        "resolveAbuseReport": string;
+        /**
+         * 通報を転送
+         */
+        "forwardAbuseReport": string;
+        /**
+         * 通報のモデレーションノート更新
+         */
+        "updateAbuseReportNote": string;
+        /**
+         * 招待コードを作成
+         */
+        "createInvitation": string;
+        /**
+         * 広告を作成
+         */
+        "createAd": string;
+        /**
+         * 広告を削除
+         */
+        "deleteAd": string;
+        /**
+         * 広告を更新
+         */
+        "updateAd": string;
+        /**
+         * アイコンデコレーションを作成
+         */
+        "createAvatarDecoration": string;
+        /**
+         * アイコンデコレーションを更新
+         */
+        "updateAvatarDecoration": string;
+        /**
+         * アイコンデコレーションを削除
+         */
+        "deleteAvatarDecoration": string;
+        /**
+         * ユーザーのアイコンを解除
+         */
+        "unsetUserAvatar": string;
+        /**
+         * ユーザーのバナーを解除
+         */
+        "unsetUserBanner": string;
+        /**
+         * SystemWebhookを作成
+         */
+        "createSystemWebhook": string;
+        /**
+         * SystemWebhookを更新
+         */
+        "updateSystemWebhook": string;
+        /**
+         * SystemWebhookを削除
+         */
+        "deleteSystemWebhook": string;
+        /**
+         * 通報の通知先を作成
+         */
+        "createAbuseReportNotificationRecipient": string;
+        /**
+         * 通報の通知先を更新
+         */
+        "updateAbuseReportNotificationRecipient": string;
+        /**
+         * 通報の通知先を削除
+         */
+        "deleteAbuseReportNotificationRecipient": string;
+        /**
+         * アカウントを削除
+         */
+        "deleteAccount": string;
+        /**
+         * ページを削除
+         */
+        "deletePage": string;
+        /**
+         * Playを削除
+         */
+        "deleteFlash": string;
+        /**
+         * ギャラリーの投稿を削除
+         */
+        "deleteGalleryPost": string;
+        /**
+         * チャットルームを削除
+         */
+        "deleteChatRoom": string;
+        /**
+         * プロキシアカウントの説明を更新
+         */
+        "updateProxyAccountDescription": string;
+    };
+    "_aboutVickey": {
+        /**
+         * Vickey is a soft fork of Misskey.
+         */
+        "about": string;
+        /**
+         * Translate Vickey
+         */
+        "translation": string;
+        /**
+         * Donate to Vickey
+         */
+        "donate": string;
+    };
+    "_serverSettings": {
+        /**
+         * If no moderator activity is detected for a while, this setting will be automatically turned on to prevent spam.
+         */
+        "thisSettingWillAutomaticallyOnWhenModeratorsInactive": string;
+        /**
+         * アイコン画像のURL
+         */
+        "iconUrl": string;
+        /**
+         * {host}がアプリとして表示される際のアイコンを指定します。
+         */
+        "appIconDescription": ParameterizedString<"host">;
+        /**
+         * 例: PWAや、スマートフォンのホーム画面にブックマークとして追加された時など
+         */
+        "appIconUsageExample": string;
+        /**
+         * 円形もしくは角丸にクロップされる場合があるため、塗り潰された余白のある背景を持つことが推奨されます。
+         */
+        "appIconStyleRecommendation": string;
+        /**
+         * 解像度は必ず{resolution}である必要があります。
+         */
+        "appIconResolutionMustBe": ParameterizedString<"resolution">;
+        /**
+         * manifest.jsonのオーバーライド
+         */
+        "manifestJsonOverride": string;
+        /**
+         * 略称
+         */
+        "shortName": string;
+        /**
+         * サーバーの正式名称が長い場合に、代わりに表示することのできる略称や通称。
+         */
+        "shortNameDescription": string;
+        /**
+         * 有効にすると、各種タイムラインを取得する際のパフォーマンスが大幅に向上し、データベースへの負荷を軽減することが可能です。ただし、Redisのメモリ使用量は増加します。サーバーのメモリ容量が少ない場合、または動作が不安定な場合は無効にすることができます。
+         */
+        "fanoutTimelineDescription": string;
+        /**
+         * データベースへのフォールバック
+         */
+        "fanoutTimelineDbFallback": string;
+        /**
+         * 有効にすると、タイムラインがキャッシュされていない場合にDBへ追加で問い合わせを行うフォールバック処理を行います。無効にすると、フォールバック処理を行わないことでさらにサーバーの負荷を軽減することができますが、タイムラインが取得できる範囲に制限が生じます。
+         */
+        "fanoutTimelineDbFallbackDescription": string;
+        /**
+         * 有効にすると、リアクション作成時のパフォーマンスが大幅に向上し、データベースへの負荷を軽減することが可能です。ただし、Redisのメモリ使用量は増加します。
+         */
+        "reactionsBufferingDescription": string;
+        /**
+         * 問い合わせ先URL
+         */
+        "inquiryUrl": string;
+        /**
+         * サーバー運営者へのお問い合わせフォームのURLや、運営者の連絡先等が記載されたWebページのURLを指定します。
+         */
+        "inquiryUrlDescription": string;
+        /**
+         * アカウントの作成をオープンにする
+         */
+        "openRegistration": string;
+        /**
+         * 登録を開放することはリスクが伴います。サーバーを常に監視し、トラブルが発生した際にすぐに対応できる体制がある場合のみオンにすることを推奨します。
+         */
+        "openRegistrationWarning": string;
+        /**
+         * 一定期間モデレーターのアクティビティが検出されなかった場合、スパム防止のためこの設定は自動でオフになります。
+         */
+        "thisSettingWillAutomaticallyOffWhenModeratorsInactive": string;
+        /**
+         * 配信停止中のソフトウェア
+         */
+        "deliverSuspendedSoftware": string;
+        /**
+         * 脆弱性などの理由で、サーバーのソフトウェアの名前及びバージョンの範囲を指定して配信を停止できます。このバージョン情報はサーバーが提供したものであり、信頼性は保証されません。バージョン指定には semver の範囲指定が使用できますが、>= 2024.3.1 と指定すると 2024.3.1-custom.0 のようなカスタムバージョンが含まれないため、>= 2024.3.1-0 のように prerelease の指定を行うことを推奨します。
+         */
+        "deliverSuspendedSoftwareDescription": string;
+        /**
+         * お一人様モード
+         */
+        "singleUserMode": string;
+        /**
+         * このサーバーを利用するのが自分だけの場合、このモードを有効にすることで動作が最適化されます。
+         */
+        "singleUserMode_description": string;
+        /**
+         * GETリクエストに署名する
+         */
+        "signToActivityPubGet": string;
+        /**
+         * 通常は有効にしてください。連合の通信に関する問題がある場合に、無効にすると改善することがありますが、逆にサーバーによっては通信が不可になることがあります。
+         */
+        "signToActivityPubGet_description": string;
+        /**
+         * リモートファイルをプロキシする
+         */
+        "proxyRemoteFiles": string;
+        /**
+         * 有効にすると、リモートのファイルをプロキシして提供します。画像のサムネイル生成やユーザーのプライバシー保護に役立ちます。
+         */
+        "proxyRemoteFiles_description": string;
+        /**
+         * ActivityPub経由の照会にリダイレクトを許可する
+         */
+        "allowExternalApRedirect": string;
+        /**
+         * 有効にすると、他のサーバーがこのサーバーを通して第三者のコンテンツを照会することが可能になりますが、コンテンツのなりすましが発生する可能性があります。
+         */
+        "allowExternalApRedirect_description": string;
+        /**
+         * 非利用者に対するユーザー作成コンテンツの公開範囲
+         */
+        "userGeneratedContentsVisibilityForVisitor": string;
+        /**
+         * モデレーションが行き届きにくい不適切なリモートコンテンツなどが、自サーバー経由で図らずもインターネットに公開されてしまうことによるトラブル防止などに役立ちます。
+         */
+        "userGeneratedContentsVisibilityForVisitor_description": string;
+        /**
+         * サーバーで受信したリモートのコンテンツを含め、サーバー内の全てのコンテンツを無条件でインターネットに公開することはリスクが伴います。特に、分散型の特性を知らない閲覧者にとっては、リモートのコンテンツであってもサーバー内で作成されたコンテンツであると誤って認識してしまう可能性があるため、注意が必要です。
+         */
+        "userGeneratedContentsVisibilityForVisitor_description2": string;
+        "_userGeneratedContentsVisibilityForVisitor": {
+            /**
+             * 全て公開
+             */
+            "all": string;
+            /**
+             * ローカルコンテンツのみ公開し、リモートコンテンツは非公開
+             */
+            "localOnly": string;
+            /**
+             * 全て非公開
+             */
+            "none": string;
+        };
+    };
+    "_webhookSettings": {
+        "_systemEvents": {
+            /**
+             * When a moderator has been inactive for a while, and the server is changed to approval-only
+             */
+            "inactiveModeratorsApprovalOnlyChanged": string;
+            /**
+             * ユーザーから通報があったとき
+             */
+            "abuseReport": string;
+            /**
+             * ユーザーからの通報を処理したとき
+             */
+            "abuseReportResolved": string;
+            /**
+             * ユーザーが作成されたとき
+             */
+            "userCreated": string;
+            /**
+             * モデレーターが一定期間非アクティブになったとき
+             */
+            "inactiveModeratorsWarning": string;
+            /**
+             * モデレーターが一定期間非アクティブだったため、システムにより招待制へと変更されたとき
+             */
+            "inactiveModeratorsInvitationOnlyChanged": string;
+        };
+        /**
+         * Webhookを作成
+         */
+        "createWebhook": string;
+        /**
+         * Webhookを編集
+         */
+        "modifyWebhook": string;
+        /**
+         * 名前
+         */
+        "name": string;
+        /**
+         * シークレット
+         */
+        "secret": string;
+        /**
+         * トリガー
+         */
+        "trigger": string;
+        /**
+         * 有効
+         */
+        "active": string;
+        "_events": {
+            /**
+             * フォローしたとき
+             */
+            "follow": string;
+            /**
+             * フォローされたとき
+             */
+            "followed": string;
+            /**
+             * ノートを投稿したとき
+             */
+            "note": string;
+            /**
+             * 返信されたとき
+             */
+            "reply": string;
+            /**
+             * Renoteされたとき
+             */
+            "renote": string;
+            /**
+             * リアクションがあったとき
+             */
+            "reaction": string;
+            /**
+             * メンションされたとき
+             */
+            "mention": string;
+        };
+        /**
+         * Webhookを削除しますか？
+         */
+        "deleteConfirm": string;
+        /**
+         * スイッチの右にあるボタンをクリックするとダミーのデータを使用したテスト用Webhookを送信できます。
+         */
+        "testRemarks": string;
+    };
+    "_emailTemplates": {
+        /**
+         * Global switch
+         */
+        "global": string;
+        /**
+         * Email templates will only take effect if the global switch is turned on.
+         */
+        "globalDescription": string;
+        /**
+         * The email templates have some predefined variables that are available in all templates:
+         * ${instanceHost}: instance domain name
+         * ${instanceName}: instance name or instance domain (if no instance name)
+         * ${maintainerName}: maintainer name (if available)
+         * ${maintainerEmail}: maintainer email (if available)
+         * ${contact}: contact information (if available)
+         * ${senderEmail}: sender email (if available)
+         * ${receiverName}: receiver name (if available)
+         * ${receiverEmail}: receiver email
+         */
+        "globalVars": ParameterizedString<"instanceHost" | "instanceName" | "maintainerName" | "maintainerEmail" | "contact" | "senderEmail" | "receiverName" | "receiverEmail">;
+        /**
+         * The templates require HTML implementation!
+         */
+        "globalEditWarning": string;
+        /**
+         * Single switch
+         */
+        "singleSwitch": string;
+        /**
+         * Controls each item individually when the global switche are enabled.
+         */
+        "singleSwitchDescription": string;
+        /**
+         * Email content (leave blank to use default)
+         */
+        "textareaDescription": string;
+        /**
+         * Email title (leave blank to use default)
+         */
+        "title": string;
+        /**
+         * New Login
+         */
+        "newLogin": string;
+        /**
+         * Abuse Report
+         */
+        "abuseReport": string;
+        /**
+         * comment: content of the abuse report
+         */
+        "abuseReportVars": string;
+        /**
+         * Reset Password
+         */
+        "resetPassword": string;
+        /**
+         * link: link to reset password
+         */
+        "resetPasswordVars": string;
+        /**
+         * Account Delete
+         */
+        "accountDelete": string;
+        /**
+         * Moderator Inactivity Warning
+         */
+        "inactivityWarning": string;
+        /**
+         * timeVariant: time
+         * timeVariantJa: time (Japanese)
+         */
+        "inactivityWarningVars": string;
+        /**
+         * Change to Approval-Only
+         */
+        "changeToApproval": string;
+        /**
+         * MODERATOR_INACTIVITY_LIMIT_DAYS: moderator inactivity limit days
+         */
+        "changeToApprovalVars": string;
+        /**
+         * Signup
+         */
+        "signup": string;
+        /**
+         * link: link to complete registration
+         */
+        "signupVars": string;
+        /**
+         * Email Verification
+         */
+        "emailVerification": string;
+        /**
+         * link: link to complete email verification
+         */
+        "emailVerificationVars": string;
+        /**
+         * Account Approved
+         */
+        "accountApproved": string;
+        /**
+         * Account Suspended
+         */
+        "accountSuspended": string;
+        /**
+         * Approval Pending
+         */
+        "approvalPending": string;
+        /**
+         * New User Approval
+         */
+        "newUserApproval": string;
+        /**
+         * username: new user's username
+         * email: new user's email
+         * reason: new user's reason
+         */
+        "newUserApprovalVars": string;
+        /**
+         * New User Approval (without email)
+         */
+        "newUserApprovalWithoutEmail": string;
+        /**
+         * username: new user's username
+         * reason: new user's reason
+         */
+        "newUserApprovalWithoutEmailVars": string;
+        /**
+         * Account Reinstated
+         */
+        "accountReinstated": string;
+        /**
+         * Account Declined
+         */
+        "accountDeclined": string;
+        /**
+         * Account Declined (with reason)
+         */
+        "accountDeclinedWithReason": string;
+        /**
+         * reason: reason for decline
+         */
+        "accountDeclinedWithReasonVars": string;
+        /**
+         * New Follower
+         */
+        "newFollower": string;
+        /**
+         * name: follower's name
+         * username: follower's username
+         * host: the host of the instance where the follower is located
+         */
+        "newFollowerVars": string;
+        /**
+         * New Follow Request
+         */
+        "newFollowRequest": string;
+        /**
+         * name: follower's name
+         * username: follower's username
+         * host: the host of the instance where the follower is located
+         */
+        "newFollowRequestVars": string;
+        /**
+         * New Security Release
+         */
+        "secRelease": string;
+        /**
+         * tag: name of the version to update to
+         */
+        "secReleaseVars": string;
+    };
+    "_serverDisconnectedBehavior": {
+        /**
+         * Unprompted
+         */
+        "null": string;
+        /**
+         * 自動でリロード
+         */
+        "reload": string;
+        /**
+         * ダイアログで警告
+         */
+        "dialog": string;
+        /**
+         * 控えめに警告
+         */
+        "quiet": string;
+    };
+    "_abuseReportAutoProcessing": {
+        /**
+         * Reduces the effort of server moderation through automatically recognizing sensitive content via Machine Learning.
+         */
+        "description": string;
+        /**
+         * Reports on Automated Abuse Reports Processing
+         */
+        "title": string;
+        /**
+         * Enable
+         */
+        "enable": string;
+        /**
+         * Record Only
+         */
+        "record": string;
+        /**
+         * Ignore
+         */
+        "ignore": string;
+        /**
+         * Delete
+         */
+        "delete": string;
+        /**
+         * API URL for scoring abuse reports
+         */
+        "url": string;
+        /**
+         * Token for the API that scores abuse reports
+         */
+        "token": string;
+        /**
+         * Scoring thresholds for triggering processing mechanisms
+         */
+        "score": string;
+        /**
+         * Note
+         */
+        "note": string;
+        /**
+         * Page
+         */
+        "page": string;
+        /**
+         * Gallery
+         */
+        "gallery": string;
+        /**
+         * Flash
+         */
+        "flash": string;
+        /**
+         * User
+         */
+        "user": string;
+        /**
+         * Status
+         */
+        "status": string;
+        /**
+         * Uncategorized
+         */
+        "uncategorized": string;
+    };
+    "_bootErrors": {
+        /**
+         * If none of the above works, report the problem to your instance administrator
+         */
+        "solution5": string;
+        /**
+         * 読み込みに失敗しました
+         */
+        "title": string;
+        /**
+         * 少し待ってからリロードしてもまだ問題が解決されない場合、以下のError IDを添えてサーバー管理者に連絡してください。
+         */
+        "serverError": string;
+        /**
+         * 以下を行うと解決する可能性があります。
+         */
+        "solution": string;
+        /**
+         * ブラウザおよびOSを最新バージョンに更新する
+         */
+        "solution1": string;
+        /**
+         * アドブロッカーを無効にする
+         */
+        "solution2": string;
+        /**
+         * ブラウザのキャッシュをクリアする
+         */
+        "solution3": string;
+        /**
+         * (Tor Browser) dom.webaudio.enabledをtrueに設定する
+         */
+        "solution4": string;
+        /**
+         * その他のオプション
+         */
+        "otherOption": string;
+        /**
+         * クライアント設定とキャッシュを削除
+         */
+        "otherOption1": string;
+        /**
+         * 簡易クライアントを起動
+         */
+        "otherOption2": string;
+        /**
+         * 修復ツールを起動
+         */
+        "otherOption3": string;
+    };
+    /**
      * ノートでつながるネットワーク
      */
     "headlineMisskey": string;
@@ -707,7 +2331,7 @@ export interface Locale extends ILocale {
      */
     "cacheRemoteFiles": string;
     /**
-     * この設定を有効にすると、リモートファイルをこのサーバーのストレージにキャッシュするようになります。画像の表示が高速になりますが、サーバーのストレージを多く消費します。リモートユーザーがどれほどキャッシュを保持するかは、ロールによるドライブ容量制限によって決定されます。この制限を超えた場合、古いファイルからキャッシュが削除されリンクになります。この設定が無効の場合、リモートのファイルを最初からリンクとして保持しますが、画像のサムネイル生成やユーザーのプライバシー保護のために、default.ymlでproxyRemoteFilesをtrueにすることをお勧めします。
+     * この設定を有効にすると、リモートファイルをこのサーバーのストレージにキャッシュするようになります。画像の表示が高速になりますが、サーバーのストレージを多く消費します。リモートユーザーがどれほどキャッシュを保持するかは、ロールによるドライブ容量制限によって決定されます。この制限を超えた場合、古いファイルからキャッシュが削除されリンクになります。この設定が無効の場合、リモートのファイルを最初からリンクとして保持します。
      */
     "cacheRemoteFilesDescription": string;
     /**
@@ -1023,10 +2647,6 @@ export interface Locale extends ILocale {
      */
     "pinLimitExceeded": string;
     /**
-     * Misskeyのインストールが完了しました！管理者アカウントを作成しましょう。
-     */
-    "intro": string;
-    /**
      * 完了
      */
     "done": string;
@@ -1214,6 +2834,10 @@ export interface Locale extends ILocale {
      * アップロードが完了するまで時間がかかる場合があります。
      */
     "uploadFromUrlMayTakeTime": string;
+    /**
+     * {n}個のファイルをアップロード
+     */
+    "uploadNFiles": ParameterizedString<"n">;
     /**
      * みつける
      */
@@ -2327,6 +3951,10 @@ export interface Locale extends ILocale {
      */
     "newNoteRecived": string;
     /**
+     * 新しいノート
+     */
+    "newNote": string;
+    /**
      * サウンド
      */
     "sounds": string;
@@ -2334,6 +3962,10 @@ export interface Locale extends ILocale {
      * サウンド
      */
     "sound": string;
+    /**
+     * 通知音の設定
+     */
+    "notificationSoundSettings": string;
     /**
      * 聴く
      */
@@ -3163,10 +4795,6 @@ export interface Locale extends ILocale {
      */
     "makeExplorableDescription": string;
     /**
-     * タイムラインのノートを離して表示
-     */
-    "showGapBetweenNotesInTimeline": string;
-    /**
      * 複製
      */
     "duplicate": string;
@@ -3194,6 +4822,10 @@ export interface Locale extends ILocale {
      * 反映には再起動が必要です。
      */
     "needReloadToApply": string;
+    /**
+     * 反映にはサーバーの再起動が必要です。
+     */
+    "needToRestartServerToApply": string;
     /**
      * タイトルバーを表示する
      */
@@ -4975,10 +6607,6 @@ export interface Locale extends ILocale {
      */
     "pullDownToRefresh": string;
     /**
-     * タイムラインのリアルタイム更新を無効にする
-     */
-    "disableStreamingTimeline": string;
-    /**
      * 通知をグルーピング
      */
     "useGroupedNotifications": string;
@@ -5421,6 +7049,42 @@ export interface Locale extends ILocale {
      * スクロールして閉じる
      */
     "scrollToClose": string;
+    /**
+     * アドバイス
+     */
+    "advice": string;
+    /**
+     * リアルタイムモード
+     */
+    "realtimeMode": string;
+    /**
+     * オンにする
+     */
+    "turnItOn": string;
+    /**
+     * オフにする
+     */
+    "turnItOff": string;
+    /**
+     * 絵文字ミュート
+     */
+    "emojiMute": string;
+    /**
+     * 絵文字ミュート解除
+     */
+    "emojiUnmute": string;
+    /**
+     * {x}をミュート
+     */
+    "muteX": ParameterizedString<"x">;
+    /**
+     * {x}のミュートを解除
+     */
+    "unmuteX": ParameterizedString<"x">;
+    /**
+     * 中止
+     */
+    "abort": string;
     "_chat": {
         /**
          * まだメッセージはありません
@@ -5551,6 +7215,14 @@ export interface Locale extends ILocale {
          * チャットが使えない状態になっているか、相手がチャットを開放していません。
          */
         "cannotChatWithTheUser_description": string;
+        /**
+         * あなたはこのルームの参加者ではありませんが、招待が届いています。参加するには、招待を承認してください。
+         */
+        "youAreNotAMemberOfThisRoomButInvited": string;
+        /**
+         * 招待を承認しますか？
+         */
+        "doYouAcceptInvitation": string;
         /**
          * チャットする
          */
@@ -5702,6 +7374,14 @@ export interface Locale extends ILocale {
          */
         "useStickyIcons": string;
         /**
+         * 高品質な画像のプレースホルダを表示
+         */
+        "enableHighQualityImagePlaceholders": string;
+        /**
+         * UIのアニメーション
+         */
+        "uiAnimations": string;
+        /**
          * ナビゲーションバーに副ボタンを表示
          */
         "showNavbarSubButtons": string;
@@ -5725,6 +7405,26 @@ export interface Locale extends ILocale {
          * マウスでは、ホイールを押し込みながらドラッグします。
          */
         "enablePullToRefresh_description": string;
+        /**
+         * サーバーと接続を確立し、リアルタイムでコンテンツを更新します。通信量とバッテリーの消費が多くなる場合があります。
+         */
+        "realtimeMode_description": string;
+        /**
+         * コンテンツの取得頻度
+         */
+        "contentsUpdateFrequency": string;
+        /**
+         * 高いほどリアルタイムにコンテンツが更新されますが、パフォーマンスが低下し、通信量とバッテリーの消費が多くなります。
+         */
+        "contentsUpdateFrequency_description": string;
+        /**
+         * リアルタイムモードがオンのときは、この設定に関わらずリアルタイムでコンテンツが更新されます。
+         */
+        "contentsUpdateFrequency_description2": string;
+        /**
+         * URLプレビューを表示する
+         */
+        "showUrlPreview": string;
         "_chat": {
             /**
              * 送信者の名前を表示
@@ -6314,88 +8014,6 @@ export interface Locale extends ILocale {
          * 新規登録前に表示する、サーバーの簡潔なルールを設定します。内容は利用規約の要約とすることを推奨します。
          */
         "description": string;
-    };
-    "_serverSettings": {
-        /**
-         * アイコン画像のURL
-         */
-        "iconUrl": string;
-        /**
-         * {host}がアプリとして表示される際のアイコンを指定します。
-         */
-        "appIconDescription": ParameterizedString<"host">;
-        /**
-         * 例: PWAや、スマートフォンのホーム画面にブックマークとして追加された時など
-         */
-        "appIconUsageExample": string;
-        /**
-         * 円形もしくは角丸にクロップされる場合があるため、塗り潰された余白のある背景を持つことが推奨されます。
-         */
-        "appIconStyleRecommendation": string;
-        /**
-         * 解像度は必ず{resolution}である必要があります。
-         */
-        "appIconResolutionMustBe": ParameterizedString<"resolution">;
-        /**
-         * manifest.jsonのオーバーライド
-         */
-        "manifestJsonOverride": string;
-        /**
-         * 略称
-         */
-        "shortName": string;
-        /**
-         * サーバーの正式名称が長い場合に、代わりに表示することのできる略称や通称。
-         */
-        "shortNameDescription": string;
-        /**
-         * 有効にすると、各種タイムラインを取得する際のパフォーマンスが大幅に向上し、データベースへの負荷を軽減することが可能です。ただし、Redisのメモリ使用量は増加します。サーバーのメモリ容量が少ない場合、または動作が不安定な場合は無効にすることができます。
-         */
-        "fanoutTimelineDescription": string;
-        /**
-         * データベースへのフォールバック
-         */
-        "fanoutTimelineDbFallback": string;
-        /**
-         * 有効にすると、タイムラインがキャッシュされていない場合にDBへ追加で問い合わせを行うフォールバック処理を行います。無効にすると、フォールバック処理を行わないことでさらにサーバーの負荷を軽減することができますが、タイムラインが取得できる範囲に制限が生じます。
-         */
-        "fanoutTimelineDbFallbackDescription": string;
-        /**
-         * 有効にすると、リアクション作成時のパフォーマンスが大幅に向上し、データベースへの負荷を軽減することが可能です。ただし、Redisのメモリ使用量は増加します。
-         */
-        "reactionsBufferingDescription": string;
-        /**
-         * 問い合わせ先URL
-         */
-        "inquiryUrl": string;
-        /**
-         * サーバー運営者へのお問い合わせフォームのURLや、運営者の連絡先等が記載されたWebページのURLを指定します。
-         */
-        "inquiryUrlDescription": string;
-        /**
-         * アカウントの作成をオープンにする
-         */
-        "openRegistration": string;
-        /**
-         * 登録を開放することはリスクが伴います。サーバーを常に監視し、トラブルが発生した際にすぐに対応できる体制がある場合のみオンにすることを推奨します。
-         */
-        "openRegistrationWarning": string;
-        /**
-         * 一定期間モデレーターのアクティビティが検出されなかった場合、スパム防止のためこの設定は自動でオフになります。
-         */
-        "thisSettingWillAutomaticallyOffWhenModeratorsInactive": string;
-        /**
-         * 配信停止中のソフトウェア
-         */
-        "deliverSuspendedSoftware": string;
-        /**
-         * 脆弱性などの理由で、サーバーのソフトウェアの名前及びバージョンの範囲を指定して配信を停止できます。このバージョン情報はサーバーが提供したものであり、信頼性は保証されません。バージョン指定には semver の範囲指定が使用できますが、>= 2024.3.1 と指定すると 2024.3.1-custom.0 のようなカスタムバージョンが含まれないため、>= 2024.3.1-0 のように prerelease の指定を行うことを推奨します。
-         */
-        "deliverSuspendedSoftwareDescription": string;
-        /**
-         * If no moderator activity is detected for a while, this setting will be automatically turned on to prevent spam.
-         */
-        "thisSettingWillAutomaticallyOnWhenModeratorsInactive": string;
     };
     "_accountMigration": {
         /**
@@ -7317,380 +8935,6 @@ export interface Locale extends ILocale {
             };
         };
     };
-    "_role": {
-        /**
-         * ロールの作成
-         */
-        "new": string;
-        /**
-         * ロールの編集
-         */
-        "edit": string;
-        /**
-         * ロール名
-         */
-        "name": string;
-        /**
-         * ロールの説明
-         */
-        "description": string;
-        /**
-         * ロールの権限
-         */
-        "permission": string;
-        /**
-         * <b>モデレーター</b>は基本的なモデレーションに関する操作を行えます。
-         * <b>管理者</b>はサーバーの全ての設定を変更できます。
-         */
-        "descriptionOfPermission": string;
-        /**
-         * アサイン
-         */
-        "assignTarget": string;
-        /**
-         * <b>マニュアル</b>は誰がこのロールに含まれるかを手動で管理します。
-         * <b>コンディショナル</b>は条件を設定し、それに合致するユーザーが自動で含まれるようになります。
-         */
-        "descriptionOfAssignTarget": string;
-        /**
-         * マニュアル
-         */
-        "manual": string;
-        /**
-         * マニュアルロール
-         */
-        "manualRoles": string;
-        /**
-         * コンディショナル
-         */
-        "conditional": string;
-        /**
-         * コンディショナルロール
-         */
-        "conditionalRoles": string;
-        /**
-         * 条件
-         */
-        "condition": string;
-        /**
-         * これはコンディショナルロールです。
-         */
-        "isConditionalRole": string;
-        /**
-         * 公開ロール
-         */
-        "isPublic": string;
-        /**
-         * ユーザーのプロフィールでこのロールが表示されます。
-         */
-        "descriptionOfIsPublic": string;
-        /**
-         * オプション
-         */
-        "options": string;
-        /**
-         * ポリシー
-         */
-        "policies": string;
-        /**
-         * ベースロール
-         */
-        "baseRole": string;
-        /**
-         * ベースロールの値を使用
-         */
-        "useBaseValue": string;
-        /**
-         * アサインするロールを選択
-         */
-        "chooseRoleToAssign": string;
-        /**
-         * アイコン画像のURL
-         */
-        "iconUrl": string;
-        /**
-         * バッジとして表示
-         */
-        "asBadge": string;
-        /**
-         * オンにすると、ユーザー名の横にロールのアイコンが表示されます。
-         */
-        "descriptionOfAsBadge": string;
-        /**
-         * ユーザーを見つけやすくする
-         */
-        "isExplorable": string;
-        /**
-         * オンにすると、「みつける」でメンバー一覧が公開されるほか、ロールのタイムラインが利用可能になります。
-         */
-        "descriptionOfIsExplorable": string;
-        /**
-         * 表示順
-         */
-        "displayOrder": string;
-        /**
-         * 数値が大きいほどUI上で先頭に表示されます。
-         */
-        "descriptionOfDisplayOrder": string;
-        /**
-         * アサイン状態を移行先アカウントにも引き継ぐ
-         */
-        "preserveAssignmentOnMoveAccount": string;
-        /**
-         * オンにすると、このロールが付与されたアカウントが移行された際に、移行先アカウントにもこのロールが引き継がれるようになります。
-         */
-        "preserveAssignmentOnMoveAccount_description": string;
-        /**
-         * モデレーターのメンバー編集を許可
-         */
-        "canEditMembersByModerator": string;
-        /**
-         * オンにすると、管理者に加えてモデレーターもこのロールへユーザーをアサイン/アサイン解除できるようになります。オフにすると管理者のみが行えます。
-         */
-        "descriptionOfCanEditMembersByModerator": string;
-        /**
-         * 優先度
-         */
-        "priority": string;
-        "_priority": {
-            /**
-             * 低
-             */
-            "low": string;
-            /**
-             * 中
-             */
-            "middle": string;
-            /**
-             * 高
-             */
-            "high": string;
-        };
-        "_options": {
-            /**
-             * グローバルタイムラインの閲覧
-             */
-            "gtlAvailable": string;
-            /**
-             * ローカルタイムラインの閲覧
-             */
-            "ltlAvailable": string;
-            /**
-             * パブリック投稿の許可
-             */
-            "canPublicNote": string;
-            /**
-             * ノート内の最大メンション数
-             */
-            "mentionMax": string;
-            /**
-             * サーバー招待コードの発行
-             */
-            "canInvite": string;
-            /**
-             * 招待コードの作成可能数
-             */
-            "inviteLimit": string;
-            /**
-             * 招待コードの発行間隔
-             */
-            "inviteLimitCycle": string;
-            /**
-             * 招待コードの有効期限
-             */
-            "inviteExpirationTime": string;
-            /**
-             * カスタム絵文字の管理
-             */
-            "canManageCustomEmojis": string;
-            /**
-             * アバターデコレーションの管理
-             */
-            "canManageAvatarDecorations": string;
-            /**
-             * ドライブ容量
-             */
-            "driveCapacity": string;
-            /**
-             * アップロード可能な最大ファイルサイズ
-             */
-            "maxFileSize": string;
-            /**
-             * ファイルにNSFWを常に付与
-             */
-            "alwaysMarkNsfw": string;
-            /**
-             * アイコンとバナーの更新を許可
-             */
-            "canUpdateBioMedia": string;
-            /**
-             * ノートのピン留めの最大数
-             */
-            "pinMax": string;
-            /**
-             * アンテナの作成可能数
-             */
-            "antennaMax": string;
-            /**
-             * ワードミュートの最大文字数
-             */
-            "wordMuteMax": string;
-            /**
-             * Webhookの作成可能数
-             */
-            "webhookMax": string;
-            /**
-             * クリップの作成可能数
-             */
-            "clipMax": string;
-            /**
-             * クリップ内のノートの最大数
-             */
-            "noteEachClipsMax": string;
-            /**
-             * ユーザーリストの作成可能数
-             */
-            "userListMax": string;
-            /**
-             * ユーザーリスト内のユーザーの最大数
-             */
-            "userEachUserListsMax": string;
-            /**
-             * レートリミット
-             */
-            "rateLimitFactor": string;
-            /**
-             * 小さいほど制限が緩和され、大きいほど制限が強化されます。
-             */
-            "descriptionOfRateLimitFactor": string;
-            /**
-             * 広告の非表示
-             */
-            "canHideAds": string;
-            /**
-             * ノート検索の利用
-             */
-            "canSearchNotes": string;
-            /**
-             * 翻訳機能の利用
-             */
-            "canUseTranslator": string;
-            /**
-             * Use TTS feature
-             */
-            "canUseTTS": string;
-            /**
-             * アイコンデコレーションの最大取付個数
-             */
-            "avatarDecorationLimit": string;
-            /**
-             * アンテナのインポートを許可
-             */
-            "canImportAntennas": string;
-            /**
-             * ブロックのインポートを許可
-             */
-            "canImportBlocking": string;
-            /**
-             * フォローのインポートを許可
-             */
-            "canImportFollowing": string;
-            /**
-             * ミュートのインポートを許可
-             */
-            "canImportMuting": string;
-            /**
-             * リストのインポートを許可
-             */
-            "canImportUserLists": string;
-            /**
-             * チャットを許可
-             */
-            "chatAvailability": string;
-        };
-        "_condition": {
-            /**
-             * マニュアルロールにアサイン済み
-             */
-            "roleAssignedTo": string;
-            /**
-             * ローカルユーザー
-             */
-            "isLocal": string;
-            /**
-             * リモートユーザー
-             */
-            "isRemote": string;
-            /**
-             * 猫ユーザー
-             */
-            "isCat": string;
-            /**
-             * botユーザー
-             */
-            "isBot": string;
-            /**
-             * TTS User
-             */
-            "isVI": string;
-            /**
-             * サスペンド済みユーザー
-             */
-            "isSuspended": string;
-            /**
-             * 鍵アカウントユーザー
-             */
-            "isLocked": string;
-            /**
-             * 「アカウントを見つけやすくする」が有効なユーザー
-             */
-            "isExplorable": string;
-            /**
-             * アカウント作成から～以内
-             */
-            "createdLessThan": string;
-            /**
-             * アカウント作成から～経過
-             */
-            "createdMoreThan": string;
-            /**
-             * フォロワー数が～以下
-             */
-            "followersLessThanOrEq": string;
-            /**
-             * フォロワー数が～以上
-             */
-            "followersMoreThanOrEq": string;
-            /**
-             * フォロー数が～以下
-             */
-            "followingLessThanOrEq": string;
-            /**
-             * フォロー数が～以上
-             */
-            "followingMoreThanOrEq": string;
-            /**
-             * 投稿数が～以下
-             */
-            "notesLessThanOrEq": string;
-            /**
-             * 投稿数が～以上
-             */
-            "notesMoreThanOrEq": string;
-            /**
-             * ～かつ～
-             */
-            "and": string;
-            /**
-             * ～または～
-             */
-            "or": string;
-            /**
-             * ～ではない
-             */
-            "not": string;
-        };
-    };
     "_sensitiveMediaDetection": {
         /**
          * 機械学習を使って自動でセンシティブなメディアを検出し、モデレーションに役立てることができます。サーバーの負荷が少し増えます。
@@ -7760,28 +9004,6 @@ export interface Locale extends ILocale {
          * 非公開
          */
         "private": string;
-    };
-    "_signup": {
-        /**
-         * ほとんど完了です
-         */
-        "almostThere": string;
-        /**
-         * あなたが使っているメールアドレスを入力してください。メールアドレスが公開されることはありません。
-         */
-        "emailAddressInfo": string;
-        /**
-         * 入力されたメールアドレス({email})宛に確認のメールが送信されました。メールに記載されたリンクにアクセスすると、アカウントの作成が完了します。メールに記載されているリンクの有効期限は30分です。
-         */
-        "emailSent": ParameterizedString<"email">;
-        /**
-         * Your account has been created and is now pending approval.
-         */
-        "approvalPending": string;
-        /**
-         * Please enter the reason you wish to join this server.
-         */
-        "reasonInfo": string;
     };
     "_accountDelete": {
         /**
@@ -8080,24 +9302,6 @@ export interface Locale extends ILocale {
          * 常に表示
          */
         "always": string;
-    };
-    "_serverDisconnectedBehavior": {
-        /**
-         * 自動でリロード
-         */
-        "reload": string;
-        /**
-         * ダイアログで警告
-         */
-        "dialog": string;
-        /**
-         * 控えめに警告
-         */
-        "quiet": string;
-        /**
-         * Unprompted
-         */
-        "null": string;
     };
     "_channel": {
         /**
@@ -8446,10 +9650,6 @@ export interface Locale extends ILocale {
              */
             "inputBorder": string;
             /**
-             * ドライブフォルダーの背景
-             */
-            "driveFolderBg": string;
-            /**
              * バッジ
              */
             "badge": string;
@@ -8718,380 +9918,6 @@ export interface Locale extends ILocale {
          * 詳細なガイドはこちら
          */
         "moreDetailedGuideHere": string;
-    };
-    "_permissions": {
-        /**
-         * アカウントの情報を見る
-         */
-        "read:account": string;
-        /**
-         * アカウントの情報を変更する
-         */
-        "write:account": string;
-        /**
-         * ブロックを見る
-         */
-        "read:blocks": string;
-        /**
-         * ブロックを操作する
-         */
-        "write:blocks": string;
-        /**
-         * ドライブを見る
-         */
-        "read:drive": string;
-        /**
-         * ドライブを操作する
-         */
-        "write:drive": string;
-        /**
-         * お気に入りを見る
-         */
-        "read:favorites": string;
-        /**
-         * お気に入りを操作する
-         */
-        "write:favorites": string;
-        /**
-         * フォローの情報を見る
-         */
-        "read:following": string;
-        /**
-         * フォロー・フォロー解除する
-         */
-        "write:following": string;
-        /**
-         * チャットを見る
-         */
-        "read:messaging": string;
-        /**
-         * チャットを操作する
-         */
-        "write:messaging": string;
-        /**
-         * ミュートを見る
-         */
-        "read:mutes": string;
-        /**
-         * ミュートを操作する
-         */
-        "write:mutes": string;
-        /**
-         * ノートを作成・削除する
-         */
-        "write:notes": string;
-        /**
-         * 通知を見る
-         */
-        "read:notifications": string;
-        /**
-         * 通知を操作する
-         */
-        "write:notifications": string;
-        /**
-         * リアクションを見る
-         */
-        "read:reactions": string;
-        /**
-         * リアクションを操作する
-         */
-        "write:reactions": string;
-        /**
-         * 投票する
-         */
-        "write:votes": string;
-        /**
-         * ページを見る
-         */
-        "read:pages": string;
-        /**
-         * ページを操作する
-         */
-        "write:pages": string;
-        /**
-         * ページのいいねを見る
-         */
-        "read:page-likes": string;
-        /**
-         * ページのいいねを操作する
-         */
-        "write:page-likes": string;
-        /**
-         * ユーザーグループを見る
-         */
-        "read:user-groups": string;
-        /**
-         * ユーザーグループを操作する
-         */
-        "write:user-groups": string;
-        /**
-         * チャンネルを見る
-         */
-        "read:channels": string;
-        /**
-         * チャンネルを操作する
-         */
-        "write:channels": string;
-        /**
-         * ギャラリーを見る
-         */
-        "read:gallery": string;
-        /**
-         * ギャラリーを操作する
-         */
-        "write:gallery": string;
-        /**
-         * ギャラリーのいいねを見る
-         */
-        "read:gallery-likes": string;
-        /**
-         * ギャラリーのいいねを操作する
-         */
-        "write:gallery-likes": string;
-        /**
-         * Playを見る
-         */
-        "read:flash": string;
-        /**
-         * Playを操作する
-         */
-        "write:flash": string;
-        /**
-         * Playのいいねを見る
-         */
-        "read:flash-likes": string;
-        /**
-         * Playのいいねを操作する
-         */
-        "write:flash-likes": string;
-        /**
-         * ユーザーからの通報を見る
-         */
-        "read:admin:abuse-user-reports": string;
-        /**
-         * ユーザーアカウントを削除する
-         */
-        "write:admin:delete-account": string;
-        /**
-         * ユーザーのすべてのファイルを削除する
-         */
-        "write:admin:delete-all-files-of-a-user": string;
-        /**
-         * データベースインデックスに関する情報を見る
-         */
-        "read:admin:index-stats": string;
-        /**
-         * データベーステーブルに関する情報を見る
-         */
-        "read:admin:table-stats": string;
-        /**
-         * ユーザーのIPアドレスを見る
-         */
-        "read:admin:user-ips": string;
-        /**
-         * インスタンスのメタデータを見る
-         */
-        "read:admin:meta": string;
-        /**
-         * ユーザーのパスワードをリセットする
-         */
-        "write:admin:reset-password": string;
-        /**
-         * ユーザーからの通報を解決する
-         */
-        "write:admin:resolve-abuse-user-report": string;
-        /**
-         * メールを送る
-         */
-        "write:admin:send-email": string;
-        /**
-         * サーバーの情報を見る
-         */
-        "read:admin:server-info": string;
-        /**
-         * モデレーションログを見る
-         */
-        "read:admin:show-moderation-log": string;
-        /**
-         * ユーザーのプライベートな情報を見る
-         */
-        "read:admin:show-user": string;
-        /**
-         * ユーザーを凍結する
-         */
-        "write:admin:suspend-user": string;
-        /**
-         * ユーザーのアバターを削除する
-         */
-        "write:admin:unset-user-avatar": string;
-        /**
-         * ユーザーのバーナーを削除する
-         */
-        "write:admin:unset-user-banner": string;
-        /**
-         * ユーザーの凍結を解除する
-         */
-        "write:admin:unsuspend-user": string;
-        /**
-         * インスタンスのメタデータを操作する
-         */
-        "write:admin:meta": string;
-        /**
-         * モデレーションノートを操作する
-         */
-        "write:admin:user-note": string;
-        /**
-         * ロールを操作する
-         */
-        "write:admin:roles": string;
-        /**
-         * ロールを見る
-         */
-        "read:admin:roles": string;
-        /**
-         * リレーを操作する
-         */
-        "write:admin:relays": string;
-        /**
-         * リレーを見る
-         */
-        "read:admin:relays": string;
-        /**
-         * 招待コードを操作する
-         */
-        "write:admin:invite-codes": string;
-        /**
-         * 招待コードを見る
-         */
-        "read:admin:invite-codes": string;
-        /**
-         * お知らせを操作する
-         */
-        "write:admin:announcements": string;
-        /**
-         * お知らせを見る
-         */
-        "read:admin:announcements": string;
-        /**
-         * アバターデコレーションを操作する
-         */
-        "write:admin:avatar-decorations": string;
-        /**
-         * アバターデコレーションを見る
-         */
-        "read:admin:avatar-decorations": string;
-        /**
-         * 連合に関する情報を操作する
-         */
-        "write:admin:federation": string;
-        /**
-         * ユーザーアカウントを操作する
-         */
-        "write:admin:account": string;
-        /**
-         * ユーザーに関する情報を見る
-         */
-        "read:admin:account": string;
-        /**
-         * 絵文字を操作する
-         */
-        "write:admin:emoji": string;
-        /**
-         * 絵文字を見る
-         */
-        "read:admin:emoji": string;
-        /**
-         * ジョブキューを操作する
-         */
-        "write:admin:queue": string;
-        /**
-         * ジョブキューに関する情報を見る
-         */
-        "read:admin:queue": string;
-        /**
-         * プロモーションノートを操作する
-         */
-        "write:admin:promo": string;
-        /**
-         * ユーザーのドライブを操作する
-         */
-        "write:admin:drive": string;
-        /**
-         * ユーザーのドライブの関する情報を見る
-         */
-        "read:admin:drive": string;
-        /**
-         * 管理者用のWebsocket APIを使う
-         */
-        "read:admin:stream": string;
-        /**
-         * 広告を操作する
-         */
-        "write:admin:ad": string;
-        /**
-         * 広告を見る
-         */
-        "read:admin:ad": string;
-        /**
-         * 招待コードを作成する
-         */
-        "write:invite-codes": string;
-        /**
-         * 招待コードを取得する
-         */
-        "read:invite-codes": string;
-        /**
-         * クリップのいいねを操作する
-         */
-        "write:clip-favorite": string;
-        /**
-         * クリップのいいねを見る
-         */
-        "read:clip-favorite": string;
-        /**
-         * 連合に関する情報を取得する
-         */
-        "read:federation": string;
-        /**
-         * 違反を報告する
-         */
-        "write:report-abuse": string;
-        /**
-         * チャットを操作する
-         */
-        "write:chat": string;
-        /**
-         * チャットを閲覧する
-         */
-        "read:chat": string;
-        /**
-         * Approve registration application
-         */
-        "write:admin:approve-account": string;
-        /**
-         * Decline registration application
-         */
-        "write:admin:decline-account": string;
-        /**
-         * View application list
-         */
-        "read:admin:show-pending": string;
-        /**
-         * View whether there are registration applications
-         */
-        "read:admin:show-pendings": string;
-        /**
-         * Manage email templates
-         */
-        "write:admin:email-templates": string;
-        /**
-         * View email templates
-         */
-        "read:admin:email-templates": string;
-        /**
-         * View automated results of reports
-         */
-        "read:admin:abuse-report:auto-processed": string;
     };
     "_auth": {
         /**
@@ -10377,96 +11203,6 @@ export interface Locale extends ILocale {
          */
         "orderByCreatedAtAsc": string;
     };
-    "_webhookSettings": {
-        /**
-         * Webhookを作成
-         */
-        "createWebhook": string;
-        /**
-         * Webhookを編集
-         */
-        "modifyWebhook": string;
-        /**
-         * 名前
-         */
-        "name": string;
-        /**
-         * シークレット
-         */
-        "secret": string;
-        /**
-         * トリガー
-         */
-        "trigger": string;
-        /**
-         * 有効
-         */
-        "active": string;
-        "_events": {
-            /**
-             * フォローしたとき
-             */
-            "follow": string;
-            /**
-             * フォローされたとき
-             */
-            "followed": string;
-            /**
-             * ノートを投稿したとき
-             */
-            "note": string;
-            /**
-             * 返信されたとき
-             */
-            "reply": string;
-            /**
-             * Renoteされたとき
-             */
-            "renote": string;
-            /**
-             * リアクションがあったとき
-             */
-            "reaction": string;
-            /**
-             * メンションされたとき
-             */
-            "mention": string;
-        };
-        "_systemEvents": {
-            /**
-             * ユーザーから通報があったとき
-             */
-            "abuseReport": string;
-            /**
-             * ユーザーからの通報を処理したとき
-             */
-            "abuseReportResolved": string;
-            /**
-             * ユーザーが作成されたとき
-             */
-            "userCreated": string;
-            /**
-             * モデレーターが一定期間非アクティブになったとき
-             */
-            "inactiveModeratorsWarning": string;
-            /**
-             * モデレーターが一定期間非アクティブだったため、システムにより招待制へと変更されたとき
-             */
-            "inactiveModeratorsInvitationOnlyChanged": string;
-            /**
-             * When a moderator has been inactive for a while, and the server is changed to approval-only
-             */
-            "inactiveModeratorsApprovalOnlyChanged": string;
-        };
-        /**
-         * Webhookを削除しますか？
-         */
-        "deleteConfirm": string;
-        /**
-         * スイッチの右にあるボタンをクリックするとダミーのデータを使用したテスト用Webhookを送信できます。
-         */
-        "testRemarks": string;
-    };
     "_abuseReport": {
         "_notificationRecipient": {
             /**
@@ -10518,216 +11254,6 @@ export interface Locale extends ILocale {
              */
             "deleteConfirm": string;
         };
-    };
-    "_moderationLogTypes": {
-        /**
-         * ロールを作成
-         */
-        "createRole": string;
-        /**
-         * ロールを削除
-         */
-        "deleteRole": string;
-        /**
-         * ロールを更新
-         */
-        "updateRole": string;
-        /**
-         * ロールへアサイン
-         */
-        "assignRole": string;
-        /**
-         * ロールのアサイン解除
-         */
-        "unassignRole": string;
-        /**
-         * 凍結
-         */
-        "suspend": string;
-        /**
-         * 凍結解除
-         */
-        "unsuspend": string;
-        /**
-         * カスタム絵文字追加
-         */
-        "addCustomEmoji": string;
-        /**
-         * カスタム絵文字更新
-         */
-        "updateCustomEmoji": string;
-        /**
-         * カスタム絵文字削除
-         */
-        "deleteCustomEmoji": string;
-        /**
-         * サーバー設定更新
-         */
-        "updateServerSettings": string;
-        /**
-         * ユーザーのモデレーションノート更新
-         */
-        "updateUserNote": string;
-        /**
-         * ファイルを削除
-         */
-        "deleteDriveFile": string;
-        /**
-         * ノートを削除
-         */
-        "deleteNote": string;
-        /**
-         * 全体のお知らせを作成
-         */
-        "createGlobalAnnouncement": string;
-        /**
-         * ユーザーへお知らせを作成
-         */
-        "createUserAnnouncement": string;
-        /**
-         * 全体のお知らせを更新
-         */
-        "updateGlobalAnnouncement": string;
-        /**
-         * ユーザーのお知らせを更新
-         */
-        "updateUserAnnouncement": string;
-        /**
-         * 全体のお知らせを削除
-         */
-        "deleteGlobalAnnouncement": string;
-        /**
-         * ユーザーのお知らせを削除
-         */
-        "deleteUserAnnouncement": string;
-        /**
-         * パスワードをリセット
-         */
-        "resetPassword": string;
-        /**
-         * リモートサーバーを停止
-         */
-        "suspendRemoteInstance": string;
-        /**
-         * リモートサーバーを再開
-         */
-        "unsuspendRemoteInstance": string;
-        /**
-         * リモートサーバーのモデレーションノート更新
-         */
-        "updateRemoteInstanceNote": string;
-        /**
-         * ファイルをセンシティブ付与
-         */
-        "markSensitiveDriveFile": string;
-        /**
-         * ファイルをセンシティブ解除
-         */
-        "unmarkSensitiveDriveFile": string;
-        /**
-         * 通報を解決
-         */
-        "resolveAbuseReport": string;
-        /**
-         * 通報を転送
-         */
-        "forwardAbuseReport": string;
-        /**
-         * 通報のモデレーションノート更新
-         */
-        "updateAbuseReportNote": string;
-        /**
-         * 招待コードを作成
-         */
-        "createInvitation": string;
-        /**
-         * 広告を作成
-         */
-        "createAd": string;
-        /**
-         * 広告を削除
-         */
-        "deleteAd": string;
-        /**
-         * 広告を更新
-         */
-        "updateAd": string;
-        /**
-         * アイコンデコレーションを作成
-         */
-        "createAvatarDecoration": string;
-        /**
-         * アイコンデコレーションを更新
-         */
-        "updateAvatarDecoration": string;
-        /**
-         * アイコンデコレーションを削除
-         */
-        "deleteAvatarDecoration": string;
-        /**
-         * ユーザーのアイコンを解除
-         */
-        "unsetUserAvatar": string;
-        /**
-         * ユーザーのバナーを解除
-         */
-        "unsetUserBanner": string;
-        /**
-         * SystemWebhookを作成
-         */
-        "createSystemWebhook": string;
-        /**
-         * SystemWebhookを更新
-         */
-        "updateSystemWebhook": string;
-        /**
-         * SystemWebhookを削除
-         */
-        "deleteSystemWebhook": string;
-        /**
-         * 通報の通知先を作成
-         */
-        "createAbuseReportNotificationRecipient": string;
-        /**
-         * 通報の通知先を更新
-         */
-        "updateAbuseReportNotificationRecipient": string;
-        /**
-         * 通報の通知先を削除
-         */
-        "deleteAbuseReportNotificationRecipient": string;
-        /**
-         * アカウントを削除
-         */
-        "deleteAccount": string;
-        /**
-         * ページを削除
-         */
-        "deletePage": string;
-        /**
-         * Playを削除
-         */
-        "deleteFlash": string;
-        /**
-         * ギャラリーの投稿を削除
-         */
-        "deleteGalleryPost": string;
-        /**
-         * チャットルームを削除
-         */
-        "deleteChatRoom": string;
-        /**
-         * プロキシアカウントの説明を更新
-         */
-        "updateProxyAccountDescription": string;
-        /**
-         * Approved
-         */
-        "approve": string;
-        /**
-         * Declined
-         */
-        "decline": string;
     };
     "_fileViewer": {
         /**
@@ -10908,13 +11434,23 @@ export interface Locale extends ILocale {
              */
             "description": string;
         };
-        "_urlPreview": {
+        "_urlPreviewThumbnail": {
             /**
              * URLプレビューのサムネイルを非表示
              */
             "title": string;
             /**
              * URLプレビューのサムネイル画像が読み込まれなくなります。
+             */
+            "description": string;
+        };
+        "_disableUrlPreview": {
+            /**
+             * URLプレビューを無効化
+             */
+            "title": string;
+            /**
+             * URLプレビュー機能を無効化します。サムネイル画像だけと違い、リンク先の情報の読み込み自体を削減できます。
              */
             "description": string;
         };
@@ -11404,22 +11940,6 @@ export interface Locale extends ILocale {
                  */
                 "directoryToCategoryCaption": string;
                 /**
-                 * いずれかの方法で登録する絵文字を選択してください。
-                 */
-                "emojiInputAreaCaption": string;
-                /**
-                 * この枠に画像ファイルまたはディレクトリをドラッグ＆ドロップ
-                 */
-                "emojiInputAreaList1": string;
-                /**
-                 * このリンクをクリックしてPCから選択する
-                 */
-                "emojiInputAreaList2": string;
-                /**
-                 * このリンクをクリックしてドライブから選択する
-                 */
-                "emojiInputAreaList3": string;
-                /**
                  * リストに表示されている絵文字を新たなカスタム絵文字として登録します。よろしいですか？（負荷を避けるため、一度の操作で登録可能な絵文字は{count}件までです）
                  */
                 "confirmRegisterEmojisDescription": ParameterizedString<"count">;
@@ -11616,56 +12136,6 @@ export interface Locale extends ILocale {
             };
         };
     };
-    "_bootErrors": {
-        /**
-         * 読み込みに失敗しました
-         */
-        "title": string;
-        /**
-         * 少し待ってからリロードしてもまだ問題が解決されない場合、以下のError IDを添えてサーバー管理者に連絡してください。
-         */
-        "serverError": string;
-        /**
-         * 以下を行うと解決する可能性があります。
-         */
-        "solution": string;
-        /**
-         * ブラウザおよびOSを最新バージョンに更新する
-         */
-        "solution1": string;
-        /**
-         * アドブロッカーを無効にする
-         */
-        "solution2": string;
-        /**
-         * ブラウザのキャッシュをクリアする
-         */
-        "solution3": string;
-        /**
-         * (Tor Browser) dom.webaudio.enabledをtrueに設定する
-         */
-        "solution4": string;
-        /**
-         * その他のオプション
-         */
-        "otherOption": string;
-        /**
-         * クライアント設定とキャッシュを削除
-         */
-        "otherOption1": string;
-        /**
-         * 簡易クライアントを起動
-         */
-        "otherOption2": string;
-        /**
-         * 修復ツールを起動
-         */
-        "otherOption3": string;
-        /**
-         * If none of the above works, report the problem to your instance administrator
-         */
-        "solution5": string;
-    };
     "_search": {
         /**
          * 全て
@@ -11696,351 +12166,217 @@ export interface Locale extends ILocale {
          */
         "serverHostPlaceholder": string;
     };
-    /**
-     * Result
-     */
-    "result": string;
-    /**
-     * Automatic TTS feature needed.
-     */
-    "flagAsVI": string;
-    /**
-     * Enable this if you need the automatic TTS feature. If you belong to an authorized user group, the automatic TTS feature will be activated within a specific scope.
-     */
-    "flagAsVIDescription": string;
-    /**
-     * Approvals
-     */
-    "approvals": string;
-    /**
-     * Do you want to approve the registration?
-     */
-    "registerApproveConfirm": string;
-    /**
-     * This action cannot be undone. Once approved, an email will be sent to notify the user that their registration has been approved.
-     */
-    "registerApproveConfirmDescription": string;
-    /**
-     * Make account registration approval-based
-     */
-    "approvalRequiredForSignup": string;
-    /**
-     * Pending account registration approvals
-     */
-    "signupPendingApprovals": string;
-    /**
-     * There are users awaiting approval.
-     */
-    "pendingUserApprovals": string;
-    /**
-     * Approve
-     */
-    "approveAccount": string;
-    /**
-     * Deny and delete account
-     */
-    "denyAccount": string;
-    /**
-     * Approved
-     */
-    "approved": string;
-    /**
-     * Not approved
-     */
-    "notApproved": string;
-    /**
-     * Approval status
-     */
-    "approvalStatus": string;
-    /**
-     * This instance currently requires approval to register. Please provide your reason for joining, and only those approved will be allowed to register.
-     */
-    "approvalRequiredToRegister": string;
-    /**
-     * Reason for registration
-     */
-    "registerReason": string;
-    /**
-     * Your registration for the server has not yet been approved. Please try again later. If you provided an email address during registration, you will be notified by email once your registration is approved.
-     */
-    "registerHasNotBeenApprovedYet": string;
-    /**
-     * To ensure notifications are sent regarding the approval of server registrations, it is strongly recommended to require an email address during account registration.
-     */
-    "registerApprovalEmailRecommended": string;
-    /**
-     * Perform a security update immediately!
-     */
-    "HaveSecurityUpdate": string;
-    /**
-     * Avatar decorations
-     */
-    "customAvatarDecoration": string;
-    /**
-     * Reason for Decline (Optional)
-     */
-    "optionalReason": string;
-    /**
-     * Email Templates
-     */
-    "emailTemplates": string;
-    /**
-     * Automated processing of abuse reports
-     */
-    "abuseReportAutoProcessing": string;
-    "_aboutVickey": {
+    "_serverSetupWizard": {
         /**
-         * Vickey is a soft fork of Misskey.
+         * Misskeyのインストールが完了しました！
          */
-        "about": string;
+        "installCompleted": string;
         /**
-         * Translate Vickey
+         * まずは、管理者アカウントを作成しましょう。
          */
-        "translation": string;
+        "firstCreateAccount": string;
         /**
-         * Donate to Vickey
+         * 管理者アカウントが作成されました！
          */
-        "donate": string;
+        "accountCreated": string;
+        /**
+         * サーバーの設定
+         */
+        "serverSetting": string;
+        /**
+         * このウィザードで簡単に最適なサーバーの設定が行えます。
+         */
+        "youCanEasilyConfigureOptimalServerSettingsWithThisWizard": string;
+        /**
+         * ここでの設定は、あとからでも変更できます。
+         */
+        "settingsYouMakeHereCanBeChangedLater": string;
+        /**
+         * Misskeyをどのように使いますか？
+         */
+        "howWillYouUseMisskey": string;
+        "_use": {
+            /**
+             * お一人様サーバー
+             */
+            "single": string;
+            /**
+             * 自分専用のサーバーとして、一人で使う
+             */
+            "single_description": string;
+            /**
+             * お一人様サーバーとして運用する場合でも、アカウントは必要に応じて複数作成可能です。
+             */
+            "single_youCanCreateMultipleAccounts": string;
+            /**
+             * グループサーバー
+             */
+            "group": string;
+            /**
+             * 信頼できる他の利用者を招待して、複数人で使う
+             */
+            "group_description": string;
+            /**
+             * オープンサーバー
+             */
+            "open": string;
+            /**
+             * 不特定多数の利用者を受け入れる運営を行う
+             */
+            "open_description": string;
+        };
+        /**
+         * 不特定多数の利用者を受け入れることはリスクが伴います。トラブルに対処できるよう、確実なモデレーション体制で運営することを推奨します。
+         */
+        "openServerAdvice": string;
+        /**
+         * 自サーバーがスパムの踏み台にならないように、reCAPTCHAといったアンチボット機能を有効にするなど、セキュリティについても細心の注意が必要です。
+         */
+        "openServerAntiSpamAdvice": string;
+        /**
+         * どれくらいの人数を想定していますか？
+         */
+        "howManyUsersDoYouExpect": string;
+        "_scale": {
+            /**
+             * 100人以下 (小規模)
+             */
+            "small": string;
+            /**
+             * 100人以上1000人以下 (中規模)
+             */
+            "medium": string;
+            /**
+             * 1000人以上 (大規模)
+             */
+            "large": string;
+        };
+        /**
+         * 大規模なサーバーでは、ロードバランシングやデータベースのレプリケーションなど、高度なインフラストラクチャーの知識が必要になる場合があります。
+         */
+        "largeScaleServerAdvice": string;
+        /**
+         * Fediverseと接続しますか？
+         */
+        "doYouConnectToFediverse": string;
+        /**
+         * 分散型サーバーで構成されるネットワーク(Fediverse)に接続すると、他のサーバーと相互にコンテンツのやり取りが可能です。
+         */
+        "doYouConnectToFediverse_description1": string;
+        /**
+         * Fediverseと接続することは「連合」とも呼ばれます。
+         */
+        "doYouConnectToFediverse_description2": string;
+        /**
+         * 連合可能なサーバーの指定など、高度な設定も後ほど可能です。
+         */
+        "youCanConfigureMoreFederationSettingsLater": string;
+        /**
+         * 管理者情報
+         */
+        "adminInfo": string;
+        /**
+         * 問い合わせを受け付けるために使用される管理者情報を設定します。
+         */
+        "adminInfo_description": string;
+        /**
+         * オープンサーバー、または連合がオンの場合は必ず入力が必要です。
+         */
+        "adminInfo_mustBeFilled": string;
+        /**
+         * 以下の設定が推奨されます
+         */
+        "followingSettingsAreRecommended": string;
+        /**
+         * この設定を適用
+         */
+        "applyTheseSettings": string;
+        /**
+         * 設定をスキップ
+         */
+        "skipSettings": string;
+        /**
+         * 設定が完了しました！
+         */
+        "settingsCompleted": string;
+        /**
+         * お疲れ様でした。準備が整ったので、さっそくサーバーの使用を開始できます。
+         */
+        "settingsCompleted_description": string;
+        /**
+         * 詳細なサーバー設定は、「コントロールパネル」から行えます。
+         */
+        "settingsCompleted_description2": string;
+        /**
+         * 寄付のお願い
+         */
+        "donationRequest": string;
+        "_donationRequest": {
+            /**
+             * Misskeyは有志によって開発されている無料のソフトウェアです。
+             */
+            "text1": string;
+            /**
+             * 今後も開発を続けられるように、よろしければぜひカンパをお願いいたします。
+             */
+            "text2": string;
+            /**
+             * 支援者向け特典もあります！
+             */
+            "text3": string;
+        };
     };
-    "_emailTemplates": {
+    "_uploader": {
         /**
-         * Global switch
+         * {x}に圧縮
          */
-        "global": string;
+        "compressedToX": ParameterizedString<"x">;
         /**
-         * Email templates will only take effect if the global switch is turned on.
+         * {x}%節約
          */
-        "globalDescription": string;
+        "savedXPercent": ParameterizedString<"x">;
         /**
-         * The email templates have some predefined variables that are available in all templates:
-         * ${instanceHost}: instance domain name
-         * ${instanceName}: instance name or instance domain (if no instance name)
-         * ${maintainerName}: maintainer name (if available)
-         * ${maintainerEmail}: maintainer email (if available)
-         * ${contact}: contact information (if available)
-         * ${senderEmail}: sender email (if available)
-         * ${receiverName}: receiver name (if available)
-         * ${receiverEmail}: receiver email
+         * アップロードされていないファイルがありますが、中止しますか？
          */
-        "globalVars": ParameterizedString<"instanceHost" | "instanceName" | "maintainerName" | "maintainerEmail" | "contact" | "senderEmail" | "receiverName" | "receiverEmail">;
+        "abortConfirm": string;
         /**
-         * The templates require HTML implementation!
+         * アップロードされていないファイルがありますが、完了しますか？
          */
-        "globalEditWarning": string;
+        "doneConfirm": string;
         /**
-         * Single switch
+         * アップロード可能な最大ファイルサイズは{x}です。
          */
-        "singleSwitch": string;
+        "maxFileSizeIsX": ParameterizedString<"x">;
+    };
+    "_clientPerformanceIssueTip": {
         /**
-         * Controls each item individually when the global switche are enabled.
-         */
-        "singleSwitchDescription": string;
-        /**
-         * Email content (leave blank to use default)
-         */
-        "textareaDescription": string;
-        /**
-         * Email title (leave blank to use default)
+         * バッテリー消費が多いと感じたら
          */
         "title": string;
         /**
-         * New Login
+         * アドブロッカーを無効にしてください
          */
-        "newLogin": string;
+        "makeSureDisabledAdBlocker": string;
         /**
-         * Abuse Report
+         * アドブロッカーはパフォーマンスに影響を及ぼすことがあります。OSの機能やブラウザの機能・アドオンなどでアドブロッカーが有効になっていないか確認してください。
          */
-        "abuseReport": string;
+        "makeSureDisabledAdBlocker_description": string;
         /**
-         * comment: content of the abuse report
+         * カスタムCSSを無効にしてください
          */
-        "abuseReportVars": string;
+        "makeSureDisabledCustomCss": string;
         /**
-         * Reset Password
+         * スタイルを上書きするとパフォーマンスに影響を及ぼすことがあります。カスタムCSSや、スタイルを上書きする拡張機能が有効になっていないか確認してください。
          */
-        "resetPassword": string;
+        "makeSureDisabledCustomCss_description": string;
         /**
-         * link: link to reset password
+         * 拡張機能を無効にしてください
          */
-        "resetPasswordVars": string;
+        "makeSureDisabledAddons": string;
         /**
-         * Account Delete
+         * 一部の拡張機能はクライアントの動作に干渉しパフォーマンスに影響を及ぼすことがあります。ブラウザの拡張機能を無効にして改善するか確認してください。
          */
-        "accountDelete": string;
-        /**
-         * Moderator Inactivity Warning
-         */
-        "inactivityWarning": string;
-        /**
-         * timeVariant: time
-         * timeVariantJa: time (Japanese)
-         */
-        "inactivityWarningVars": string;
-        /**
-         * Change to Approval-Only
-         */
-        "changeToApproval": string;
-        /**
-         * MODERATOR_INACTIVITY_LIMIT_DAYS: moderator inactivity limit days
-         */
-        "changeToApprovalVars": string;
-        /**
-         * Signup
-         */
-        "signup": string;
-        /**
-         * link: link to complete registration
-         */
-        "signupVars": string;
-        /**
-         * Email Verification
-         */
-        "emailVerification": string;
-        /**
-         * link: link to complete email verification
-         */
-        "emailVerificationVars": string;
-        /**
-         * Account Approved
-         */
-        "accountApproved": string;
-        /**
-         * Account Suspended
-         */
-        "accountSuspended": string;
-        /**
-         * Approval Pending
-         */
-        "approvalPending": string;
-        /**
-         * New User Approval
-         */
-        "newUserApproval": string;
-        /**
-         * username: new user's username
-         * email: new user's email
-         * reason: new user's reason
-         */
-        "newUserApprovalVars": string;
-        /**
-         * New User Approval (without email)
-         */
-        "newUserApprovalWithoutEmail": string;
-        /**
-         * username: new user's username
-         * reason: new user's reason
-         */
-        "newUserApprovalWithoutEmailVars": string;
-        /**
-         * Account Reinstated
-         */
-        "accountReinstated": string;
-        /**
-         * Account Declined
-         */
-        "accountDeclined": string;
-        /**
-         * Account Declined (with reason)
-         */
-        "accountDeclinedWithReason": string;
-        /**
-         * reason: reason for decline
-         */
-        "accountDeclinedWithReasonVars": string;
-        /**
-         * New Follower
-         */
-        "newFollower": string;
-        /**
-         * name: follower's name
-         * username: follower's username
-         * host: the host of the instance where the follower is located
-         */
-        "newFollowerVars": string;
-        /**
-         * New Follow Request
-         */
-        "newFollowRequest": string;
-        /**
-         * name: follower's name
-         * username: follower's username
-         * host: the host of the instance where the follower is located
-         */
-        "newFollowRequestVars": string;
-        /**
-         * New Security Release
-         */
-        "secRelease": string;
-        /**
-         * tag: name of the version to update to
-         */
-        "secReleaseVars": string;
-    };
-    "_abuseReportAutoProcessing": {
-        /**
-         * Reduces the effort of server moderation through automatically recognizing sensitive content via Machine Learning.
-         */
-        "description": string;
-        /**
-         * Reports on Automated Abuse Reports Processing
-         */
-        "title": string;
-        /**
-         * Enable
-         */
-        "enable": string;
-        /**
-         * Record Only
-         */
-        "record": string;
-        /**
-         * Ignore
-         */
-        "ignore": string;
-        /**
-         * Delete
-         */
-        "delete": string;
-        /**
-         * API URL for scoring abuse reports
-         */
-        "url": string;
-        /**
-         * Token for the API that scores abuse reports
-         */
-        "token": string;
-        /**
-         * Scoring thresholds for triggering processing mechanisms
-         */
-        "score": string;
-        /**
-         * Note
-         */
-        "note": string;
-        /**
-         * Page
-         */
-        "page": string;
-        /**
-         * Gallery
-         */
-        "gallery": string;
-        /**
-         * Flash
-         */
-        "flash": string;
-        /**
-         * User
-         */
-        "user": string;
-        /**
-         * Status
-         */
-        "status": string;
-        /**
-         * Uncategorized
-         */
-        "uncategorized": string;
+        "makeSureDisabledAddons_description": string;
     };
 }
 declare const locales: {
