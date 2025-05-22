@@ -1,3 +1,4 @@
+_lang_: "English"
 result: "結果"
 flagAsVI: "需要自動TTS功能"
 flagAsVIDescription: "如果需要自動TTS功能，請啟動此選項。如果您屬於授權用戶組，自動TTS功能將在特定的範圍內激活。"
