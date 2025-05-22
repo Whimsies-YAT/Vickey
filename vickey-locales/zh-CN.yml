@@ -1,3 +1,4 @@
+_lang_: "English"
 result: "结果"
 flagAsVI: "需要自动 TTS 功能。"
 flagAsVIDescription: "启用此选项以使用自动 TTS 功能。授权用户组将在特定范围内自动激活该功能。"
