@@ -128,7 +128,7 @@ export class SearchService {
 
 		if (!this.meilisearch && this.elasticsearch) {
 			const base = `${config.elasticsearch!.index}---notes`;
-			const month = new Date().toISOString().slice(0,7).replace(/-/g, '');
+			const month = new Date().toISOString().slice(0, 7).replace(/-/g, '');
 			const prefix = `${base}-${month}`;
 			const MAX_DOCS = 5_000_000;
 
@@ -142,13 +142,13 @@ export class SearchService {
 							index: idx,
 							mappings: {
 								properties: {
-									text:      { type: 'text' },
-									cw:        { type: 'text' },
+									text: { type: 'text' },
+									cw: { type: 'text' },
 									createdAt: { type: 'long' },
-									userId:    { type: 'keyword' },
-									userHost:  { type: 'keyword' },
+									userId: { type: 'keyword' },
+									userHost: { type: 'keyword' },
 									channelId: { type: 'keyword' },
-									tags:      { type: 'keyword' },
+									tags: { type: 'keyword' },
 								},
 							},
 							settings: {
@@ -171,7 +171,7 @@ export class SearchService {
 				this.elasticsearchSearchIndex = `${base}*`;
 			})().catch(err => {
 				console.error('Elasticsearch index initialization exception:', err);
-				this.elasticsearchWriteIndex  = prefix;
+				this.elasticsearchWriteIndex = prefix;
 				this.elasticsearchSearchIndex = `${base}*`;
 			});
 		}
