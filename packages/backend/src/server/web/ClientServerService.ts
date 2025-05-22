@@ -215,6 +215,7 @@ export class ClientServerService {
 			randomMOTD: (await fetch('https://zenquotes.io/api/random').then((res: { json: () => any; }) => res.json()).then((data: { q: any; }[]) => data[0]?.q).catch(() => undefined)),
 			metaJson: htmlSafeJsonStringify(await this.metaEntityService.packDetailed(meta)),
 			now: Date.now(),
+			federationEnabled: this.meta.federation !== 'none',
 		};
 	}
 
