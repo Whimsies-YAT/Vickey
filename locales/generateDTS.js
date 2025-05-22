@@ -57,7 +57,8 @@ function createMembers(record) {
 export default function generateDTS() {
 	const misskeyLocales = yaml.load(tryReadFile(`${__dirname}/ja-JP.yml`, 'utf-8'));
 	const vkLocales = yaml.load(tryReadFile(`${__dirname}/../vickey-locales/en-US.yml`, 'utf-8'));
-	const locale = merge(misskeyLocales, vkLocales);
+	// const locale = merge(misskeyLocales, vkLocales);
+	const locale = merge(vkLocales, misskeyLocales);
 	const members = createMembers(locale);
 	const elements = [
 		ts.factory.createVariableStatement(

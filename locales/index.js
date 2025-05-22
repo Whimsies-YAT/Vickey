@@ -70,7 +70,8 @@ export function build() {
 	const metaUrl = import.meta.url;
 	const misskeyLocales = languages.reduce((a, c) => (a[c] = yaml.load(clean(tryReadFile(new URL(`${c}.yml`, metaUrl), 'utf-8'))) || {}, a), {});
 	const vkLocales = languages.reduce((a, c) => (a[c] = yaml.load(clean(tryReadFile(new URL(`../vickey-locales/${c}.yml`, metaUrl), 'utf-8'))) || {}, a), {});
-	const locales = merge(misskeyLocales, vkLocales);
+	// const locales = merge(misskeyLocales, vkLocales);
+	const locales = merge(vkLocales, misskeyLocales);
 
 	// 空文字列が入ることがあり、フォールバックが動作しなくなるのでプロパティごと消す
 	const removeEmpty = (obj) => {
