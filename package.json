@@ -1,6 +1,6 @@
 {
 	"name": "misskey",
-	"version": "2025.5.1-alpha.4",
+	"version": "2025.5.1-beta.0",
 	"codename": "nasubi",
 	"repository": {
 		"type": "git",
@@ -11,6 +11,7 @@
 		"packages/frontend-shared",
 		"packages/frontend",
 		"packages/frontend-embed",
+		"packages/icons-subsetter",
 		"packages/backend",
 		"packages/sw",
 		"packages/misskey-js",
