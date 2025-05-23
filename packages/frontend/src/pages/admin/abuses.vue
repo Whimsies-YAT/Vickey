@@ -11,9 +11,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkButton link to="/admin/abuse-report-notification-recipient" primary>{{ i18n.ts.notificationSetting }}</MkButton>
 			</div>
 
-			<MkInfo v-if="!store.r.abusesTutorial.value" closable @close="closeTutorial()">
+			<MkTip k="abuses">
 				{{ i18n.ts._abuseUserReport.resolveTutorial }}
-			</MkInfo>
+			</MkTip>
 
 			<div :class="$style.inputs" class="_gaps">
 				<MkSelect v-model="state" style="margin: 0; flex: 1;">
@@ -80,7 +80,6 @@ import XAbuseReport from '@/components/MkAbuseReport.vue';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import MkButton from '@/components/MkButton.vue';
-import MkInfo from '@/components/MkInfo.vue';
 import { store } from '@/store.js';
 
 const reports = useTemplateRef('reports');
@@ -107,10 +106,6 @@ const pagination = {
 
 function resolved(reportId) {
 	reports.value?.paginator.removeItem(reportId);
-}
-
-function closeTutorial() {
-	store.set('abusesTutorial', false);
 }
 
 const headerActions = computed(() => []);
