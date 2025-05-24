@@ -313,12 +313,9 @@ if (noteViewInterruptors.length > 0) {
 
 const isRenote = Misskey.note.isPureRenote(note);
 const appearNote = getAppearNote(note);
-const $appearNote = reactive({
-	reactions: appearNote.reactions,
-	reactionCount: appearNote.reactionCount,
-	reactionEmojis: appearNote.reactionEmojis,
-	myReaction: appearNote.myReaction,
-	pollChoices: appearNote.poll?.choices,
+const { $note: $appearNote, subscribe: subscribeManuallyToNoteCapture } = useNoteCapture({
+	note: appearNote,
+	parentNote: note,
 });
 
 const rootEl = useTemplateRef('rootEl');
@@ -408,12 +405,6 @@ const reactionsPagination = computed(() => ({
 		type: reactionTabType.value,
 	},
 }));
-
-const { subscribe: subscribeManuallyToNoteCapture } = useNoteCapture({
-	note: appearNote,
-	parentNote: note,
-	$note: $appearNote,
-});
 
 useTooltip(renoteButton, async (showing) => {
 	const renotes = await misskeyApi('notes/renotes', {

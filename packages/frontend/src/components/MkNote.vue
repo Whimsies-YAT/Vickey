@@ -292,12 +292,10 @@ if (noteViewInterruptors.length > 0) {
 
 const isRenote = Misskey.note.isPureRenote(note);
 const appearNote = getAppearNote(note);
-const $appearNote = reactive({
-	reactions: appearNote.reactions,
-	reactionCount: appearNote.reactionCount,
-	reactionEmojis: appearNote.reactionEmojis,
-	myReaction: appearNote.myReaction,
-	pollChoices: appearNote.poll?.choices,
+const { $note: $appearNote, subscribe: subscribeManuallyToNoteCapture } = useNoteCapture({
+	note: appearNote,
+	parentNote: note,
+	mock: props.mock,
 });
 
 const rootEl = useTemplateRef('rootEl');
@@ -421,17 +419,6 @@ provide(DI.mfmEmojiReactCallback, (reaction) => {
 		});
 	});
 });
-
-let subscribeManuallyToNoteCapture: () => void = () => { };
-
-if (!props.mock) {
-	const { subscribe } = useNoteCapture({
-		note: appearNote,
-		parentNote: note,
-		$note: $appearNote,
-	});
-	subscribeManuallyToNoteCapture = subscribe;
-}
 
 if (!props.mock) {
 	useTooltip(renoteButton, async (showing) => {
