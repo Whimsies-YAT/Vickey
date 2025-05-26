@@ -5,6 +5,7 @@
 
 import { afterEach, beforeAll, describe, test } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
+import { Not, IsNull } from 'typeorm';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
@@ -53,6 +54,7 @@ describe('CustomEmojiService', () => {
 				await emojisRepository.insert({
 					id: id,
 					updatedAt: new Date(),
+					driveId: 'test-drive-id',
 					...d,
 				});
 			}
@@ -86,7 +88,7 @@ describe('CustomEmojiService', () => {
 		}
 
 		afterEach(async () => {
-			await emojisRepository.delete({});
+			await emojisRepository.delete({ id: Not(IsNull()) });
 		});
 
 		describe('単独', () => {

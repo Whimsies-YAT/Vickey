@@ -11,13 +11,14 @@ import { dirname } from 'node:path';
 import { ModuleMocker } from 'jest-mock';
 import { Test } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, test } from '@jest/globals';
-import { GlobalModule } from '@/GlobalModule.js';
-import { FileInfo, FileInfoService } from '@/core/FileInfoService.js';
-//import { DI } from '@/di-symbols.js';
-import { AiService } from '@/core/AiService.js';
-import { LoggerService } from '@/core/LoggerService.js';
 import type { TestingModule } from '@nestjs/testing';
 import type { MockFunctionMetadata } from 'jest-mock';
+import { GlobalModule } from '@/GlobalModule.js';
+import { FileInfo, FileInfoService } from '@/core/FileInfoService.js';
+import { AiService } from '@/core/AiService.js';
+import { LoggerService } from '@/core/LoggerService.js';
+import { DI } from '@/di-symbols.js';
+import { MiMeta } from '@/models/Meta.js';
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
@@ -34,9 +35,9 @@ describe('FileInfoService', () => {
 		delete fi.sensitive;
 		delete fi.blurhash;
 		delete fi.porn;
-		
+
 		return fi;
-	}
+	};
 
 	beforeAll(async () => {
 		app = await Test.createTestingModule({
@@ -50,9 +51,15 @@ describe('FileInfoService', () => {
 			],
 		})
 			.useMocker((token) => {
-				//if (token === AiService) {
-				//	return {  };
-				//}
+				if (token === DI.meta) {
+					return {
+						abuseReportMLAction: 'none',
+						abuseMLCheck: false,
+						abuseMLInfoUrl: '',
+						abuseMLInfoToken: '',
+						abuseMLInfoScore: 0.5,
+					} as MiMeta;
+				}
 				if (typeof token === 'function') {
 					const mockMetadata = moduleMocker.getMetadata(token) as MockFunctionMetadata<any, any>;
 					const Mock = moduleMocker.generateFromMetadata(mockMetadata);

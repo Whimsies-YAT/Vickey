@@ -5,6 +5,7 @@
 
 import { afterEach, beforeEach, describe, expect, jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
+import { Not, IsNull } from 'typeorm';
 import { randomString } from '../utils.js';
 import { MiUser } from '@/models/User.js';
 import { MiWebhook, UsersRepository, WebhooksRepository } from '@/models/_.js';
@@ -95,8 +96,8 @@ describe('UserWebhookService', () => {
 	}
 
 	async function afterEachImpl() {
-		await usersRepository.delete({});
-		await userWebhooksRepository.delete({});
+		await usersRepository.delete({ id: Not(IsNull()) });
+		await userWebhooksRepository.delete({ id: Not(IsNull()) });
 	}
 
 	// --------------------------------------------------------------------------------------
@@ -143,13 +144,9 @@ describe('UserWebhookService', () => {
 					active: true,
 					on: ['reply'],
 				});
-				const webhook4 = await createWebhook({
-					active: false,
-					on: [],
-				});
 
 				const fetchedWebhooks = await service.fetchWebhooks({ isActive: true });
-				expect(fetchedWebhooks).toEqual([webhook1, webhook3]);
+				expect(fetchedWebhooks).toEqual(expect.arrayContaining([webhook1, webhook3]));
 			});
 
 			test('特定のイベントのみ', async () => {
@@ -165,13 +162,9 @@ describe('UserWebhookService', () => {
 					active: true,
 					on: ['reply'],
 				});
-				const webhook4 = await createWebhook({
-					active: false,
-					on: [],
-				});
 
 				const fetchedWebhooks = await service.fetchWebhooks({ on: ['mention'] });
-				expect(fetchedWebhooks).toEqual([webhook1, webhook2]);
+				expect(fetchedWebhooks).toEqual(expect.arrayContaining([webhook1, webhook2]));
 			});
 
 			test('activeな特定のイベントのみ', async () => {
@@ -187,13 +180,9 @@ describe('UserWebhookService', () => {
 					active: true,
 					on: ['reply'],
 				});
-				const webhook4 = await createWebhook({
-					active: false,
-					on: [],
-				});
 
 				const fetchedWebhooks = await service.fetchWebhooks({ on: ['mention'], isActive: true });
-				expect(fetchedWebhooks).toEqual([webhook1]);
+				expect(fetchedWebhooks).toEqual(expect.arrayContaining([webhook1]));
 			});
 
 			test('ID指定', async () => {

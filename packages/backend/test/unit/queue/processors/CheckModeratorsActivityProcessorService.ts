@@ -7,6 +7,7 @@ import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as lolex from '@sinonjs/fake-timers';
 import { addHours, addSeconds, subDays, subHours, subSeconds } from 'date-fns';
+import { Not, IsNull } from 'typeorm';
 import { CheckModeratorsActivityProcessorService } from '@/queue/processors/CheckModeratorsActivityProcessorService.js';
 import { MiSystemWebhook, MiUser, MiUserProfile, UserProfilesRepository, UsersRepository } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
@@ -166,8 +167,8 @@ describe('CheckModeratorsActivityProcessorService', () => {
 		if (clock && typeof clock.uninstall === 'function') {
 			clock.uninstall();
 		}
-		await usersRepository.delete({});
-		await userProfilesRepository.delete({});
+		await usersRepository.delete({ id: Not(IsNull()) });
+		await userProfilesRepository.delete({ userId: Not(IsNull()) });
 		roleService.getModerators.mockReset();
 		announcementService.create.mockReset();
 		emailService.sendEmail.mockReset();

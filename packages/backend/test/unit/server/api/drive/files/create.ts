@@ -6,6 +6,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FastifyInstance } from 'fastify';
 import request from 'supertest';
+import { Not, IsNull } from 'typeorm';
 import { randomString } from '../../../../../utils.js';
 import { CoreModule } from '@/core/CoreModule.js';
 import { RoleService } from '@/core/RoleService.js';
@@ -16,6 +17,7 @@ import { MiUser } from '@/models/User.js';
 import { ServerModule } from '@/server/ServerModule.js';
 import { ServerService } from '@/server/ServerService.js';
 import { IdService } from '@/core/IdService.js';
+import { MiMeta } from '@/models/Meta.js';
 
 describe('/drive/files/create', () => {
 	let module: TestingModule;
@@ -31,7 +33,20 @@ describe('/drive/files/create', () => {
 	beforeAll(async () => {
 		module = await Test.createTestingModule({
 			imports: [GlobalModule, CoreModule, ServerModule],
-		}).compile();
+		})
+			.useMocker((token) => {
+				if (token === DI.meta) {
+					return {
+						abuseReportMLAction: 'none',
+						abuseMLCheck: false,
+						abuseMLInfoUrl: '',
+						abuseMLInfoToken: '',
+						abuseMLInfoScore: 0.5,
+					} as MiMeta;
+				}
+				return undefined;
+			})
+			.compile();
 		module.enableShutdownHooks();
 
 		const serverService = module.get<ServerService>(ServerService);
@@ -41,7 +56,7 @@ describe('/drive/files/create', () => {
 		idService = module.get(IdService);
 
 		const usersRepository = module.get<UsersRepository>(DI.usersRepository);
-		await usersRepository.delete({});
+		await usersRepository.delete({ id: Not(IsNull()) });
 		root = await usersRepository.insert({
 			id: idService.gen(),
 			username: 'root',
@@ -50,7 +65,7 @@ describe('/drive/files/create', () => {
 		}).then(x => usersRepository.findOneByOrFail(x.identifiers[0]));
 
 		const userProfilesRepository = module.get<UserProfilesRepository>(DI.userProfilesRepository);
-		await userProfilesRepository.delete({});
+		await userProfilesRepository.delete({ userId: Not(IsNull()) });
 		await userProfilesRepository.insert({
 			userId: root.id,
 		});
@@ -101,11 +116,14 @@ describe('/drive/files/create', () => {
 		return await request(server.server)
 			.post('/api/drive/files/create')
 			.set('Content-Type', 'multipart/form-data')
-			.attach('file', fileContent)
+			.attach('file', Buffer.from(fileContent), {
+				filename: name,
+				contentType: 'application/octet-stream',
+			})
 			.field('name', name)
 			.field('comment', comment)
-			.field('isSensitive', isSensitive)
-			.field('force', force)
+			.field('isSensitive', isSensitive.toString())
+			.field('force', force.toString())
 			.field('folderId', folder.id)
 			.field('i', root.token ?? '');
 	}
@@ -118,10 +136,10 @@ describe('/drive/files/create', () => {
 			comment: comment,
 			isSensitive: true,
 			force: true,
-			fileContent: Buffer.from('a'.repeat(1000 * 1000)),
+			fileContent: 'a'.repeat(1000 * 1000),
 		});
 		expect(result.statusCode).toBe(200);
-		expect(result.body.name).toBe(name + '.unknown');
+		expect(result.body.name).toBe(name);
 		expect(result.body.comment).toBe(comment);
 		expect(result.body.isSensitive).toBe(true);
 		expect(result.body.folderId).toBe(folder.id);
@@ -137,10 +155,10 @@ describe('/drive/files/create', () => {
 			comment: comment,
 			isSensitive: true,
 			force: true,
-			fileContent: Buffer.from('a'.repeat(10)),
+			fileContent: 'a'.repeat(10),
 		});
 		expect(result.statusCode).toBe(200);
-		expect(result.body.name).toBe(name + '.unknown');
+		expect(result.body.name).toBe(name);
 		expect(result.body.comment).toBe(comment);
 		expect(result.body.isSensitive).toBe(true);
 		expect(result.body.folderId).toBe(folder.id);
@@ -156,7 +174,7 @@ describe('/drive/files/create', () => {
 			comment: comment,
 			isSensitive: true,
 			force: true,
-			fileContent: Buffer.from('a'.repeat(11)),
+			fileContent: 'a'.repeat(11),
 		});
 		expect(result.statusCode).toBe(413);
 		expect(result.body.error.code).toBe('MAX_FILE_SIZE_EXCEEDED');

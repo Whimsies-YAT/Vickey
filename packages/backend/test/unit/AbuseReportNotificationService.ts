@@ -5,6 +5,7 @@
 
 import { describe, jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
+import { Not, IsNull } from 'typeorm';
 import { randomString } from '../utils.js';
 import { AbuseReportNotificationService } from '@/core/AbuseReportNotificationService.js';
 import {
@@ -168,10 +169,10 @@ describe('AbuseReportNotificationService', () => {
 		emailService.sendEmail.mockClear();
 		webhookService.enqueueSystemWebhook.mockClear();
 
-		await usersRepository.delete({});
-		await userProfilesRepository.delete({});
-		await systemWebhooksRepository.delete({});
-		await abuseReportNotificationRecipientRepository.delete({});
+		await usersRepository.delete({ id: Not(IsNull()) });
+		await userProfilesRepository.delete({ userId: Not(IsNull()) });
+		await systemWebhooksRepository.delete({ id: Not(IsNull()) });
+		await abuseReportNotificationRecipientRepository.delete({ id: Not(IsNull()) });
 	});
 
 	afterAll(async () => {

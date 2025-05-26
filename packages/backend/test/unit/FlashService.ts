@@ -5,6 +5,7 @@
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { Not, IsNull } from 'typeorm';
 import { FlashService } from '@/core/FlashService.js';
 import { IdService } from '@/core/IdService.js';
 import { FlashsRepository, MiFlash, MiUser, UserProfilesRepository, UsersRepository } from '@/models/_.js';
@@ -85,9 +86,9 @@ describe('FlashService', () => {
 	});
 
 	afterEach(async () => {
-		await usersRepository.delete({});
-		await userProfilesRepository.delete({});
-		await flashsRepository.delete({});
+		await usersRepository.delete({ id: Not(IsNull()) });
+		await userProfilesRepository.delete({ userId: Not(IsNull()) });
+		await flashsRepository.delete({ id: Not(IsNull()) });
 	});
 
 	afterAll(async () => {

@@ -6,6 +6,7 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { beforeAll, describe, jest } from '@jest/globals';
+import { Not, IsNull } from 'typeorm';
 import { WebhookTestService } from '@/core/WebhookTestService.js';
 import { UserWebhookPayload, UserWebhookService } from '@/core/UserWebhookService.js';
 import { SystemWebhookService } from '@/core/SystemWebhookService.js';
@@ -15,6 +16,7 @@ import { IdService } from '@/core/IdService.js';
 import { DI } from '@/di-symbols.js';
 import { QueueService } from '@/core/QueueService.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
+import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 
 describe('WebhookTestService', () => {
 	let app: TestingModule;
@@ -78,6 +80,12 @@ describe('WebhookTestService', () => {
 						fetchSystemWebhooks: jest.fn(),
 					}),
 				},
+				{
+					provide: DriveFileEntityService, useFactory: () => ({
+						create: jest.fn(),
+						findOne: jest.fn(),
+					}),
+				},
 			],
 		}).compile();
 
@@ -111,8 +119,8 @@ describe('WebhookTestService', () => {
 		userWebhookService.fetchWebhooks.mockClear();
 		systemWebhookService.fetchSystemWebhooks.mockClear();
 
-		await usersRepository.delete({});
-		await userProfilesRepository.delete({});
+		await usersRepository.delete({ id: Not(IsNull()) });
+		await userProfilesRepository.delete({ userId: Not(IsNull()) });
 	});
 
 	afterAll(async () => {
