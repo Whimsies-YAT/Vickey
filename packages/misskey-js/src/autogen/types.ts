@@ -9341,6 +9341,7 @@ export type operations = {
             uri: string;
             version: string;
             urlPreviewEnabled: boolean;
+            urlPreviewAllowRedirect: boolean;
             urlPreviewTimeout: number;
             urlPreviewMaximumContentLength: number;
             urlPreviewRequireContentLength: boolean;
@@ -12219,6 +12220,7 @@ export type operations = {
           /** @description [Deprecated] Use "urlPreviewSummaryProxyUrl" instead. */
           summalyProxy?: string | null;
           urlPreviewEnabled?: boolean;
+          urlPreviewAllowRedirect?: boolean;
           urlPreviewTimeout?: number;
           urlPreviewMaximumContentLength?: number;
           urlPreviewRequireContentLength?: boolean;
