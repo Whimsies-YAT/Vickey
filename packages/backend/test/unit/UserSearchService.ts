@@ -131,7 +131,7 @@ describe('UserSearchService', () => {
 	});
 
 	afterEach(async () => {
-		await usersRepository.delete({ id: Not(IsNull()) });
+		await usersRepository.createQueryBuilder().delete().execute();
 	});
 
 	afterAll(async () => {

@@ -6,7 +6,6 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { beforeAll, describe, jest } from '@jest/globals';
-import { Not, IsNull } from 'typeorm';
 import { WebhookTestService } from '@/core/WebhookTestService.js';
 import { UserWebhookPayload, UserWebhookService } from '@/core/UserWebhookService.js';
 import { SystemWebhookService } from '@/core/SystemWebhookService.js';
@@ -119,8 +118,8 @@ describe('WebhookTestService', () => {
 		userWebhookService.fetchWebhooks.mockClear();
 		systemWebhookService.fetchSystemWebhooks.mockClear();
 
-		await usersRepository.delete({ id: Not(IsNull()) });
-		await userProfilesRepository.delete({ userId: Not(IsNull()) });
+		await usersRepository.createQueryBuilder().delete().execute();
+		await userProfilesRepository.createQueryBuilder().delete().execute();
 	});
 
 	afterAll(async () => {

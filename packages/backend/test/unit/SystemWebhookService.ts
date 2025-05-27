@@ -7,7 +7,6 @@
 import { setTimeout } from 'node:timers/promises';
 import { afterEach, beforeEach, describe, expect, jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Not, IsNull } from 'typeorm';
 import { randomString } from '../utils.js';
 import { MiUser } from '@/models/User.js';
 import { MiSystemWebhook, SystemWebhookEventType } from '@/models/SystemWebhook.js';
@@ -102,8 +101,8 @@ describe('SystemWebhookService', () => {
 	}
 
 	async function afterEachImpl() {
-		await usersRepository.delete({ id: Not(IsNull()) });
-		await systemWebhooksRepository.delete({ id: Not(IsNull()) });
+		await usersRepository.createQueryBuilder().delete().execute();
+		await systemWebhooksRepository.createQueryBuilder().delete().execute();
 	}
 
 	// --------------------------------------------------------------------------------------

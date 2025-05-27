@@ -5,7 +5,6 @@
 
 import { afterEach, beforeEach, describe, expect, jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Not, IsNull } from 'typeorm';
 import { randomString } from '../utils.js';
 import { MiUser } from '@/models/User.js';
 import { MiWebhook, UsersRepository, WebhooksRepository } from '@/models/_.js';
@@ -96,8 +95,8 @@ describe('UserWebhookService', () => {
 	}
 
 	async function afterEachImpl() {
-		await usersRepository.delete({ id: Not(IsNull()) });
-		await userWebhooksRepository.delete({ id: Not(IsNull()) });
+		await usersRepository.createQueryBuilder().delete().execute();
+		await userWebhooksRepository.createQueryBuilder().delete().execute();
 	}
 
 	// --------------------------------------------------------------------------------------

@@ -10,7 +10,6 @@ import { jest } from '@jest/globals';
 import { ModuleMocker } from 'jest-mock';
 import { Test } from '@nestjs/testing';
 import * as lolex from '@sinonjs/fake-timers';
-import { Not, IsNull } from 'typeorm';
 import type { TestingModule } from '@nestjs/testing';
 import type { MockFunctionMetadata } from 'jest-mock';
 import { GlobalModule } from '@/GlobalModule.js';
@@ -160,10 +159,10 @@ describe('RoleService', () => {
 		clock.uninstall();
 
 		await Promise.all([
-			app.get(DI.metasRepository).delete({ id: Not(IsNull()) }),
-			usersRepository.delete({ id: Not(IsNull()) }),
-			rolesRepository.delete({ id: Not(IsNull()) }),
-			roleAssignmentsRepository.delete({ id: Not(IsNull()) }),
+			app.get(DI.metasRepository).clear(),
+			usersRepository.createQueryBuilder().delete().execute(),
+			rolesRepository.createQueryBuilder().delete().execute(),
+			roleAssignmentsRepository.createQueryBuilder().delete().execute(),
 		]);
 
 		await app.close();

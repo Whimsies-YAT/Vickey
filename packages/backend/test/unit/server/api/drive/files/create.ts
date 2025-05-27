@@ -6,7 +6,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FastifyInstance } from 'fastify';
 import request from 'supertest';
-import { Not, IsNull } from 'typeorm';
 import { randomString } from '../../../../../utils.js';
 import { CoreModule } from '@/core/CoreModule.js';
 import { RoleService } from '@/core/RoleService.js';
@@ -56,7 +55,7 @@ describe('/drive/files/create', () => {
 		idService = module.get(IdService);
 
 		const usersRepository = module.get<UsersRepository>(DI.usersRepository);
-		await usersRepository.delete({ id: Not(IsNull()) });
+		await usersRepository.createQueryBuilder().delete().execute();
 		root = await usersRepository.insert({
 			id: idService.gen(),
 			username: 'root',
@@ -65,7 +64,7 @@ describe('/drive/files/create', () => {
 		}).then(x => usersRepository.findOneByOrFail(x.identifiers[0]));
 
 		const userProfilesRepository = module.get<UserProfilesRepository>(DI.userProfilesRepository);
-		await userProfilesRepository.delete({ userId: Not(IsNull()) });
+		await userProfilesRepository.createQueryBuilder().delete().execute();
 		await userProfilesRepository.insert({
 			userId: root.id,
 		});
