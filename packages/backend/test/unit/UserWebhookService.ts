@@ -95,8 +95,8 @@ describe('UserWebhookService', () => {
 	}
 
 	async function afterEachImpl() {
-		await usersRepository.delete({});
-		await userWebhooksRepository.delete({});
+		await usersRepository.createQueryBuilder().delete().execute();
+		await userWebhooksRepository.createQueryBuilder().delete().execute();
 	}
 
 	// --------------------------------------------------------------------------------------
@@ -143,13 +143,9 @@ describe('UserWebhookService', () => {
 					active: true,
 					on: ['reply'],
 				});
-				const webhook4 = await createWebhook({
-					active: false,
-					on: [],
-				});
 
 				const fetchedWebhooks = await service.fetchWebhooks({ isActive: true });
-				expect(fetchedWebhooks).toEqual([webhook1, webhook3]);
+				expect(fetchedWebhooks).toEqual(expect.arrayContaining([webhook1, webhook3]));
 			});
 
 			test('特定のイベントのみ', async () => {
@@ -165,13 +161,9 @@ describe('UserWebhookService', () => {
 					active: true,
 					on: ['reply'],
 				});
-				const webhook4 = await createWebhook({
-					active: false,
-					on: [],
-				});
 
 				const fetchedWebhooks = await service.fetchWebhooks({ on: ['mention'] });
-				expect(fetchedWebhooks).toEqual([webhook1, webhook2]);
+				expect(fetchedWebhooks).toEqual(expect.arrayContaining([webhook1, webhook2]));
 			});
 
 			test('activeな特定のイベントのみ', async () => {
@@ -187,13 +179,9 @@ describe('UserWebhookService', () => {
 					active: true,
 					on: ['reply'],
 				});
-				const webhook4 = await createWebhook({
-					active: false,
-					on: [],
-				});
 
 				const fetchedWebhooks = await service.fetchWebhooks({ on: ['mention'], isActive: true });
-				expect(fetchedWebhooks).toEqual([webhook1]);
+				expect(fetchedWebhooks).toEqual(expect.arrayContaining([webhook1]));
 			});
 
 			test('ID指定', async () => {

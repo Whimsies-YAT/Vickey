@@ -14,10 +14,12 @@ import {
 	S3Client,
 } from '@aws-sdk/client-s3';
 import { mockClient } from 'aws-sdk-client-mock';
+import type { TestingModule } from '@nestjs/testing';
 import { GlobalModule } from '@/GlobalModule.js';
 import { DriveService } from '@/core/DriveService.js';
 import { CoreModule } from '@/core/CoreModule.js';
-import type { TestingModule } from '@nestjs/testing';
+import { DI } from '@/di-symbols.js';
+import { MiMeta } from '@/models/Meta.js';
 
 describe('DriveService', () => {
 	let app: TestingModule;
@@ -28,7 +30,20 @@ describe('DriveService', () => {
 		app = await Test.createTestingModule({
 			imports: [GlobalModule, CoreModule],
 			providers: [DriveService],
-		}).compile();
+		})
+			.useMocker((token) => {
+				if (token === DI.meta) {
+					return {
+						abuseReportMLAction: 'none',
+						abuseMLCheck: false,
+						abuseMLInfoUrl: '',
+						abuseMLInfoToken: '',
+						abuseMLInfoScore: 0.5,
+					} as MiMeta;
+				}
+				return undefined;
+			})
+			.compile();
 		app.enableShutdownHooks();
 		driveService = app.get<DriveService>(DriveService);
 	});

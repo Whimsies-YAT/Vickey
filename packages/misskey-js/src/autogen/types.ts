@@ -1884,6 +1884,15 @@ export type paths = {
      */
     post: operations['drive___files___find-by-hash'];
   };
+  '/drive/files/move-bulk': {
+    /**
+     * drive/files/move-bulk
+     * @description No description provided.
+     *
+     * **Credential required**: *Yes* / **Permission**: *write:drive*
+     */
+    post: operations['drive___files___move-bulk'];
+  };
   '/drive/files/show': {
     /**
      * drive/files/show
@@ -3350,6 +3359,15 @@ export type paths = {
      */
     post: operations['notes___show'];
   };
+  '/notes/show-partial-bulk': {
+    /**
+     * notes/show-partial-bulk
+     * @description No description provided.
+     *
+     * **Credential required**: *No*
+     */
+    post: operations['notes___show-partial-bulk'];
+  };
   '/notes/state': {
     /**
      * notes/state
@@ -4586,6 +4604,7 @@ export type components = {
       url?: string;
       reactionAndUserPairCache?: string[];
       clippedCount?: number;
+      hasPoll?: boolean;
       myReaction?: string | null;
     };
     NoteReaction: {
@@ -5041,6 +5060,32 @@ export type components = {
       failed: number;
       delayed: number;
     };
+    QueueMetrics: {
+      meta: {
+        count: number;
+        prevTS: number;
+        prevCount: number;
+      };
+      data: number[];
+      count: number;
+    };
+    QueueJob: {
+      id: string;
+      name: string;
+      data: Record<string, never>;
+      opts: Record<string, never>;
+      timestamp: number;
+      processedOn?: number;
+      processedBy?: string;
+      finishedOn?: number;
+      progress: Record<string, never>;
+      attempts: number;
+      delay: number;
+      failedReason: string;
+      stacktrace: string[];
+      returnValue: Record<string, never>;
+      isFailed: boolean;
+    };
     Antenna: {
       /** Format: id */
       id: string;
@@ -5334,6 +5379,7 @@ export type components = {
       canHideAds: boolean;
       driveCapacityMb: number;
       maxFileSizeMb: number;
+      uploadableFileTypes: string[];
       alwaysMarkNsfw: boolean;
       canUpdateBioMedia: boolean;
       pinLimit: number;
@@ -5649,6 +5695,7 @@ export type components = {
       name: string;
       description: string;
       isMuted?: boolean;
+      invitationExists?: boolean;
     };
     ChatRoomInvitation: {
       id: string;
@@ -7663,8 +7710,9 @@ export type operations = {
       content: {
         'application/json': {
           /** Format: misskey:id */
-          fileId?: string;
-          url?: string;
+          fileId: string;
+        } | {
+          url: string;
         };
       };
     };
@@ -8556,10 +8604,12 @@ export type operations = {
   admin___emoji___update: {
     requestBody: {
       content: {
-        'application/json': {
+        'application/json': ({
           /** Format: misskey:id */
-          id?: string;
-          name?: string;
+          id: string;
+        } | {
+          name: string;
+        }) & ({
           /** Format: misskey:id */
           fileId?: string;
           /** @description Use `null` to reset the category. */
@@ -8569,7 +8619,7 @@ export type operations = {
           isSensitive?: boolean;
           localOnly?: boolean;
           roleIdsThatCanBeUsedThisEmojiAsReaction?: string[];
-        };
+        });
       };
     };
     responses: {
@@ -9291,6 +9341,7 @@ export type operations = {
             uri: string;
             version: string;
             urlPreviewEnabled: boolean;
+            urlPreviewAllowRedirect: boolean;
             urlPreviewTimeout: number;
             urlPreviewMaximumContentLength: number;
             urlPreviewRequireContentLength: boolean;
@@ -9309,6 +9360,12 @@ export type operations = {
                 software: string;
                 versionRange: string;
               }[];
+            singleUserMode: boolean;
+            /** @enum {string} */
+            ugcVisibilityForVisitor: 'all' | 'local' | 'none';
+            proxyRemoteFiles: boolean;
+            signToActivityPubGet: boolean;
+            allowExternalApRedirect: boolean;
           };
         };
       };
@@ -9555,15 +9612,17 @@ export type operations = {
         'application/json': {
           /** @enum {string} */
           queue: 'system' | 'endedPollNotification' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
-          state: ('active' | 'wait' | 'delayed' | 'completed' | 'failed')[];
+          state: ('active' | 'wait' | 'delayed' | 'completed' | 'failed' | 'paused')[];
           search?: string;
         };
       };
     };
     responses: {
-      /** @description OK (without any results) */
-      204: {
-        content: never;
+      /** @description OK (with results) */
+      200: {
+        content: {
+          'application/json': components['schemas']['QueueJob'][];
+        };
       };
       /** @description Client error */
       400: {
@@ -9665,9 +9724,43 @@ export type operations = {
       };
     };
     responses: {
-      /** @description OK (without any results) */
-      204: {
-        content: never;
+      /** @description OK (with results) */
+      200: {
+        content: {
+          'application/json': {
+            /** @enum {string} */
+            name: 'system' | 'endedPollNotification' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
+            qualifiedName: string;
+            counts: {
+              [key: string]: number;
+            };
+            isPaused: boolean;
+            metrics: {
+              completed: components['schemas']['QueueMetrics'];
+              failed: components['schemas']['QueueMetrics'];
+            };
+            db: {
+              version: string;
+              /** @enum {string} */
+              mode: 'cluster' | 'standalone' | 'sentinel';
+              runId: string;
+              processId: string;
+              port: number;
+              os: string;
+              uptime: number;
+              memory: {
+                total: number;
+                used: number;
+                fragmentationRatio: number;
+                peak: number;
+              };
+              clients: {
+                blocked: number;
+                connected: number;
+              };
+            };
+          };
+        };
       };
       /** @description Client error */
       400: {
@@ -9709,9 +9802,22 @@ export type operations = {
    */
   admin___queue___queues: {
     responses: {
-      /** @description OK (without any results) */
-      204: {
-        content: never;
+      /** @description OK (with results) */
+      200: {
+        content: {
+          'application/json': ({
+              /** @enum {string} */
+              name: 'system' | 'endedPollNotification' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
+              counts: {
+                [key: string]: number;
+              };
+              isPaused: boolean;
+              metrics: {
+                completed: components['schemas']['QueueMetrics'];
+                failed: components['schemas']['QueueMetrics'];
+              };
+            })[];
+        };
       };
       /** @description Client error */
       400: {
@@ -9868,9 +9974,11 @@ export type operations = {
       };
     };
     responses: {
-      /** @description OK (without any results) */
-      204: {
-        content: never;
+      /** @description OK (with results) */
+      200: {
+        content: {
+          'application/json': components['schemas']['QueueJob'];
+        };
       };
       /** @description Client error */
       400: {
@@ -12112,6 +12220,7 @@ export type operations = {
           /** @description [Deprecated] Use "urlPreviewSummaryProxyUrl" instead. */
           summalyProxy?: string | null;
           urlPreviewEnabled?: boolean;
+          urlPreviewAllowRedirect?: boolean;
           urlPreviewTimeout?: number;
           urlPreviewMaximumContentLength?: number;
           urlPreviewRequireContentLength?: boolean;
@@ -12129,6 +12238,12 @@ export type operations = {
               software: string;
               versionRange: string;
             }[];
+          singleUserMode?: boolean;
+          /** @enum {string} */
+          ugcVisibilityForVisitor?: 'all' | 'local' | 'none';
+          proxyRemoteFiles?: boolean;
+          signToActivityPubGet?: boolean;
+          allowExternalApRedirect?: boolean;
         };
       };
     };
@@ -17511,6 +17626,59 @@ export type operations = {
     };
   };
   /**
+   * drive/files/move-bulk
+   * @description No description provided.
+   *
+   * **Credential required**: *Yes* / **Permission**: *write:drive*
+   */
+  'drive___files___move-bulk': {
+    requestBody: {
+      content: {
+        'application/json': {
+          fileIds: string[];
+          /** Format: misskey:id */
+          folderId?: string | null;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
    * drive/files/show
    * @description Show the properties of a drive file.
    *
@@ -17521,8 +17689,9 @@ export type operations = {
       content: {
         'application/json': {
           /** Format: misskey:id */
-          fileId?: string;
-          url?: string;
+          fileId: string;
+        } | {
+          url: string;
         };
       };
     };
@@ -23725,9 +23894,10 @@ export type operations = {
       content: {
         'application/json': {
           /** Format: misskey:id */
-          tokenId?: string;
-          token?: string | null;
-        };
+          tokenId: string;
+        } | ({
+          token: string | null;
+        });
       };
     };
     responses: {
@@ -23896,7 +24066,7 @@ export type operations = {
           location?: string | null;
           birthday?: string | null;
           /** @enum {string|null} */
-          lang?: null | 'ach' | 'ady' | 'af' | 'af-NA' | 'af-ZA' | 'ak' | 'ar' | 'ar-AR' | 'ar-MA' | 'ar-SA' | 'ay-BO' | 'az' | 'az-AZ' | 'be-BY' | 'bg' | 'bg-BG' | 'bn' | 'bn-IN' | 'bn-BD' | 'br' | 'bs-BA' | 'ca' | 'ca-ES' | 'cak' | 'ck-US' | 'cs' | 'cs-CZ' | 'cy' | 'cy-GB' | 'da' | 'da-DK' | 'de' | 'de-AT' | 'de-DE' | 'de-CH' | 'dsb' | 'el' | 'el-GR' | 'en' | 'en-GB' | 'en-AU' | 'en-CA' | 'en-IE' | 'en-IN' | 'en-PI' | 'en-SG' | 'en-UD' | 'en-US' | 'en-ZA' | 'en@pirate' | 'eo' | 'eo-EO' | 'es' | 'es-AR' | 'es-419' | 'es-CL' | 'es-CO' | 'es-EC' | 'es-ES' | 'es-LA' | 'es-NI' | 'es-MX' | 'es-US' | 'es-VE' | 'et' | 'et-EE' | 'eu' | 'eu-ES' | 'fa' | 'fa-IR' | 'fb-LT' | 'ff' | 'fi' | 'fi-FI' | 'fo' | 'fo-FO' | 'fr' | 'fr-CA' | 'fr-FR' | 'fr-BE' | 'fr-CH' | 'fy-NL' | 'ga' | 'ga-IE' | 'gd' | 'gl' | 'gl-ES' | 'gn-PY' | 'gu-IN' | 'gv' | 'gx-GR' | 'he' | 'he-IL' | 'hi' | 'hi-IN' | 'hr' | 'hr-HR' | 'hsb' | 'ht' | 'hu' | 'hu-HU' | 'hy' | 'hy-AM' | 'id' | 'id-ID' | 'is' | 'is-IS' | 'it' | 'it-IT' | 'ja' | 'ja-JP' | 'jv-ID' | 'ka-GE' | 'kk-KZ' | 'km' | 'kl' | 'km-KH' | 'kab' | 'kn' | 'kn-IN' | 'ko' | 'ko-KR' | 'ku-TR' | 'kw' | 'la' | 'la-VA' | 'lb' | 'li-NL' | 'lt' | 'lt-LT' | 'lv' | 'lv-LV' | 'mai' | 'mg-MG' | 'mk' | 'mk-MK' | 'ml' | 'ml-IN' | 'mn-MN' | 'mr' | 'mr-IN' | 'ms' | 'ms-MY' | 'mt' | 'mt-MT' | 'my' | 'no' | 'nb' | 'nb-NO' | 'ne' | 'ne-NP' | 'nl' | 'nl-BE' | 'nl-NL' | 'nn-NO' | 'oc' | 'or-IN' | 'pa' | 'pa-IN' | 'pl' | 'pl-PL' | 'ps-AF' | 'pt' | 'pt-BR' | 'pt-PT' | 'qu-PE' | 'rm-CH' | 'ro' | 'ro-RO' | 'ru' | 'ru-RU' | 'sa-IN' | 'se-NO' | 'sh' | 'si-LK' | 'sk' | 'sk-SK' | 'sl' | 'sl-SI' | 'so-SO' | 'sq' | 'sq-AL' | 'sr' | 'sr-RS' | 'su' | 'sv' | 'sv-SE' | 'sw' | 'sw-KE' | 'ta' | 'ta-IN' | 'te' | 'te-IN' | 'tg' | 'tg-TJ' | 'th' | 'th-TH' | 'fil' | 'tlh' | 'tr' | 'tr-TR' | 'tt-RU' | 'uk' | 'uk-UA' | 'ur' | 'ur-PK' | 'uz' | 'uz-UZ' | 'vi' | 'vi-VN' | 'xh-ZA' | 'yi' | 'yi-DE' | 'zh' | 'zh-Hans' | 'zh-Hant' | 'zh-CN' | 'zh-HK' | 'zh-SG' | 'zh-TW' | 'zu-ZA';
+          lang?: null | 'ach' | 'ady' | 'af' | 'af-NA' | 'af-ZA' | 'ak' | 'ar' | 'ar-AR' | 'ar-MA' | 'ar-SA' | 'ay-BO' | 'az' | 'az-AZ' | 'be-BY' | 'bg' | 'bg-BG' | 'bn' | 'bn-IN' | 'bn-BD' | 'br' | 'bs-BA' | 'ca' | 'ca-ES' | 'cak' | 'ck-US' | 'cs' | 'cs-CZ' | 'cy' | 'cy-GB' | 'da' | 'da-DK' | 'de' | 'de-AT' | 'de-DE' | 'de-CH' | 'dsb' | 'el' | 'el-GR' | 'en' | 'en-GB' | 'en-AU' | 'en-CA' | 'en-IE' | 'en-IN' | 'en-PI' | 'en-SG' | 'en-UD' | 'en-US' | 'en-ZA' | 'en@pirate' | 'eo' | 'eo-EO' | 'es' | 'es-AR' | 'es-419' | 'es-CL' | 'es-CO' | 'es-EC' | 'es-ES' | 'es-LA' | 'es-NI' | 'es-MX' | 'es-US' | 'es-VE' | 'et' | 'et-EE' | 'eu' | 'eu-ES' | 'fa' | 'fa-IR' | 'fb-LT' | 'ff' | 'fi' | 'fi-FI' | 'fo' | 'fo-FO' | 'fr' | 'fr-CA' | 'fr-FR' | 'fr-BE' | 'fr-CH' | 'fy-NL' | 'ga' | 'ga-IE' | 'gd' | 'gl' | 'gl-ES' | 'gn-PY' | 'gu-IN' | 'gv' | 'gx-GR' | 'he' | 'he-IL' | 'hi' | 'hi-IN' | 'hr' | 'hr-HR' | 'hsb' | 'ht' | 'hu' | 'hu-HU' | 'hy' | 'hy-AM' | 'id' | 'id-ID' | 'is' | 'is-IS' | 'it' | 'it-IT' | 'ja' | 'ja-JP' | 'jv-ID' | 'ka-GE' | 'kk-KZ' | 'km' | 'kl' | 'km-KH' | 'kab' | 'kn' | 'kn-IN' | 'ko' | 'ko-KR' | 'ku-TR' | 'kw' | 'la' | 'la-VA' | 'lb' | 'li-NL' | 'lt' | 'lt-LT' | 'lv' | 'lv-LV' | 'mai' | 'mg-MG' | 'mk' | 'mk-MK' | 'ml' | 'ml-IN' | 'mn-MN' | 'mr' | 'mr-IN' | 'ms' | 'ms-MY' | 'mt' | 'mt-MT' | 'my' | 'no' | 'nb' | 'nb-NO' | 'ne' | 'ne-NP' | 'nl' | 'nl-BE' | 'nl-NL' | 'nn-NO' | 'oc' | 'or-IN' | 'pa' | 'pa-IN' | 'pl' | 'pl-PL' | 'ps-AF' | 'pt' | 'pt-BR' | 'pt-PT' | 'qu-PE' | 'rm-CH' | 'ro' | 'ro-RO' | 'ru' | 'ru-RU' | 'sa-IN' | 'se-NO' | 'sh' | 'si-LK' | 'sk' | 'sk-SK' | 'sl' | 'sl-SI' | 'so-SO' | 'sq' | 'sq-AL' | 'sr' | 'sr-RS' | 'su' | 'sv' | 'sv-SE' | 'sw' | 'sw-KE' | 'ta' | 'ta-IN' | 'te' | 'te-IN' | 'tg' | 'tg-TJ' | 'th' | 'th-TH' | 'fil' | 'tlh' | 'tr' | 'tr-TR' | 'tt-RU' | 'uk' | 'uk-UA' | 'ur' | 'ur-PK' | 'uz' | 'uz-UZ' | 'vi' | 'vi-VN' | 'xh-ZA' | 'yi' | 'yi-DE' | 'zh' | 'zh-Hans' | 'zh-Hant' | 'zh-CN' | 'zh-HK' | 'zh-SG' | 'zh-TW' | 'zh-YUE' | 'zu-ZA';
           /** Format: misskey:id */
           avatarId?: string | null;
           avatarDecorations?: ({
@@ -26414,7 +26584,12 @@ export type operations = {
   'notes___search-by-tag': {
     requestBody: {
       content: {
-        'application/json': {
+        'application/json': ({
+          tag: string;
+        } | {
+          /** @description The outer arrays are chained with OR, the inner arrays are chained with AND. */
+          query: string[][];
+        }) & ({
           /** @default null */
           reply?: boolean | null;
           /** @default null */
@@ -26432,10 +26607,7 @@ export type operations = {
           untilId?: string;
           /** @default 10 */
           limit?: number;
-          tag?: string;
-          /** @description The outer arrays are chained with OR, the inner arrays are chained with AND. */
-          query?: string[][];
-        };
+        });
       };
     };
     responses: {
@@ -26497,6 +26669,67 @@ export type operations = {
       200: {
         content: {
           'application/json': components['schemas']['Note'];
+        };
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * notes/show-partial-bulk
+   * @description No description provided.
+   *
+   * **Credential required**: *No*
+   */
+  'notes___show-partial-bulk': {
+    requestBody: {
+      content: {
+        'application/json': {
+          noteIds: string[];
+        };
+      };
+    };
+    responses: {
+      /** @description OK (with results) */
+      200: {
+        content: {
+          'application/json': {
+              id: string;
+              reactions: {
+                [key: string]: number;
+              };
+              reactionEmojis: {
+                [key: string]: string;
+              };
+            }[];
         };
       };
       /** @description Client error */
@@ -27517,9 +27750,10 @@ export type operations = {
       content: {
         'application/json': {
           /** Format: misskey:id */
-          pageId?: string;
-          name?: string;
-          username?: string;
+          pageId: string;
+        } | {
+          name: string;
+          username: string;
         };
       };
     };
@@ -29606,18 +29840,20 @@ export type operations = {
   users___followers: {
     requestBody: {
       content: {
-        'application/json': {
+        'application/json': ({
+          /** Format: misskey:id */
+          userId: string;
+        } | ({
+          username: string;
+          /** @description The local host is represented with `null`. */
+          host: string | null;
+        })) & {
           /** Format: misskey:id */
           sinceId?: string;
           /** Format: misskey:id */
           untilId?: string;
           /** @default 10 */
           limit?: number;
-          /** Format: misskey:id */
-          userId?: string;
-          username?: string;
-          /** @description The local host is represented with `null`. */
-          host?: string | null;
         };
       };
     };
@@ -29669,20 +29905,22 @@ export type operations = {
   users___following: {
     requestBody: {
       content: {
-        'application/json': {
+        'application/json': ({
+          /** Format: misskey:id */
+          userId: string;
+        } | ({
+          username: string;
+          /** @description The local host is represented with `null`. */
+          host: string | null;
+        })) & ({
           /** Format: misskey:id */
           sinceId?: string;
           /** Format: misskey:id */
           untilId?: string;
           /** @default 10 */
           limit?: number;
-          /** Format: misskey:id */
-          userId?: string;
-          username?: string;
-          /** @description The local host is represented with `null`. */
-          host?: string | null;
           birthday?: string | null;
-        };
+        });
       };
     };
     responses: {
@@ -30967,13 +31205,15 @@ export type operations = {
   'users___search-by-username-and-host': {
     requestBody: {
       content: {
-        'application/json': {
+        'application/json': (({
+          username: string | null;
+        }) | ({
+          host: string | null;
+        })) & {
           /** @default 10 */
           limit?: number;
           /** @default true */
           detail?: boolean;
-          username?: string | null;
-          host?: string | null;
         };
       };
     };
@@ -31025,14 +31265,17 @@ export type operations = {
   users___show: {
     requestBody: {
       content: {
-        'application/json': {
+        'application/json': ({
           /** Format: misskey:id */
-          userId?: string;
-          userIds?: string[];
-          username?: string;
+          userId: string;
+        } | {
+          userIds: string[];
+        } | {
+          username: string;
+        }) & ({
           /** @description The local host is represented with `null`. */
           host?: string | null;
-        };
+        });
       };
     };
     responses: {

@@ -139,6 +139,10 @@ const $meta: Provider = {
 						MiMeta,
 						{
 							id: 'x',
+							abuseReportMLAction: 'none',
+							abuseMLInfoUrl: '',
+							abuseMLInfoToken: '',
+							abuseMLInfoScore: 0.5,
 						},
 						['id'],
 					)

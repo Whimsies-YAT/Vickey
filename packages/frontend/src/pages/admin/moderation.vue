@@ -17,7 +17,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</MkSwitch>
 
 				<MkSwitch v-model="emailRequiredForSignup" @change="onChange_emailRequiredForSignup">
-					<template #label>{{ i18n.ts.emailRequiredForSignup }}</template>
+					<template #label>{{ i18n.ts.emailRequiredForSignup }} ({{ i18n.ts.recommended }})</template>
 				</MkSwitch>
 
 				<MkSwitch v-model="approvalRequiredForSignup" @change="onChange_approvalRequiredForSignup">
@@ -27,6 +27,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 						{{ i18n.ts.registerApprovalEmailRecommended }}
 					</template>
 				</MkSwitch>
+
+				<MkSelect v-model="ugcVisibilityForVisitor" @update:modelValue="onChange_ugcVisibilityForVisitor">
+					<template #label>{{ i18n.ts._serverSettings.userGeneratedContentsVisibilityForVisitor }}</template>
+					<option value="all">{{ i18n.ts._serverSettings._userGeneratedContentsVisibilityForVisitor.all }}</option>
+					<option value="local">{{ i18n.ts._serverSettings._userGeneratedContentsVisibilityForVisitor.localOnly }} ({{ i18n.ts.recommended }})</option>
+					<option value="none">{{ i18n.ts._serverSettings._userGeneratedContentsVisibilityForVisitor.none }}</option>
+					<template #caption>
+						<div>{{ i18n.ts._serverSettings.userGeneratedContentsVisibilityForVisitor_description }}</div>
+						<div><i class="ti ti-alert-triangle" style="color: var(--MI_THEME-warn);"></i> {{ i18n.ts._serverSettings.userGeneratedContentsVisibilityForVisitor_description2 }}</div>
+					</template>
+				</MkSelect>
 
 				<FormLink to="/admin/server-rules">{{ i18n.ts.serverRules }}</FormLink>
 
@@ -174,10 +185,12 @@ import { definePage } from '@/page.js';
 import MkButton from '@/components/MkButton.vue';
 import FormLink from '@/components/form/link.vue';
 import MkFolder from '@/components/MkFolder.vue';
+import MkSelect from '@/components/MkSelect.vue';
 import MkRadios from "@/components/MkRadios.vue";
 
 const enableRegistration = ref<boolean>(false);
 const emailRequiredForSignup = ref<boolean>(false);
+const ugcVisibilityForVisitor = ref<string>('all');
 const approvalRequiredForSignup = ref<boolean>(false);
 const sensitiveWords = ref<string>('');
 const prohibitedWords = ref<string>('');
@@ -197,6 +210,7 @@ async function init() {
 	const meta = await misskeyApi('admin/meta');
 	enableRegistration.value = !meta.disableRegistration;
 	emailRequiredForSignup.value = meta.emailRequiredForSignup;
+	ugcVisibilityForVisitor.value = meta.ugcVisibilityForVisitor;
 	approvalRequiredForSignup.value = meta.approvalRequiredForSignup;
 	sensitiveWords.value = meta.sensitiveWords.join('\n');
 	prohibitedWords.value = meta.prohibitedWords.join('\n');
@@ -234,6 +248,14 @@ async function onChange_enableRegistration(value: boolean) {
 function onChange_emailRequiredForSignup(value: boolean) {
 	os.apiWithDialog('admin/update-meta', {
 		emailRequiredForSignup: value,
+	}).then(() => {
+		fetchInstance(true);
+	});
+}
+
+function onChange_ugcVisibilityForVisitor(value: string) {
+	os.apiWithDialog('admin/update-meta', {
+		ugcVisibilityForVisitor: value,
 	}).then(() => {
 		fetchInstance(true);
 	});

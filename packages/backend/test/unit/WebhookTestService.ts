@@ -15,6 +15,7 @@ import { IdService } from '@/core/IdService.js';
 import { DI } from '@/di-symbols.js';
 import { QueueService } from '@/core/QueueService.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
+import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 
 describe('WebhookTestService', () => {
 	let app: TestingModule;
@@ -78,6 +79,12 @@ describe('WebhookTestService', () => {
 						fetchSystemWebhooks: jest.fn(),
 					}),
 				},
+				{
+					provide: DriveFileEntityService, useFactory: () => ({
+						create: jest.fn(),
+						findOne: jest.fn(),
+					}),
+				},
 			],
 		}).compile();
 
@@ -111,8 +118,8 @@ describe('WebhookTestService', () => {
 		userWebhookService.fetchWebhooks.mockClear();
 		systemWebhookService.fetchSystemWebhooks.mockClear();
 
-		await usersRepository.delete({});
-		await userProfilesRepository.delete({});
+		await usersRepository.createQueryBuilder().delete().execute();
+		await userProfilesRepository.createQueryBuilder().delete().execute();
 	});
 
 	afterAll(async () => {

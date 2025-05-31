@@ -262,6 +262,8 @@ export const validDocumentTypes = ['Audio', 'Document', 'Image', 'Page', 'Video'
 
 export interface IApDocument extends IObject {
 	type: 'Audio' | 'Document' | 'Image' | 'Page' | 'Video';
+	width?: number;
+	height?: number;
 }
 
 export const isDocument = (object: IObject): object is IApDocument => {

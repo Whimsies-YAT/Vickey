@@ -665,6 +665,9 @@ export const langmap = {
 	'zh-TW': {
 		nativeName: '中文（台灣）',
 	},
+	'zh-YUE': {
+		nativeName: '廣東話',
+	},
 	'zu-ZA': {
 		nativeName: 'isiZulu',
 	},

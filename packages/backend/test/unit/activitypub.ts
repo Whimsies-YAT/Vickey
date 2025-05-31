@@ -6,9 +6,15 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
+import * as fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
 import { Test } from '@nestjs/testing';
 import { jest } from '@jest/globals';
 
+import { MockResolver } from '../misc/mock-resolver.js';
+import type { IActor, IApDocument, ICollection, IObject, IPost } from '@/core/activitypub/type.js';
+import type { MiRemoteUser } from '@/models/User.js';
 import { ApImageService } from '@/core/activitypub/models/ApImageService.js';
 import { ApNoteService } from '@/core/activitypub/models/ApNoteService.js';
 import { ApPersonService } from '@/core/activitypub/models/ApPersonService.js';
@@ -19,14 +25,14 @@ import { GlobalModule } from '@/GlobalModule.js';
 import { CoreModule } from '@/core/CoreModule.js';
 import { FederatedInstanceService } from '@/core/FederatedInstanceService.js';
 import { LoggerService } from '@/core/LoggerService.js';
-import type { IActor, IApDocument, ICollection, IObject, IPost } from '@/core/activitypub/type.js';
 import { MiMeta, MiNote, UserProfilesRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
 import { secureRndstr } from '@/misc/secure-rndstr.js';
 import { DownloadService } from '@/core/DownloadService.js';
-import type { MiRemoteUser } from '@/models/User.js';
 import { genAidx } from '@/misc/id/aidx.js';
-import { MockResolver } from '../misc/mock-resolver.js';
+
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
 
 const host = 'https://host1.test';
 
@@ -120,7 +126,13 @@ describe('ActivityPub', () => {
 			imports: [GlobalModule, CoreModule],
 		})
 			.overrideProvider(DownloadService).useValue({
-				async downloadUrl(): Promise<{ filename: string }> {
+				async downloadUrl(url: string, path: string): Promise<{ filename: string }> {
+					if (url.endsWith('.png')) {
+						fs.copyFileSync(
+							_dirname + '/../resources/hw.png',
+							path,
+						);
+					}
 					return {
 						filename: 'dummy.tmp',
 					};
@@ -148,6 +160,24 @@ describe('ActivityPub', () => {
 
 	beforeEach(() => {
 		resolver.clear();
+		// Mock HTTP responses for image URLs
+		resolver.register('https://example.com/test.jpg', {
+			type: 'Document',
+			mediaType: 'image/jpeg',
+			url: 'https://example.com/test.jpg',
+			name: '',
+			width: 100,
+			height: 100,
+		});
+		resolver.register('https://example.com/test-sensitive.jpg', {
+			type: 'Document',
+			mediaType: 'image/jpeg',
+			url: 'https://example.com/test-sensitive.jpg',
+			name: '',
+			sensitive: true,
+			width: 100,
+			height: 100,
+		});
 	});
 
 	describe('Parse minimum object', () => {
@@ -345,9 +375,11 @@ describe('ActivityPub', () => {
 		test('Create images', async () => {
 			const imageObject: IApDocument = {
 				type: 'Document',
-				mediaType: 'image/png',
-				url: 'http://host1.test/foo.png',
+				mediaType: 'image/jpeg',
+				url: 'https://example.com/test.jpg',
 				name: '',
+				width: 100,
+				height: 100,
 			};
 			const driveFile = await imageService.createImage(
 				await createRandomRemoteUser(resolver, personService),
@@ -357,10 +389,12 @@ describe('ActivityPub', () => {
 
 			const sensitiveImageObject: IApDocument = {
 				type: 'Document',
-				mediaType: 'image/png',
-				url: 'http://host1.test/bar.png',
+				mediaType: 'image/jpeg',
+				url: 'https://example.com/test-sensitive.jpg',
 				name: '',
 				sensitive: true,
+				width: 100,
+				height: 100,
 			};
 			const sensitiveDriveFile = await imageService.createImage(
 				await createRandomRemoteUser(resolver, personService),
@@ -374,9 +408,11 @@ describe('ActivityPub', () => {
 
 			const imageObject: IApDocument = {
 				type: 'Document',
-				mediaType: 'image/png',
-				url: 'http://host1.test/foo.png',
+				mediaType: 'image/jpeg',
+				url: 'https://example.com/test.jpg',
 				name: '',
+				width: 100,
+				height: 100,
 			};
 			const driveFile = await imageService.createImage(
 				await createRandomRemoteUser(resolver, personService),
@@ -386,10 +422,12 @@ describe('ActivityPub', () => {
 
 			const sensitiveImageObject: IApDocument = {
 				type: 'Document',
-				mediaType: 'image/png',
-				url: 'http://host1.test/bar.png',
+				mediaType: 'image/jpeg',
+				url: 'https://example.com/test-sensitive.jpg',
 				name: '',
 				sensitive: true,
+				width: 100,
+				height: 100,
 			};
 			const sensitiveDriveFile = await imageService.createImage(
 				await createRandomRemoteUser(resolver, personService),
@@ -403,9 +441,11 @@ describe('ActivityPub', () => {
 
 			const imageObject: IApDocument = {
 				type: 'Document',
-				mediaType: 'image/png',
-				url: 'http://host1.test/foo.png',
+				mediaType: 'image/jpeg',
+				url: 'https://example.com/test.jpg',
 				name: '',
+				width: 100,
+				height: 100,
 			};
 			const driveFile = await imageService.createImage(
 				await createRandomRemoteUser(resolver, personService),
@@ -415,10 +455,12 @@ describe('ActivityPub', () => {
 
 			const sensitiveImageObject: IApDocument = {
 				type: 'Document',
-				mediaType: 'image/png',
-				url: 'http://host1.test/bar.png',
+				mediaType: 'image/jpeg',
+				url: 'https://example.com/test-sensitive.jpg',
 				name: '',
 				sensitive: true,
+				width: 100,
+				height: 100,
 			};
 			const sensitiveDriveFile = await imageService.createImage(
 				await createRandomRemoteUser(resolver, personService),
@@ -440,7 +482,7 @@ describe('ActivityPub', () => {
 		});
 	});
 
-	describe('JSON-LD', () =>{
+	describe('JSON-LD', () => {
 		test('Compaction', async () => {
 			const jsonLd = jsonLdService.use();
 

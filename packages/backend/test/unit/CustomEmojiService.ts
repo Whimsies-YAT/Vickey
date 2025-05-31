@@ -53,6 +53,7 @@ describe('CustomEmojiService', () => {
 				await emojisRepository.insert({
 					id: id,
 					updatedAt: new Date(),
+					driveId: 'test-drive-id',
 					...d,
 				});
 			}
@@ -86,7 +87,7 @@ describe('CustomEmojiService', () => {
 		}
 
 		afterEach(async () => {
-			await emojisRepository.delete({});
+			await emojisRepository.createQueryBuilder().delete().execute();
 		});
 
 		describe('単独', () => {
