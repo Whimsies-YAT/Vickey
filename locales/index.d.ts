@@ -175,6 +175,10 @@ export interface Locale extends ILocale {
              * MIMEタイプを指定します。改行で区切って複数指定できるほか、アスタリスク(*)でワイルドカード指定できます。(例: image/*)
              */
             "uploadableFileTypes_caption": string;
+            /**
+             * ファイルによっては種別を判定できないことがあります。そのようなファイルを許可する場合は {x} を指定に追加してください。
+             */
+            "uploadableFileTypes_caption2": ParameterizedString<"x">;
         };
         "_condition": {
             /**
@@ -2958,6 +2962,10 @@ export interface Locale extends ILocale {
      * デバイスのダークモードと同期する
      */
     "syncDeviceDarkMode": string;
+    /**
+     * 「{x}」がオンになっています。同期をオフにして手動でモードを切り替えますか？
+     */
+    "switchDarkModeManuallyWhenSyncEnabledConfirm": ParameterizedString<"x">;
     /**
      * ドライブ
      */
@@ -6967,15 +6975,19 @@ export interface Locale extends ILocale {
      */
     "preferenceSyncConflictTitle": string;
     /**
-     * 同期が有効にされた設定項目は設定値をサーバーに保存しますが、この設定項目のサーバーに保存された設定値が見つかりました。どちらの設定値で上書きしますか？
+     * 同期が有効にされた設定項目は設定値をサーバーに保存しますが、この設定項目のサーバーに保存された設定値が見つかりました。どうしますか？
      */
     "preferenceSyncConflictText": string;
     /**
-     * サーバーの設定値
+     * 統合する
+     */
+    "preferenceSyncConflictChoiceMerge": string;
+    /**
+     * サーバーの設定値で上書き
      */
     "preferenceSyncConflictChoiceServer": string;
     /**
-     * デバイスの設定値
+     * デバイスの設定値で上書き
      */
     "preferenceSyncConflictChoiceDevice": string;
     /**
@@ -10459,7 +10471,7 @@ export interface Locale extends ILocale {
          */
         "excludeInactiveUsers": string;
         /**
-         * インポートした人による返信をTLに含むようにする
+         * 返信をTLに含むかの情報がファイルにない場合に、インポートした人による返信をTLに含むようにする
          */
         "withReplies": string;
     };
@@ -11696,6 +11708,14 @@ export interface Locale extends ILocale {
          * URLプレビューを有効にする
          */
         "enable": string;
+        /**
+         * プレビュー先のリダイレクトを許可
+         */
+        "allowRedirect": string;
+        /**
+         * 入力されたURLがリダイレクトされる場合に、そのリダイレクト先をたどってプレビューを表示するかどうかを設定します。無効にするとサーバーリソースの節約になりますが、リダイレクト先の内容は表示されなくなります。
+         */
+        "allowRedirectDescription": string;
         /**
          * プレビュー取得時のタイムアウト(ms)
          */

@@ -163,11 +163,9 @@ describe('CheckModeratorsActivityProcessorService', () => {
 	});
 
 	afterEach(async () => {
-		if (clock && typeof clock.uninstall === 'function') {
-			clock.uninstall();
-		}
-		await usersRepository.delete({});
-		await userProfilesRepository.delete({});
+		clock.uninstall();
+		await usersRepository.createQueryBuilder().delete().execute();
+		await userProfilesRepository.createQueryBuilder().delete().execute();
 		roleService.getModerators.mockReset();
 		announcementService.create.mockReset();
 		emailService.sendEmail.mockReset();

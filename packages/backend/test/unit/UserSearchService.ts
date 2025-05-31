@@ -5,7 +5,8 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { describe, jest, test } from '@jest/globals';
-import { In } from 'typeorm';
+import { In, Not, IsNull } from 'typeorm';
+import { uuidv4 as uuidv4 } from 'uuidv7';
 import { UserSearchService } from '@/core/UserSearchService.js';
 import { FollowingsRepository, MiUser, UserProfilesRepository, UsersRepository } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
@@ -35,9 +36,12 @@ describe('UserSearchService', () => {
 	let bobby: MiUser;
 
 	async function createUser(data: Partial<MiUser> = {}) {
+		const unique = uuidv4();
 		const user = await usersRepository
 			.insert({
 				id: idService.gen(),
+				username: `user_${unique}`,
+				usernameLower: `user_${unique}`.toLowerCase(),
 				...data,
 			})
 			.then(x => usersRepository.findOneByOrFail(x.identifiers[0]));
@@ -127,7 +131,7 @@ describe('UserSearchService', () => {
 	});
 
 	afterEach(async () => {
-		await usersRepository.delete({});
+		await usersRepository.createQueryBuilder().delete().execute();
 	});
 
 	afterAll(async () => {
