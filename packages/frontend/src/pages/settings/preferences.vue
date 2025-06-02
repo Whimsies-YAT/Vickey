@@ -798,6 +798,7 @@ import { globalEvents } from '@/events.js';
 import { claimAchievement } from '@/utility/achievements.js';
 import { instance } from '@/instance.js';
 import { ensureSignin } from '@/i.js';
+import { genId } from '@/utility/id.js';
 
 const $i = ensureSignin();
 
@@ -1011,7 +1012,7 @@ let smashTimer: number | null = null;
 
 function testNotification(): void {
 	const notification: Misskey.entities.Notification = {
-		id: Math.random().toString(),
+		id: genId(),
 		createdAt: new Date().toUTCString(),
 		isRead: false,
 		type: 'test',
