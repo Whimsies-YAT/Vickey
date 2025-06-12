@@ -24,6 +24,11 @@ function toolsMenuItems(): MenuItem[] {
 		icon: 'ti ti-terminal-2',
 	}, {
 		type: 'link',
+		to: '/dev-tools',
+		text: i18n.ts._devTools.devTools,
+		icon: 'ti ti-terminal-2',
+	}, {
+		type: 'link',
 		to: '/clicker',
 		text: '🍪👈',
 		icon: 'ti ti-cookie',

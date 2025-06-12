@@ -1649,6 +1649,40 @@ export interface Locale extends ILocale {
          */
         "otherOption3": string;
     };
+    "_devTools": {
+        /**
+         * Timestamp
+         */
+        "timestamp": string;
+        /**
+         * Calculate
+         */
+        "calculate": string;
+        /**
+         * Developer Tools
+         */
+        "devTools": string;
+        /**
+         * Timestamp-id conversion
+         */
+        "timestampIdConversion": string;
+        /**
+         * Input Type
+         */
+        "inputType": string;
+        /**
+         * Output Type
+         */
+        "outputType": string;
+        /**
+         * Input
+         */
+        "input": string;
+        /**
+         * Output
+         */
+        "output": string;
+    };
     /**
      * ノートでつながるネットワーク
      */

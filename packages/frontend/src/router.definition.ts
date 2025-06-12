@@ -277,6 +277,9 @@ export const ROUTE_DEF = [{
 	path: '/scratchpad',
 	component: page(() => import('@/pages/scratchpad.vue')),
 }, {
+	path: '/dev-tools',
+	component: page(() => import('@/pages/dev-tools.vue')),
+}, {
 	path: '/preview',
 	component: page(() => import('@/pages/preview.vue')),
 }, {

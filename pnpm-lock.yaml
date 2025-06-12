@@ -40,6 +40,9 @@ importers:
       js-yaml:
         specifier: 4.1.0
         version: 4.1.0
+      nanoid:
+        specifier: 5.1.5
+        version: 5.1.5
       postcss:
         specifier: 8.5.4
         version: 8.5.4
@@ -52,6 +55,9 @@ importers:
       typescript:
         specifier: 5.8.3
         version: 5.8.3
+      ulid:
+        specifier: 3.0.1
+        version: 3.0.1
     devDependencies:
       '@misskey-dev/eslint-plugin':
         specifier: 2.1.0
@@ -330,9 +336,6 @@ importers:
       ms:
         specifier: 3.0.0-canary.1
         version: 3.0.0-canary.1
-      nanoid:
-        specifier: 5.1.5
-        version: 5.1.5
       nested-property:
         specifier: 4.0.0
         version: 4.0.0
@@ -8487,11 +8490,6 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  nanoid@3.3.8:
-    resolution: {integrity: sha512-WNLf5Sd8oZxOm+TzppcYk8gVOgP+l58xNy58D0nbUnOxOWRWvlcCV4kUF7ltmI6PsrLl/BgKEyS4mqsGChFN0w==}
-    engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
-    hasBin: true
-
   nanoid@5.1.5:
     resolution: {integrity: sha512-Ir/+ZpE9fDsNH0hQ3C68uyThDXzYcim2EqcZ8zn8Chtt1iylPT9xXJB0kPCnqzgcEGikO9RxSrh63MsmVCU7Fw==}
     engines: {node: ^18 || >=20}
@@ -10667,6 +10665,10 @@ packages:
 
   ulid@2.4.0:
     resolution: {integrity: sha512-fIRiVTJNcSRmXKPZtGzFQv9WRrZ3M9eoptl/teFJvjOzmpU+/K/JH6HZ8deBfb5vMEpicJcLn7JmvdknlMq7Zg==}
+    hasBin: true
+
+  ulid@3.0.1:
+    resolution: {integrity: sha512-dPJyqPzx8preQhqq24bBG1YNkvigm87K8kVEHCD+ruZg24t6IFEFv00xMWfxcC4djmFtiTLdFuADn4+DOz6R7Q==}
     hasBin: true
 
   unbox-primitive@1.0.2:
@@ -19919,8 +19921,6 @@ snapshots:
 
   nanoid@3.3.11: {}
 
-  nanoid@3.3.8: {}
-
   nanoid@5.1.5: {}
 
   napi-build-utils@2.0.0: {}
@@ -20615,7 +20615,7 @@ snapshots:
 
   postcss@8.5.3:
     dependencies:
-      nanoid: 3.3.8
+      nanoid: 3.3.11
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
@@ -22194,6 +22194,8 @@ snapshots:
   uint8array-extras@1.4.0: {}
 
   ulid@2.4.0: {}
+
+  ulid@3.0.1: {}
 
   unbox-primitive@1.0.2:
     dependencies:
