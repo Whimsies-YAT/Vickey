@@ -111,3 +111,12 @@ _abuseReportAutoProcessing:
   uncategorized: "未分类"
 _bootErrors:
   solution5: "若问题仍未解决，请向实例管理员反馈"
+_devTools:
+  timestamp: "Timestamp"
+  calculate: "Calculate"
+  devTools: "Developer Tools"
+  timestampIdConversion: "Timestamp-id conversion"
+  inputType: "Input Type"
+  outputType: "Output Type"
+  input: "Input"
+  output: "Output"
