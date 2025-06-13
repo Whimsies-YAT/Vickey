@@ -111,3 +111,12 @@ _abuseReportAutoProcessing:
   uncategorized: "Uncategorized"
 _bootErrors:
   solution5: "If none of the above works, report the problem to your instance administrator"
+_devTools:
+  timestamp: "Timestamp"
+  calculate: "Calculate"
+  devTools: "Developer Tools"
+  timestampIdConversion: "Timestamp-id conversion"
+  inputType: "Input Type"
+  outputType: "Output Type"
+  input: "Input"
+  output: "Output"
