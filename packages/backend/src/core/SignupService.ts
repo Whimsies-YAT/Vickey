@@ -9,6 +9,7 @@ import bcrypt from 'bcryptjs';
 import { DataSource, IsNull } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { MiMeta, UsedUsernamesRepository, UsersRepository } from '@/models/_.js';
+import type { Config } from '@/config.js';
 import { MiUser } from '@/models/User.js';
 import { MiUserProfile } from '@/models/UserProfile.js';
 import { IdService } from '@/core/IdService.js';
@@ -37,6 +38,9 @@ export class SignupService {
 
 		@Inject(DI.usedUsernamesRepository)
 		private usedUsernamesRepository: UsedUsernamesRepository,
+
+		@Inject(DI.config)
+		private config: Config,
 
 		private utilityService: UtilityService,
 		private userService: UserService,
@@ -74,7 +78,7 @@ export class SignupService {
 			}
 
 			// Generate hash of password
-			const salt = await bcrypt.genSalt(8);
+			const salt = await bcrypt.genSalt(this.config.bcryptCost);
 			hash = await bcrypt.hash(password, salt);
 		}
 
