@@ -83,7 +83,19 @@ watch(value2, (newValue) => {
 });
 
 function cal() {
-	if (!value1.value || !value2.value || !inputValue.value) { os.alert({ type: 'error' }); return; }
+	if (!value1.value || !value2.value || !inputValue.value) {
+		os.alert({ type: 'error' });
+		return;
+	}
+
+	const validInput = /^[0-9a-zA-Z]+$/.test(inputValue.value);
+	if (!validInput) {
+		os.alert({
+			type: 'error',
+		});
+		return;
+	}
+
 	outputValue.value = transform(value1.value, value2.value, inputValue.value);
 	os.alert({
 		type: 'info',
