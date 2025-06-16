@@ -363,3 +363,10 @@ proxyBypassHosts:
 #     # Disable query truncation. If set to true, the full text of the query will be output to the log.
 #     # default: false
 #     disableQueryTruncation: false
+
+# bcryptCost: The cost factor (work factor) for password hashing using bcrypt.
+# Higher values increase security but also slow down password hashing.
+# Valid range is 8–31. Any value below 8 will be forced to 8.
+# Default is 12. A value between 10 and 14 is generally recommended for balance.
+# bcryptCost: 12
+

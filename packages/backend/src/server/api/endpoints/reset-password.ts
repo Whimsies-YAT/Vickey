@@ -6,6 +6,7 @@
 import bcrypt from 'bcryptjs';
 import { Inject, Injectable } from '@nestjs/common';
 import type { UserProfilesRepository, PasswordResetRequestsRepository } from '@/models/_.js';
+import type { Config } from '@/config.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
 import { IdService } from '@/core/IdService.js';
@@ -40,6 +41,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.userProfilesRepository)
 		private userProfilesRepository: UserProfilesRepository,
 
+		@Inject(DI.config)
+		private config: Config,
+
 		private idService: IdService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
@@ -53,7 +57,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			// Generate hash of password
-			const salt = await bcrypt.genSalt(8);
+			const salt = await bcrypt.genSalt(this.config.bcryptCost);
 			const hash = await bcrypt.hash(ps.password, salt);
 
 			await this.userProfilesRepository.update(req.userId, {

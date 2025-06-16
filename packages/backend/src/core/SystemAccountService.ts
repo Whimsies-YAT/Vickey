@@ -12,6 +12,7 @@ import bcrypt from 'bcryptjs';
 import { MiLocalUser, MiUser } from '@/models/User.js';
 import { MiSystemAccount, MiUsedUsername, MiUserKeypair, MiUserProfile, type UsersRepository, type SystemAccountsRepository } from '@/models/_.js';
 import type { MiMeta, UserProfilesRepository } from '@/models/_.js';
+import type { Config } from '@/config.js';
 import type { GlobalEvents } from '@/core/GlobalEventService.js';
 import { MemoryKVCache } from '@/misc/cache.js';
 import { DI } from '@/di-symbols.js';
@@ -44,6 +45,9 @@ export class SystemAccountService implements OnApplicationShutdown {
 
 		@Inject(DI.userProfilesRepository)
 		private userProfilesRepository: UserProfilesRepository,
+
+		@Inject(DI.config)
+		private config: Config,
 
 		private idService: IdService,
 	) {
@@ -113,7 +117,7 @@ export class SystemAccountService implements OnApplicationShutdown {
 		const password = randomUUID();
 
 		// Generate hash of password
-		const salt = await bcrypt.genSalt(8);
+		const salt = await bcrypt.genSalt(this.config.bcryptCost);
 		const hash = await bcrypt.hash(password, salt);
 
 		// Generate secret

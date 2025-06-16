@@ -120,6 +120,8 @@ type Source = {
 			enableQueryParamLogging?: boolean,
 		}
 	}
+
+	bcryptCost?: number;
 };
 
 export type Config = {
@@ -187,6 +189,7 @@ export type Config = {
 			enableQueryParamLogging?: boolean,
 		}
 	}
+	bcryptCost?: number;
 
 	version: string;
 	publishTarballInsteadOfProvideRepositoryUrl: boolean;
@@ -337,6 +340,7 @@ export function loadConfig(): Config {
 		deactivateAntennaThreshold: config.deactivateAntennaThreshold ?? (1000 * 60 * 60 * 24 * 7),
 		pidFile: config.pidFile,
 		logging: config.logging,
+		bcryptCost: Math.max(8, config.bcryptCost ?? 12),
 	};
 }
 

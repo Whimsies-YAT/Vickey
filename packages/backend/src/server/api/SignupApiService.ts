@@ -218,7 +218,7 @@ export class SignupApiService {
 		const code = uuidv7() + secureRndstr(16, { chars: L_CHARS });
 
 		// Generate hash of password
-		const salt = await bcrypt.genSalt(8);
+		const salt = await bcrypt.genSalt(this.config.bcryptCost);
 		const hash = await bcrypt.hash(password, salt);
 
 		const pendingUser = await this.userPendingsRepository.insertOne({
