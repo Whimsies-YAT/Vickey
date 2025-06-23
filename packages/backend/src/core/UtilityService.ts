@@ -13,8 +13,12 @@ import { bindThis } from '@/decorators.js';
 import { MiMeta, SoftwareSuspension } from '@/models/Meta.js';
 import { MiInstance } from '@/models/Instance.js';
 
+type TrieNode = { [key: string]: TrieNode } & { $?: true };
+
 @Injectable()
 export class UtilityService {
+	private hostTrieCache = new Map<string, TrieNode>();
+	private exactHostSetCache = new Map<string, Set<string>>();
 	constructor(
 		@Inject(DI.config)
 		private config: Config,
@@ -22,6 +26,58 @@ export class UtilityService {
 		@Inject(DI.meta)
 		private meta: MiMeta,
 	) {
+	}
+
+	@bindThis
+	private normalizeHost(host: string): string {
+		return this.toPuny(host.toLowerCase());
+	}
+
+	@bindThis
+	private buildHostTrie(domains: string[]): TrieNode {
+		const root: TrieNode = {};
+		for (const domain of domains) {
+			if (!domain) continue;
+			const parts = this.normalizeHost(domain).split('.').reverse();
+			let node = root;
+			for (const part of parts) {
+				node = node[part] ||= {};
+			}
+			node.$ = true;
+		}
+		return root;
+	}
+
+	@bindThis
+	private getHostTrie(domains: string[]): TrieNode {
+		const key = JSON.stringify([...domains].sort());
+		if (!this.hostTrieCache.has(key)) {
+			this.hostTrieCache.set(key, this.buildHostTrie(domains));
+		}
+		return this.hostTrieCache.get(key)!;
+	}
+
+	@bindThis
+	private getExactHostSet(domains: string[]): Set<string> {
+		const key = JSON.stringify([...domains].sort());
+		if (!this.exactHostSetCache.has(key)) {
+			const set = new Set(domains.map(h => this.normalizeHost(h)));
+			this.exactHostSetCache.set(key, set);
+		}
+		return this.exactHostSetCache.get(key)!;
+	}
+
+	@bindThis
+	private isHostInTrie(trie: TrieNode, host: string | null): boolean {
+		if (!host) return false;
+		const parts = this.normalizeHost(host).split('.').reverse();
+		let node = trie;
+		for (const part of parts) {
+			if (node.$) return true;
+			if (!(part in node)) return false;
+			node = node[part];
+		}
+		return !!node.$;
 	}
 
 	@bindThis
@@ -49,21 +105,27 @@ export class UtilityService {
 	}
 
 	@bindThis
-	public isBlockedHost(blockedHosts: string[], host: string | null): boolean {
-		if (host == null) return false;
-		return blockedHosts.some(x => `.${host.toLowerCase()}`.endsWith(`.${x}`));
+	public isBlockedHost(domains: string[] | undefined, host: string | null): boolean {
+		if (!domains || !host) return false;
+		const trie = this.getHostTrie(domains);
+		return this.isHostInTrie(trie, host);
+	}
+
+	@bindThis
+	public isExactHost(domains: string[] | undefined, host: string | null): boolean {
+		if (!domains || !host) return false;
+		const set = this.getExactHostSet(domains);
+		return set.has(this.normalizeHost(host));
 	}
 
 	@bindThis
 	public isSilencedHost(silencedHosts: string[] | undefined, host: string | null): boolean {
-		if (!silencedHosts || host == null) return false;
-		return silencedHosts.some(x => `.${host.toLowerCase()}`.endsWith(`.${x}`));
+		return this.isBlockedHost(silencedHosts, host);
 	}
 
 	@bindThis
 	public isMediaSilencedHost(silencedHosts: string[] | undefined, host: string | null): boolean {
-		if (!silencedHosts || host == null) return false;
-		return silencedHosts.some(x => host.toLowerCase() === x);
+		return this.isExactHost(silencedHosts, host);
 	}
 
 	@bindThis
