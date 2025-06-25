@@ -6945,6 +6945,10 @@ export interface Locale extends ILocale {
      */
     "federationDisabled": string;
     /**
+     * 下書き
+     */
+    "draft": string;
+    /**
      * リアクションする際に確認する
      */
     "confirmOnReact": string;
@@ -9017,6 +9021,388 @@ export interface Locale extends ILocale {
             };
         };
     };
+    "_role": {
+        /**
+         * ロールの作成
+         */
+        "new": string;
+        /**
+         * ロールの編集
+         */
+        "edit": string;
+        /**
+         * ロール名
+         */
+        "name": string;
+        /**
+         * ロールの説明
+         */
+        "description": string;
+        /**
+         * ロールの権限
+         */
+        "permission": string;
+        /**
+         * <b>モデレーター</b>は基本的なモデレーションに関する操作を行えます。
+         * <b>管理者</b>はサーバーの全ての設定を変更できます。
+         */
+        "descriptionOfPermission": string;
+        /**
+         * アサイン
+         */
+        "assignTarget": string;
+        /**
+         * <b>マニュアル</b>は誰がこのロールに含まれるかを手動で管理します。
+         * <b>コンディショナル</b>は条件を設定し、それに合致するユーザーが自動で含まれるようになります。
+         */
+        "descriptionOfAssignTarget": string;
+        /**
+         * マニュアル
+         */
+        "manual": string;
+        /**
+         * マニュアルロール
+         */
+        "manualRoles": string;
+        /**
+         * コンディショナル
+         */
+        "conditional": string;
+        /**
+         * コンディショナルロール
+         */
+        "conditionalRoles": string;
+        /**
+         * 条件
+         */
+        "condition": string;
+        /**
+         * これはコンディショナルロールです。
+         */
+        "isConditionalRole": string;
+        /**
+         * 公開ロール
+         */
+        "isPublic": string;
+        /**
+         * ユーザーのプロフィールでこのロールが表示されます。
+         */
+        "descriptionOfIsPublic": string;
+        /**
+         * オプション
+         */
+        "options": string;
+        /**
+         * ポリシー
+         */
+        "policies": string;
+        /**
+         * ベースロール
+         */
+        "baseRole": string;
+        /**
+         * ベースロールの値を使用
+         */
+        "useBaseValue": string;
+        /**
+         * アサインするロールを選択
+         */
+        "chooseRoleToAssign": string;
+        /**
+         * アイコン画像のURL
+         */
+        "iconUrl": string;
+        /**
+         * バッジとして表示
+         */
+        "asBadge": string;
+        /**
+         * オンにすると、ユーザー名の横にロールのアイコンが表示されます。
+         */
+        "descriptionOfAsBadge": string;
+        /**
+         * ユーザーを見つけやすくする
+         */
+        "isExplorable": string;
+        /**
+         * オンにすると、「みつける」でメンバー一覧が公開されるほか、ロールのタイムラインが利用可能になります。
+         */
+        "descriptionOfIsExplorable": string;
+        /**
+         * 表示順
+         */
+        "displayOrder": string;
+        /**
+         * 数値が大きいほどUI上で先頭に表示されます。
+         */
+        "descriptionOfDisplayOrder": string;
+        /**
+         * アサイン状態を移行先アカウントにも引き継ぐ
+         */
+        "preserveAssignmentOnMoveAccount": string;
+        /**
+         * オンにすると、このロールが付与されたアカウントが移行された際に、移行先アカウントにもこのロールが引き継がれるようになります。
+         */
+        "preserveAssignmentOnMoveAccount_description": string;
+        /**
+         * モデレーターのメンバー編集を許可
+         */
+        "canEditMembersByModerator": string;
+        /**
+         * オンにすると、管理者に加えてモデレーターもこのロールへユーザーをアサイン/アサイン解除できるようになります。オフにすると管理者のみが行えます。
+         */
+        "descriptionOfCanEditMembersByModerator": string;
+        /**
+         * 優先度
+         */
+        "priority": string;
+        "_priority": {
+            /**
+             * 低
+             */
+            "low": string;
+            /**
+             * 中
+             */
+            "middle": string;
+            /**
+             * 高
+             */
+            "high": string;
+        };
+        "_options": {
+            /**
+             * グローバルタイムラインの閲覧
+             */
+            "gtlAvailable": string;
+            /**
+             * ローカルタイムラインの閲覧
+             */
+            "ltlAvailable": string;
+            /**
+             * パブリック投稿の許可
+             */
+            "canPublicNote": string;
+            /**
+             * ノート内の最大メンション数
+             */
+            "mentionMax": string;
+            /**
+             * サーバー招待コードの発行
+             */
+            "canInvite": string;
+            /**
+             * 招待コードの作成可能数
+             */
+            "inviteLimit": string;
+            /**
+             * 招待コードの発行間隔
+             */
+            "inviteLimitCycle": string;
+            /**
+             * 招待コードの有効期限
+             */
+            "inviteExpirationTime": string;
+            /**
+             * カスタム絵文字の管理
+             */
+            "canManageCustomEmojis": string;
+            /**
+             * アバターデコレーションの管理
+             */
+            "canManageAvatarDecorations": string;
+            /**
+             * ドライブ容量
+             */
+            "driveCapacity": string;
+            /**
+             * アップロード可能な最大ファイルサイズ
+             */
+            "maxFileSize": string;
+            /**
+             * ファイルにNSFWを常に付与
+             */
+            "alwaysMarkNsfw": string;
+            /**
+             * アイコンとバナーの更新を許可
+             */
+            "canUpdateBioMedia": string;
+            /**
+             * ノートのピン留めの最大数
+             */
+            "pinMax": string;
+            /**
+             * アンテナの作成可能数
+             */
+            "antennaMax": string;
+            /**
+             * ワードミュートの最大文字数
+             */
+            "wordMuteMax": string;
+            /**
+             * Webhookの作成可能数
+             */
+            "webhookMax": string;
+            /**
+             * クリップの作成可能数
+             */
+            "clipMax": string;
+            /**
+             * クリップ内のノートの最大数
+             */
+            "noteEachClipsMax": string;
+            /**
+             * ユーザーリストの作成可能数
+             */
+            "userListMax": string;
+            /**
+             * ユーザーリスト内のユーザーの最大数
+             */
+            "userEachUserListsMax": string;
+            /**
+             * レートリミット
+             */
+            "rateLimitFactor": string;
+            /**
+             * 小さいほど制限が緩和され、大きいほど制限が強化されます。
+             */
+            "descriptionOfRateLimitFactor": string;
+            /**
+             * 広告の非表示
+             */
+            "canHideAds": string;
+            /**
+             * ノート検索の利用
+             */
+            "canSearchNotes": string;
+            /**
+             * 翻訳機能の利用
+             */
+            "canUseTranslator": string;
+            /**
+             * アイコンデコレーションの最大取付個数
+             */
+            "avatarDecorationLimit": string;
+            /**
+             * アンテナのインポートを許可
+             */
+            "canImportAntennas": string;
+            /**
+             * ブロックのインポートを許可
+             */
+            "canImportBlocking": string;
+            /**
+             * フォローのインポートを許可
+             */
+            "canImportFollowing": string;
+            /**
+             * ミュートのインポートを許可
+             */
+            "canImportMuting": string;
+            /**
+             * リストのインポートを許可
+             */
+            "canImportUserLists": string;
+            /**
+             * チャットを許可
+             */
+            "chatAvailability": string;
+            /**
+             * アップロード可能なファイル種別
+             */
+            "uploadableFileTypes": string;
+            /**
+             * MIMEタイプを指定します。改行で区切って複数指定できるほか、アスタリスク(*)でワイルドカード指定できます。(例: image/*)
+             */
+            "uploadableFileTypes_caption": string;
+            /**
+             * ファイルによっては種別を判定できないことがあります。そのようなファイルを許可する場合は {x} を指定に追加してください。
+             */
+            "uploadableFileTypes_caption2": ParameterizedString<"x">;
+            /**
+             * サーバーサイドのノートの下書きの作成可能数
+             */
+            "noteDraftLimit": string;
+        };
+        "_condition": {
+            /**
+             * マニュアルロールにアサイン済み
+             */
+            "roleAssignedTo": string;
+            /**
+             * ローカルユーザー
+             */
+            "isLocal": string;
+            /**
+             * リモートユーザー
+             */
+            "isRemote": string;
+            /**
+             * 猫ユーザー
+             */
+            "isCat": string;
+            /**
+             * botユーザー
+             */
+            "isBot": string;
+            /**
+             * サスペンド済みユーザー
+             */
+            "isSuspended": string;
+            /**
+             * 鍵アカウントユーザー
+             */
+            "isLocked": string;
+            /**
+             * 「アカウントを見つけやすくする」が有効なユーザー
+             */
+            "isExplorable": string;
+            /**
+             * アカウント作成から～以内
+             */
+            "createdLessThan": string;
+            /**
+             * アカウント作成から～経過
+             */
+            "createdMoreThan": string;
+            /**
+             * フォロワー数が～以下
+             */
+            "followersLessThanOrEq": string;
+            /**
+             * フォロワー数が～以上
+             */
+            "followersMoreThanOrEq": string;
+            /**
+             * フォロー数が～以下
+             */
+            "followingLessThanOrEq": string;
+            /**
+             * フォロー数が～以上
+             */
+            "followingMoreThanOrEq": string;
+            /**
+             * 投稿数が～以下
+             */
+            "notesLessThanOrEq": string;
+            /**
+             * 投稿数が～以上
+             */
+            "notesMoreThanOrEq": string;
+            /**
+             * ～かつ～
+             */
+            "and": string;
+            /**
+             * ～または～
+             */
+            "or": string;
+            /**
+             * ～ではない
+             */
+            "not": string;
+        };
+    };
     "_sensitiveMediaDetection": {
         /**
          * 機械学習を使って自動でセンシティブなメディアを検出し、モデレーションに役立てることができます。サーバーの負荷が少し増えます。
@@ -9502,6 +9888,10 @@ export interface Locale extends ILocale {
          * テーマコード
          */
         "code": string;
+        /**
+         * テーマコードをコピー
+         */
+        "copyThemeCode": string;
         /**
          * 説明
          */
@@ -12685,6 +13075,64 @@ export interface Locale extends ILocale {
              */
             "tearing": string;
         };
+    };
+    /**
+     * 下書き
+     */
+    "drafts": string;
+    "_drafts": {
+        /**
+         * 下書きを選択
+         */
+        "select": string;
+        /**
+         * 下書きの作成可能数を超えています。
+         */
+        "cannotCreateDraftAnymore": string;
+        /**
+         * リノートの下書きは作成できません。
+         */
+        "cannotCreateDraftOfRenote": string;
+        /**
+         * 下書きを削除
+         */
+        "delete": string;
+        /**
+         * 下書きを削除しますか？
+         */
+        "deleteAreYouSure": string;
+        /**
+         * 下書きはありません
+         */
+        "noDrafts": string;
+        /**
+         * {user}への返信
+         */
+        "replyTo": ParameterizedString<"user">;
+        /**
+         * {user}のノートへの引用
+         */
+        "quoteOf": ParameterizedString<"user">;
+        /**
+         * {channel}への投稿
+         */
+        "postTo": ParameterizedString<"channel">;
+        /**
+         * 下書きへ保存
+         */
+        "saveToDraft": string;
+        /**
+         * 下書きから復元
+         */
+        "restoreFromDraft": string;
+        /**
+         * 復元
+         */
+        "restore": string;
+        /**
+         * 下書き一覧
+         */
+        "listDrafts": string;
     };
 }
 declare const locales: {
