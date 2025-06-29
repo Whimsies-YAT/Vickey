@@ -6124,6 +6124,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default null */
                     state?: string | null;
                     /**
@@ -6575,6 +6577,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default null */
                     publishing?: boolean | null;
                 };
@@ -6883,6 +6887,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** Format: misskey:id */
                     userId?: string | null;
                     /**
@@ -7316,6 +7322,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** Format: misskey:id */
                     userId?: string | null;
                 };
@@ -7914,6 +7922,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** Format: misskey:id */
                     userId?: string | null;
                     type?: string | null;
@@ -8643,6 +8653,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -8729,6 +8741,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -11691,6 +11705,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default 10 */
                     limit?: number;
                 };
@@ -11917,9 +11933,12 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     type?: string | null;
                     /** Format: misskey:id */
                     userId?: string | null;
+                    search?: string | null;
                 };
             };
         };
@@ -13540,6 +13559,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default true */
                     isActive?: boolean;
                 };
@@ -14807,6 +14828,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -15284,6 +15307,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default 5 */
                     limit?: number;
                 };
@@ -15412,6 +15437,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default 5 */
                     limit?: number;
                 };
@@ -15488,6 +15515,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default 5 */
                     limit?: number;
                 };
@@ -17272,6 +17301,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** Format: misskey:id */
                     roomId: string;
                 };
@@ -17545,6 +17576,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** Format: misskey:id */
                     userId: string;
                 };
@@ -17950,6 +17983,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -18022,6 +18057,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -18155,6 +18192,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -18290,6 +18329,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -18424,6 +18465,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -19014,6 +19057,9 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
+                    search?: string | null;
                 };
             };
         };
@@ -19408,6 +19454,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /**
                      * Format: misskey:id
                      * @default null
@@ -19484,6 +19532,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default 10 */
                     limit?: number;
                     /** Format: misskey:id */
@@ -20199,6 +20249,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /**
                      * Format: misskey:id
                      * @default null
@@ -20619,6 +20671,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     type?: string;
                 };
             };
@@ -21080,6 +21134,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default 10 */
                     limit?: number;
                 };
@@ -21151,6 +21207,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default 10 */
                     limit?: number;
                 };
@@ -21506,6 +21564,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default 10 */
                     limit?: number;
                 };
@@ -22045,6 +22105,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -22115,6 +22177,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -22875,6 +22939,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default 10 */
                     limit?: number;
                 };
@@ -23013,6 +23079,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default 10 */
                     limit?: number;
                 };
@@ -23367,6 +23435,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -25814,6 +25884,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -25884,6 +25956,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -25958,6 +26032,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -26463,6 +26539,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default true */
                     markAsRead?: boolean;
                     includeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'pollVote' | 'groupInvited')[];
@@ -26546,6 +26624,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default true */
                     markAsRead?: boolean;
                     includeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'pollVote' | 'groupInvited')[];
@@ -26629,6 +26709,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -26703,6 +26785,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -27563,6 +27647,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -28661,6 +28747,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -29005,6 +29093,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -29149,6 +29239,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -29221,6 +29313,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -29834,6 +29928,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -30459,6 +30555,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     visibility?: string;
                 };
             };
@@ -30667,6 +30765,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -30875,6 +30975,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -30945,6 +31047,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default 10 */
                     limit?: number;
                 };
@@ -31016,6 +31120,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default 10 */
                     limit?: number;
                     /** @default 0 */
@@ -31116,6 +31222,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default 10 */
                     limit?: number;
                 };
@@ -33050,6 +33158,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -33438,6 +33548,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default false */
                     my?: boolean;
                 };
@@ -34041,6 +34153,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default 10 */
                     limit?: number;
                 };
@@ -34837,6 +34951,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -34979,6 +35095,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -35054,6 +35172,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default 10 */
                     limit?: number;
                 };
@@ -35131,6 +35251,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default 10 */
                     limit?: number;
                     birthday?: string | null;
@@ -35206,6 +35328,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -35609,6 +35733,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -36244,6 +36370,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                 };
             };
         };
@@ -36915,6 +37043,8 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** @default 10 */
                     limit?: number;
                     page?: number;

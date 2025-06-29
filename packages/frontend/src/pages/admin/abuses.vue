@@ -56,13 +56,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkInput v-model="searchUsername" style="margin: 0; flex: 1;" type="text" :spellcheck="false">
 					<span>{{ i18n.ts.username }}</span>
 				</MkInput>
-				<MkInput v-model="searchHost" style="margin: 0; flex: 1;" type="text" :spellcheck="false" :disabled="pagination.params().origin === 'local'">
+				<MkInput v-model="searchHost" style="margin: 0; flex: 1;" type="text" :spellcheck="false" :disabled="paginator.computedParams.value.origin === 'local'">
 					<span>{{ i18n.ts.host }}</span>
 				</MkInput>
 			</div>
 			-->
 
-			<MkPagination v-slot="{items}" ref="reports" :pagination="pagination">
+			<MkPagination v-slot="{items}" :paginator="paginator">
 				<div class="_gaps">
 					<XAbuseReport v-for="report in items" :key="report.id" :report="report" @resolved="resolved"/>
 				</div>
@@ -73,7 +73,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, useTemplateRef, ref } from 'vue';
+import { computed, ref, markRaw } from 'vue';
 import MkSelect from '@/components/MkSelect.vue';
 import MkPagination from '@/components/MkPagination.vue';
 import XAbuseReport from '@/components/MkAbuseReport.vue';
@@ -81,8 +81,7 @@ import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import MkButton from '@/components/MkButton.vue';
 import { store } from '@/store.js';
-
-const reports = useTemplateRef('reports');
+import { Paginator } from '@/utility/paginator.js';
 
 const state = ref('unresolved');
 const reporterOrigin = ref('combined');
@@ -92,20 +91,19 @@ const searchHost = ref('');
 const type = ref('all');
 const status = ref('record');
 
-const pagination = {
-	endpoint: 'admin/abuse-user-reports' as const,
+const paginator = markRaw(new Paginator('admin/abuse-user-reports', {
 	limit: 10,
-	params: computed(() => ({
+	computedParams: computed(() => ({
 		state: state.value,
 		reporterOrigin: reporterOrigin.value,
 		targetUserOrigin: targetUserOrigin.value,
 		type: type.value,
 		status: status.value,
 	})),
-};
+}));
 
 function resolved(reportId) {
-	reports.value?.paginator.removeItem(reportId);
+	paginator.removeItem(reportId);
 }
 
 const headerActions = computed(() => []);
