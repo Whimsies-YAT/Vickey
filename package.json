@@ -56,10 +56,10 @@
 		"esbuild": "0.25.6",
 		"execa": "9.6.0",
 		"fast-glob": "3.3.3",
-		"file-type": "20.4.0",
+		"file-type": "21.0.0",
 		"glob": "11.0.3",
 		"ignore-walk": "7.0.0",
-		"isolated-vm": "5.0.3",
+		"isolated-vm": "5.0.4",
 		"js-yaml": "4.1.0",
 		"nanoid": "5.1.5",
 		"postcss": "8.5.6",
@@ -90,6 +90,28 @@
 		},
 		"patchedDependencies": {
 			"typeorm": "patches/typeorm.patch"
-		}
+		},
+		"onlyBuiltDependencies": [
+			"@nestjs/core",
+			"@parcel/watcher",
+			"@sentry-internal/node-cpu-profiler",
+			"@sentry/profiling-node",
+			"@swc/core",
+			"@tensorflow/tfjs-node",
+			"bufferutil",
+			"canvas",
+			"core-js",
+			"cypress",
+			"esbuild",
+			"isolated-vm",
+			"msgpackr-extract",
+			"msw",
+			"nice-napi",
+			"re2",
+			"sharp",
+			"utf-8-validate",
+			"v-code-diff",
+			"vue-demi"
+		]
 	}
 }
