@@ -4,7 +4,7 @@
 	"private": true,
 	"type": "module",
 	"engines": {
-		"node": "^20.10.0 || ^22.0.0"
+		"node": "^20.18.1 || ^22.0.0"
 	},
 	"scripts": {
 		"start": "node ./built/boot/entry.js --no-node-snapshot",
@@ -33,6 +33,7 @@
 		"test:fed": "pnpm jest:fed",
 		"test-and-coverage": "pnpm jest-and-coverage",
 		"test-and-coverage:e2e": "pnpm build && pnpm build:test && pnpm jest-and-coverage:e2e",
+		"check-migrations": "node scripts/check_migrations_clean.js",
 		"generate-api-json": "node ./scripts/generate_api_json.js"
 	},
 	"optionalDependencies": {
@@ -70,8 +71,8 @@
 		"@aws-sdk/client-s3": "3.826.0",
 		"@aws-sdk/lib-storage": "3.826.0",
 		"@discordapp/twemoji": "15.1.0",
-		"@elastic/elasticsearch": "9.0.1",
-		"@elastic/transport": "8.9.1",
+		"@elastic/elasticsearch": "9.0.3",
+		"@elastic/transport": "^9.0.1",
 		"@fastify/accepts": "5.0.2",
 		"@fastify/cookie": "11.0.2",
 		"@fastify/cors": "10.1.0",
@@ -80,7 +81,7 @@
 		"@fastify/multipart": "9.0.3",
 		"@fastify/static": "8.2.0",
 		"@fastify/view": "10.0.2",
-		"@gradio/client": "1.14.2",
+		"@gradio/client": "1.15.6",
 		"@misskey-dev/sharp-read-bmp": "1.2.0",
 		"@misskey-dev/summaly": "5.2.1",
 		"@napi-rs/canvas": "0.1.71",
@@ -88,8 +89,8 @@
 		"@nestjs/core": "11.1.3",
 		"@nestjs/testing": "11.1.3",
 		"@peertube/http-signature": "1.7.0",
-		"@sentry/node": "8.55.0",
-		"@sentry/profiling-node": "8.55.0",
+		"@sentry/node": "9.40.0",
+		"@sentry/profiling-node": "9.40.0",
 		"@simplewebauthn/server": "12.0.0",
 		"@sinonjs/fake-timers": "11.3.1",
 		"@smithy/node-http-handler": "2.5.0",
@@ -118,7 +119,7 @@
 		"fastify": "5.3.3",
 		"fastify-raw-body": "5.0.0",
 		"feed": "4.2.2",
-		"file-type": "19.6.0",
+		"file-type": "21.0.0",
 		"fluent-ffmpeg": "2.1.3",
 		"form-data": "4.0.3",
 		"got": "14.4.7",
