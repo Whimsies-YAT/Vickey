@@ -45,7 +45,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import * as Misskey from 'misskey-js';
 import MkFolder from '@/components/MkFolder.vue';
 import MkButton from '@/components/MkButton.vue';
@@ -64,12 +64,12 @@ const isProcessed = ref('');
 const result = ref('');
 const ip = ref('');
 
-function getReason() {
+async function getReason() {
 	return misskeyApi('admin/show-pending', {
 		id: props.user.id,
 	}).then(info => {
-		reason.value = info.signupReason;
-		email.value = info.email;
+		reason.value = info.signupReason ?? '';
+		email.value = info.email ?? '';
 		time.value = String(new Date(info.time).toLocaleString());
 		isProcessed.value = info.isProcessed;
 		result.value = info.result;
@@ -77,7 +77,9 @@ function getReason() {
 	});
 }
 
-getReason();
+onMounted(() => {
+	getReason();
+});
 
 const emits = defineEmits<{
 	(event: 'deleted', value: string): void;

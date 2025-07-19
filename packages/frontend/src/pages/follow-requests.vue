@@ -67,13 +67,13 @@ function accept(user: Misskey.entities.UserLite) {
 
 function ignore(user: Misskey.entities.UserLite) {
 	os.apiWithDialog('following/requests/ignore', { userId: user.id }).then(() => {
-		paginationComponent.value?.reload();
+		paginator.reload();
 	});
 }
 
 function display(user: Misskey.entities.UserLite) {
 	os.apiWithDialog('following/requests/display', { userId: user.id }).then(() => {
-		paginationComponent.value?.reload();
+		paginator.reload();
 	});
 }
 
