@@ -25,6 +25,86 @@ export interface Locale extends ILocale {
      * Enable this if you need the automatic TTS feature. If you belong to an authorized user group, the automatic TTS feature will be activated within a specific scope.
      */
     "flagAsVIDescription": string;
+    /**
+     * Approvals
+     */
+    "approvals": string;
+    /**
+     * Do you want to approve the registration?
+     */
+    "registerApproveConfirm": string;
+    /**
+     * This action cannot be undone. Once approved, an email will be sent to notify the user that their registration has been approved.
+     */
+    "registerApproveConfirmDescription": string;
+    /**
+     * Make account registration approval-based
+     */
+    "approvalRequiredForSignup": string;
+    /**
+     * Pending account registration approvals
+     */
+    "signupPendingApprovals": string;
+    /**
+     * There are users awaiting approval.
+     */
+    "pendingUserApprovals": string;
+    /**
+     * Approve
+     */
+    "approveAccount": string;
+    /**
+     * Deny and delete account
+     */
+    "denyAccount": string;
+    /**
+     * Approved
+     */
+    "approved": string;
+    /**
+     * Not approved
+     */
+    "notApproved": string;
+    /**
+     * Approval status
+     */
+    "approvalStatus": string;
+    /**
+     * This instance currently requires approval to register. Please provide your reason for joining, and only those approved will be allowed to register.
+     */
+    "approvalRequiredToRegister": string;
+    /**
+     * Reason for registration
+     */
+    "registerReason": string;
+    /**
+     * Your registration for the server has not yet been approved. Please try again later. If you provided an email address during registration, you will be notified by email once your registration is approved.
+     */
+    "registerHasNotBeenApprovedYet": string;
+    /**
+     * To ensure notifications are sent regarding the approval of server registrations, it is strongly recommended to require an email address during account registration.
+     */
+    "registerApprovalEmailRecommended": string;
+    /**
+     * Perform a security update immediately!
+     */
+    "HaveSecurityUpdate": string;
+    /**
+     * Avatar decorations
+     */
+    "customAvatarDecoration": string;
+    /**
+     * Reason for Decline (Optional)
+     */
+    "optionalReason": string;
+    /**
+     * Email Templates
+     */
+    "emailTemplates": string;
+    /**
+     * Automated processing of abuse reports
+     */
+    "abuseReportAutoProcessing": string;
     "_role": {
         "_options": {
             /**
@@ -419,86 +499,6 @@ export interface Locale extends ILocale {
             "high": string;
         };
     };
-    /**
-     * Approvals
-     */
-    "approvals": string;
-    /**
-     * Do you want to approve the registration?
-     */
-    "registerApproveConfirm": string;
-    /**
-     * This action cannot be undone. Once approved, an email will be sent to notify the user that their registration has been approved.
-     */
-    "registerApproveConfirmDescription": string;
-    /**
-     * Make account registration approval-based
-     */
-    "approvalRequiredForSignup": string;
-    /**
-     * Pending account registration approvals
-     */
-    "signupPendingApprovals": string;
-    /**
-     * There are users awaiting approval.
-     */
-    "pendingUserApprovals": string;
-    /**
-     * Approve
-     */
-    "approveAccount": string;
-    /**
-     * Deny and delete account
-     */
-    "denyAccount": string;
-    /**
-     * Approved
-     */
-    "approved": string;
-    /**
-     * Not approved
-     */
-    "notApproved": string;
-    /**
-     * Approval status
-     */
-    "approvalStatus": string;
-    /**
-     * This instance currently requires approval to register. Please provide your reason for joining, and only those approved will be allowed to register.
-     */
-    "approvalRequiredToRegister": string;
-    /**
-     * Reason for registration
-     */
-    "registerReason": string;
-    /**
-     * Your registration for the server has not yet been approved. Please try again later. If you provided an email address during registration, you will be notified by email once your registration is approved.
-     */
-    "registerHasNotBeenApprovedYet": string;
-    /**
-     * To ensure notifications are sent regarding the approval of server registrations, it is strongly recommended to require an email address during account registration.
-     */
-    "registerApprovalEmailRecommended": string;
-    /**
-     * Perform a security update immediately!
-     */
-    "HaveSecurityUpdate": string;
-    /**
-     * Avatar decorations
-     */
-    "customAvatarDecoration": string;
-    /**
-     * Reason for Decline (Optional)
-     */
-    "optionalReason": string;
-    /**
-     * Email Templates
-     */
-    "emailTemplates": string;
-    /**
-     * Automated processing of abuse reports
-     */
-    "abuseReportAutoProcessing": string;
     "_permissions": {
         /**
          * Approve registration application
@@ -1118,6 +1118,18 @@ export interface Locale extends ILocale {
          * Donate to Vickey
          */
         "donate": string;
+        /**
+         * {name} uses a modified version of the original Vickey.
+         */
+        "thisIsModifiedVersionVK": ParameterizedString<"name">;
+        /**
+         * Source code
+         */
+        "source": string;
+        /**
+         * Original
+         */
+        "original": string;
     };
     "_serverSettings": {
         /**
