@@ -252,7 +252,7 @@ export class SignupApiService {
 
 			reply.code(204);
 			return;
-		} else if (this.meta.approvalRequiredForSignup) {
+		} else if (this.meta.approvalRequiredForSignup && !this.meta.emailRequiredForSignup) {
 			if (emailAddress) {
 				const result = await this.emailTemplatesService.sendEmailWithTemplates(emailAddress, 'approvalPending');
 				if (!result) {
