@@ -69,16 +69,6 @@ export class QueueService {
 		@Inject('queue:userWebhookDeliver') public userWebhookDeliverQueue: UserWebhookDeliverQueue,
 		@Inject('queue:systemWebhookDeliver') public systemWebhookDeliverQueue: SystemWebhookDeliverQueue,
 	) {
-		/*
-		this.systemQueue.upsertJobScheduler('defaultSec', {
-		}, {
-			repeat: {
-				pattern: '* * * * * *',
-				limit: 1,
-			},
-			removeOnComplete: true,
-		});
-		*/
 		this.systemQueue.upsertJobScheduler('tickCharts', {
 			pattern: '55 * * * *',
 		}, {
@@ -159,20 +149,29 @@ export class QueueService {
 				removeOnFail: 30,
 			},
 		});
-		this.systemQueue.add('checkSec', {
+		this.systemQueue.upsertJobScheduler('checkSec', {
+			pattern: '*/10 * * * *'
 		}, {
-			repeat: { pattern: '*/10 * * * *' },
-			removeOnComplete: true,
+			name: 'checkSec',
+			opts: {
+				removeOnComplete: true,
+			},
 		});
-		this.systemQueue.add('cleanExpired', {
+		this.systemQueue.upsertJobScheduler('cleanExpired', {
+			pattern: '0 */6 * * *',
 		}, {
-			repeat: { pattern: '0 */6 * * *' },
-			removeOnComplete: true,
+			name: 'cleanExpired',
+			opts: {
+				removeOnComplete: true,
+			},
 		});
-		this.systemQueue.add('checkIP2L', {
+		this.systemQueue.upsertJobScheduler('checkIP2L', {
+			pattern: '0 */3 * * *'
 		}, {
-			repeat: { pattern: '0 */3 * * *' },
-			removeOnComplete: true,
+			name: 'checkIP2L',
+			opts: {
+				removeOnComplete: true,
+			},
 		});
 	}
 
