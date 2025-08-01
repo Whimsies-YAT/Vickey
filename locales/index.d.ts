@@ -2005,11 +2005,11 @@ export interface Locale extends ILocale {
      */
     "mention": string;
     /**
-     * あなた宛て
+     * メンション
      */
     "mentions": string;
     /**
-     * ダイレクト投稿
+     * 指名
      */
     "directNotes": string;
     /**
@@ -7187,6 +7187,30 @@ export interface Locale extends ILocale {
      * 低くすると画質を保てますが、ファイルサイズは増加します。<br>高くするとファイルサイズを減らせますが、画質は低下します。
      */
     "defaultImageCompressionLevel_description": string;
+    /**
+     * 分
+     */
+    "inMinutes": string;
+    /**
+     * 日
+     */
+    "inDays": string;
+    /**
+     * セーフモードが有効です
+     */
+    "safeModeEnabled": string;
+    /**
+     * セーフモードが有効なため、プラグインはすべて無効化されています。
+     */
+    "pluginsAreDisabledBecauseSafeMode": string;
+    /**
+     * セーフモードが有効なため、カスタムCSSは適用されていません。
+     */
+    "customCssIsDisabledBecauseSafeMode": string;
+    /**
+     * セーフモードが有効な間はデフォルトのテーマが使用されます。セーフモードをオフにすると元に戻ります。
+     */
+    "themeIsDefaultBecauseSafeMode": string;
     "_order": {
         /**
          * 新しい順
@@ -8023,7 +8047,7 @@ export interface Locale extends ILocale {
                  */
                 "followers": string;
                 /**
-                 * 指定したユーザーにのみ公開され、また相手に通知が入ります。ダイレクトメッセージのかわりにお使いいただけます。
+                 * 指定したユーザーにのみ公開され、また相手に通知が入ります。
                  */
                 "direct": string;
                 /**
@@ -8031,7 +8055,7 @@ export interface Locale extends ILocale {
                  */
                 "doNotSendConfidencialOnDirect1": string;
                 /**
-                 * 送信先のサーバーの管理者は投稿内容を見ることが可能なので、信頼できないサーバーのユーザーにダイレクト投稿を送信する場合は、機密情報の扱いに注意が必要です。
+                 * 送信先のサーバーの管理者は投稿内容を見ることが可能なので、信頼できないサーバーのユーザーが含まれる限定公開のノートを作成する際は、機密情報の扱いに注意が必要です。
                  */
                 "doNotSendConfidencialOnDirect2": string;
                 /**
@@ -8130,6 +8154,142 @@ export interface Locale extends ILocale {
          * 新規登録前に表示する、サーバーの簡潔なルールを設定します。内容は利用規約の要約とすることを推奨します。
          */
         "description": string;
+    };
+    "_serverSettings": {
+        /**
+         * アイコン画像のURL
+         */
+        "iconUrl": string;
+        /**
+         * {host}がアプリとして表示される際のアイコンを指定します。
+         */
+        "appIconDescription": ParameterizedString<"host">;
+        /**
+         * 例: PWAや、スマートフォンのホーム画面にブックマークとして追加された時など
+         */
+        "appIconUsageExample": string;
+        /**
+         * 円形もしくは角丸にクロップされる場合があるため、塗り潰された余白のある背景を持つことが推奨されます。
+         */
+        "appIconStyleRecommendation": string;
+        /**
+         * 解像度は必ず{resolution}である必要があります。
+         */
+        "appIconResolutionMustBe": ParameterizedString<"resolution">;
+        /**
+         * manifest.jsonのオーバーライド
+         */
+        "manifestJsonOverride": string;
+        /**
+         * 略称
+         */
+        "shortName": string;
+        /**
+         * サーバーの正式名称が長い場合に、代わりに表示することのできる略称や通称。
+         */
+        "shortNameDescription": string;
+        /**
+         * 有効にすると、各種タイムラインを取得する際のパフォーマンスが大幅に向上し、データベースへの負荷を軽減することが可能です。ただし、Redisのメモリ使用量は増加します。サーバーのメモリ容量が少ない場合、または動作が不安定な場合は無効にすることができます。
+         */
+        "fanoutTimelineDescription": string;
+        /**
+         * データベースへのフォールバック
+         */
+        "fanoutTimelineDbFallback": string;
+        /**
+         * 有効にすると、タイムラインがキャッシュされていない場合にDBへ追加で問い合わせを行うフォールバック処理を行います。無効にすると、フォールバック処理を行わないことでさらにサーバーの負荷を軽減することができますが、タイムラインが取得できる範囲に制限が生じます。
+         */
+        "fanoutTimelineDbFallbackDescription": string;
+        /**
+         * 有効にすると、リアクション作成時のパフォーマンスが大幅に向上し、データベースへの負荷を軽減することが可能です。ただし、Redisのメモリ使用量は増加します。
+         */
+        "reactionsBufferingDescription": string;
+        /**
+         * 問い合わせ先URL
+         */
+        "inquiryUrl": string;
+        /**
+         * サーバー運営者へのお問い合わせフォームのURLや、運営者の連絡先等が記載されたWebページのURLを指定します。
+         */
+        "inquiryUrlDescription": string;
+        /**
+         * アカウントの作成をオープンにする
+         */
+        "openRegistration": string;
+        /**
+         * 登録を開放することはリスクが伴います。サーバーを常に監視し、トラブルが発生した際にすぐに対応できる体制がある場合のみオンにすることを推奨します。
+         */
+        "openRegistrationWarning": string;
+        /**
+         * 一定期間モデレーターのアクティビティが検出されなかった場合、スパム防止のためこの設定は自動でオフになります。
+         */
+        "thisSettingWillAutomaticallyOffWhenModeratorsInactive": string;
+        /**
+         * 配信停止中のソフトウェア
+         */
+        "deliverSuspendedSoftware": string;
+        /**
+         * 脆弱性などの理由で、サーバーのソフトウェアの名前及びバージョンの範囲を指定して配信を停止できます。このバージョン情報はサーバーが提供したものであり、信頼性は保証されません。バージョン指定には semver の範囲指定が使用できますが、>= 2024.3.1 と指定すると 2024.3.1-custom.0 のようなカスタムバージョンが含まれないため、>= 2024.3.1-0 のように prerelease の指定を行うことを推奨します。
+         */
+        "deliverSuspendedSoftwareDescription": string;
+        /**
+         * お一人様モード
+         */
+        "singleUserMode": string;
+        /**
+         * このサーバーを利用するのが自分だけの場合、このモードを有効にすることで動作が最適化されます。
+         */
+        "singleUserMode_description": string;
+        /**
+         * GETリクエストに署名する
+         */
+        "signToActivityPubGet": string;
+        /**
+         * 通常は有効にしてください。連合の通信に関する問題がある場合に、無効にすると改善することがありますが、逆にサーバーによっては通信が不可になることがあります。
+         */
+        "signToActivityPubGet_description": string;
+        /**
+         * リモートファイルをプロキシする
+         */
+        "proxyRemoteFiles": string;
+        /**
+         * 有効にすると、リモートのファイルをプロキシして提供します。画像のサムネイル生成やユーザーのプライバシー保護に役立ちます。
+         */
+        "proxyRemoteFiles_description": string;
+        /**
+         * ActivityPub経由の照会にリダイレクトを許可する
+         */
+        "allowExternalApRedirect": string;
+        /**
+         * 有効にすると、他のサーバーがこのサーバーを通して第三者のコンテンツを照会することが可能になりますが、コンテンツのなりすましが発生する可能性があります。
+         */
+        "allowExternalApRedirect_description": string;
+        /**
+         * 非利用者に対するユーザー作成コンテンツの公開範囲
+         */
+        "userGeneratedContentsVisibilityForVisitor": string;
+        /**
+         * モデレーションが行き届きにくい不適切なリモートコンテンツなどが、自サーバー経由で図らずもインターネットに公開されてしまうことによるトラブル防止などに役立ちます。
+         */
+        "userGeneratedContentsVisibilityForVisitor_description": string;
+        /**
+         * サーバーで受信したリモートのコンテンツを含め、サーバー内の全てのコンテンツを無条件でインターネットに公開することはリスクが伴います。特に、分散型の特性を知らない閲覧者にとっては、リモートのコンテンツであってもサーバー内で作成されたコンテンツであると誤って認識してしまう可能性があるため、注意が必要です。
+         */
+        "userGeneratedContentsVisibilityForVisitor_description2": string;
+        "_userGeneratedContentsVisibilityForVisitor": {
+            /**
+             * 全て公開
+             */
+            "all": string;
+            /**
+             * ローカルコンテンツのみ公開し、リモートコンテンツは非公開
+             */
+            "localOnly": string;
+            /**
+             * 全て非公開
+             */
+            "none": string;
+        };
     };
     "_accountMigration": {
         /**
@@ -10395,7 +10555,7 @@ export interface Locale extends ILocale {
          */
         "followersDescription": string;
         /**
-         * ダイレクト
+         * 指名
          */
         "specified": string;
         /**
@@ -11284,11 +11444,11 @@ export interface Locale extends ILocale {
              */
             "channel": string;
             /**
-             * あなた宛て
+             * メンション
              */
             "mentions": string;
             /**
-             * ダイレクト
+             * 指名
              */
             "direct": string;
             /**
@@ -12276,6 +12436,52 @@ export interface Locale extends ILocale {
             };
         };
     };
+    "_bootErrors": {
+        /**
+         * 読み込みに失敗しました
+         */
+        "title": string;
+        /**
+         * 少し待ってからリロードしてもまだ問題が解決されない場合、以下のError IDを添えてサーバー管理者に連絡してください。
+         */
+        "serverError": string;
+        /**
+         * 以下を行うと解決する可能性があります。
+         */
+        "solution": string;
+        /**
+         * ブラウザおよびOSを最新バージョンに更新する
+         */
+        "solution1": string;
+        /**
+         * アドブロッカーを無効にする
+         */
+        "solution2": string;
+        /**
+         * ブラウザのキャッシュをクリアする
+         */
+        "solution3": string;
+        /**
+         * (Tor Browser) dom.webaudio.enabledをtrueに設定する
+         */
+        "solution4": string;
+        /**
+         * その他のオプション
+         */
+        "otherOption": string;
+        /**
+         * クライアント設定とキャッシュを削除
+         */
+        "otherOption1": string;
+        /**
+         * 簡易クライアントを起動
+         */
+        "otherOption2": string;
+        /**
+         * 修復ツールを起動
+         */
+        "otherOption3": string;
+    };
     "_search": {
         /**
          * 全て
@@ -12411,6 +12617,14 @@ export interface Locale extends ILocale {
          * 連合可能なサーバーの指定など、高度な設定も後ほど可能です。
          */
         "youCanConfigureMoreFederationSettingsLater": string;
+        /**
+         * 受信コンテンツの自動クリーニング
+         */
+        "remoteContentsCleaning": string;
+        /**
+         * 連合を行うと、継続して多くのコンテンツを受信します。自動クリーニングを有効にすると、参照されていない古くなったコンテンツを自動でサーバーから削除し、ストレージを節約できます。
+         */
+        "remoteContentsCleaning_description": string;
         /**
          * 管理者情報
          */

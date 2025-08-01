@@ -78,6 +78,10 @@ const REPEATABLE_SYSTEM_JOB_DEF = [{
 	name: 'checkModeratorsActivity',
 	// 毎時30分に起動
 	pattern: '30 * * * *',
+}, {
+	name: 'cleanRemoteNotes',
+	// 毎日午前4時に起動(最も人の少ない時間帯)
+	pattern: '0 4 * * *',
 }];
 
 @Injectable()
@@ -102,8 +106,13 @@ export class QueueService {
 			}, {
 				name: def.name,
 				opts: {
-					removeOnComplete: 10,
-					removeOnFail: 30,
+					// 期限ではなくcountで設定したいが、ジョブごとではなくキュー全体でカウントされるため、高頻度で実行されるジョブによって低頻度で実行されるジョブのログが消えることになる
+					removeOnComplete: {
+						age: 3600 * 24 * 7, // keep up to 7 days
+					},
+					removeOnFail: {
+						age: 3600 * 24 * 7, // keep up to 7 days
+					},
 				},
 			});
 		}
@@ -844,6 +853,13 @@ export class QueueService {
 		} else {
 			throw new Error(`Job not found: ${jobId}`);
 		}
+	}
+
+	@bindThis
+	public async queueGetJobLogs(queueType: typeof QUEUE_TYPES[number], jobId: string) {
+		const queue = this.getQueue(queueType);
+		const result = await queue.getJobLogs(jobId);
+		return result.logs;
 	}
 
 	@bindThis

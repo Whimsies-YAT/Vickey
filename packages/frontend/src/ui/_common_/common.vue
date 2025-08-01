@@ -95,6 +95,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <div v-if="$i && $i.isBot" id="botWarn"><span style="animation: dev-ticker-blink 2s infinite;">{{ i18n.ts.loggedInAsBot }}</span></div>
 <div v-if="iAmAdmin && !state.security" id="secWarn"><span style="animation: dev-ticker-blink 2s infinite;">{{ i18n.ts.HaveSecurityUpdate }}</span></div>
+
+<div v-if="isSafeMode" id="safemodeWarn">
+	<span style="animation: dev-ticker-blink 2s infinite;">{{ i18n.ts.safeModeEnabled }}</span>&nbsp;
+	<button class="_textButton" style="pointer-events: all;" @click="exitSafeMode">{{ i18n.ts.turnItOff }}</button>
+</div>
 </template>
 
 <script lang="ts" setup>
@@ -102,8 +107,11 @@ import { defineAsyncComponent, ref, reactive, TransitionGroup, onMounted } from 
 import * as Misskey from 'misskey-js';
 import { swInject } from './sw-inject.js';
 import XNotification from './notification.vue';
+import { isSafeMode } from '@@/js/config.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { popups } from '@/os.js';
+import { unisonReload } from '@/utility/unison-reload.js';
+import { miLocalStorage } from '@/local-storage.js';
 import { pendingApiRequestsCount } from '@/utility/misskey-api.js';
 import * as sound from '@/utility/sound.js';
 import { $i, iAmAdmin } from '@/i.js';
@@ -155,6 +163,13 @@ function onNotification(notification: Misskey.entities.Notification, isClient = 
 	}
 
 	sound.playMisskeySfx('notification');
+}
+
+function exitSafeMode() {
+	miLocalStorage.removeItem('isSafeMode');
+	const url = new URL(window.location.href);
+	url.searchParams.delete('safemode');
+	unisonReload(url.toString());
 }
 
 if ($i) {
@@ -414,7 +429,7 @@ onMounted(() => {
 	width: 100%;
 	height: max-content;
 	text-align: center;
-	z-index: 2147483647;
+	z-index: 2147483646;
 	color: #ff0;
 	background: rgba(0, 0, 0, 0.5);
 	padding: 4px 7px;
@@ -439,6 +454,11 @@ onMounted(() => {
 	font-size: 14px;
 	pointer-events: none;
 	user-select: none;
+}
+
+#safemodeWarn {
+	@extend #botWarn;
+	z-index: 2147483647;
 }
 
 #devTicker {

@@ -368,6 +368,7 @@ definePage(() => ({
 
 			> .items {
 				display: flex;
+				flex-wrap: wrap;
 				justify-content: center;
 				gap: 12px;
 				padding: 16px;
