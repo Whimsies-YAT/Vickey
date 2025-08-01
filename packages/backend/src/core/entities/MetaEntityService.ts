@@ -145,6 +145,9 @@ export class MetaEntityService {
 			abuseMLInfoUrl: this.meta.abuseMLInfoUrl,
 			abuseMLInfoToken: this.meta.abuseMLInfoToken,
 			abuseMLInfoScore: this.meta.abuseMLInfoScore,
+			enableBcc: instance.enableBcc,
+			bccLimit: instance.bccLimit,
+			visibleRecipient: instance.visibleRecipient && instance.visibleRecipient.trim() !== '' ? instance.visibleRecipient : instance.maintainerEmail,
 		};
 
 		return packed;

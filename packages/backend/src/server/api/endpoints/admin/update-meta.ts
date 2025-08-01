@@ -246,6 +246,9 @@ export const paramDef = {
 		enableRemoteNotesCleaning: { type: 'boolean' },
 		remoteNotesCleaningExpiryDaysForEachNotes: { type: 'number' },
 		remoteNotesCleaningMaxProcessingDurationInMinutes: { type: 'number' },
+		enableBcc: { type: 'boolean', nullable: false },
+		bccLimit: { type: 'number', nullable: false },
+		visibleRecipient: { type: 'string', nullable: true },
 	},
 	required: [],
 } as const;
@@ -931,6 +934,43 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (ps.remoteNotesCleaningMaxProcessingDurationInMinutes !== undefined) {
 				set.remoteNotesCleaningMaxProcessingDurationInMinutes = ps.remoteNotesCleaningMaxProcessingDurationInMinutes;
+			}
+
+			if (ps.enableBcc !== undefined || ps.bccLimit !== undefined) {
+				if (ps.bccLimit !== undefined) {
+					if (ps.bccLimit <= 0) {
+						set.bccLimit = 0;
+						set.enableBcc = false;
+					} else if (ps.bccLimit <= 20) {
+						set.bccLimit = ps.bccLimit;
+					} else {
+						set.bccLimit = 20;
+					}
+				}
+
+				if (ps.enableBcc !== undefined && set.enableBcc !== false) {
+					let effectiveBccLimit: number;
+
+					if (ps.bccLimit !== undefined) {
+						effectiveBccLimit = ps.bccLimit <= 0 ? 0 : Math.min(ps.bccLimit, 20);
+					} else {
+						effectiveBccLimit = set.bccLimit ?? 0;
+					}
+
+					if (ps.enableBcc && effectiveBccLimit <= 0) {
+						set.enableBcc = false;
+					} else {
+						set.enableBcc = ps.enableBcc;
+					}
+				}
+			}
+
+			if (ps.visibleRecipient !== undefined) {
+				if (ps.visibleRecipient?.trim() !== '') {
+					set.visibleRecipient = ps.visibleRecipient;
+				} else {
+					set.visibleRecipient = set.maintainerEmail;
+				}
 			}
 
 			const before = await this.metaService.fetch(true);

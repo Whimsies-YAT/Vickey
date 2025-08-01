@@ -39,7 +39,7 @@ export class EmailService {
 	}
 
 	@bindThis
-	public async sendEmail(to: string, subject: string, html: string, text: string) {
+	public async sendEmail(to: string, subject: string, html: string, text: string, bcc?: string | string[],) {
 		if (!this.meta.enableEmail) return;
 
 		const iconUrl = `${this.config.url}/static-assets/mi-white.png`;
@@ -144,7 +144,7 @@ export class EmailService {
 
 		try {
 			// TODO: htmlサニタイズ
-			const info = await transporter.sendMail({
+			const mailOptions: any = {
 				from: this.meta.name ? {
 					name: this.meta.name,
 					address: this.meta.email!,
@@ -153,8 +153,13 @@ export class EmailService {
 				subject: subject,
 				text: text,
 				html: inlinedHtml,
-			});
+			};
 
+			if (bcc) {
+				mailOptions.bcc = bcc;
+			}
+
+			const info = await transporter.sendMail(mailOptions);
 			this.logger.info(`Message sent: ${info.messageId}`);
 		} catch (err) {
 			this.logger.error(err as Error);

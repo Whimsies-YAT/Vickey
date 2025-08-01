@@ -105,6 +105,26 @@ export interface Locale extends ILocale {
      * Automated processing of abuse reports
      */
     "abuseReportAutoProcessing": string;
+    /**
+     * Enable blind carbon copy
+     */
+    "enableBcc": string;
+    /**
+     * Merge some emails to reduce the number of emails sent.
+     */
+    "enableBccInfo": string;
+    /**
+     * Maximum blind carbon copy recipients
+     */
+    "bccLimit": string;
+    /**
+     * Visible recipient
+     */
+    "visibleRecipient": string;
+    /**
+     * The visible recipient defaults to the maintainer's email address.
+     */
+    "visibleRecipientInfo": string;
     "_role": {
         "_options": {
             /**
@@ -1185,6 +1205,22 @@ export interface Locale extends ILocale {
          */
         "reactionsBufferingDescription": string;
         /**
+         * リモート投稿の自動クリーニング
+         */
+        "remoteNotesCleaning": string;
+        /**
+         * 有効にすると、参照されていない古いリモートの投稿を定期的にクリーンアップしてデータベースの肥大化を抑制します。
+         */
+        "remoteNotesCleaning_description": string;
+        /**
+         * 最大クリーニング処理継続時間
+         */
+        "remoteNotesCleaningMaxProcessingDuration": string;
+        /**
+         * 最低ノート保持日数
+         */
+        "remoteNotesCleaningExpiryDaysForEachNotes": string;
+        /**
          * 問い合わせ先URL
          */
         "inquiryUrl": string;
@@ -1256,6 +1292,14 @@ export interface Locale extends ILocale {
          * サーバーで受信したリモートのコンテンツを含め、サーバー内の全てのコンテンツを無条件でインターネットに公開することはリスクが伴います。特に、分散型の特性を知らない閲覧者にとっては、リモートのコンテンツであってもサーバー内で作成されたコンテンツであると誤って認識してしまう可能性があるため、注意が必要です。
          */
         "userGeneratedContentsVisibilityForVisitor_description2": string;
+        /**
+         * サーバーの初期設定ウィザードをやり直しますか？
+         */
+        "restartServerSetupWizardConfirm_title": string;
+        /**
+         * 現在の一部の設定はリセットされます。
+         */
+        "restartServerSetupWizardConfirm_text": string;
         "_userGeneratedContentsVisibilityForVisitor": {
             /**
              * 全て公開
@@ -1668,6 +1712,10 @@ export interface Locale extends ILocale {
          * 修復ツールを起動
          */
         "otherOption3": string;
+        /**
+         * Misskeyをセーフモードで起動
+         */
+        "otherOption4": string;
     };
     "_devTools": {
         /**
@@ -8155,142 +8203,6 @@ export interface Locale extends ILocale {
          */
         "description": string;
     };
-    "_serverSettings": {
-        /**
-         * アイコン画像のURL
-         */
-        "iconUrl": string;
-        /**
-         * {host}がアプリとして表示される際のアイコンを指定します。
-         */
-        "appIconDescription": ParameterizedString<"host">;
-        /**
-         * 例: PWAや、スマートフォンのホーム画面にブックマークとして追加された時など
-         */
-        "appIconUsageExample": string;
-        /**
-         * 円形もしくは角丸にクロップされる場合があるため、塗り潰された余白のある背景を持つことが推奨されます。
-         */
-        "appIconStyleRecommendation": string;
-        /**
-         * 解像度は必ず{resolution}である必要があります。
-         */
-        "appIconResolutionMustBe": ParameterizedString<"resolution">;
-        /**
-         * manifest.jsonのオーバーライド
-         */
-        "manifestJsonOverride": string;
-        /**
-         * 略称
-         */
-        "shortName": string;
-        /**
-         * サーバーの正式名称が長い場合に、代わりに表示することのできる略称や通称。
-         */
-        "shortNameDescription": string;
-        /**
-         * 有効にすると、各種タイムラインを取得する際のパフォーマンスが大幅に向上し、データベースへの負荷を軽減することが可能です。ただし、Redisのメモリ使用量は増加します。サーバーのメモリ容量が少ない場合、または動作が不安定な場合は無効にすることができます。
-         */
-        "fanoutTimelineDescription": string;
-        /**
-         * データベースへのフォールバック
-         */
-        "fanoutTimelineDbFallback": string;
-        /**
-         * 有効にすると、タイムラインがキャッシュされていない場合にDBへ追加で問い合わせを行うフォールバック処理を行います。無効にすると、フォールバック処理を行わないことでさらにサーバーの負荷を軽減することができますが、タイムラインが取得できる範囲に制限が生じます。
-         */
-        "fanoutTimelineDbFallbackDescription": string;
-        /**
-         * 有効にすると、リアクション作成時のパフォーマンスが大幅に向上し、データベースへの負荷を軽減することが可能です。ただし、Redisのメモリ使用量は増加します。
-         */
-        "reactionsBufferingDescription": string;
-        /**
-         * 問い合わせ先URL
-         */
-        "inquiryUrl": string;
-        /**
-         * サーバー運営者へのお問い合わせフォームのURLや、運営者の連絡先等が記載されたWebページのURLを指定します。
-         */
-        "inquiryUrlDescription": string;
-        /**
-         * アカウントの作成をオープンにする
-         */
-        "openRegistration": string;
-        /**
-         * 登録を開放することはリスクが伴います。サーバーを常に監視し、トラブルが発生した際にすぐに対応できる体制がある場合のみオンにすることを推奨します。
-         */
-        "openRegistrationWarning": string;
-        /**
-         * 一定期間モデレーターのアクティビティが検出されなかった場合、スパム防止のためこの設定は自動でオフになります。
-         */
-        "thisSettingWillAutomaticallyOffWhenModeratorsInactive": string;
-        /**
-         * 配信停止中のソフトウェア
-         */
-        "deliverSuspendedSoftware": string;
-        /**
-         * 脆弱性などの理由で、サーバーのソフトウェアの名前及びバージョンの範囲を指定して配信を停止できます。このバージョン情報はサーバーが提供したものであり、信頼性は保証されません。バージョン指定には semver の範囲指定が使用できますが、>= 2024.3.1 と指定すると 2024.3.1-custom.0 のようなカスタムバージョンが含まれないため、>= 2024.3.1-0 のように prerelease の指定を行うことを推奨します。
-         */
-        "deliverSuspendedSoftwareDescription": string;
-        /**
-         * お一人様モード
-         */
-        "singleUserMode": string;
-        /**
-         * このサーバーを利用するのが自分だけの場合、このモードを有効にすることで動作が最適化されます。
-         */
-        "singleUserMode_description": string;
-        /**
-         * GETリクエストに署名する
-         */
-        "signToActivityPubGet": string;
-        /**
-         * 通常は有効にしてください。連合の通信に関する問題がある場合に、無効にすると改善することがありますが、逆にサーバーによっては通信が不可になることがあります。
-         */
-        "signToActivityPubGet_description": string;
-        /**
-         * リモートファイルをプロキシする
-         */
-        "proxyRemoteFiles": string;
-        /**
-         * 有効にすると、リモートのファイルをプロキシして提供します。画像のサムネイル生成やユーザーのプライバシー保護に役立ちます。
-         */
-        "proxyRemoteFiles_description": string;
-        /**
-         * ActivityPub経由の照会にリダイレクトを許可する
-         */
-        "allowExternalApRedirect": string;
-        /**
-         * 有効にすると、他のサーバーがこのサーバーを通して第三者のコンテンツを照会することが可能になりますが、コンテンツのなりすましが発生する可能性があります。
-         */
-        "allowExternalApRedirect_description": string;
-        /**
-         * 非利用者に対するユーザー作成コンテンツの公開範囲
-         */
-        "userGeneratedContentsVisibilityForVisitor": string;
-        /**
-         * モデレーションが行き届きにくい不適切なリモートコンテンツなどが、自サーバー経由で図らずもインターネットに公開されてしまうことによるトラブル防止などに役立ちます。
-         */
-        "userGeneratedContentsVisibilityForVisitor_description": string;
-        /**
-         * サーバーで受信したリモートのコンテンツを含め、サーバー内の全てのコンテンツを無条件でインターネットに公開することはリスクが伴います。特に、分散型の特性を知らない閲覧者にとっては、リモートのコンテンツであってもサーバー内で作成されたコンテンツであると誤って認識してしまう可能性があるため、注意が必要です。
-         */
-        "userGeneratedContentsVisibilityForVisitor_description2": string;
-        "_userGeneratedContentsVisibilityForVisitor": {
-            /**
-             * 全て公開
-             */
-            "all": string;
-            /**
-             * ローカルコンテンツのみ公開し、リモートコンテンツは非公開
-             */
-            "localOnly": string;
-            /**
-             * 全て非公開
-             */
-            "none": string;
-        };
-    };
     "_accountMigration": {
         /**
          * 別のアカウントからこのアカウントに移行
@@ -12435,52 +12347,6 @@ export interface Locale extends ILocale {
                 "text": string;
             };
         };
-    };
-    "_bootErrors": {
-        /**
-         * 読み込みに失敗しました
-         */
-        "title": string;
-        /**
-         * 少し待ってからリロードしてもまだ問題が解決されない場合、以下のError IDを添えてサーバー管理者に連絡してください。
-         */
-        "serverError": string;
-        /**
-         * 以下を行うと解決する可能性があります。
-         */
-        "solution": string;
-        /**
-         * ブラウザおよびOSを最新バージョンに更新する
-         */
-        "solution1": string;
-        /**
-         * アドブロッカーを無効にする
-         */
-        "solution2": string;
-        /**
-         * ブラウザのキャッシュをクリアする
-         */
-        "solution3": string;
-        /**
-         * (Tor Browser) dom.webaudio.enabledをtrueに設定する
-         */
-        "solution4": string;
-        /**
-         * その他のオプション
-         */
-        "otherOption": string;
-        /**
-         * クライアント設定とキャッシュを削除
-         */
-        "otherOption1": string;
-        /**
-         * 簡易クライアントを起動
-         */
-        "otherOption2": string;
-        /**
-         * 修復ツールを起動
-         */
-        "otherOption3": string;
     };
     "_search": {
         /**

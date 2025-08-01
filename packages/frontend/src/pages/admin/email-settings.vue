@@ -45,6 +45,22 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</MkSwitch>
 						</div>
 					</FormSection>
+
+					<div class="_gaps">
+						<MkSwitch v-model="enableBcc">
+							<template #label>{{ i18n.ts.enableBcc }} <span class="_beta">{{ i18n.ts.beta }}</span></template>
+							<template #caption>{{ i18n.ts.enableBccInfo }}</template>
+						</MkSwitch>
+						<div v-if="enableBcc">
+							<MkInput v-model.number="bccLimit" type="range" :min="1" :max="20" :step="1">
+								<template #label>{{i18n.ts.bccLimit}}: {{ bccLimit }}</template>
+							</MkInput>
+							<MkInput v-if="enableBcc" v-model="visibleRecipient" type="email">
+								<template #label>{{ i18n.ts.visibleRecipient }}</template>
+								<template #caption>{{ i18n.ts.visibleRecipientInfo }}</template>
+							</MkInput>
+						</div>
+					</div>
 				</template>
 			</div>
 		</FormSuspense>
@@ -84,6 +100,9 @@ const smtpHost = ref<string>('');
 const smtpPort = ref<number>(0);
 const smtpUser = ref<string>('');
 const smtpPass = ref<string>('');
+const enableBcc = ref<boolean>(false);
+const bccLimit = ref<number>(20);
+const visibleRecipient = ref<string>('');
 
 async function init() {
 	const meta = await misskeyApi('admin/meta');
@@ -94,6 +113,9 @@ async function init() {
 	smtpPort.value = meta.smtpPort;
 	smtpUser.value = meta.smtpUser;
 	smtpPass.value = meta.smtpPass;
+	enableBcc.value = meta.enableBcc;
+	bccLimit.value = meta.bccLimit;
+	visibleRecipient.value = meta.visibleRecipient;
 }
 
 async function testEmail() {
@@ -121,6 +143,9 @@ function save() {
 		smtpPort: smtpPort.value,
 		smtpUser: smtpUser.value,
 		smtpPass: smtpPass.value,
+		enableBcc: enableBcc.value,
+		bccLimit: bccLimit.value,
+		visibleRecipient: visibleRecipient.value,
 	}).then(() => {
 		fetchInstance(true);
 	});

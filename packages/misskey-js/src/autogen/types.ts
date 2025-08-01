@@ -5528,6 +5528,9 @@ export type components = {
             abuseMLInfoScore: number;
             /** @enum {string} */
             federation: 'all' | 'specified' | 'none';
+            enableBcc: boolean;
+            bccLimit: number;
+            visibleRecipient: string | null;
         };
         MetaDetailedOnly: {
             features?: {
@@ -9993,6 +9996,9 @@ export interface operations {
                         enableRemoteNotesCleaning: boolean;
                         remoteNotesCleaningExpiryDaysForEachNotes: number;
                         remoteNotesCleaningMaxProcessingDurationInMinutes: number;
+                        enableBcc: boolean;
+                        bccLimit: number;
+                        visibleRecipient: string | null;
                     };
                 };
             };
@@ -13466,6 +13472,9 @@ export interface operations {
                     enableRemoteNotesCleaning?: boolean;
                     remoteNotesCleaningExpiryDaysForEachNotes?: number;
                     remoteNotesCleaningMaxProcessingDurationInMinutes?: number;
+                    enableBcc?: boolean;
+                    bccLimit?: number;
+                    visibleRecipient?: string | null;
                 };
             };
         };

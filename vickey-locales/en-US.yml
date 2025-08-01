@@ -22,6 +22,11 @@ customAvatarDecoration: "Avatar decorations"
 optionalReason: "Reason for Decline (Optional)"
 emailTemplates: "Email Templates"
 abuseReportAutoProcessing: "Automated processing of abuse reports"
+enableBcc: "Enable blind carbon copy"
+enableBccInfo: "Merge some emails to reduce the number of emails sent."
+bccLimit: "Maximum blind carbon copy recipients"
+visibleRecipient: "Visible recipient"
+visibleRecipientInfo: "The visible recipient defaults to the maintainer's email address."
 _role:
   _options:
     canUseTTS: "Use TTS feature"

@@ -808,7 +808,7 @@ export class MiMeta {
 	})
 	public abuseMLInfoToken: string;
 
-	@Column('varchar', {
+	@Column('numeric', {
 		default: 0.5,
 		nullable: false,
 	})
@@ -865,6 +865,22 @@ export class MiMeta {
 		default: 90, // days
 	})
 	public remoteNotesCleaningExpiryDaysForEachNotes: number;
+
+	@Column('boolean', {
+		default: true,
+	})
+	public enableBcc: boolean;
+
+	@Column('integer', {
+		default: 20,
+	})
+	public bccLimit: number;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public visibleRecipient: string | null;
 }
 
 export type SoftwareSuspension = {
