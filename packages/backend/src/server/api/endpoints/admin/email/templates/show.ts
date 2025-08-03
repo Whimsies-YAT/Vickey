@@ -7,7 +7,6 @@ import { Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
 import { ApiError } from '../../../../error.js';
-import { MiEmailTemplates } from "@/models/EmailTemplates.js";
 
 export const meta = {
 	tags: ['admin'],
@@ -39,19 +38,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private emailTemplatesService: EmailTemplatesService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			if (!ps.key) {
-				const templates: MiEmailTemplates[] = await this.emailTemplatesService.showAllTemplates();
-				if (!templates) {
-					throw new ApiError(meta.errors.noSuchKey);
-				}
-				return templates;
-			} else {
-				const templates: boolean | MiEmailTemplates = await this.emailTemplatesService.showTemplates(ps.key);
-				if (!templates) {
-					throw new ApiError(meta.errors.noSuchKey);
-				}
-				return templates;
+			const templates = await this.emailTemplatesService.getTemplates(ps.key);
+			if (!templates) {
+				throw new ApiError(meta.errors.noSuchKey);
 			}
+			return templates;
 		});
 	}
 }
