@@ -13,6 +13,7 @@ export type Keys = (
 	'neverShowDonationInfo' |
 	'neverShowLocalOnlyInfo' |
 	'modifiedVersionMustProminentlyOfferInAgplV3Section13Read' |
+	'modifiedVersionMustProminentlyOfferInAgplV3Section13ReadAndApplyToVk' |
 	'lastUsed' |
 	'lang' |
 	'drafts' |
@@ -33,6 +34,7 @@ export type Keys = (
 	'preferences' |
 	'latestPreferencesUpdate' |
 	'hidePreferencesRestoreSuggestion' |
+	'isSafeMode' |
 	`miux:${string}` |
 	`ui:folder:${string}` |
 	`themes:${string}` | // DEPRECATED

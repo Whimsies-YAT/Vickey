@@ -25,6 +25,114 @@ export interface Locale extends ILocale {
      * Enable this if you need the automatic TTS feature. If you belong to an authorized user group, the automatic TTS feature will be activated within a specific scope.
      */
     "flagAsVIDescription": string;
+    /**
+     * Approvals
+     */
+    "approvals": string;
+    /**
+     * Do you want to approve the registration?
+     */
+    "registerApproveConfirm": string;
+    /**
+     * This action cannot be undone. Once approved, an email will be sent to notify the user that their registration has been approved.
+     */
+    "registerApproveConfirmDescription": string;
+    /**
+     * Make account registration approval-based
+     */
+    "approvalRequiredForSignup": string;
+    /**
+     * Pending account registration approvals
+     */
+    "signupPendingApprovals": string;
+    /**
+     * There are users awaiting approval.
+     */
+    "pendingUserApprovals": string;
+    /**
+     * Approve
+     */
+    "approveAccount": string;
+    /**
+     * Deny and delete account
+     */
+    "denyAccount": string;
+    /**
+     * Approved
+     */
+    "approved": string;
+    /**
+     * Not approved
+     */
+    "notApproved": string;
+    /**
+     * Approval status
+     */
+    "approvalStatus": string;
+    /**
+     * This instance currently requires approval to register. Please provide your reason for joining, and only those approved will be allowed to register.
+     */
+    "approvalRequiredToRegister": string;
+    /**
+     * Reason for registration
+     */
+    "registerReason": string;
+    /**
+     * Your registration for the server has not yet been approved. Please try again later. If you provided an email address during registration, you will be notified by email once your registration is approved.
+     */
+    "registerHasNotBeenApprovedYet": string;
+    /**
+     * To ensure notifications are sent regarding the approval of server registrations, it is strongly recommended to require an email address during account registration.
+     */
+    "registerApprovalEmailRecommended": string;
+    /**
+     * Perform a security update immediately!
+     */
+    "HaveSecurityUpdate": string;
+    /**
+     * Avatar decorations
+     */
+    "customAvatarDecoration": string;
+    /**
+     * Reason for Decline (Optional)
+     */
+    "optionalReason": string;
+    /**
+     * Email Templates
+     */
+    "emailTemplates": string;
+    /**
+     * Automated processing of abuse reports
+     */
+    "abuseReportAutoProcessing": string;
+    /**
+     * Enable blind carbon copy
+     */
+    "enableBcc": string;
+    /**
+     * Merge some emails to reduce the number of emails sent.
+     */
+    "enableBccInfo": string;
+    /**
+     * Maximum blind carbon copy recipients
+     */
+    "bccLimit": string;
+    /**
+     * Visible recipient
+     */
+    "visibleRecipient": string;
+    /**
+     * The visible recipient defaults to the maintainer's email address.
+     */
+    "visibleRecipientInfo": string;
+    /**
+     * About Vickey
+     */
+    "aboutVickey": string;
+    /**
+     * This page has been deprecated and may be removed in the future.
+     */
+    "pageDesperated": string;
     "_role": {
         "_options": {
             /**
@@ -419,86 +527,6 @@ export interface Locale extends ILocale {
             "high": string;
         };
     };
-    /**
-     * Approvals
-     */
-    "approvals": string;
-    /**
-     * Do you want to approve the registration?
-     */
-    "registerApproveConfirm": string;
-    /**
-     * This action cannot be undone. Once approved, an email will be sent to notify the user that their registration has been approved.
-     */
-    "registerApproveConfirmDescription": string;
-    /**
-     * Make account registration approval-based
-     */
-    "approvalRequiredForSignup": string;
-    /**
-     * Pending account registration approvals
-     */
-    "signupPendingApprovals": string;
-    /**
-     * There are users awaiting approval.
-     */
-    "pendingUserApprovals": string;
-    /**
-     * Approve
-     */
-    "approveAccount": string;
-    /**
-     * Deny and delete account
-     */
-    "denyAccount": string;
-    /**
-     * Approved
-     */
-    "approved": string;
-    /**
-     * Not approved
-     */
-    "notApproved": string;
-    /**
-     * Approval status
-     */
-    "approvalStatus": string;
-    /**
-     * This instance currently requires approval to register. Please provide your reason for joining, and only those approved will be allowed to register.
-     */
-    "approvalRequiredToRegister": string;
-    /**
-     * Reason for registration
-     */
-    "registerReason": string;
-    /**
-     * Your registration for the server has not yet been approved. Please try again later. If you provided an email address during registration, you will be notified by email once your registration is approved.
-     */
-    "registerHasNotBeenApprovedYet": string;
-    /**
-     * To ensure notifications are sent regarding the approval of server registrations, it is strongly recommended to require an email address during account registration.
-     */
-    "registerApprovalEmailRecommended": string;
-    /**
-     * Perform a security update immediately!
-     */
-    "HaveSecurityUpdate": string;
-    /**
-     * Avatar decorations
-     */
-    "customAvatarDecoration": string;
-    /**
-     * Reason for Decline (Optional)
-     */
-    "optionalReason": string;
-    /**
-     * Email Templates
-     */
-    "emailTemplates": string;
-    /**
-     * Automated processing of abuse reports
-     */
-    "abuseReportAutoProcessing": string;
     "_permissions": {
         /**
          * Approve registration application
@@ -1118,6 +1146,18 @@ export interface Locale extends ILocale {
          * Donate to Vickey
          */
         "donate": string;
+        /**
+         * {name} uses a modified version of the original Vickey.
+         */
+        "thisIsModifiedVersionVK": ParameterizedString<"name">;
+        /**
+         * Source code
+         */
+        "source": string;
+        /**
+         * Original
+         */
+        "original": string;
     };
     "_serverSettings": {
         /**
@@ -1172,6 +1212,22 @@ export interface Locale extends ILocale {
          * 有効にすると、リアクション作成時のパフォーマンスが大幅に向上し、データベースへの負荷を軽減することが可能です。ただし、Redisのメモリ使用量は増加します。
          */
         "reactionsBufferingDescription": string;
+        /**
+         * リモート投稿の自動クリーニング
+         */
+        "remoteNotesCleaning": string;
+        /**
+         * 有効にすると、参照されていない古いリモートの投稿を定期的にクリーンアップしてデータベースの肥大化を抑制します。
+         */
+        "remoteNotesCleaning_description": string;
+        /**
+         * 最大クリーニング処理継続時間
+         */
+        "remoteNotesCleaningMaxProcessingDuration": string;
+        /**
+         * 最低ノート保持日数
+         */
+        "remoteNotesCleaningExpiryDaysForEachNotes": string;
         /**
          * 問い合わせ先URL
          */
@@ -1244,6 +1300,14 @@ export interface Locale extends ILocale {
          * サーバーで受信したリモートのコンテンツを含め、サーバー内の全てのコンテンツを無条件でインターネットに公開することはリスクが伴います。特に、分散型の特性を知らない閲覧者にとっては、リモートのコンテンツであってもサーバー内で作成されたコンテンツであると誤って認識してしまう可能性があるため、注意が必要です。
          */
         "userGeneratedContentsVisibilityForVisitor_description2": string;
+        /**
+         * サーバーの初期設定ウィザードをやり直しますか？
+         */
+        "restartServerSetupWizardConfirm_title": string;
+        /**
+         * 現在の一部の設定はリセットされます。
+         */
+        "restartServerSetupWizardConfirm_text": string;
         "_userGeneratedContentsVisibilityForVisitor": {
             /**
              * 全て公開
@@ -1656,6 +1720,10 @@ export interface Locale extends ILocale {
          * 修復ツールを起動
          */
         "otherOption3": string;
+        /**
+         * Misskeyをセーフモードで起動
+         */
+        "otherOption4": string;
     };
     "_devTools": {
         /**
@@ -1993,11 +2061,11 @@ export interface Locale extends ILocale {
      */
     "mention": string;
     /**
-     * あなた宛て
+     * メンション
      */
     "mentions": string;
     /**
-     * ダイレクト投稿
+     * 指名
      */
     "directNotes": string;
     /**
@@ -4249,11 +4317,11 @@ export interface Locale extends ILocale {
      */
     "serviceworkerInfo": string;
     /**
-     * 削除された投稿
+     * 削除されたノート
      */
     "deletedNote": string;
     /**
-     * 非公開の投稿
+     * 非公開のノート
      */
     "invisibleNote": string;
     /**
@@ -7175,6 +7243,30 @@ export interface Locale extends ILocale {
      * 低くすると画質を保てますが、ファイルサイズは増加します。<br>高くするとファイルサイズを減らせますが、画質は低下します。
      */
     "defaultImageCompressionLevel_description": string;
+    /**
+     * 分
+     */
+    "inMinutes": string;
+    /**
+     * 日
+     */
+    "inDays": string;
+    /**
+     * セーフモードが有効です
+     */
+    "safeModeEnabled": string;
+    /**
+     * セーフモードが有効なため、プラグインはすべて無効化されています。
+     */
+    "pluginsAreDisabledBecauseSafeMode": string;
+    /**
+     * セーフモードが有効なため、カスタムCSSは適用されていません。
+     */
+    "customCssIsDisabledBecauseSafeMode": string;
+    /**
+     * セーフモードが有効な間はデフォルトのテーマが使用されます。セーフモードをオフにすると元に戻ります。
+     */
+    "themeIsDefaultBecauseSafeMode": string;
     "_order": {
         /**
          * 新しい順
@@ -8011,7 +8103,7 @@ export interface Locale extends ILocale {
                  */
                 "followers": string;
                 /**
-                 * 指定したユーザーにのみ公開され、また相手に通知が入ります。ダイレクトメッセージのかわりにお使いいただけます。
+                 * 指定したユーザーにのみ公開され、また相手に通知が入ります。
                  */
                 "direct": string;
                 /**
@@ -8019,7 +8111,7 @@ export interface Locale extends ILocale {
                  */
                 "doNotSendConfidencialOnDirect1": string;
                 /**
-                 * 送信先のサーバーの管理者は投稿内容を見ることが可能なので、信頼できないサーバーのユーザーにダイレクト投稿を送信する場合は、機密情報の扱いに注意が必要です。
+                 * 送信先のサーバーの管理者は投稿内容を見ることが可能なので、信頼できないサーバーのユーザーが含まれる限定公開のノートを作成する際は、機密情報の扱いに注意が必要です。
                  */
                 "doNotSendConfidencialOnDirect2": string;
                 /**
@@ -10383,7 +10475,7 @@ export interface Locale extends ILocale {
          */
         "followersDescription": string;
         /**
-         * ダイレクト
+         * 指名
          */
         "specified": string;
         /**
@@ -11272,11 +11364,11 @@ export interface Locale extends ILocale {
              */
             "channel": string;
             /**
-             * あなた宛て
+             * メンション
              */
             "mentions": string;
             /**
-             * ダイレクト
+             * 指名
              */
             "direct": string;
             /**
@@ -12399,6 +12491,14 @@ export interface Locale extends ILocale {
          * 連合可能なサーバーの指定など、高度な設定も後ほど可能です。
          */
         "youCanConfigureMoreFederationSettingsLater": string;
+        /**
+         * 受信コンテンツの自動クリーニング
+         */
+        "remoteContentsCleaning": string;
+        /**
+         * 連合を行うと、継続して多くのコンテンツを受信します。自動クリーニングを有効にすると、参照されていない古くなったコンテンツを自動でサーバーから削除し、ストレージを節約できます。
+         */
+        "remoteContentsCleaning_description": string;
         /**
          * 管理者情報
          */

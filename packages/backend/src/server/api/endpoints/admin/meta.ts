@@ -687,6 +687,30 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
+			enableRemoteNotesCleaning: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			remoteNotesCleaningExpiryDaysForEachNotes: {
+				type: 'number',
+				optional: false, nullable: false,
+			},
+			remoteNotesCleaningMaxProcessingDurationInMinutes: {
+				type: 'number',
+				optional: false, nullable: false,
+			},
+			enableBcc: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			bccLimit: {
+				type: 'number',
+				optional: false, nullable: false,
+			},
+			visibleRecipient: {
+				type: 'string',
+				optional: false, nullable: true,
+			}
 		},
 	},
 } as const;
@@ -866,6 +890,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				proxyRemoteFiles: instance.proxyRemoteFiles,
 				signToActivityPubGet: instance.signToActivityPubGet,
 				allowExternalApRedirect: instance.allowExternalApRedirect,
+				enableRemoteNotesCleaning: instance.enableRemoteNotesCleaning,
+				remoteNotesCleaningExpiryDaysForEachNotes: instance.remoteNotesCleaningExpiryDaysForEachNotes,
+				remoteNotesCleaningMaxProcessingDurationInMinutes: instance.remoteNotesCleaningMaxProcessingDurationInMinutes,
+				enableBcc: instance.enableBcc,
+				bccLimit: instance.bccLimit,
+				visibleRecipient: instance.visibleRecipient && instance.visibleRecipient.trim() !== '' ? instance.visibleRecipient : instance.maintainerEmail,
 			};
 		});
 	}

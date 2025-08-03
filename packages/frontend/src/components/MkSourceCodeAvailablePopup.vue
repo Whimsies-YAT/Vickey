@@ -20,14 +20,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</I18n>
 		</div>
 		<div :class="$style.text">
-			<I18n :src="i18n.ts._aboutMisskey.thisIsModifiedVersion" tag="span">
+			<I18n :src="i18n.ts._aboutVickey.thisIsModifiedVersionVK" tag="span">
 				<template #name>
 					{{ instance.name ?? host }}
 				</template>
 			</I18n>
 			<I18n :src="i18n.ts.correspondingSourceIsAvailable" tag="span">
 				<template #anchor>
-					<MkA to="/about-misskey" class="_link">{{ i18n.ts.aboutMisskey }}</MkA>
+					<MkA to="/about-vickey" class="_link">{{ i18n.ts.aboutVickey }}</MkA>
 				</template>
 			</I18n>
 		</div>
@@ -54,7 +54,7 @@ const emit = defineEmits<{
 const zIndex = os.claimZIndex('low');
 
 function close() {
-	miLocalStorage.setItem('modifiedVersionMustProminentlyOfferInAgplV3Section13Read', 'true');
+	miLocalStorage.setItem('modifiedVersionMustProminentlyOfferInAgplV3Section13ReadAndApplyToVk', 'true');
 	emit('closed');
 }
 </script>

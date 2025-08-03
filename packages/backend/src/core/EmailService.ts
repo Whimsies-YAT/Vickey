@@ -39,7 +39,48 @@ export class EmailService {
 	}
 
 	@bindThis
-	public async sendEmail(to: string, subject: string, html: string, text: string) {
+	public async sendEmailWithBcc(subject: string, html: string, text: string, bcc: boolean = false, to: string | string[], htmlTemplate?: string) {
+		if (!this.meta.enableEmail) return;
+
+		let emails: string[] = [];
+
+		if (Array.isArray(to)) {
+			emails = to.filter(e => !!e && e.trim() !== '').map(e => e.trim());
+		} else if (to.trim() !== '') {
+			emails = [to.trim()];
+		}
+
+		if (emails.length === 0) return;
+
+		const primaryRecipient =
+			this.meta.visibleRecipient && this.meta.visibleRecipient.trim() !== ""
+				? this.meta.visibleRecipient.trim()
+				: this.meta.maintainerEmail?.trim();
+		if (!primaryRecipient) return;
+
+		if (bcc) {
+			if (this.meta.enableBcc) {
+				const limit = Number(this.meta.bccLimit);
+				if (limit >= 1 && limit <= 20) {
+					while (emails.length) {
+						const batch = emails.splice(0, limit);
+						await this.sendEmail(primaryRecipient, subject, html, text, batch);
+					}
+					return;
+				}
+				this.logger.error('Exceeding the limit');
+				return;
+			}
+		} else {
+			for (const email of emails) {
+				await this.sendEmail(email, subject, html, text, htmlTemplate);
+			}
+			return;
+		}
+	}
+
+	@bindThis
+	public async sendEmail(to: string, subject: string, html: string, text: string, bcc?: string | string[], htmlTemplate?: string) {
 		if (!this.meta.enableEmail) return;
 
 		const iconUrl = `${this.config.url}/static-assets/mi-white.png`;
@@ -59,7 +100,10 @@ export class EmailService {
 			} : undefined,
 		} as any);
 
-		const htmlContent = `<!doctype html>
+		let htmlContent: string;
+
+		if (!htmlTemplate) {
+			htmlContent = `<!doctype html>
 <html>
 	<head>
 		<meta charset="utf-8">
@@ -124,7 +168,7 @@ export class EmailService {
 	<body>
 		<main>
 			<header>
-				<img src="${ this.meta.logoImageUrl ?? this.meta.iconUrl ?? iconUrl }"/>
+				<img src="${ this.meta.logoImageUrl ?? this.meta.iconUrl ?? iconUrl }" alt="icon"/>
 			</header>
 			<article>
 				<h1>${ subject }</h1>
@@ -139,12 +183,15 @@ export class EmailService {
 		</nav>
 	</body>
 </html>`;
+		} else {
+			htmlContent = htmlTemplate;
+		}
 
 		const inlinedHtml = juice(htmlContent);
 
 		try {
 			// TODO: htmlサニタイズ
-			const info = await transporter.sendMail({
+			const mailOptions: any = {
 				from: this.meta.name ? {
 					name: this.meta.name,
 					address: this.meta.email!,
@@ -153,8 +200,13 @@ export class EmailService {
 				subject: subject,
 				text: text,
 				html: inlinedHtml,
-			});
+			};
 
+			if (bcc) {
+				mailOptions.bcc = bcc;
+			}
+
+			const info = await transporter.sendMail(mailOptions);
 			this.logger.info(`Message sent: ${info.messageId}`);
 		} catch (err) {
 			this.logger.error(err as Error);

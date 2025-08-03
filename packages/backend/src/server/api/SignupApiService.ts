@@ -252,7 +252,7 @@ export class SignupApiService {
 
 			reply.code(204);
 			return;
-		} else if (this.meta.approvalRequiredForSignup) {
+		} else if (this.meta.approvalRequiredForSignup && !this.meta.emailRequiredForSignup) {
 			if (emailAddress) {
 				const result = await this.emailTemplatesService.sendEmailWithTemplates(emailAddress, 'approvalPending');
 				if (!result) {
@@ -269,6 +269,7 @@ export class SignupApiService {
 				});
 			}
 
+			/*
 			const moderators = await this.roleService.getModerators();
 
 			for (const moderator of moderators) {
@@ -286,6 +287,20 @@ export class SignupApiService {
 							`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${reason}"`);
 					}
 				}
+			}
+			*/
+			const newUserProfile = {
+				username: pendingUser.username,
+				reason: reason,
+			};
+			const modEmails = await this.roleService.getModeratorsEmail();
+			const result = await this.emailTemplatesService.sendEmailWithTemplatesBcc({ key: 'newUserApprovalWithoutEmail', bcc: true, to: modEmails, context: { newUserProfile } });
+			if (!result) {
+				this.emailService.sendEmailWithBcc('New user awaiting approval',
+					`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${reason}"`,
+					`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${reason}"`,
+					true,
+					modEmails);
 			}
 
 			reply.code(204);
@@ -371,6 +386,7 @@ export class SignupApiService {
 					}
 				}
 
+				/*
 				const moderators = await this.roleService.getModerators();
 
 				for (const moderator of moderators) {
@@ -382,13 +398,28 @@ export class SignupApiService {
 							username: pendingUser.username,
 							reason: pendingUser.reason,
 						};
-						const result = await this.emailTemplatesService.sendEmailWithTemplates(profile.email, 'newUserApprovalWithoutEmail', { newUserProfile });
+						const result = await this.emailTemplatesService.sendEmailWithTemplates(profile.email, 'newUserApproval', { newUserProfile });
 						if (!result) {
 							await this.emailService.sendEmail(profile.email, 'New user awaiting approval',
 								`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`,
 								`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`);
 						}
 					}
+				}
+				 */
+				const newUserProfile = {
+					email: pendingUser.email,
+					username: pendingUser.username,
+					reason: pendingUser.reason,
+				};
+				const modEmails = await this.roleService.getModeratorsEmail();
+				const result = await this.emailTemplatesService.sendEmailWithTemplatesBcc({ key: 'newUserApproval', bcc: true, to: modEmails, context: { newUserProfile } });
+				if (!result) {
+					this.emailService.sendEmailWithBcc('New user awaiting approval',
+						`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`,
+						`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`,
+						true,
+						modEmails);
 				}
 
 				return { pendingApproval: true };

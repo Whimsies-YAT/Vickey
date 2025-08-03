@@ -27,11 +27,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</MkKeyValue>
 			<div v-html="i18n.tsx.poweredByMisskeyDescription({ name: instance.name ?? host })">
 			</div>
-			<FormLink to="/about-misskey">
+			<FormLink to="/about-vickey">
 				<template #icon><i class="ti ti-info-circle"></i></template>
-				{{ i18n.ts.aboutMisskey }}
+				{{ i18n.ts.aboutVickey }}
 			</FormLink>
-			<FormLink v-if="instance.repositoryUrl || instance.providesTarball" :to="instance.repositoryUrl || `/tarball/misskey-${version}.tar.gz`" external>
+			<FormLink v-if="instance.repositoryUrl || instance.providesTarball" :to="instance.repositoryUrl || `/tarball/vickey-${version}.tar.gz`" external>
 				<template #icon><i class="ti ti-code"></i></template>
 				{{ i18n.ts.sourceCode }}
 			</FormLink>

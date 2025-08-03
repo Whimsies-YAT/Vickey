@@ -28,8 +28,8 @@ import { addCustomEmoji, removeCustomEmojis, updateCustomEmojis } from '@/custom
 import { prefer } from '@/preferences.js';
 import { launchPlugins } from '@/plugin.js';
 import { updateCurrentAccountPartial } from '@/accounts.js';
-import { signout } from '@/signout.js';
 import { migrateOldSettings } from '@/pref-migrate.js';
+import { unisonReload } from '@/utility/unison-reload.js';
 
 export async function mainBoot() {
 	const { isClientUpdated, lastVersion } = await common(async () => {
@@ -301,8 +301,8 @@ export async function mainBoot() {
 		}
 		 */
 
-		const modifiedVersionMustProminentlyOfferInAgplV3Section13Read = miLocalStorage.getItem('modifiedVersionMustProminentlyOfferInAgplV3Section13Read');
-		if (modifiedVersionMustProminentlyOfferInAgplV3Section13Read !== 'true' && instance.repositoryUrl !== 'https://github.com/misskey-dev/misskey') {
+		const modifiedVersionMustProminentlyOfferInAgplV3Section13Read = miLocalStorage.getItem('modifiedVersionMustProminentlyOfferInAgplV3Section13ReadAndApplyToVk');
+		if (modifiedVersionMustProminentlyOfferInAgplV3Section13Read !== 'true' && instance.repositoryUrl.toLowerCase() !== 'https://github.com/whimsies-yat/vickey') {
 			const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSourceCodeAvailablePopup.vue')), {}, {
 				closed: () => dispose(),
 			});
@@ -318,22 +318,43 @@ export async function mainBoot() {
 		if (store.s.realtimeMode) {
 			const stream = useStream();
 
+			let disconnectTimer: number | null = null;
+			const DIALOG_DELAY_MS = 5000; // 5 seconds
+
 			let reloadDialogShowing = false;
-			stream.on('_disconnected_', async () => {
+
+			stream.on('_disconnected_', () => {
 				if (prefer.s.serverDisconnectedBehavior === 'reload') {
 					window.location.reload();
-				} else if (prefer.s.serverDisconnectedBehavior === 'dialog') {
+					return;
+				}
+
+				if (disconnectTimer) {
+					window.clearTimeout(disconnectTimer);
+				}
+
+				disconnectTimer = window.setTimeout(async () => {
 					if (reloadDialogShowing) return;
 					reloadDialogShowing = true;
+
 					const { canceled } = await confirm({
 						type: 'warning',
 						title: i18n.ts.disconnectedFromServer,
 						text: i18n.ts.reloadConfirm,
 					});
+
 					reloadDialogShowing = false;
 					if (!canceled) {
 						window.location.reload();
 					}
+				}, DIALOG_DELAY_MS);
+			});
+
+			stream.on('_connected_', () => {
+				if (disconnectTimer) {
+					window.clearTimeout(disconnectTimer);
+					disconnectTimer = null;
+					console.log('Connection restored. Disconnect dialog canceled.');
 				}
 			});
 
@@ -393,6 +414,8 @@ export async function mainBoot() {
 	}
 
 	// shortcut
+	let safemodeRequestCount = 0;
+	let safemodeRequestTimer: number | null = null;
 	const keymap = {
 		'p|n': () => {
 			if ($i == null) return;
@@ -404,6 +427,24 @@ export async function mainBoot() {
 		's': () => {
 			mainRouter.push('/search');
 		},
+		'g': {
+			callback: () => {
+				// mを5回押すとセーフモードに入る
+				safemodeRequestCount++;
+				if (safemodeRequestCount >= 5) {
+					miLocalStorage.setItem('isSafeMode', 'true');
+					unisonReload();
+				} else {
+					if (safemodeRequestTimer != null) {
+						window.clearTimeout(safemodeRequestTimer);
+					}
+					safemodeRequestTimer = window.setTimeout(() => {
+						safemodeRequestCount = 0;
+					}, 300);
+				}
+			},
+			allowRepeat: true,
+		}
 	} as const satisfies Keymap;
 	window.document.addEventListener('keydown', makeHotkey(keymap), { passive: false });
 

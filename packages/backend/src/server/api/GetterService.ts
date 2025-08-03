@@ -42,11 +42,11 @@ export class GetterService {
 	}
 
 	@bindThis
-	public async getNoteWithUser(noteId: MiNote['id']) {
+	public async getNoteWithRelations(noteId: MiNote['id']) {
 		const isIgnored = await this.cacheService.abuseAutoIgnoreCache.fetch('abuseAutoIgnore');
 		if (isIgnored.has(noteId)) throw new IdentifiableError('9725d0ce-ba28-4dde-95a7-2cbb2c15de24', 'This note is invisible.');
 
-		const note = await this.notesRepository.findOne({ where: { id: noteId }, relations: ['user'] });
+		const note = await this.notesRepository.findOne({ where: { id: noteId }, relations: ['user', 'reply', 'renote', 'reply.user', 'renote.user'] });
 
 		if (note == null) {
 			throw new IdentifiableError('9725d0ce-ba28-4dde-95a7-2cbb2c15de24', 'No such note.');
