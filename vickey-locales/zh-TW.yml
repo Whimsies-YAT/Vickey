@@ -2,11 +2,6 @@ _lang_: "English"
 result: "結果"
 flagAsVI: "需要自動TTS功能"
 flagAsVIDescription: "如果需要自動TTS功能，請啟動此選項。如果您屬於授權用戶組，自動TTS功能將在特定的範圍內激活。"
-_role:
-  _options:
-    canUseTTS: "使用TTS功能"
-  _condition:
-    isVI: "TTS的用戶"
 approvals: "批准"
 registerApproveConfirm: "確認批准註冊？"
 registerApproveConfirmDescription: "此操作無法撤銷。一旦確認批准，系統將發送一封電子郵件通知用戶其註冊已獲得批准。"
@@ -27,6 +22,18 @@ customAvatarDecoration: "頭像裝飾"
 optionalReason: "拒絕理由(可選)"
 emailTemplates: "Email Templates"
 abuseReportAutoProcessing: "Automated processing of abuse reports"
+enableBcc: "Enable blind carbon copy"
+enableBccInfo: "Merge some emails to reduce the number of emails sent."
+bccLimit: "Maximum blind carbon copy recipients"
+visibleRecipient: "Visible recipient"
+visibleRecipientInfo: "The visible recipient defaults to the maintainer's email address."
+aboutVickey: "About Vickey"
+pageDesperated: "This page has been deprecated and may be removed in the future."
+_role:
+  _options:
+    canUseTTS: "使用TTS功能"
+  _condition:
+    isVI: "TTS的用戶"
 _permissions:
   "write:admin:approve-account": "Approve registration application"
   "write:admin:decline-account": "Decline registration application"
@@ -45,6 +52,9 @@ _aboutVickey:
   about: "Vickey是Misskey的特色分支。"
   translation: "翻譯Vickey"
   donate: "贊助Vickey"
+  thisIsModifiedVersionVK: "{name} uses a modified version of the original Vickey."
+  source: "Source code"
+  original: "Original"
 _serverSettings:
   thisSettingWillAutomaticallyOnWhenModeratorsInactive: "為了防止 spam，如果一段期間內沒有偵測到管理員的活動，此設定將自動關閉。"
 _webhookSettings:
