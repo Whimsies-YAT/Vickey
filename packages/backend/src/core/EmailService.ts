@@ -39,7 +39,7 @@ export class EmailService {
 	}
 
 	@bindThis
-	public async sendEmailWithBcc(subject: string, html: string, text: string, bcc: boolean = false, to: string | string[]) {
+	public async sendEmailWithBcc(subject: string, html: string, text: string, bcc: boolean = false, to: string | string[], htmlTemplate?: string) {
 		if (!this.meta.enableEmail) return;
 
 		let emails: string[] = [];
@@ -73,14 +73,14 @@ export class EmailService {
 			}
 		} else {
 			for (const email of emails) {
-				await this.sendEmail(email, subject, html, text);
+				await this.sendEmail(email, subject, html, text, htmlTemplate);
 			}
 			return;
 		}
 	}
 
 	@bindThis
-	public async sendEmail(to: string, subject: string, html: string, text: string, bcc?: string | string[]) {
+	public async sendEmail(to: string, subject: string, html: string, text: string, bcc?: string | string[], htmlTemplate?: string) {
 		if (!this.meta.enableEmail) return;
 
 		const iconUrl = `${this.config.url}/static-assets/mi-white.png`;
@@ -100,7 +100,10 @@ export class EmailService {
 			} : undefined,
 		} as any);
 
-		const htmlContent = `<!doctype html>
+		let htmlContent: string;
+
+		if (!htmlTemplate) {
+			htmlContent = `<!doctype html>
 <html>
 	<head>
 		<meta charset="utf-8">
@@ -165,7 +168,7 @@ export class EmailService {
 	<body>
 		<main>
 			<header>
-				<img src="${ this.meta.logoImageUrl ?? this.meta.iconUrl ?? iconUrl }"/>
+				<img src="${ this.meta.logoImageUrl ?? this.meta.iconUrl ?? iconUrl }" alt="icon"/>
 			</header>
 			<article>
 				<h1>${ subject }</h1>
@@ -180,6 +183,9 @@ export class EmailService {
 		</nav>
 	</body>
 </html>`;
+		} else {
+			htmlContent = htmlTemplate;
+		}
 
 		const inlinedHtml = juice(htmlContent);
 

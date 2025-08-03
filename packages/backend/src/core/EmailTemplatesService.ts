@@ -17,6 +17,7 @@ interface TemplateContext {
 }
 
 interface PresetVariables {
+	instanceUrl: string;
 	instanceHost: string;
 	instanceName: string;
 	maintainerName: string;
@@ -25,6 +26,8 @@ interface PresetVariables {
 	senderEmail: string;
 	receiverName: string;
 	receiverEmail: string;
+	iconUrl: string;
+	emailSettingUrl: string;
 }
 
 @Injectable()
@@ -268,6 +271,7 @@ export class EmailTemplatesService {
 		const userProfile = await this.userProfilesRepository.findOneBy({ email: to });
 
 		return {
+			instanceUrl: this.sanitizeVariableValue(this.config.url, false),
 			instanceHost: this.sanitizeVariableValue(this.config.host, false),
 			instanceName: this.sanitizeVariableValue(this.meta.name ?? this.config.host, false),
 			maintainerName: this.sanitizeVariableValue(this.meta.maintainerName ?? '', false),
@@ -278,6 +282,8 @@ export class EmailTemplatesService {
 				userProfile?.emailVerified ? userProfile.user?.name ?? '' : '', false
 			),
 			receiverEmail: this.sanitizeVariableValue(to, false),
+			iconUrl: this.sanitizeVariableValue(this.meta.logoImageUrl ?? this.meta.iconUrl ?? `${this.config.url}/static-assets/mi-white.png`, false),
+			emailSettingUrl: this.sanitizeVariableValue(`${this.config.url}/settings/email`, false),
 		};
 	}
 
