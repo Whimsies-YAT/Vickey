@@ -326,7 +326,7 @@ export function confirmAdvanced(props: {
 	autoCloseAction?: 'ok' | 'cancel';
 }): ConfirmController {
 	let isResolved = false;
-	let timeoutId: ReturnType<typeof setTimeout> | null = null;
+	let timeoutId: ReturnType<typeof setTimeout> | number | null = null;
 	let resolvePromise: (result: { canceled: boolean }) => void;
 	let dialogRef: any = null;
 
@@ -339,7 +339,7 @@ export function confirmAdvanced(props: {
 		isResolved = true;
 
 		if (timeoutId) {
-			clearTimeout(timeoutId);
+			window.clearTimeout(timeoutId);
 			timeoutId = null;
 		}
 
@@ -366,15 +366,13 @@ export function confirmAdvanced(props: {
 		const delay = props.autoCloseDelay ?? 3000;
 		const defaultAction = props.autoCloseAction ?? 'ok';
 
-		timeoutId = setTimeout(() => {
+		timeoutId = window.setTimeout(() => {
 			if (!isResolved) {
 				handleResult({ canceled: defaultAction === 'cancel' });
 				if (dialogRef && dialogRef.dispose) {
 					try {
 						dialogRef.dispose();
-					} catch (e) {
-						console.warn('自动关闭对话框失败:', e);
-					}
+					} catch (e) { }
 				}
 			}
 		}, delay);
@@ -385,33 +383,29 @@ export function confirmAdvanced(props: {
 		close: (result = { canceled: true }) => {
 			if (!isResolved) {
 				handleResult(result);
-				setTimeout(() => {
+				window.setTimeout(() => {
 					if (dialogRef && dialogRef.dispose) {
 						try {
 							dialogRef.dispose();
-						} catch (e) {
-							console.warn('关闭对话框失败:', e);
-						}
+						} catch (e) { }
 					}
 				}, 0);
 			}
 		},
 		dispose: () => {
 			if (timeoutId) {
-				clearTimeout(timeoutId);
+				window.clearTimeout(timeoutId);
 				timeoutId = null;
 			}
 			if (!isResolved) {
 				isResolved = true;
 				resolvePromise({ canceled: true });
 			}
-			setTimeout(() => {
+			window.setTimeout(() => {
 				if (dialogRef && dialogRef.dispose) {
 					try {
 						dialogRef.dispose();
-					} catch (e) {
-						console.warn('销毁对话框失败:', e);
-					}
+					} catch (e) { }
 				}
 			}, 0);
 		}

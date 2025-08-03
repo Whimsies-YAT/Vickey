@@ -535,7 +535,6 @@ export class RoleService implements OnApplicationShutdown, OnModuleInit {
 		includeRoot?: boolean,
 		excludeExpire?: boolean,
 	}) {
-
 		const moderators = await this.getModerators(opts);
 		const moderatorIds = moderators.map(m => m.id);
 		const profiles = await this.userProfilesRepository.findBy({

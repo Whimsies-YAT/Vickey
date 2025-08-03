@@ -330,7 +330,7 @@ export async function mainBoot() {
 				}
 
 				if (disconnectTimer) {
-					clearTimeout(disconnectTimer);
+					window.clearTimeout(disconnectTimer);
 				}
 
 				disconnectTimer = window.setTimeout(async () => {
@@ -352,7 +352,7 @@ export async function mainBoot() {
 
 			stream.on('_connected_', () => {
 				if (disconnectTimer) {
-					clearTimeout(disconnectTimer);
+					window.clearTimeout(disconnectTimer);
 					disconnectTimer = null;
 					console.log('Connection restored. Disconnect dialog canceled.');
 				}

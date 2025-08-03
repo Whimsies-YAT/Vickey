@@ -117,7 +117,6 @@ export class EmailTemplatesService {
 		}
 	}
 
-
 	@bindThis
 	public async customEmailTemplates(key: string, sub: string, msg: string, enabled: boolean = false): Promise<boolean> {
 		if (!await this.emailTemplatesRepository.findOneBy({ key: key })) return false;

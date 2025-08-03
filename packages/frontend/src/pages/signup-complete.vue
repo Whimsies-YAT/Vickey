@@ -37,13 +37,15 @@ const props = defineProps<{
 	code: string;
 }>();
 
-function submit() {
+async function submit() {
 	if (submitting.value) return;
 	submitting.value = true;
 
-	misskeyApi('signup-pending', {
-		code: props.code,
-	}).then(res => {
+	try {
+		const res = await misskeyApi('signup-pending', {
+			code: props.code,
+		});
+
 		if (res.pendingApproval) {
 			return os.alert({
 				type: 'success',
@@ -53,28 +55,23 @@ function submit() {
 		}
 
 		try {
-			const result = login(res.i, '/');
-			if (result && typeof result.then === 'function') {
-				return result.catch(() => {
-					window.close();
-					window.location.href = '/';
-				});
-			}
+			await login(res.i, '/');
 			return;
-		} catch (e) {
+		} catch (loginError) {
 			window.close();
 			window.location.href = '/';
 			return;
 		}
-	}).catch(() => {
-		submitting.value = false;
 
+	} catch (apiError) {
 		os.alert({
 			type: 'error',
 			title: i18n.ts.somethingHappened,
 			text: i18n.ts.signupPendingError,
 		});
-	});
+	} finally {
+		submitting.value = false;
+	}
 }
 </script>
 

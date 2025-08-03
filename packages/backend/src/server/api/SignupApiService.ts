@@ -294,7 +294,7 @@ export class SignupApiService {
 				reason: reason,
 			};
 			const modEmails = await this.roleService.getModeratorsEmail();
-			const result = await this.emailTemplatesService.sendEmailWithTemplatesBcc({ key: 'newUserApprovalWithoutEmail', bcc: true, to: modEmails, context: { newUserProfile }});
+			const result = await this.emailTemplatesService.sendEmailWithTemplatesBcc({ key: 'newUserApprovalWithoutEmail', bcc: true, to: modEmails, context: { newUserProfile } });
 			if (!result) {
 				this.emailService.sendEmailWithBcc('New user awaiting approval',
 					`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${reason}"`,
@@ -413,7 +413,7 @@ export class SignupApiService {
 					reason: pendingUser.reason,
 				};
 				const modEmails = await this.roleService.getModeratorsEmail();
-				const result = await this.emailTemplatesService.sendEmailWithTemplatesBcc({ key: 'newUserApproval', bcc: true, to: modEmails, context: { newUserProfile }});
+				const result = await this.emailTemplatesService.sendEmailWithTemplatesBcc({ key: 'newUserApproval', bcc: true, to: modEmails, context: { newUserProfile } });
 				if (!result) {
 					this.emailService.sendEmailWithBcc('New user awaiting approval',
 						`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`,
