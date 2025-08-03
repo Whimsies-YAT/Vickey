@@ -2,11 +2,6 @@ _lang_: "Bahasa Melayu"
 result: "Result"
 flagAsVI: "Automatic TTS feature needed."
 flagAsVIDescription: "Enable this if you need the automatic TTS feature. If you belong to an authorized user group, the automatic TTS feature will be activated within a specific scope."
-_role:
-  _options:
-    canUseTTS: "Use TTS feature"
-  _condition:
-    isVI: "TTS User"
 approvals: "Approvals"
 registerApproveConfirm: "Do you want to approve the registration?"
 registerApproveConfirmDescription: "This action cannot be undone. Once approved, an email will be sent to notify the user that their registration has been approved."
@@ -27,6 +22,18 @@ customAvatarDecoration: "Avatar decorations"
 optionalReason: "Reason for Decline (Optional)"
 emailTemplates: "Email Templates"
 abuseReportAutoProcessing: "Automated processing of abuse reports"
+enableBcc: "Enable blind carbon copy"
+enableBccInfo: "Merge some emails to reduce the number of emails sent."
+bccLimit: "Maximum blind carbon copy recipients"
+visibleRecipient: "Visible recipient"
+visibleRecipientInfo: "The visible recipient defaults to the maintainer's email address."
+aboutVickey: "About Vickey"
+pageDesperated: "This page has been deprecated and may be removed in the future."
+_role:
+  _options:
+    canUseTTS: "Use TTS feature"
+  _condition:
+    isVI: "TTS User"
 _permissions:
   "write:admin:approve-account": "Approve registration application"
   "write:admin:decline-account": "Decline registration application"
@@ -45,6 +52,9 @@ _aboutVickey:
   about: "Vickey is a soft fork of Misskey."
   translation: "Translate Vickey"
   donate: "Donate to Vickey"
+  thisIsModifiedVersionVK: "{name} uses a modified version of the original Vickey."
+  source: "Source code"
+  original: "Original"
 _serverSettings:
   thisSettingWillAutomaticallyOnWhenModeratorsInactive: "If no moderator activity is detected for a while, this setting will be automatically turned on to prevent spam."
 _webhookSettings:
