@@ -2,11 +2,6 @@ _lang_: "English"
 result: "Result"
 flagAsVI: "Cần tính năng TTS tự động."
 flagAsVIDescription: "Kích hoạt nếu bạn cần tính năng TTS tự động. Nếu bạn thuộc nhóm người dùng được ủy quyền, tính năng TTS tự động sẽ được kích hoạt trong một phạm vi cụ thể."
-_role:
-  _options:
-    canUseTTS: "Dùng tính năng TTS"
-  _condition:
-    isVI: "Người dùng TTS"
 approvals: "Phê duyệt"
 registerApproveConfirm: "Bạn muốn phê duyệt đăng ký?"
 registerApproveConfirmDescription: "Không thể hoàn tác tác vụ này. Sau khi phê duyệt, một email sẽ được gửi để thông báo cho người dùng rằng yêu cầu đăng ký của họ đã được chấp thuận."
@@ -27,6 +22,18 @@ customAvatarDecoration: "Avatar decorations"
 optionalReason: "Reason for Decline (Optional)"
 emailTemplates: "Email Templates"
 abuseReportAutoProcessing: "Automated processing of abuse reports"
+enableBcc: "Enable blind carbon copy"
+enableBccInfo: "Merge some emails to reduce the number of emails sent."
+bccLimit: "Maximum blind carbon copy recipients"
+visibleRecipient: "Visible recipient"
+visibleRecipientInfo: "The visible recipient defaults to the maintainer's email address."
+aboutVickey: "About Vickey"
+pageDesperated: "This page has been deprecated and may be removed in the future."
+_role:
+  _options:
+    canUseTTS: "Dùng tính năng TTS"
+  _condition:
+    isVI: "Người dùng TTS"
 _permissions:
   "write:admin:approve-account": "Approve registration application"
   "write:admin:decline-account": "Decline registration application"
@@ -45,6 +52,9 @@ _aboutVickey:
   about: "Vickey is a soft fork of Misskey."
   translation: "Dịch Vickey"
   donate: "Quyên góp cho Vickey"
+  thisIsModifiedVersionVK: "{name} uses a modified version of the original Vickey."
+  source: "Source code"
+  original: "Original"
 _serverSettings:
   thisSettingWillAutomaticallyOnWhenModeratorsInactive: "Nếu sau một thời gian mà không phát hiện hoạt động nào của người điều hành, cài đặt này sẽ tự động được bật để ngăn chặn spam."
 _webhookSettings:
