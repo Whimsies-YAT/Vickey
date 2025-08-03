@@ -2,11 +2,6 @@ _lang_: "English"
 result: "结果"
 flagAsVI: "需要自动 TTS 功能。"
 flagAsVIDescription: "启用此选项以使用自动 TTS 功能。授权用户组将在特定范围内自动激活该功能。"
-_role:
-  _options:
-    canUseTTS: "使用 TTS 功能"
-  _condition:
-    isVI: "TTS 用户"
 approvals: "批准"
 registerApproveConfirm: "确认批准注册？"
 registerApproveConfirmDescription: "此操作不可撤销。注册批准后，用户将收到通知邮件。"
@@ -27,6 +22,18 @@ customAvatarDecoration: "头像挂件"
 optionalReason: "拒绝理由 (可选)"
 emailTemplates: "邮件模板"
 abuseReportAutoProcessing: "自动处理滥用报告"
+enableBcc: "Enable blind carbon copy"
+enableBccInfo: "Merge some emails to reduce the number of emails sent."
+bccLimit: "Maximum blind carbon copy recipients"
+visibleRecipient: "Visible recipient"
+visibleRecipientInfo: "The visible recipient defaults to the maintainer's email address."
+aboutVickey: "About Vickey"
+pageDesperated: "This page has been deprecated and may be removed in the future."
+_role:
+  _options:
+    canUseTTS: "使用 TTS 功能"
+  _condition:
+    isVI: "TTS 用户"
 _permissions:
   "write:admin:approve-account": "确认批准用户注册"
   "write:admin:decline-account": "拒绝注册申请"
@@ -45,6 +52,9 @@ _aboutVickey:
   about: "Vickey 是 Misskey 的特色分支"
   translation: "翻译 Vickey"
   donate: "赞助 Vickey"
+  thisIsModifiedVersionVK: "{name} uses a modified version of the original Vickey."
+  source: "Source code"
+  original: "Original"
 _serverSettings:
   thisSettingWillAutomaticallyOnWhenModeratorsInactive: "若在一段时间内没有检测到管理活动，为防止垃圾信息，此设定将自动开启。"
 _webhookSettings:
