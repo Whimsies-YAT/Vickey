@@ -259,6 +259,56 @@ defineExpose({
 	}
 }
 
+.inputCore[type="range"] {
+	padding: 0;
+	background: transparent;
+
+	&::-webkit-slider-runnable-track {
+		width: 100%;
+		height: 8px;
+		cursor: pointer;
+		background: color(from var(--MI_THEME-accent) srgb r g b / 0.25);
+		border-radius: 4px;
+	}
+
+	&::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		height: 20px;
+		width: 20px;
+		border-radius: 50%;
+		background: var(--MI_THEME-accent);
+		cursor: pointer;
+		margin-top: -6px;
+		transition: transform 0.1s ease;
+	}
+
+	&::-moz-range-track {
+		width: 100%;
+		height: 8px;
+		cursor: pointer;
+		background: color(from var(--MI_THEME-accent) srgb r g b / 0.25);
+		border-radius: 4px;
+	}
+
+	&::-moz-range-thumb {
+		height: 20px;
+		width: 20px;
+		border-radius: 50%;
+		background: var(--MI_THEME-accent);
+		cursor: pointer;
+		border: none;
+		transition: transform 0.1s ease;
+	}
+
+	&:focus::-webkit-slider-thumb {
+		box-shadow: 0 0 0 4px var(--MI_THEME-focus);
+	}
+	&:focus::-moz-range-thumb {
+		box-shadow: 0 0 0 4px var(--MI_THEME-focus);
+	}
+}
+
 .prefix,
 .suffix {
 	display: flex;

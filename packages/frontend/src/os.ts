@@ -309,6 +309,128 @@ export function confirm(props: {
 	});
 }
 
+export interface ConfirmController {
+	promise: Promise<{ canceled: boolean }>;
+	close: (result?: { canceled: boolean }) => void;
+	dispose: () => void;
+}
+
+export function confirmAdvanced(props: {
+	type: 'error' | 'info' | 'success' | 'warning' | 'waiting' | 'question';
+	title?: string;
+	text?: string;
+	okText?: string;
+	cancelText?: string;
+	autoClose?: boolean;
+	autoCloseDelay?: number;
+	autoCloseAction?: 'ok' | 'cancel';
+}): ConfirmController {
+	let isResolved = false;
+	let timeoutId: ReturnType<typeof setTimeout> | null = null;
+	let resolvePromise: (result: { canceled: boolean }) => void;
+	let dialogRef: any = null;
+
+	const promise = new Promise<{ canceled: boolean }>(resolve => {
+		resolvePromise = resolve;
+	});
+
+	const handleResult = (result: { canceled: boolean }) => {
+		if (isResolved) return;
+		isResolved = true;
+
+		if (timeoutId) {
+			clearTimeout(timeoutId);
+			timeoutId = null;
+		}
+
+		resolvePromise(result);
+	};
+
+	const { dispose } = popup(MkDialog, {
+		...props,
+		showCancelButton: true,
+	}, {
+		done: result => {
+			handleResult(result ? result : { canceled: true });
+		},
+		closed: () => {
+			if (!isResolved) {
+				handleResult({ canceled: true });
+			}
+		},
+	});
+
+	dialogRef = { dispose };
+
+	if (props.autoClose) {
+		const delay = props.autoCloseDelay ?? 3000;
+		const defaultAction = props.autoCloseAction ?? 'ok';
+
+		timeoutId = setTimeout(() => {
+			if (!isResolved) {
+				handleResult({ canceled: defaultAction === 'cancel' });
+				if (dialogRef && dialogRef.dispose) {
+					try {
+						dialogRef.dispose();
+					} catch (e) {
+						console.warn('自动关闭对话框失败:', e);
+					}
+				}
+			}
+		}, delay);
+	}
+
+	return {
+		promise,
+		close: (result = { canceled: true }) => {
+			if (!isResolved) {
+				handleResult(result);
+				setTimeout(() => {
+					if (dialogRef && dialogRef.dispose) {
+						try {
+							dialogRef.dispose();
+						} catch (e) {
+							console.warn('关闭对话框失败:', e);
+						}
+					}
+				}, 0);
+			}
+		},
+		dispose: () => {
+			if (timeoutId) {
+				clearTimeout(timeoutId);
+				timeoutId = null;
+			}
+			if (!isResolved) {
+				isResolved = true;
+				resolvePromise({ canceled: true });
+			}
+			setTimeout(() => {
+				if (dialogRef && dialogRef.dispose) {
+					try {
+						dialogRef.dispose();
+					} catch (e) {
+						console.warn('销毁对话框失败:', e);
+					}
+				}
+			}, 0);
+		}
+	};
+}
+
+export function confirmSimple(props: {
+	type: 'error' | 'info' | 'success' | 'warning' | 'waiting' | 'question';
+	title?: string;
+	text?: string;
+	okText?: string;
+	cancelText?: string;
+	autoClose?: boolean;
+	autoCloseDelay?: number;
+	autoCloseAction?: 'ok' | 'cancel';
+}): Promise<{ canceled: boolean }> {
+	return confirmAdvanced(props).promise;
+}
+
 // TODO: const T extends ... にしたい
 // https://zenn.dev/general_link/articles/813e47b7a0eef7#const-type-parameters
 export function actions<T extends {

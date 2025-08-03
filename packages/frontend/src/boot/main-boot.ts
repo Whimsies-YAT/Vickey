@@ -318,22 +318,43 @@ export async function mainBoot() {
 		if (store.s.realtimeMode) {
 			const stream = useStream();
 
+			let disconnectTimer: number | null = null;
+			const DIALOG_DELAY_MS = 5000; // 5 seconds
+
 			let reloadDialogShowing = false;
-			stream.on('_disconnected_', async () => {
+
+			stream.on('_disconnected_', () => {
 				if (prefer.s.serverDisconnectedBehavior === 'reload') {
 					window.location.reload();
-				} else if (prefer.s.serverDisconnectedBehavior === 'dialog') {
+					return;
+				}
+
+				if (disconnectTimer) {
+					clearTimeout(disconnectTimer);
+				}
+
+				disconnectTimer = window.setTimeout(async () => {
 					if (reloadDialogShowing) return;
 					reloadDialogShowing = true;
+
 					const { canceled } = await confirm({
 						type: 'warning',
 						title: i18n.ts.disconnectedFromServer,
 						text: i18n.ts.reloadConfirm,
 					});
+
 					reloadDialogShowing = false;
 					if (!canceled) {
 						window.location.reload();
 					}
+				}, DIALOG_DELAY_MS);
+			});
+
+			stream.on('_connected_', () => {
+				if (disconnectTimer) {
+					clearTimeout(disconnectTimer);
+					disconnectTimer = null;
+					console.log('Connection restored. Disconnect dialog canceled.');
 				}
 			});
 

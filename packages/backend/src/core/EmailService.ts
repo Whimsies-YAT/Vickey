@@ -39,7 +39,48 @@ export class EmailService {
 	}
 
 	@bindThis
-	public async sendEmail(to: string, subject: string, html: string, text: string, bcc?: string | string[],) {
+	public async sendEmailWithBcc(subject: string, html: string, text: string, bcc: boolean = false, to: string | string[]) {
+		if (!this.meta.enableEmail) return;
+
+		let emails: string[] = [];
+
+		if (Array.isArray(to)) {
+			emails = to.filter(e => !!e && e.trim() !== '').map(e => e.trim());
+		} else if (to.trim() !== '') {
+			emails = [to.trim()];
+		}
+
+		if (emails.length === 0) return;
+
+		const primaryRecipient =
+			this.meta.visibleRecipient && this.meta.visibleRecipient.trim() !== ""
+				? this.meta.visibleRecipient.trim()
+				: this.meta.maintainerEmail?.trim();
+		if (!primaryRecipient) return;
+
+		if (bcc) {
+			if (this.meta.enableBcc) {
+				const limit = Number(this.meta.bccLimit);
+				if (limit >= 1 && limit <= 20) {
+					while (emails.length) {
+						const batch = emails.splice(0, limit);
+						await this.sendEmail(primaryRecipient, subject, html, text, batch);
+					}
+					return;
+				}
+				this.logger.error('Exceeding the limit');
+				return;
+			}
+		} else {
+			for (const email of emails) {
+				await this.sendEmail(email, subject, html, text);
+			}
+			return;
+		}
+	}
+
+	@bindThis
+	public async sendEmail(to: string, subject: string, html: string, text: string, bcc?: string | string[]) {
 		if (!this.meta.enableEmail) return;
 
 		const iconUrl = `${this.config.url}/static-assets/mi-white.png`;

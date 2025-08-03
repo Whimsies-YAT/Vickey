@@ -27,6 +27,8 @@ enableBccInfo: "Merge some emails to reduce the number of emails sent."
 bccLimit: "Maximum blind carbon copy recipients"
 visibleRecipient: "Visible recipient"
 visibleRecipientInfo: "The visible recipient defaults to the maintainer's email address."
+aboutVickey: "About Vickey"
+pageDesperated: "This page has been deprecated and may be removed in the future."
 _role:
   _options:
     canUseTTS: "Use TTS feature"

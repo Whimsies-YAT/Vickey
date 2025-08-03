@@ -125,6 +125,14 @@ export interface Locale extends ILocale {
      * The visible recipient defaults to the maintainer's email address.
      */
     "visibleRecipientInfo": string;
+    /**
+     * About Vickey
+     */
+    "aboutVickey": string;
+    /**
+     * This page has been deprecated and may be removed in the future.
+     */
+    "pageDesperated": string;
     "_role": {
         "_options": {
             /**

@@ -45,6 +45,80 @@ export class EmailTemplatesService {
 	}
 
 	@bindThis
+	public async sendEmailWithTemplatesBcc(options: {
+		key: string;
+		bcc?: boolean;
+		to: string | string[];
+		context?: Record<string, any>;
+	}): Promise<boolean> {
+		const { key, bcc = false, to, context } = options;
+
+		if (!this.meta.enableEmailTemplates) {
+			console.warn('Email templates feature disabled. Returning false.');
+			return false;
+		}
+
+		const template = await this.emailTemplatesRepository.findOneBy({ key });
+		if (!template) {
+			console.warn('Template not found. Returning false.', { key });
+			return false;
+		}
+
+		if (!template.enabled) {
+			console.warn('Template is disabled. Returning false.', { key });
+			return false;
+		}
+
+		if (!Array.isArray(template.content) || template.content.length === 0) {
+			console.warn('Template content empty or invalid. Returning false.', { key, content: template.content });
+			return false;
+		}
+
+		if (template.content.length < 2) {
+			console.warn('Template content missing subject or body. Continuing but may produce malformed email.', {
+				key,
+				contentLength: template.content.length,
+				content: template.content,
+			});
+		}
+
+		try {
+			let referenceEmail = '';
+			if (typeof to === 'string') {
+				referenceEmail = to;
+			} else if (Array.isArray(to) && to.length > 0) {
+				referenceEmail = to[0];
+			} else {
+				referenceEmail = this.meta.maintainerEmail || '';
+				if (!referenceEmail) {
+					console.warn('No recipient provided and maintainerEmail fallback is empty. Using empty referenceEmail.');
+				} else {
+					console.warn('No "to" recipient provided; falling back to maintainerEmail as referenceEmail.', { referenceEmail });
+				}
+			}
+
+			const rawSubject = template.content[0];
+			const rawMessage = template.content[1];
+			const subject = await this.replaceVariables(referenceEmail, rawSubject, context);
+			const message = await this.replaceVariables(referenceEmail, rawMessage, context);
+			const messageText = sanitizeHtml(message, { allowedTags: ['br'], allowedAttributes: {} }).replace(/<br\s*\/?>/g, '\n');
+
+			await this.emailService.sendEmailWithBcc(
+				subject,
+				sanitizeHtml(message),
+				messageText,
+				bcc,
+				to
+			);
+			return true;
+		} catch (error) {
+			console.error('Template email sending failed:', error);
+			return false;
+		}
+	}
+
+
+	@bindThis
 	public async customEmailTemplates(key: string, sub: string, msg: string, enabled: boolean = false): Promise<boolean> {
 		if (!await this.emailTemplatesRepository.findOneBy({ key: key })) return false;
 		const template = new MiEmailTemplates();

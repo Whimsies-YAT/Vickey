@@ -161,8 +161,8 @@ export function openInstanceMenu(ev: MouseEvent) {
 
 	menuItems.push({
 		type: 'link',
-		text: i18n.ts.aboutMisskey,
-		to: '/about-misskey',
+		text: i18n.ts.aboutVickey,
+		to: '/about-vickey',
 	});
 
 	os.popupMenu(menuItems, ev.currentTarget ?? ev.target, {

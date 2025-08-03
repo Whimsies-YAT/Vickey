@@ -51,7 +51,21 @@ function submit() {
 				text: i18n.ts._signup.approvalPending,
 			});
 		}
-		return login(res.i, '/');
+
+		try {
+			const result = login(res.i, '/');
+			if (result && typeof result.then === 'function') {
+				return result.catch(() => {
+					window.close();
+					window.location.href = '/';
+				});
+			}
+			return;
+		} catch (e) {
+			window.close();
+			window.location.href = '/';
+			return;
+		}
 	}).catch(() => {
 		submitting.value = false;
 

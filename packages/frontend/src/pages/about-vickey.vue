@@ -8,15 +8,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div style="overflow: clip;">
 		<div class="_spacer" style="--MI_SPACER-w: 600px; --MI_SPACER-min: 20px;">
 			<div class="_gaps_m znqjceqz">
-				<MkInfo warn>{{i18n.ts.pageDesperated}}</MkInfo>
-				<FormLink to="/about-vickey">
-					<template #icon><i class="ti ti-info-circle"></i></template>
-					{{ i18n.ts.aboutVickey }}
-				</FormLink>
 				<div v-panel class="about">
 					<div ref="containerEl" class="container" :class="{ playing: easterEggEngine != null }">
 						<img src="/client-assets/about-icon.png" alt="" class="icon" draggable="false" @load="iconLoaded" @click="gravity"/>
-						<div class="misskey">Misskey</div>
+						<div class="misskey">Misskey (Vickey Fork)</div>
 						<div class="version">v{{ version }}</div>
 						<span v-for="emoji in easterEggEmojis" :key="emoji.id" class="emoji" :data-physics-x="emoji.left" :data-physics-y="emoji.top" :class="{ _physics_circle_: !emoji.emoji.startsWith(':') }">
 							<MkCustomEmoji v-if="emoji.emoji[0] === ':'" class="emoji" :name="emoji.emoji" :normal="true" :noStyle="true" :fallbackToImage="true"/>
@@ -137,7 +132,6 @@ import { definePage } from '@/page.js';
 import { claimAchievement, claimedAchievements } from '@/utility/achievements.js';
 import { $i } from '@/i.js';
 import { prefer } from '@/preferences.js';
-import MkLink from "@/components/MkLink.vue";
 
 const thereIsTreasure = ref($i && !claimedAchievements.includes('foundTreasure'));
 const repositoryUrlLC = computed(() => {
@@ -202,7 +196,7 @@ const headerActions = computed(() => []);
 const headerTabs = computed(() => []);
 
 definePage(() => ({
-	title: i18n.ts.aboutMisskey,
+	title: i18n.ts.aboutVickey,
 	icon: null,
 }));
 </script>

@@ -13,6 +13,7 @@ import type {
 	MiRoleAssignment,
 	RoleAssignmentsRepository,
 	RolesRepository,
+	UserProfilesRepository,
 	UsersRepository,
 } from '@/models/_.js';
 import { MemoryKVCache, MemorySingleCache } from '@/misc/cache.js';
@@ -146,6 +147,9 @@ export class RoleService implements OnApplicationShutdown, OnModuleInit {
 
 		@Inject(DI.roleAssignmentsRepository)
 		private roleAssignmentsRepository: RoleAssignmentsRepository,
+
+		@Inject(DI.userProfilesRepository)
+		private userProfilesRepository: UserProfilesRepository,
 
 		private cacheService: CacheService,
 		private userEntityService: UserEntityService,
@@ -523,6 +527,24 @@ export class RoleService implements OnApplicationShutdown, OnModuleInit {
 				id: In(ids),
 			})
 			: [];
+	}
+
+	@bindThis
+	public async getModeratorsEmail(opts?: {
+		includeAdmins?: boolean,
+		includeRoot?: boolean,
+		excludeExpire?: boolean,
+	}) {
+
+		const moderators = await this.getModerators(opts);
+		const moderatorIds = moderators.map(m => m.id);
+		const profiles = await this.userProfilesRepository.findBy({
+			userId: In(moderatorIds),
+		});
+
+		return profiles
+			.map(p => p.email?.trim())
+			.filter((e): e is string => !!e);
 	}
 
 	@bindThis

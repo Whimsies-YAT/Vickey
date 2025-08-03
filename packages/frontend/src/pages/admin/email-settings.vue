@@ -65,8 +65,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<div class="_gaps">
 									<SearchMarker>
 									<MkSwitch v-model="enableBcc">
-										<template #label>{{ i18n.ts.enableBcc }} <span class="_beta">{{ i18n.ts.beta }}</span></template>
-										<template #caption>{{ i18n.ts.enableBccInfo }}</template>
+										<template #label><SearchLabel>{{ i18n.ts.enableBcc }} <span class="_beta">{{ i18n.ts.beta }}</span></SearchLabel></template>
+										<template #caption><SearchText>{{ i18n.ts.enableBccInfo }}</SearchText></template>
 									</MkSwitch>
 									</SearchMarker>
 									<div v-if="enableBcc">
@@ -124,7 +124,7 @@ const smtpUser = ref(meta.smtpUser);
 const smtpPass = ref(meta.smtpPass);
 const enableBcc = ref(meta.enableBcc);
 const bccLimit = ref(meta.bccLimit);
-const visibleRecipient = (meta.visibleRecipient);
+const visibleRecipient = ref(meta.visibleRecipient);
 
 async function testEmail() {
 	const { canceled, result: destination } = await os.inputText({
