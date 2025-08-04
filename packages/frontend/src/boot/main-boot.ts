@@ -4,14 +4,14 @@
  */
 
 import { createApp, defineAsyncComponent, markRaw } from 'vue';
-import { ui } from '@@/js/config.js';
+import { ui, DIALOG_DELAY_MS } from '@@/js/config.js';
 import * as Misskey from 'misskey-js';
 import { compareVersions } from 'compare-versions';
 import { common } from './common.js';
 import type { Component } from 'vue';
 import type { Keymap } from '@/utility/hotkey.js';
 import { i18n } from '@/i18n.js';
-import { alert, confirm, popup, post } from '@/os.js';
+import { alert, confirmAdvanced, popup, post } from '@/os.js';
 import { useStream } from '@/stream.js';
 import * as sound from '@/utility/sound.js';
 import { $i } from '@/i.js';
@@ -319,9 +319,9 @@ export async function mainBoot() {
 			const stream = useStream();
 
 			let disconnectTimer: number | null = null;
-			const DIALOG_DELAY_MS = 5000; // 5 seconds
 
 			let reloadDialogShowing = false;
+			let activeReloadDialog: { close: () => void } | null = null;
 
 			stream.on('_disconnected_', () => {
 				if (prefer.s.serverDisconnectedBehavior === 'reload') {
@@ -337,13 +337,19 @@ export async function mainBoot() {
 					if (reloadDialogShowing) return;
 					reloadDialogShowing = true;
 
-					const { canceled } = await confirm({
+					const confirmDialog = confirmAdvanced({
 						type: 'warning',
 						title: i18n.ts.disconnectedFromServer,
 						text: i18n.ts.reloadConfirm,
 					});
 
+					activeReloadDialog = confirmDialog;
+
+					const { canceled } = await confirmDialog;
+
 					reloadDialogShowing = false;
+					activeReloadDialog = null;
+
 					if (!canceled) {
 						window.location.reload();
 					}
@@ -354,7 +360,12 @@ export async function mainBoot() {
 				if (disconnectTimer) {
 					window.clearTimeout(disconnectTimer);
 					disconnectTimer = null;
-					console.log('Connection restored. Disconnect dialog canceled.');
+				}
+
+				if (activeReloadDialog) {
+					activeReloadDialog.close();
+					activeReloadDialog = null;
+					reloadDialogShowing = false;
 				}
 			});
 
