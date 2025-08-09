@@ -132,7 +132,11 @@ export interface Locale extends ILocale {
     /**
      * This page has been deprecated and may be removed in the future.
      */
-    "pageDesperated": string;
+    "pageDeprecated": string;
+    /**
+     * deprecated function
+     */
+    "deprecatedFunction": string;
     "_role": {
         "_options": {
             /**

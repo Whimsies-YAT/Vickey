@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div style="overflow: clip;">
 		<div class="_spacer" style="--MI_SPACER-w: 600px; --MI_SPACER-min: 20px;">
 			<div class="_gaps_m znqjceqz">
-				<MkInfo warn>{{i18n.ts.pageDesperated}}</MkInfo>
+				<MkInfo warn>{{ i18n.ts.pageDeprecated }}</MkInfo>
 				<FormLink to="/about-vickey">
 					<template #icon><i class="ti ti-info-circle"></i></template>
 					{{ i18n.ts.aboutVickey }}
