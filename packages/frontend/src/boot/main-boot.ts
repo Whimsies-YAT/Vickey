@@ -324,10 +324,12 @@ export async function mainBoot() {
 			let activeReloadDialog: { close: () => void } | null = null;
 
 			stream.on('_disconnected_', () => {
-				if (prefer.s.serverDisconnectedBehavior === 'reload') {
-					window.location.reload();
-					return;
-				}
+				// DEPRECATED: Replaced by advanced reload dialog.
+				// Old behavior: Auto reload when server disconnected.
+				// if (prefer.s.serverDisconnectedBehavior === 'reload') {
+				// 	window.location.reload();
+				// 	return;
+				// }
 
 				if (disconnectTimer) {
 					window.clearTimeout(disconnectTimer);
