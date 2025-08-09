@@ -62,7 +62,6 @@ async function submit() {
 			window.location.href = '/';
 			return;
 		}
-
 	} catch (apiError) {
 		os.alert({
 			type: 'error',

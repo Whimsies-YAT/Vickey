@@ -223,7 +223,6 @@ export class EmailTemplatesService {
 		}
 	}
 
-
 	@bindThis
 	private async replaceVariables(
 		to: string,

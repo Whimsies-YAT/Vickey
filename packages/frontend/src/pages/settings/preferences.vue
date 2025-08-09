@@ -478,6 +478,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 								</MkPreferenceContainer>
 							</SearchMarker>
 
+							<SearchMarker :keywords="['tabs', 'tabbar', 'bottom', 'under']">
+								<MkPreferenceContainer k="showPageTabBarBottom">
+									<MkSwitch v-model="showPageTabBarBottom">
+										<template #label><SearchLabel>{{ i18n.ts._settings.showPageTabBarBottom }}</SearchLabel></template>
+									</MkSwitch>
+								</MkPreferenceContainer>
+							</SearchMarker>
+
 							<SearchMarker :keywords="['swipe', 'horizontal', 'tab']">
 								<MkPreferenceContainer k="enableHorizontalSwipe">
 									<MkSwitch v-model="enableHorizontalSwipe">
@@ -716,10 +724,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<MkPreferenceContainer k="serverDisconnectedBehavior">
 								<MkSelect v-model="serverDisconnectedBehavior">
 									<template #label><SearchLabel>{{ i18n.ts.whenServerDisconnected }}</SearchLabel></template>
-									<option :value="null">{{ i18n.ts._serverDisconnectedBehavior.null }}</option>
-									<option value="reload">{{ i18n.ts._serverDisconnectedBehavior.reload }}</option>
 									<option value="dialog">{{ i18n.ts._serverDisconnectedBehavior.dialog }}</option>
 									<option value="quiet">{{ i18n.ts._serverDisconnectedBehavior.quiet }}</option>
+									<option value="reload">{{ i18n.ts._serverDisconnectedBehavior.reload }}</option>
+									<option :value="null">{{ i18n.ts._serverDisconnectedBehavior.null }}</option>
 								</MkSelect>
 							</MkPreferenceContainer>
 						</SearchMarker>
@@ -868,6 +876,7 @@ const animatedMfm = prefer.model('animatedMfm');
 const disableShowingAnimatedImages = prefer.model('disableShowingAnimatedImages');
 const keepScreenOn = prefer.model('keepScreenOn');
 const enableHorizontalSwipe = prefer.model('enableHorizontalSwipe');
+const showPageTabBarBottom = prefer.model('showPageTabBarBottom');
 const enablePullToRefresh = prefer.model('enablePullToRefresh');
 const useNativeUiForVideoAudioPlayer = prefer.model('useNativeUiForVideoAudioPlayer');
 const contextMenu = prefer.model('contextMenu');
@@ -879,8 +888,6 @@ const useSystemFont = ref(miLocalStorage.getItem('useSystemFont') != null);
 
 watch(lang, () => {
 	miLocalStorage.setItem('lang', lang.value as string);
-	miLocalStorage.removeItem('locale');
-	miLocalStorage.removeItem('localeVersion');
 });
 
 watch(fontSize, () => {
@@ -927,6 +934,7 @@ watch([
 	useSystemFont,
 	makeEveryTextElementsSelectable,
 	enableHorizontalSwipe,
+	showPageTabBarBottom,
 	enablePullToRefresh,
 	reduceAnimation,
 	showAvailableReactionsFirstInNote,

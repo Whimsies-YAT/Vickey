@@ -5,10 +5,10 @@
 
 // TODO: なんでもかんでもos.tsに突っ込むのやめたいのでよしなに分割する
 
-import { markRaw, ref, defineAsyncComponent, nextTick } from 'vue';
+import type { Component, Ref } from 'vue';
+import { defineAsyncComponent, markRaw, nextTick, ref } from 'vue';
 import { EventEmitter } from 'eventemitter3';
 import * as Misskey from 'misskey-js';
-import type { Component, Ref } from 'vue';
 import type { ComponentProps as CP } from 'vue-component-type-helpers';
 import type { Form, GetFormResultType } from '@/utility/form.js';
 import type { MenuItem } from '@/types/menu.js';
@@ -309,120 +309,44 @@ export function confirm(props: {
 	});
 }
 
-export interface ConfirmController {
-	promise: Promise<{ canceled: boolean }>;
-	close: (result?: { canceled: boolean }) => void;
-	dispose: () => void;
-}
-
+/**
+ * @experimental
+ * This function is subject to change and may be merged into confirm in the future.
+ * Avoid excessive or production use.
+ */
 export function confirmAdvanced(props: {
 	type: 'error' | 'info' | 'success' | 'warning' | 'waiting' | 'question';
 	title?: string;
 	text?: string;
 	okText?: string;
 	cancelText?: string;
-	autoClose?: boolean;
-	autoCloseDelay?: number;
-	autoCloseAction?: 'ok' | 'cancel';
-}): ConfirmController {
-	let isResolved = false;
-	let timeoutId: ReturnType<typeof setTimeout> | number | null = null;
-	let resolvePromise: (result: { canceled: boolean }) => void;
-	let dialogRef: any = null;
+}): Promise<{ canceled: boolean }> & { close: () => void } {
+	const openRef = ref(true);
+	let resolveFunc: (value: { canceled: boolean }) => void;
 
 	const promise = new Promise<{ canceled: boolean }>(resolve => {
-		resolvePromise = resolve;
+		resolveFunc = resolve;
+
+		const { dispose } = popup(MkDialog, {
+			...props,
+			showCancelButton: true,
+			open: openRef,
+		}, {
+			done: result => {
+				resolve(result ? result : { canceled: true });
+			},
+			closed: () => dispose(),
+		});
 	});
 
-	const handleResult = (result: { canceled: boolean }) => {
-		if (isResolved) return;
-		isResolved = true;
-
-		if (timeoutId) {
-			window.clearTimeout(timeoutId);
-			timeoutId = null;
-		}
-
-		resolvePromise(result);
-	};
-
-	const { dispose } = popup(MkDialog, {
-		...props,
-		showCancelButton: true,
-	}, {
-		done: result => {
-			handleResult(result ? result : { canceled: true });
-		},
-		closed: () => {
-			if (!isResolved) {
-				handleResult({ canceled: true });
-			}
-		},
-	});
-
-	dialogRef = { dispose };
-
-	if (props.autoClose) {
-		const delay = props.autoCloseDelay ?? 3000;
-		const defaultAction = props.autoCloseAction ?? 'ok';
-
-		timeoutId = window.setTimeout(() => {
-			if (!isResolved) {
-				handleResult({ canceled: defaultAction === 'cancel' });
-				if (dialogRef && dialogRef.dispose) {
-					try {
-						dialogRef.dispose();
-					} catch (e) { }
-				}
-			}
-		}, delay);
-	}
-
-	return {
-		promise,
-		close: (result = { canceled: true }) => {
-			if (!isResolved) {
-				handleResult(result);
-				window.setTimeout(() => {
-					if (dialogRef && dialogRef.dispose) {
-						try {
-							dialogRef.dispose();
-						} catch (e) { }
-					}
-				}, 0);
-			}
-		},
-		dispose: () => {
-			if (timeoutId) {
-				window.clearTimeout(timeoutId);
-				timeoutId = null;
-			}
-			if (!isResolved) {
-				isResolved = true;
-				resolvePromise({ canceled: true });
-			}
-			window.setTimeout(() => {
-				if (dialogRef && dialogRef.dispose) {
-					try {
-						dialogRef.dispose();
-					} catch (e) { }
-				}
-			}, 0);
+	(promise as any).close = () => {
+		if (openRef.value) {
+			openRef.value = false;
+			resolveFunc({ canceled: true });
 		}
 	};
-}
 
-export function confirmSimple(props: {
-	type: 'error' | 'info' | 'success' | 'warning' | 'waiting' | 'question';
-	title?: string;
-	text?: string;
-	okText?: string;
-	cancelText?: string;
-	autoClose?: boolean;
-	autoCloseDelay?: number;
-	autoCloseAction?: 'ok' | 'cancel';
-}): Promise<{ canceled: boolean }> {
-	return confirmAdvanced(props).promise;
+	return promise as Promise<{ canceled: boolean }> & { close: () => void };
 }
 
 // TODO: const T extends ... にしたい

@@ -67,7 +67,6 @@ class GlobalTimelineChannel extends Channel {
 		}
 
 		if (!user) await this.noteEntityService.hideNote(note, user);
-		this.connection.cacheNote(note);
 		this.send('note', note);
 	}
 

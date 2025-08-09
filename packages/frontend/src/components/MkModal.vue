@@ -74,6 +74,7 @@ const props = withDefaults(defineProps<{
 	transparentBg?: boolean;
 	hasInteractionWithOtherFocusTrappedEls?: boolean;
 	returnFocusTo?: HTMLElement | null;
+	open?: boolean;
 }>(), {
 	manualShowing: null,
 	anchorElement: null,
@@ -84,6 +85,7 @@ const props = withDefaults(defineProps<{
 	transparentBg: false,
 	hasInteractionWithOtherFocusTrappedEls: false,
 	returnFocusTo: null,
+	open: true,
 });
 
 const emit = defineEmits<{
@@ -100,7 +102,7 @@ provide(DI.inModal, true);
 const maxHeight = ref<number>();
 const fixed = ref(false);
 const transformOrigin = ref('center');
-const showing = ref(true);
+const showing = ref(props.open);
 const modalRootEl = useTemplateRef('modalRootEl');
 const content = useTemplateRef('content');
 const zIndex = os.claimZIndex(props.zPriority);
@@ -343,8 +345,18 @@ onMounted(() => {
 		}
 	}, { immediate: true });
 
+	watch(() => props.open, (newValue) => {
+		if (newValue) {
+			showing.value = true;
+		} else {
+			close();
+		}
+	});
+
 	nextTick(() => {
-		alignObserver.observe(content.value!);
+		if (content.value) {
+			alignObserver.observe(content.value);
+		}
 	});
 });
 
