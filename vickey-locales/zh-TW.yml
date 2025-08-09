@@ -28,7 +28,8 @@ bccLimit: "Maximum blind carbon copy recipients"
 visibleRecipient: "Visible recipient"
 visibleRecipientInfo: "The visible recipient defaults to the maintainer's email address."
 aboutVickey: "About Vickey"
-pageDesperated: "This page has been deprecated and may be removed in the future."
+pageDeprecated: "This page has been deprecated and may be removed in the future."
+deprecatedFunction: "deprecated function"
 _role:
   _options:
     canUseTTS: "使用TTS功能"
