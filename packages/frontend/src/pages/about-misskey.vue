@@ -137,7 +137,6 @@ import { definePage } from '@/page.js';
 import { claimAchievement, claimedAchievements } from '@/utility/achievements.js';
 import { $i } from '@/i.js';
 import { prefer } from '@/preferences.js';
-import MkLink from "@/components/MkLink.vue";
 
 const thereIsTreasure = ref($i && !claimedAchievements.includes('foundTreasure'));
 const repositoryUrlLC = computed(() => {

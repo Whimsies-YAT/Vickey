@@ -43,7 +43,7 @@ async function killProc() {
 		'./node_modules/nodemon/bin/nodemon.js',
 		[
 			'-w', 'src',
-			'-e', 'ts,js,mjs,cjs,json',
+			'-e', 'ts,js,mjs,cjs,json,pug',
 			'--exec', 'pnpm', 'run', 'build',
 		],
 		{
