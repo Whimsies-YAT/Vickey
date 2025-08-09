@@ -5,20 +5,20 @@
 
 // TODO: なんでもかんでもos.tsに突っ込むのやめたいのでよしなに分割する
 
-import type {Component, Ref} from 'vue';
-import {defineAsyncComponent, markRaw, nextTick, ref} from 'vue';
-import {EventEmitter} from 'eventemitter3';
+import type { Component, Ref } from 'vue';
+import { defineAsyncComponent, markRaw, nextTick, ref } from 'vue';
+import { EventEmitter } from 'eventemitter3';
 import * as Misskey from 'misskey-js';
-import type {ComponentProps as CP} from 'vue-component-type-helpers';
-import type {Form, GetFormResultType} from '@/utility/form.js';
-import type {MenuItem} from '@/types/menu.js';
-import type {PostFormProps} from '@/types/post-form.js';
-import type {UploaderFeatures} from '@/composables/use-uploader.js';
+import type { ComponentProps as CP } from 'vue-component-type-helpers';
+import type { Form, GetFormResultType } from '@/utility/form.js';
+import type { MenuItem } from '@/types/menu.js';
+import type { PostFormProps } from '@/types/post-form.js';
+import type { UploaderFeatures } from '@/composables/use-uploader.js';
 import type MkRoleSelectDialog_TypeReferenceOnly from '@/components/MkRoleSelectDialog.vue';
 import type MkEmojiPickerDialog_TypeReferenceOnly from '@/components/MkEmojiPickerDialog.vue';
-import {misskeyApi} from '@/utility/misskey-api.js';
-import {prefer} from '@/preferences.js';
-import {i18n} from '@/i18n.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
+import { prefer } from '@/preferences.js';
+import { i18n } from '@/i18n.js';
 import MkPostFormDialog from '@/components/MkPostFormDialog.vue';
 import MkWaitingDialog from '@/components/MkWaitingDialog.vue';
 import MkPageWindow from '@/components/MkPageWindow.vue';
@@ -26,11 +26,11 @@ import MkToast from '@/components/MkToast.vue';
 import MkDialog from '@/components/MkDialog.vue';
 import MkPopupMenu from '@/components/MkPopupMenu.vue';
 import MkContextMenu from '@/components/MkContextMenu.vue';
-import {copyToClipboard} from '@/utility/copy-to-clipboard.js';
-import {pleaseLogin} from '@/utility/please-login.js';
-import {showMovedDialog} from '@/utility/show-moved-dialog.js';
-import {getHTMLElementOrNull} from '@/utility/get-dom-node-or-null.js';
-import {focusParent} from '@/utility/focus.js';
+import { copyToClipboard } from '@/utility/copy-to-clipboard.js';
+import { pleaseLogin } from '@/utility/please-login.js';
+import { showMovedDialog } from '@/utility/show-moved-dialog.js';
+import { getHTMLElementOrNull } from '@/utility/get-dom-node-or-null.js';
+import { focusParent } from '@/utility/focus.js';
 
 export const openingWindowsCount = ref(0);
 
@@ -342,7 +342,7 @@ export function confirmAdvanced(props: {
 	(promise as any).close = () => {
 		if (openRef.value) {
 			openRef.value = false;
-			resolveFunc({canceled: true});
+			resolveFunc({ canceled: true });
 		}
 	};
 

@@ -30,7 +30,7 @@ let showDelayTimer: number | null = null;
 
 function onDisconnected() {
 	if (showDelayTimer) {
-		clearTimeout(showDelayTimer);
+		window.clearTimeout(showDelayTimer);
 	}
 
 	showDelayTimer = window.setTimeout(() => {
@@ -42,7 +42,7 @@ function onConnected() {
 	shouldShow.value = false;
 
 	if (showDelayTimer) {
-		clearTimeout(showDelayTimer);
+		window.clearTimeout(showDelayTimer);
 		showDelayTimer = null;
 	}
 }
@@ -66,7 +66,7 @@ if (store.s.realtimeMode) {
 		stream.off('_connected_', onConnected);
 
 		if (showDelayTimer) {
-			clearTimeout(showDelayTimer);
+			window.clearTimeout(showDelayTimer);
 		}
 	});
 }
