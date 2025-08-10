@@ -12,4 +12,5 @@ declare module '*/package.json' {
 	export const name: string;
 	export const version: string;
 	export const repository: IRepository;
+	export const codename: string;
 }

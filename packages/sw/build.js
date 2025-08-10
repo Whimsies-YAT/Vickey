@@ -25,6 +25,7 @@ const buildOptions = {
 		_LANGS_: JSON.stringify(Object.entries(locales).map(([k, v]) => [k, v._lang_])),
 		_PERF_PREFIX_: JSON.stringify('Misskey:'),
 		_VERSION_: JSON.stringify(meta.version),
+		_CODENAME_: JSON.stringify(meta.codename).replace(/^[a-z]/, c => c.toUpperCase())
 	},
 	entryPoints: [`${__dirname}/src/sw.ts`],
 	format: 'esm',

@@ -192,6 +192,7 @@ export type Config = {
 	bcryptCost?: number;
 
 	version: string;
+	codename: string;
 	publishTarballInsteadOfProvideRepositoryUrl: boolean;
 	setupPassword: string | undefined;
 	host: string;
@@ -263,6 +264,7 @@ export function loadConfig(): Config {
 
 	const url = tryCreateUrl(config.url ?? process.env.MISSKEY_URL ?? '');
 	const version = meta.version;
+	const codename = meta.codename;
 	const host = url.host;
 	const hostname = url.hostname;
 	const scheme = url.protocol.replace(/:$/, '');
@@ -280,6 +282,7 @@ export function loadConfig(): Config {
 
 	return {
 		version,
+		codename,
 		publishTarballInsteadOfProvideRepositoryUrl: !!config.publishTarballInsteadOfProvideRepositoryUrl,
 		setupPassword: config.setupPassword,
 		url: url.origin,
@@ -330,7 +333,7 @@ export function loadConfig(): Config {
 		videoThumbnailGenerator: config.videoThumbnailGenerator ?
 			config.videoThumbnailGenerator.endsWith('/') ? config.videoThumbnailGenerator.substring(0, config.videoThumbnailGenerator.length - 1) : config.videoThumbnailGenerator
 			: null,
-		userAgent: `Misskey/${version} (${config.url})`,
+		userAgent: `Vickey/${version} (${config.url})`,
 		frontendEntry: frontendManifest['src/_boot_.ts'],
 		frontendManifestExists: frontendManifestExists,
 		frontendEmbedEntry: frontendEmbedManifest['src/boot.ts'],

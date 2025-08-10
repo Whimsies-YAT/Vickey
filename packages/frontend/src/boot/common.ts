@@ -31,7 +31,7 @@ import { prefer } from '@/preferences.js';
 import { $i } from '@/i.js';
 
 export async function common(createVue: () => Promise<App<Element>>) {
-	console.info(`Misskey v${version}-Vickey_fork`);
+	console.info(`Vickey v${version}-Vickey_fork`);
 
 	const getBrowserFamily = () => {
 		const ua = navigator.userAgent;
