@@ -21,3 +21,4 @@ export const ui = localStorage.getItem('ui');
 export const debug = localStorage.getItem('debug') === 'true';
 export const isSafeMode = localStorage.getItem('isSafeMode') === 'true';
 export const DIALOG_DELAY_MS = 5000;
+export const codename = _CODENAME_.replace(/^[a-z]/, c => c.toUpperCase());

@@ -32,7 +32,7 @@ const themeColor = chalk.hex('#86b300');
 function greet() {
 	if (!envOption.quiet) {
 		//#region Vickey logo
-		const v = `v${meta.version}`;
+		const v = `${meta.codename} v${meta.version}`;
 		console.log(themeColor(' __     ___      _                   '));
 		console.log(themeColor(' \\ \\   / (_) ___| | _____ _   _    '));
 		console.log(themeColor('  \\ \\ / /| |/ __| |/ / _ \\ | | |  '));
@@ -50,7 +50,7 @@ function greet() {
 	}
 
 	bootLogger.info('Welcome to Vickey!');
-	bootLogger.info(`Vickey v${meta.version}`, null, true);
+	bootLogger.info(`Vickey ${meta.codename} v${meta.version}`, null, true);
 }
 
 /**

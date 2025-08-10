@@ -12,7 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<div ref="containerEl" class="container" :class="{ playing: easterEggEngine != null }">
 						<img src="/client-assets/about-icon.png" alt="" class="icon" draggable="false" @load="iconLoaded" @click="gravity"/>
 						<div class="misskey">Misskey (Vickey Fork)</div>
-						<div class="version">v{{ version }}</div>
+						<div class="version">{{ codename }} v{{ version }}</div>
 						<span v-for="emoji in easterEggEmojis" :key="emoji.id" class="emoji" :data-physics-x="emoji.left" :data-physics-y="emoji.top" :class="{ _physics_circle_: !emoji.emoji.startsWith(':') }">
 							<MkCustomEmoji v-if="emoji.emoji[0] === ':'" class="emoji" :name="emoji.emoji" :normal="true" :noStyle="true" :fallbackToImage="true"/>
 							<MkEmoji v-else class="emoji" :emoji="emoji.emoji" :normal="true" :noStyle="true"/>
@@ -119,7 +119,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { nextTick, onBeforeUnmount, ref, useTemplateRef, computed } from 'vue';
-import { host, version } from '@@/js/config.js';
+import { host, version, codename } from '@@/js/config.js';
 import FormLink from '@/components/form/link.vue';
 import FormSection from '@/components/form/section.vue';
 import MkButton from '@/components/MkButton.vue';
