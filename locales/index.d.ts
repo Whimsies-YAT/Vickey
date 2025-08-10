@@ -137,6 +137,10 @@ export interface Locale extends ILocale {
      * deprecated function
      */
     "deprecatedFunction": string;
+    /**
+     * {name} is one of the services powered by the open source platform <b>Vickey</b> (referred to as a "Vickey instance").
+     */
+    "poweredByVickeyDescription": ParameterizedString<"name">;
     "_role": {
         "_options": {
             /**
