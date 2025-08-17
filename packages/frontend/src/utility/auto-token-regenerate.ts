@@ -38,8 +38,6 @@ export async function checkAndRegenerateToken(): Promise<boolean> {
 			return false;
 		}
 
-		os.waiting();
-
 		const result = await misskeyApi('i/regenerate-token', {
 			password: auth.result.password,
 			current: true,
