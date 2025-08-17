@@ -30,11 +30,11 @@ export class CheckIP2LReleaseProcessorService {
 		const key = 'ip2l';
 		const value = 'latest';
 		if (!await this.redisClient.get(key)) {
-			await this.storeData(key, value);
-			await Promise.all([
+			await Promise.allSettled([
 				this.iP2LocationService.syncIP2L(),
 				this.iP2LocationService.syncIP2LProxy(),
 				this.iP2LocationService.syncTorExitNodesSet(),
+				this.storeData(key, value),
 			]);
 		}
 		this.logger.succ('Done.');
