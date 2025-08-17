@@ -31,6 +31,15 @@ aboutVickey: "About Vickey"
 pageDeprecated: "This page has been deprecated and may be removed in the future."
 deprecatedFunction: "deprecated function"
 poweredByVickeyDescription: "{name} is one of the services powered by the open source platform <b>Vickey</b> (referred to as a \"Vickey instance\")."
+_tokenMigration:
+  oldTokenFormatDetected: "Old token format detected"
+  securityAlert: "Your login token is in an old format. Would you like to update it now for better security?"
+  declined: "Token update declined. You can update it later in Settings > Security."
+  succeeded: "Token regenerated successfully"
+  error: "Error"
+  errorText: "Failed to regenerate token. Please try again in Settings > Security."
+  tokenRegenerated: "Token regenerated successfully"
+  tokenRegeneratedFailed: "Error regenerating token"
 _role:
   _options:
     canUseTTS: "使用TTS功能"
