@@ -265,8 +265,40 @@ export function loadConfig(): Config {
 	const frontendEmbedManifest = frontendEmbedManifestExists ?
 		JSON.parse(fs.readFileSync(`${_dirname}/../../../built/_frontend_embed_vite_/manifest.json`, 'utf-8'))
 		: { 'src/boot.ts': { file: null } };
+	const maxTime = Date.now() + 183 * 24 * 60 * 60 * 1000;
+	const defaultTime = { version: '1', time: maxTime };
+
 	const tokenTimePath = nodePath.join(`${_dirname}/../../../files/settings/tokenSettings.json`);
-	const tokenTime = JSON.parse(fs.readFileSync(tokenTimePath, 'utf-8'));
+
+	fs.mkdirSync(nodePath.dirname(tokenTimePath), { recursive: true });
+
+	let writeDefault = false;
+	let tokenTime = Object.assign({}, defaultTime);
+
+	try {
+		if (!fs.existsSync(tokenTimePath) || fs.statSync(tokenTimePath).size === 0) {
+			writeDefault = true;
+		} else {
+			const raw = fs.readFileSync(tokenTimePath, 'utf-8');
+			const parsed = JSON.parse(raw);
+
+			if (!parsed.version || !parsed.time) {
+				writeDefault = true;
+			} else {
+				tokenTime = parsed;
+				if (tokenTime.time > maxTime) {
+					tokenTime.time = maxTime;
+					writeDefault = true;
+				}
+			}
+		}
+	} catch (err) {
+		writeDefault = true;
+	}
+
+	if (writeDefault) {
+		fs.writeFileSync(tokenTimePath, JSON.stringify(tokenTime, null, 2), 'utf-8');
+	}
 
 	const config = yaml.load(fs.readFileSync(path, 'utf-8')) as Source;
 
