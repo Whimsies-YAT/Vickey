@@ -265,7 +265,7 @@ export function loadConfig(): Config {
 	const frontendEmbedManifest = frontendEmbedManifestExists ?
 		JSON.parse(fs.readFileSync(`${_dirname}/../../../built/_frontend_embed_vite_/manifest.json`, 'utf-8'))
 		: { 'src/boot.ts': { file: null } };
-	const tokenTimePath = nodePath.join(`${_dirname}/../../../built/tokenSettings.json`);
+	const tokenTimePath = nodePath.join(`${_dirname}/../../../files/settings/tokenSettings.json`);
 	const tokenTime = JSON.parse(fs.readFileSync(tokenTimePath, 'utf-8'));
 
 	const config = yaml.load(fs.readFileSync(path, 'utf-8')) as Source;

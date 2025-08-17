@@ -4,6 +4,7 @@
  */
 
 const fs = require('fs');
+const path = require('path');
 const { join, dirname} = require("path");
 const packageJsonPath = __dirname + '/../package.json'
 
@@ -15,7 +16,8 @@ function build() {
 		fs.writeFileSync(__dirname + '/../built/meta.json', JSON.stringify({ version: meta.version, codename: meta.codename.replace(/^[a-z]/, c => c.toUpperCase()) }), 'utf-8');
 		const maxTime = Date.now() + 183 * 24 * 60 * 60 * 1000;
 		const defaultTime = { version: '1', time: maxTime };
-		const tokenSettingsPath = join(__dirname, '/../built/tokenSettings.json');
+		const tokenSettingsPath = join(__dirname, '/../files/settings/tokenSettings.json');
+		fs.mkdirSync(path.dirname(tokenSettingsPath), { recursive: true });
 
 		let writeDefault = false;
 		let data = Object.assign({}, defaultTime);
