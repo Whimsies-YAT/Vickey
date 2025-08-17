@@ -48,6 +48,8 @@ import { CheckSecurityReleaseProcessorService } from "@/queue/processors/CheckSe
 import { DefaultSecCheckSecurityReleaseProcessorService } from "@/queue/processors/DefaultSecCheckSecurityReleaseProcessorService.js";
 import { CleanExpiredPendingsProcessorService } from './processors/CleanExpiredPendingsProcessorService.js';
 import { CheckIP2LReleaseProcessorService } from './processors/CheckIP2LReleaseProcessorService.js';
+import { UserSessionsProcessorService } from './processors/UserSessionsProcessorService.js';
+import { UserSessionsCleanupProcessorService } from './processors/UserSessionsCleanupProcessorService.js';
 
 @Module({
 	imports: [
@@ -98,6 +100,8 @@ import { CheckIP2LReleaseProcessorService } from './processors/CheckIP2LReleaseP
 		DefaultSecCheckSecurityReleaseProcessorService,
 		CleanExpiredPendingsProcessorService,
 		CheckIP2LReleaseProcessorService,
+		UserSessionsProcessorService,
+		UserSessionsCleanupProcessorService,
 	],
 	exports: [
 		QueueProcessorService,

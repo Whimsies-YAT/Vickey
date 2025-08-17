@@ -35,7 +35,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 									<i v-if="item.success" class="ti ti-check icon succ"></i>
 									<i v-else class="ti ti-circle-x icon fail"></i>
 									<code class="ip _monospace">{{ item.ip[0] }}</code>
-									<code class="location _monospace">{{ item.ip[5] }}, {{ item.ip[4] }}, {{ item.ip[2] }}</code>
+									<code class="location _monospace">
+										{{
+											(['-', 'Unknown'].includes(item.ip[5]) &&
+												['-', 'Unknown'].includes(item.ip[4]) &&
+												['-', 'Unknown'].includes(item.ip[2]))
+												? '-'
+												: `${item.ip[5]}, ${item.ip[4]}, ${item.ip[2]}`
+										}}
+									</code>
 									<MkTime :time="item.createdAt" class="time"/>
 								</header>
 							</div>
@@ -70,6 +78,8 @@ import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import MkFeatureBanner from '@/components/MkFeatureBanner.vue';
 import { Paginator } from '@/utility/paginator.js';
+import { $i } from '@/i.js';
+import { miLocalStorage } from '@/local-storage.js';
 
 const paginator = markRaw(new Paginator('i/signin-history', {
 	limit: 3,
@@ -113,23 +123,39 @@ async function regenerateToken() {
 	if (auth.canceled) return;
 
 	try {
-		os.waiting();
-		await misskeyApi('i/regenerate-token', {
+		const result = await misskeyApi('i/regenerate-token', {
 			password: auth.result.password,
 			token: auth.result.token,
+			current: false,
 		});
-	} catch (err) {
-		os.alert({
+
+		if (result && typeof result === 'object' && 'token' in result && $i) {
+			$i.token = result.token;
+			miLocalStorage.setItem('account', JSON.stringify($i));
+		}
+
+		os.success();
+		await os.alert({
+			type: 'success',
+			text: i18n.ts._tokenMigration.tokenRegenerated,
+		});
+	} catch (e) {
+		const error = e as Error;
+		await os.alert({
 			type: 'error',
-			text: err.message || 'Error regenerating token',
+			text: error.message || i18n.ts._tokenMigration.tokenRegeneratedFailed,
 		});
 	}
 }
 
 async function showIP(item) {
+	const parts = [item[5], item[4], item[3]];
+	const allUnknown = parts.every(p => p === '-' || p === 'Unknown');
+	const locationText = allUnknown ? '-' : parts.join(', ');
+
 	os.alert({
 		type: 'info',
-		text: `IP: ${item[0]}\nLocation: ${item[5]}, ${item[4]}, ${item[3]}`,
+		text: `IP: ${item[0]}\nLocation: ${locationText}`,
 	});
 }
 
@@ -168,6 +194,7 @@ definePage(() => ({
 	}
 
 	> header {
+		position: relative;
 		display: flex;
 		align-items: center;
 
@@ -194,9 +221,11 @@ definePage(() => ({
 		}
 
 		> .location {
-			flex-grow: 1;
-			display: flex;
-			justify-content: center;
+			position: absolute;
+			left: 50%;
+			transform: translateX(-50%);
+			text-align: center;
+			white-space: nowrap;
 		}
 
 		> .time {

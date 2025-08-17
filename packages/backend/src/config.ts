@@ -10,6 +10,7 @@ import * as yaml from 'js-yaml';
 import type * as Sentry from '@sentry/node';
 import type * as SentryVue from '@sentry/vue';
 import type { RedisOptions } from 'ioredis';
+import nodePath from 'node:path';
 
 type RedisOptionsSource = Partial<RedisOptions> & {
 	host: string;
@@ -122,6 +123,8 @@ type Source = {
 	}
 
 	bcryptCost?: number;
+	tokenSalt: string;
+	hmacKey: string;
 };
 
 export type Config = {
@@ -190,6 +193,8 @@ export type Config = {
 		}
 	}
 	bcryptCost?: number;
+	tokenSalt: string;
+	hmacKey: string;
 
 	version: string;
 	codename: string;
@@ -227,6 +232,7 @@ export type Config = {
 	perUserNotificationsMaxCount: number;
 	deactivateAntennaThreshold: number;
 	pidFile: string;
+	nativeTokenExpiry: number;
 };
 
 export type FulltextSearchProvider = 'sqlLike' | 'sqlPgroonga' | 'meilisearch' | 'searchengine';
@@ -259,6 +265,40 @@ export function loadConfig(): Config {
 	const frontendEmbedManifest = frontendEmbedManifestExists ?
 		JSON.parse(fs.readFileSync(`${_dirname}/../../../built/_frontend_embed_vite_/manifest.json`, 'utf-8'))
 		: { 'src/boot.ts': { file: null } };
+	const maxTime = Date.now() + 183 * 24 * 60 * 60 * 1000;
+	const defaultTime = { version: '1', time: maxTime };
+
+	const tokenTimePath = nodePath.join(`${_dirname}/../../../files/settings/tokenSettings.json`);
+
+	fs.mkdirSync(nodePath.dirname(tokenTimePath), { recursive: true });
+
+	let writeDefault = false;
+	let tokenTime = Object.assign({}, defaultTime);
+
+	try {
+		if (!fs.existsSync(tokenTimePath) || fs.statSync(tokenTimePath).size === 0) {
+			writeDefault = true;
+		} else {
+			const raw = fs.readFileSync(tokenTimePath, 'utf-8');
+			const parsed = JSON.parse(raw);
+
+			if (!parsed.version || !parsed.time) {
+				writeDefault = true;
+			} else {
+				tokenTime = parsed;
+				if (tokenTime.time > maxTime) {
+					tokenTime.time = maxTime;
+					writeDefault = true;
+				}
+			}
+		}
+	} catch (err) {
+		writeDefault = true;
+	}
+
+	if (writeDefault) {
+		fs.writeFileSync(tokenTimePath, JSON.stringify(tokenTime, null, 2), 'utf-8');
+	}
 
 	const config = yaml.load(fs.readFileSync(path, 'utf-8')) as Source;
 
@@ -279,6 +319,7 @@ export function loadConfig(): Config {
 		: null;
 	const internalMediaProxy = `${scheme}://${host}/proxy`;
 	const redis = convertRedisOptions(config.redis, host);
+	const nativeTokenExpiry = tokenTime.time;
 
 	return {
 		version,
@@ -344,6 +385,9 @@ export function loadConfig(): Config {
 		pidFile: config.pidFile,
 		logging: config.logging,
 		bcryptCost: Math.max(8, config.bcryptCost ?? 12),
+		tokenSalt: config.tokenSalt ?? "ThisIsNOTSecureEnoughChangeItPoweredByVickey",
+		hmacKey: config.hmacKey ?? "ThisIsNOTSecureEnoughChangeItPoweredByVickey",
+		nativeTokenExpiry,
 	};
 }
 

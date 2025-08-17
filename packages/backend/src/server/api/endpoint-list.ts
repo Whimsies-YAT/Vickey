@@ -296,6 +296,7 @@ export * as 'i/registry/scopes-with-domain' from './endpoints/i/registry/scopes-
 export * as 'i/registry/set' from './endpoints/i/registry/set.js';
 export * as 'i/revoke-token' from './endpoints/i/revoke-token.js';
 export * as 'i/signin-history' from './endpoints/i/signin-history.js';
+export * as 'i/sign-out' from './endpoints/i/sign-out.js';
 export * as 'i/unpin' from './endpoints/i/unpin.js';
 export * as 'i/update' from './endpoints/i/update.js';
 export * as 'i/update-email' from './endpoints/i/update-email.js';

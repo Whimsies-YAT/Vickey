@@ -141,6 +141,40 @@ export interface Locale extends ILocale {
      * {name} is one of the services powered by the open source platform <b>Vickey</b> (referred to as a "Vickey instance").
      */
     "poweredByVickeyDescription": ParameterizedString<"name">;
+    "_tokenMigration": {
+        /**
+         * Old token format detected
+         */
+        "oldTokenFormatDetected": string;
+        /**
+         * Your login token is in an old format. Would you like to update it now for better security?
+         */
+        "securityAlert": string;
+        /**
+         * Token update declined. You can update it later in Settings > Security.
+         */
+        "declined": string;
+        /**
+         * Token regenerated successfully
+         */
+        "succeeded": string;
+        /**
+         * Error
+         */
+        "error": string;
+        /**
+         * Failed to regenerate token. Please try again in Settings > Security.
+         */
+        "errorText": string;
+        /**
+         * Token regenerated successfully
+         */
+        "tokenRegenerated": string;
+        /**
+         * Error regenerating token
+         */
+        "tokenRegeneratedFailed": string;
+    };
     "_role": {
         "_options": {
             /**

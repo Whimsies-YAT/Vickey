@@ -10,6 +10,7 @@ import { waiting } from '@/os.js';
 import { unisonReload } from '@/utility/unison-reload.js';
 import { clear } from '@/utility/idb-proxy.js';
 import { $i } from '@/i.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
 
 export async function signout() {
 	if (!$i) return;
@@ -22,6 +23,12 @@ export async function signout() {
 		}
 	} catch (err) {
 		console.error('Failed to backup preferences:', err);
+	}
+
+	try {
+		await misskeyApi('i/sign-out');
+	} catch (err) {
+		console.warn('Failed to invalidate session on server:', err);
 	}
 
 	localStorage.clear();

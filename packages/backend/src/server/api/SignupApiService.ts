@@ -136,6 +136,10 @@ export class SignupApiService {
 		const reason = body['reason'];
 		const emailAddress = body['emailAddress'];
 
+		if (password.length < 8 || password.length > 72) {
+			throw new FastifyReplyError(400, 'INVALID_PASSWORD_LENGTH');
+		}
+
 		if (this.meta.emailRequiredForSignup) {
 			if (emailAddress == null || typeof emailAddress !== 'string' || emailAddress === (await this.userProfilesRepository.findOneBy({ email: emailAddress, emailVerified: true }))?.email || emailAddress === (await this.userPendingsRepository.findOneBy({ email: emailAddress, emailVerified: true, isProcessed: false }))?.email) {
 				reply.code(400);
@@ -308,7 +312,7 @@ export class SignupApiService {
 		} else {
 			try {
 				const { account, secret } = await this.signupService.signup({
-					username, password, host,
+					username, password, host, request,
 				});
 
 				const res = await this.userEntityService.pack(account, account, {
@@ -430,6 +434,7 @@ export class SignupApiService {
 				passwordHash: pendingUser.password,
 				reason: pendingUser.reason,
 				approved: true,
+				request,
 			});
 
 			this.userPendingsRepository.update({ id: pendingUser.id }, { isProcessed: true, result: "Approved" });

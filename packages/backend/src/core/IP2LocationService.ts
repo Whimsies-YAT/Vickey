@@ -377,4 +377,14 @@ export class IP2LocationService {
 		await ip2proxy.openAsync(Path.join(CONFIG.path, CONFIG.proxyFileName));
 		return ip2proxy.getAllAsync(ip);
 	}
+
+	public isIPv4(ip: string): boolean {
+		const tools = new IPTools();
+		return tools.isIPV4(ip);
+	}
+
+	public isIPv6(ip: string): boolean {
+		const tools = new IPTools();
+		return tools.isIPV6(ip);
+	}
 }

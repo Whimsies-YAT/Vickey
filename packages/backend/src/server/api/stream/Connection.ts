@@ -217,6 +217,17 @@ export default class Connection {
 	}
 
 	/**
+	 * Send token refresh notification to client
+	 */
+	@bindThis
+	public sendTokenRefreshNeeded() {
+		this.sendMessageToWs('tokenRefreshNeeded', {
+			message: 'Your session token will expire soon. Please refresh your token to maintain access.',
+			refreshRecommended: true,
+		});
+	}
+
+	/**
 	 * チャンネルに接続
 	 */
 	@bindThis

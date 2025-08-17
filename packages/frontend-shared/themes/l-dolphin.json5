@@ -1,0 +1,15 @@
+{
+	id: 'af77557d-dd06-456f-8045-d6359f5ba198',
+
+	name: 'Dolphin',
+	author: 'xianon',
+
+	base: 'light',
+
+	props: {
+		accent: 'rgb(111, 172, 200)',
+		bg: 'rgb(237, 243, 247)',
+		link: 'rgb(148, 160, 41)',
+		mention: 'rgb(93, 161, 193)'
+	}
+}
