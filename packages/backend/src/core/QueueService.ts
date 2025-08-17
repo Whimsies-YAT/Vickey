@@ -150,6 +150,16 @@ export class QueueService {
 				removeOnComplete: true,
 			},
 		});
+		this.systemQueue.upsertJobScheduler('syncUserSessions', {
+			pattern: '*/3 * * * *'
+		}, {
+			name: 'syncUserSessions',
+		});
+		this.systemQueue.upsertJobScheduler('clearExpiredSessions', {
+			pattern: '0 4 * * *'
+		}, {
+			name: 'clearExpiredSessions',
+		});
 	}
 
 	@bindThis

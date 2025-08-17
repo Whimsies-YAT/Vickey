@@ -12,6 +12,7 @@ export class RedisKVCache<T> {
 	private readonly fetcher: (key: string) => Promise<T>;
 	private readonly toRedisConverter: (value: T) => string;
 	private readonly fromRedisConverter: (value: string) => T | undefined;
+	private readonly preload?: () => Promise<void>;
 
 	constructor(
 		private redisClient: Redis.Redis,
@@ -22,6 +23,7 @@ export class RedisKVCache<T> {
 			fetcher: RedisKVCache<T>['fetcher'];
 			toRedisConverter: RedisKVCache<T>['toRedisConverter'];
 			fromRedisConverter: RedisKVCache<T>['fromRedisConverter'];
+			preload?: () => Promise<void>;
 		},
 	) {
 		this.lifetime = opts.lifetime;
@@ -29,6 +31,13 @@ export class RedisKVCache<T> {
 		this.fetcher = opts.fetcher;
 		this.toRedisConverter = opts.toRedisConverter;
 		this.fromRedisConverter = opts.fromRedisConverter;
+		this.preload = opts.preload;
+	}
+
+	public async runPreloadIfExists() {
+		if (this.preload) {
+			await this.preload();
+		}
 	}
 
 	@bindThis

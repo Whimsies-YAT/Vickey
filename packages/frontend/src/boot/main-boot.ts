@@ -30,6 +30,7 @@ import { launchPlugins } from '@/plugin.js';
 import { updateCurrentAccountPartial } from '@/accounts.js';
 import { migrateOldSettings } from '@/pref-migrate.js';
 import { unisonReload } from '@/utility/unison-reload.js';
+import { checkAndRegenerateToken, silentTokenRefresh } from '@/utility/auto-token-regenerate.js';
 
 export async function mainBoot() {
 	const { isClientUpdated, lastVersion } = await common(async () => {
@@ -109,6 +110,12 @@ export async function mainBoot() {
 	}
 
 	if ($i) {
+		try {
+			await checkAndRegenerateToken();
+		} catch (error) {
+			console.warn('Token check failed during startup:', error);
+		}
+
 		store.loaded.then(async () => {
 			if (store.s.accountSetupWizard !== -1) {
 				const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkUserSetupDialog.vue')), {}, {
@@ -423,6 +430,14 @@ export async function mainBoot() {
 
 			// 個人宛てお知らせが発行されたとき
 			main.on('announcementCreated', onAnnouncementCreated);
+
+			// Token refresh notification from server
+			main.on('tokenRefreshNeeded', () => {
+				console.log('WebSocket: Token refresh needed');
+				silentTokenRefresh().catch(error => {
+					console.warn('WebSocket-triggered token refresh failed:', error);
+				});
+			});
 		}
 	}
 

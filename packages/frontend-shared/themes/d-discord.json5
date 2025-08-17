@@ -1,0 +1,26 @@
+{
+	id: '6c445bcb-4e3a-4cb6-9afe-a9a984c2ccd7',
+
+	name: 'Discord',
+	author: 'Zheneha',
+
+	base: 'dark',
+
+	props: {
+		bg: 'rgb(32, 34, 37)',
+		fg: 'rgb(228, 228, 228)',
+		link: 'rgb(0, 176, 244)',
+		navBg: '#2f3136',
+		navFg: '#8e9297',
+		panel: 'rgb(54, 57, 63)',
+		accent: 'rgb(113, 136, 217)',
+		header: 'rgb(47, 49, 54)',
+		renote: 'rgb(67, 181, 129)',
+		hashtag: '@accent',
+		mention: '@accent',
+		navActive: '#ffffff',
+		navHoverFg: '#dcddde',
+		fgHighlighted: '#ffffff',
+		scrollbarHandle: 'rgb(32, 34, 37)',
+	}
+}

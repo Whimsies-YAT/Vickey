@@ -28,16 +28,16 @@ type File = {
 
 // TODO: paramsの型をT['params']のスキーマ定義から推論する
 type Executor<T extends IEndpointMeta, Ps extends Schema> =
-	(params: SchemaType<Ps>, user: T['requireCredential'] extends true ? MiLocalUser : MiLocalUser | null, token: MiAccessToken | null, file?: File, cleanup?: () => any, ip?: string | null, headers?: Record<string, string> | null) =>
+	(params: SchemaType<Ps>, user: T['requireCredential'] extends true ? MiLocalUser : MiLocalUser | null, token: MiAccessToken | null, file?: File, cleanup?: () => any, ip?: string | null, headers?: Record<string, string> | null, rawToken?: string | null) =>
 		Promise<T['res'] extends undefined ? Response : SchemaType<NonNullable<T['res']>>>;
 
 export abstract class Endpoint<T extends IEndpointMeta, Ps extends Schema> {
-	public exec: (params: any, user: T['requireCredential'] extends true ? MiLocalUser : MiLocalUser | null, token: MiAccessToken | null, file?: File, ip?: string | null, headers?: Record<string, string> | null) => Promise<any>;
+	public exec: (params: any, user: T['requireCredential'] extends true ? MiLocalUser : MiLocalUser | null, token: MiAccessToken | null, file?: File, ip?: string | null, headers?: Record<string, string> | null, rawToken?: string | null) => Promise<any>;
 
 	constructor(meta: T, paramDef: Ps, cb: Executor<T, Ps>) {
 		const validate = ajv.compile(paramDef);
 
-		this.exec = (params: any, user: T['requireCredential'] extends true ? MiLocalUser : MiLocalUser | null, token: MiAccessToken | null, file?: File, ip?: string | null, headers?: Record<string, string> | null) => {
+		this.exec = (params: any, user: T['requireCredential'] extends true ? MiLocalUser : MiLocalUser | null, token: MiAccessToken | null, file?: File, ip?: string | null, headers?: Record<string, string> | null, rawToken?: string | null) => {
 			let cleanup: undefined | (() => void) = undefined;
 
 			if (meta.requireFile) {
@@ -68,7 +68,7 @@ export abstract class Endpoint<T extends IEndpointMeta, Ps extends Schema> {
 				return Promise.reject(err);
 			}
 
-			return cb(params as SchemaType<Ps>, user, token, file, cleanup, ip, headers);
+			return cb(params as SchemaType<Ps>, user, token, file, cleanup, ip, headers, rawToken);
 		};
 	}
 }

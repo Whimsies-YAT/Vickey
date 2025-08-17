@@ -8,14 +8,13 @@ import { Inject, Injectable } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 import { DataSource, IsNull } from 'typeorm';
 import { DI } from '@/di-symbols.js';
-import type { MiMeta, UsedUsernamesRepository, UsersRepository } from '@/models/_.js';
+import type { MiMeta, UsedUsernamesRepository, UsersRepository, SigninsRepository } from '@/models/_.js';
 import type { Config } from '@/config.js';
 import { MiUser } from '@/models/User.js';
 import { MiUserProfile } from '@/models/UserProfile.js';
 import { IdService } from '@/core/IdService.js';
 import { MiUserKeypair } from '@/models/UserKeypair.js';
 import { MiUsedUsername } from '@/models/UsedUsername.js';
-import { generateNativeUserToken } from '@/misc/token.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
 import UsersChart from '@/core/chart/charts/users.js';
@@ -23,6 +22,9 @@ import { UtilityService } from '@/core/UtilityService.js';
 import { UserService } from '@/core/UserService.js';
 import { SystemAccountService } from '@/core/SystemAccountService.js';
 import { MetaService } from '@/core/MetaService.js';
+import { UserSessionsService } from '@/core/UserSessionsService.js';
+import type { FastifyRequest } from "fastify";
+import { detectDeviceType } from '@/misc/device-type.js';
 
 @Injectable()
 export class SignupService {
@@ -39,6 +41,9 @@ export class SignupService {
 		@Inject(DI.usedUsernamesRepository)
 		private usedUsernamesRepository: UsedUsernamesRepository,
 
+		@Inject(DI.signinsRepository)
+		private signinsRepository: SigninsRepository,
+
 		@Inject(DI.config)
 		private config: Config,
 
@@ -49,6 +54,7 @@ export class SignupService {
 		private systemAccountService: SystemAccountService,
 		private metaService: MetaService,
 		private usersChart: UsersChart,
+		private userSessionsService: UserSessionsService,
 	) {
 	}
 
@@ -61,8 +67,20 @@ export class SignupService {
 		reason?: string | null;
 		ignorePreservedUsernames?: boolean;
 		approved?: boolean;
+		ip?: string;
+		headers?: Record<string, string> | null | undefined;
+		request?: FastifyRequest;
 	}) {
 		const { username, password, passwordHash, host, reason } = opts;
+		const headers: Record<string, string> | null =
+			opts.request?.headers as Record<string, string> ??
+			opts.headers ??
+			null;
+		const ip =
+			opts.request?.ip ??
+			opts.ip ??
+			'127.0.0.1';
+
 		let hash = passwordHash;
 		const instance = await this.metaService.fetch(true);
 
@@ -77,13 +95,14 @@ export class SignupService {
 				throw new Error('INVALID_PASSWORD');
 			}
 
+			if (password.length < 8 || password.length > 72) {
+				throw new Error('INVALID_PASSWORD_LENGTH');
+			}
+
 			// Generate hash of password
 			const salt = await bcrypt.genSalt(this.config.bcryptCost);
 			hash = await bcrypt.hash(password, salt);
 		}
-
-		// Generate secret
-		const secret = generateNativeUserToken();
 
 		// Check username duplication
 		if (await this.usersRepository.exists({ where: { usernameLower: username.toLowerCase(), host: IsNull() } })) {
@@ -140,7 +159,7 @@ export class SignupService {
 				username: username,
 				usernameLower: username.toLowerCase(),
 				host: this.utilityService.toPunyNullable(host),
-				token: secret,
+				token: null,
 				approved: (this.meta.rootUserId === null) || (opts.approved ?? !this.meta.approvalRequiredForSignup),
 				signupReason: reason,
 			}));
@@ -163,6 +182,26 @@ export class SignupService {
 			}));
 		});
 
+		const signInId = this.idService.gen();
+
+		const sessionToken = await this.userSessionsService.createTokenSafely({
+			userId: account.id,
+			signInId,
+			deviceInfo: detectDeviceType(headers)
+		});
+
+		if (!sessionToken) {
+			throw new Error('Failed to create session token for new user');
+		}
+
+		await this.signinsRepository.insertOne({
+			id: signInId,
+			userId: account.id,
+			ip,
+			headers: headers as any,
+			success: true,
+		});
+
 		this.usersChart.update(account, true);
 		this.userService.notifySystemWebhook(account, 'userCreated');
 
@@ -170,6 +209,6 @@ export class SignupService {
 			await this.metaService.update({ rootUserId: account.id });
 		}
 
-		return { account, secret };
+		return { account, secret: sessionToken };
 	}
 }

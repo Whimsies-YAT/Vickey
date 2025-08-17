@@ -15,7 +15,10 @@ import { bindThis } from '@/decorators.js';
 import { EmailService } from '@/core/EmailService.js';
 import { NotificationService } from '@/core/NotificationService.js';
 import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
+import { UserSessionsService } from '@/core/UserSessionsService.js';
 import type { FastifyRequest, FastifyReply } from 'fastify';
+import { detectDeviceType } from '@/misc/device-type.js';
+import { generateDeviceId } from '@/misc/token.js';
 
 @Injectable()
 export class SigninService {
@@ -32,16 +35,36 @@ export class SigninService {
 		private notificationService: NotificationService,
 		private idService: IdService,
 		private globalEventService: GlobalEventService,
+		private userSessionsService: UserSessionsService,
 	) {
 	}
 
 	@bindThis
-	public signin(request: FastifyRequest, reply: FastifyReply, user: MiLocalUser) {
+	public async signin(request: FastifyRequest, reply: FastifyReply, user: MiLocalUser) {
+		const id = this.idService.gen();
+		const deviceInfo = detectDeviceType(request.headers);
+		const sessionToken = await this.userSessionsService.createTokenSafely({
+			userId: user.id,
+			signInId: id,
+			deviceInfo,
+		});
+
+		if (!sessionToken) {
+			reply.code(500);
+			return {
+				error: {
+					message: 'Failed to create session token',
+					code: 'SESSION_TOKEN_CREATION_FAILED',
+					id: 'f5d7e8c9-1a2b-3c4d-5e6f-708192a3b4c5',
+				},
+			};
+		}
+
 		setImmediate(async () => {
 			this.notificationService.createNotification(user.id, 'login', {});
 
 			const record = await this.signinsRepository.insertOne({
-				id: this.idService.gen(),
+				id,
 				userId: user.id,
 				ip: request.ip,
 				headers: request.headers as any,
@@ -66,8 +89,7 @@ export class SigninService {
 		return {
 			finished: true,
 			id: user.id,
-			i: user.token!,
+			i: sessionToken,
 		} satisfies Misskey.entities.SigninFlowResponse;
 	}
 }
-

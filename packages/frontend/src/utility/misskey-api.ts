@@ -7,6 +7,7 @@ import * as Misskey from 'misskey-js';
 import { ref } from 'vue';
 import { apiUrl } from '@@/js/config.js';
 import { $i } from '@/i.js';
+import { silentTokenRefresh } from '@/utility/auto-token-regenerate.js';
 export const pendingApiRequestsCount = ref(0);
 
 // Implements Misskey.api.ApiClient.request
@@ -52,6 +53,14 @@ export function misskeyApi<
 			},
 			signal,
 		}).then(async (res) => {
+			const needsRefresh = res.headers.get('X-Token-Needs-Refresh');
+			if (needsRefresh === 'true') {
+				console.log('Backend indicated token needs refresh');
+				silentTokenRefresh().catch(error => {
+					console.warn('Background token refresh failed:', error);
+				});
+			}
+
 			if (returnResponse) {
 				resolve(res);
 			} else {
@@ -61,6 +70,11 @@ export function misskeyApi<
 				} else if (res.status === 204) {
 					resolve(undefined as _ResT); // void -> undefined
 				} else {
+					if (body.error && body.error.id === 'b0a7f5f8-dc2f-4171-b91f-de88ad238e14') {
+						localStorage.clear();
+						window.location.reload();
+						return;
+					}
 					reject(body.error);
 				}
 			}
@@ -111,6 +125,14 @@ export function misskeyApiGet<
 			credentials: 'omit',
 			cache: 'default',
 		}).then(async (res) => {
+			const needsRefresh = res.headers.get('X-Token-Needs-Refresh');
+			if (needsRefresh === 'true') {
+				console.log('Backend indicated token needs refresh');
+				silentTokenRefresh().catch(error => {
+					console.warn('Background token refresh failed:', error);
+				});
+			}
+
 			if (returnResponse) {
 				resolve(res);
 			} else {
@@ -120,6 +142,11 @@ export function misskeyApiGet<
 				} else if (res.status === 204) {
 					resolve(undefined as _ResT); // void -> undefined
 				} else {
+					if (body.error && body.error.id === 'b0a7f5f8-dc2f-4171-b91f-de88ad238e14') {
+						localStorage.clear();
+						window.location.reload();
+						return;
+					}
 					reject(body.error);
 				}
 			}
