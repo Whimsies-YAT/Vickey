@@ -15,6 +15,4 @@ export function isNativeToken(token: string): boolean {
  */
 export function shouldRegenerateToken(token: string): boolean {
 	return isNativeToken(token);
-
-
 }

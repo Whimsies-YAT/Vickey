@@ -160,7 +160,6 @@ export class CacheService implements OnModuleInit, OnApplicationShutdown, Before
 			fromRedisConverter: (value) => new Set(JSON.parse(value)),
 		});
 
-
 		// NOTE: チャンネルのフォロー状況キャッシュはChannelFollowingServiceで行っている
 
 		this.redisForSub.on('message', this.onMessage);
@@ -194,7 +193,6 @@ export class CacheService implements OnModuleInit, OnApplicationShutdown, Before
 			return defaultValue;
 		}
 	}
-
 
 	@bindThis
 	private async onMessage(_: string, data: string): Promise<void> {

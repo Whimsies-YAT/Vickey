@@ -53,7 +53,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			let forceCurrentOnly = false;
 			let currentSignInId: string | undefined = undefined;
 			let currentDeviceId: string | undefined = undefined;
-			let signInHistory: any = null
+			let signInHistory: any = null;
 			let inheritedDeviceId: string | undefined = undefined;
 
 			if (rawToken) {

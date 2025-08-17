@@ -38,7 +38,6 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 		private loggerService: LoggerService,
 		private idService: IdService,
 	) {
-
 		this.logger = this.loggerService.getLogger('syncSessions');
 	}
 
@@ -485,7 +484,6 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				success: true,
 				deletedCount: totalDeleted
 			};
-
 		} catch (e) {
 			const error = e as Error;
 			this.logger.error('Failed to cleanup expired tokens:', error);
@@ -619,8 +617,8 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 		const MAX_RETRIES = 3;
 
 		let retryCount = 0;
-		let lastProcessedCursor = '0';
-		let processedCursor = 0;
+		const lastProcessedCursor = '0';
+		const processedCursor = 0;
 
 		const gotLock = await this.redisClient.set(LOCK_KEY, process.pid.toString(), 'PX', LOCK_TTL, 'NX');
 		if (!gotLock) {
@@ -675,7 +673,6 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 
 			await this.performConsistencyCheck();
 			this.logger.succ('Sync complete.');
-
 		} catch (e) {
 			const err = e as Error;
 			this.logger.error('Final error:', err);
@@ -767,7 +764,6 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			}
 
 			await this.processBatchSafely(lockedKeys, lockedTokens);
-
 		} finally {
 			await this.releaseTokenLocks(tokens.filter((_, index) => lockResults[index]));
 		}
@@ -1017,7 +1013,6 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 
 			await this.cleanupCorruptedData();
 			this.logger.info('Recovery state saved, corrupted data cleaned');
-
 		} catch (e) {
 			const recoveryErr = e as Error;
 			this.logger.error('Recovery failed:', recoveryErr);
@@ -1091,7 +1086,6 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				this.logger.error('High inconsistency rate detected, triggering auto-fix...');
 				await this.autoFixInconsistencies(inconsistencies);
 			}
-
 		} catch (e) {
 			const err = e as Error;
 			this.logger.error('Consistency check failed:', err);
@@ -1285,7 +1279,6 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 					collectedCount++;
 				}
 			}
-
 		} while (cursor !== '0' && collectedCount < sampleSize);
 
 		return tokens;

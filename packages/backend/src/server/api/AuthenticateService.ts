@@ -61,7 +61,7 @@ export class AuthenticateService implements OnApplicationShutdown {
 		if (isNativeUserToken(token)) {
 			if (Date.now() > this.config.nativeTokenExpiry) throw new AuthenticationError('Native token is no longer supported');
 			const user = await this.cacheService.localUserByNativeTokenCache.fetch(token,
-				() => this.usersRepository.findOneBy({token}) as Promise<MiLocalUser | null>);
+				() => this.usersRepository.findOneBy({ token }) as Promise<MiLocalUser | null>);
 
 			if (user == null) {
 				throw new AuthenticationError('user not found');
@@ -82,10 +82,10 @@ export class AuthenticateService implements OnApplicationShutdown {
 				throw new AuthenticationError('user not found');
 			}
 
-			return { 
-				user, 
+			return {
+				user,
 				accessToken: null,
-				needRefresh: sessionValidation.needRefresh 
+				needRefresh: sessionValidation.needRefresh
 			};
 		}
 
@@ -111,8 +111,8 @@ export class AuthenticateService implements OnApplicationShutdown {
 				const app = await this.appCache.fetch(accessToken.appId,
 					() => this.appsRepository.findOneByOrFail({ id: accessToken.appId! }));
 
-				return { 
-					user, 
+				return {
+					user,
 					accessToken: {
 						id: accessToken.id,
 						permission: app.permission,

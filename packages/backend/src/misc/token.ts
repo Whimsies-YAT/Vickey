@@ -5,7 +5,7 @@
 
 import { secureRndstr } from '@/misc/secure-rndstr.js';
 import { randomBytes, createHmac } from 'node:crypto';
-import { loadConfig } from '@/config.js'
+import { loadConfig } from '@/config.js';
 
 const TIMESTAMP_SALT = Buffer.from(loadConfig().tokenSalt, 'utf-8');
 const HMAC_KEY = Buffer.from(loadConfig().tokenSalt, 'utf-8');
@@ -38,7 +38,7 @@ export const generateNewToken = (version?: number) => {
 	const processId = Buffer.allocUnsafe(2);
 	processId.writeUInt16BE(process.pid & 0xFFFF, 0);
 
-	let counter = generateNewToken.counter || 0;
+	const counter = generateNewToken.counter || 0;
 	generateNewToken.counter = (counter + 1) & 0xFFFF;
 	const sequence = Buffer.allocUnsafe(2);
 	sequence.writeUInt16BE(generateNewToken.counter, 0);
@@ -61,11 +61,11 @@ export const isNewToken = (token: string, isApi: boolean = false) => {
 
 	try {
 		const data = Buffer.from(token, 'base64url');
-		if (data.length !== 40) return { valid: false, needRefresh: false };;
+		if (data.length !== 40) return { valid: false, needRefresh: false };
 
 		const versionAndFlags = data[0];
 		const version = (versionAndFlags & 0xF0) >> 4;
-		if (version < 1 || version > 15) return { valid: false, needRefresh: false };;
+		if (version < 1 || version > 15) return { valid: false, needRefresh: false };
 
 		const tokenWithoutSig = data.subarray(0, 24);
 		const providedSignature = data.subarray(24, 40);
@@ -74,7 +74,7 @@ export const isNewToken = (token: string, isApi: boolean = false) => {
 		hmac.update(tokenWithoutSig);
 		const expectedSignature = hmac.digest().subarray(0, 16);
 
-		if (!providedSignature.equals(expectedSignature)) return { valid: false, needRefresh: false };;
+		if (!providedSignature.equals(expectedSignature)) return { valid: false, needRefresh: false };
 
 		const obfTimestamp = data.subarray(1, 7);
 		for (let i = 0; i < 6; i++) {
@@ -98,6 +98,6 @@ export const isNewToken = (token: string, isApi: boolean = false) => {
 
 		return { valid, needRefresh };
 	} catch {
-		return { valid: false, needRefresh: false };;
+		return { valid: false, needRefresh: false };
 	}
 };

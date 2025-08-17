@@ -26,7 +26,7 @@ export async function signout() {
 	}
 
 	try {
-		await misskeyApi('i/sign-out')
+		await misskeyApi('i/sign-out');
 	} catch (err) {
 		console.warn('Failed to invalidate session on server:', err);
 	}
