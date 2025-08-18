@@ -8,7 +8,7 @@ import { randomBytes, createHmac } from 'node:crypto';
 import { loadConfig } from '@/config.js';
 
 const TIMESTAMP_SALT = Buffer.from(loadConfig().tokenSalt, 'utf-8');
-const HMAC_KEY = Buffer.from(loadConfig().tokenSalt, 'utf-8');
+const HMAC_KEY = Buffer.from(loadConfig().hmacKey, 'utf-8');
 
 /* @deprecated
  * DO NOT USE IT ANYMORE!
