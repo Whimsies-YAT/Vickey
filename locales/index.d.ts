@@ -6031,6 +6031,10 @@ export interface Locale extends ILocale {
      */
     "selectFromPresets": string;
     /**
+     * カスタム
+     */
+    "custom": string;
+    /**
      * 実績
      */
     "achievements": string;
@@ -10058,6 +10062,10 @@ export interface Locale extends ILocale {
          * 日
          */
         "day": string;
+        /**
+         * ヶ月
+         */
+        "month": string;
     };
     "_2fa": {
         /**
