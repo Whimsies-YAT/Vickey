@@ -881,6 +881,11 @@ export class MiMeta {
 		nullable: true,
 	})
 	public visibleRecipient: string | null;
+
+	@Column('jsonb', {
+		default: { },
+	})
+	public clientOptions: Record<string, any>;
 }
 
 export type SoftwareSuspension = {
