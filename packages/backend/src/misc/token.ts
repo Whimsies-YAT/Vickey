@@ -43,11 +43,12 @@ export const generateNewToken = (version?: number) => {
 	timestampBuffer.writeBigUInt64BE(BigInt(timestamp), 0);
 
 	const encryptedTimestamp = Buffer.alloc(8);
-	const saltLength = TIMESTAMP_SALT.length;
+	const keyDerivation = createHmac('sha256', TIMESTAMP_SALT);
+	keyDerivation.update(Buffer.from([ver]));
+	keyDerivation.update(Buffer.from('timestamp_encryption'));
+	const fullKeyStream = keyDerivation.digest();
 	for (let i = 0; i < 8; i++) {
-		const saltIndex = i % saltLength;
-		const expandedSalt = TIMESTAMP_SALT[saltIndex] ^ TIMESTAMP_SALT[(i * 7) % saltLength];
-		encryptedTimestamp[i] = timestampBuffer[i] ^ expandedSalt;
+		encryptedTimestamp[i] = timestampBuffer[i] ^ fullKeyStream[i];
 	}
 
 	const machineIdRaw = MACHINE_FINGERPRINT >>> 0;
@@ -105,18 +106,20 @@ export const isNewToken = (token: string, isApi: boolean = false) => {
 
 		const encryptedTimestamp = data.subarray(1, 9);
 		const decryptedTimestamp = Buffer.alloc(8);
-		const saltLength = TIMESTAMP_SALT.length;
+
+		const keyDerivation = createHmac('sha256', TIMESTAMP_SALT);
+		keyDerivation.update(Buffer.from([version]));
+		keyDerivation.update(Buffer.from('timestamp_encryption'));
+		const fullKeyStream = keyDerivation.digest();
 
 		for (let i = 0; i < 8; i++) {
-			const saltIndex = i % saltLength;
-			const expandedSalt = TIMESTAMP_SALT[saltIndex] ^ TIMESTAMP_SALT[(i * 7) % saltLength];
-			decryptedTimestamp[i] = encryptedTimestamp[i] ^ expandedSalt;
+			decryptedTimestamp[i] = encryptedTimestamp[i] ^ fullKeyStream[i];
 		}
 
 		const timestamp = Number(decryptedTimestamp.readBigUInt64BE(0));
 
 		const now = Date.now();
-		const fiveMinutesLater = now + (5 * 1000);
+		const fiveMinutesLater = now + (5 * 60 * 1000);
 
 		let valid: boolean;
 		if (isApi) {
