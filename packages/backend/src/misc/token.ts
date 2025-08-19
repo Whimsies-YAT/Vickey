@@ -6,6 +6,7 @@
 import { secureRndstr } from '@/misc/secure-rndstr.js';
 import { randomBytes, createHmac } from 'node:crypto';
 import { loadConfig } from '@/config.js';
+import { timingSafeEqual } from 'node:crypto';
 
 const config = loadConfig();
 const TIMESTAMP_SALT = Buffer.from(config.tokenSalt, 'utf-8');
@@ -33,7 +34,7 @@ function masksFromEncryptedTimestamp(encTs: Buffer) {
 	return { tsMask32, tsMask10 };
 }
 
-export const generateNewToken = (version?: number) => {
+export const generateNewToken = (version?: number, opts?: { machine?: number; worker?: number }) => {
 	const ver = (version && version >= 1 && version <= 15) ? version : 1;
 
 	const versionAndFlags = Buffer.from([(ver << 4) & 0xF0]);
@@ -51,8 +52,8 @@ export const generateNewToken = (version?: number) => {
 		encryptedTimestamp[i] = timestampBuffer[i] ^ fullKeyStream[i];
 	}
 
-	const machineIdRaw = MACHINE_FINGERPRINT >>> 0;
-	const workerIdRaw = WORKER_ID & 0x3FF;
+	const machineIdRaw = (opts?.machine ?? MACHINE_FINGERPRINT) >>> 0;
+	const workerIdRaw  = (opts?.worker  ?? WORKER_ID) & 0x3FF;
 
 	const { tsMask32, tsMask10 } = masksFromEncryptedTimestamp(encryptedTimestamp);
 	const machineIdObf = (machineIdRaw ^ tsMask32) >>> 0;
@@ -102,7 +103,7 @@ export const isNewToken = (token: string, isApi: boolean = false) => {
 		hmac.update(tokenWithoutSig);
 		const expectedSignature = hmac.digest().subarray(0, 16);
 
-		if (!providedSignature.equals(expectedSignature)) return { valid: false, needRefresh: false };
+		if (providedSignature.length !== expectedSignature.length || !timingSafeEqual(providedSignature, expectedSignature)) return { valid: false, needRefresh: false };
 
 		const encryptedTimestamp = data.subarray(1, 9);
 		const decryptedTimestamp = Buffer.alloc(8);
@@ -139,22 +140,10 @@ export const isNewToken = (token: string, isApi: boolean = false) => {
 };
 
 export const generateSessionToken = (sessionId: string, version?: number) => {
-	const sessionHmac = createHmac('sha256', HMAC_KEY);
-	sessionHmac.update(Buffer.from(sessionId, 'utf-8'));
-	const sessionHash = sessionHmac.digest();
-
-	const originalMachine = MACHINE_FINGERPRINT;
-	const originalWorker = WORKER_ID;
-
-	MACHINE_FINGERPRINT = sessionHash.readUInt32BE(0);
-	WORKER_ID = sessionHash.readUInt16BE(4) & 0x3FF;
-
-	const token = generateNewToken(version);
-
-	MACHINE_FINGERPRINT = originalMachine;
-	WORKER_ID = originalWorker;
-
-	return token;
+	const sessionHmac = createHmac('sha256', HMAC_KEY).update(Buffer.from(sessionId, 'utf-8')).digest();
+	const machine = sessionHmac.readUInt32BE(0) >>> 0;
+	const worker  = sessionHmac.readUInt16BE(4) & 0x3FF;
+	return generateNewToken(version, { machine, worker });
 };
 
 export const verifySessionToken = (token: string, sessionId: string, isApi: boolean = false) => {
