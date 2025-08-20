@@ -53,7 +53,7 @@ export const generateNewToken = (version?: number, opts?: { machine?: number; wo
 	}
 
 	const machineIdRaw = (opts?.machine ?? MACHINE_FINGERPRINT) >>> 0;
-	const workerIdRaw  = (opts?.worker  ?? WORKER_ID) & 0x3FF;
+	const workerIdRaw = (opts?.worker ?? WORKER_ID) & 0x3FF;
 
 	const { tsMask32, tsMask10 } = masksFromEncryptedTimestamp(encryptedTimestamp);
 	const machineIdObf = (machineIdRaw ^ tsMask32) >>> 0;
@@ -142,7 +142,7 @@ export const isNewToken = (token: string, isApi: boolean = false) => {
 export const generateSessionToken = (sessionId: string, version?: number) => {
 	const sessionHmac = createHmac('sha256', HMAC_KEY).update(Buffer.from(sessionId, 'utf-8')).digest();
 	const machine = sessionHmac.readUInt32BE(0) >>> 0;
-	const worker  = sessionHmac.readUInt16BE(4) & 0x3FF;
+	const worker = sessionHmac.readUInt16BE(4) & 0x3FF;
 	return generateNewToken(version, { machine, worker });
 };
 
