@@ -1230,6 +1230,9 @@ type ClipsDeleteRequest = operations['clips___delete']['requestBody']['content']
 type ClipsFavoriteRequest = operations['clips___favorite']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type ClipsListRequest = operations['clips___list']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type ClipsListResponse = operations['clips___list']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
@@ -1785,6 +1788,7 @@ declare namespace entities {
         ClipsCreateResponse,
         ClipsDeleteRequest,
         ClipsFavoriteRequest,
+        ClipsListRequest,
         ClipsListResponse,
         ClipsMyFavoritesResponse,
         ClipsNotesRequest,
@@ -2177,6 +2181,7 @@ declare namespace entities {
         UsersUpdateMemoRequest,
         V2AdminEmojiListRequest,
         V2AdminEmojiListResponse,
+        VerifyEmailRequest,
         Error_2 as Error,
         UserLite,
         UserDetailedNotMeOnly,
@@ -3872,6 +3877,9 @@ type V2AdminEmojiListRequest = operations['v2___admin___emoji___list']['requestB
 
 // @public (undocumented)
 type V2AdminEmojiListResponse = operations['v2___admin___emoji___list']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type VerifyEmailRequest = operations['verify-email']['requestBody']['content']['application/json'];
 
 // Warnings were encountered during analysis:
 //
