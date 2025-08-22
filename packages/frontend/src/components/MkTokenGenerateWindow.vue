@@ -82,18 +82,22 @@ const name = ref(props.initialName);
 const permissionSwitches = ref({} as Record<(typeof Misskey.permissions)[number], boolean>);
 const permissionSwitchesForAdmin = ref({} as Record<(typeof Misskey.permissions)[number], boolean>);
 
+for (const kind of defaultPermissions) {
+	permissionSwitches.value[kind] = false;
+}
+
+if (iAmAdmin) {
+	for (const kind of adminPermissions) {
+		permissionSwitchesForAdmin.value[kind] = false;
+	}
+}
+
 if (props.initialPermissions) {
 	for (const kind of props.initialPermissions) {
-		permissionSwitches.value[kind] = true;
-	}
-} else {
-	for (const kind of defaultPermissions) {
-		permissionSwitches.value[kind] = false;
-	}
-
-	if (iAmAdmin) {
-		for (const kind of adminPermissions) {
-			permissionSwitchesForAdmin.value[kind] = false;
+		if (permissionSwitches.value.hasOwnProperty(kind)) {
+			permissionSwitches.value[kind] = true;
+		} else if (iAmAdmin && permissionSwitchesForAdmin.value.hasOwnProperty(kind)) {
+			permissionSwitchesForAdmin.value[kind] = true;
 		}
 	}
 }

@@ -133,7 +133,7 @@ function getShortClientId(clientId: string): string {
 }
 
 async function createOAuthApp() {
-	const { canceled, result } = await os.form(i18n.ts._oauthAppVK.createApp, {
+	const { canceled: basicInfoCanceled, result: basicInfo } = await os.form(i18n.ts._oauthAppVK.createApp, {
 		name: {
 			type: 'string',
 			label: i18n.ts._oauthAppVK.appName,
@@ -159,23 +159,35 @@ async function createOAuthApp() {
 			label: i18n.ts._oauthAppVK.websiteURL,
 			placeholder: 'https://yourapp.com',
 		},
-		permission: {
-			type: 'array',
-			label: i18n.ts._oauthAppVK.scopes,
-			default: ['read:account'],
-		},
 	});
 
-	if (canceled) return;
+	if (basicInfoCanceled) return;
+
+	const permissionResult = await new Promise<{ name: string | null, permissions: string[] } | null>((resolve) => {
+		os.popupAsyncWithDialog(import('@/components/MkTokenGenerateWindow.vue').then(x => x.default), {
+			title: 'Select Permissions',
+			initialPermissions: null,
+			initialName: null,
+		}, {
+			done: async (result: { name: string | null, permissions: string[] }) => {
+				resolve(result);
+			},
+			closed: () => {
+				resolve(null);
+			},
+		});
+	});
+
+	if (!permissionResult) return;
 
 	try {
 		const createdApp = await misskeyApi('oauth-apps/create', {
-			name: result.name,
-			description: result.description,
-			callbackUrl: result.callbackUrl || null,
-			iconUrl: result.iconUrl || null,
-			websiteUrl: result.websiteUrl || null,
-			permission: result.permission,
+			name: basicInfo.name,
+			description: basicInfo.description,
+			callbackUrl: basicInfo.callbackUrl || null,
+			iconUrl: basicInfo.iconUrl || null,
+			websiteUrl: basicInfo.websiteUrl || null,
+			permission: permissionResult.permissions,
 		});
 
 		await os.alert({
@@ -194,7 +206,7 @@ async function createOAuthApp() {
 }
 
 async function editApp(app: any) {
-	const { canceled, result } = await os.form(i18n.ts._oauthAppVK.editApp, {
+	const { canceled: basicInfoCanceled, result: basicInfo } = await os.form(i18n.ts._oauthAppVK.editApp, {
 		name: {
 			type: 'string',
 			label: i18n.ts._oauthAppVK.appName,
@@ -222,16 +234,34 @@ async function editApp(app: any) {
 		},
 	});
 
-	if (canceled) return;
+	if (basicInfoCanceled) return;
+
+	const permissionResult = await new Promise<{ name: string | null, permissions: string[] } | null>((resolve) => {
+		os.popupAsyncWithDialog(import('@/components/MkTokenGenerateWindow.vue').then(x => x.default), {
+			title: 'Select Permissions',
+			initialPermissions: app.permission,
+			initialName: null,
+		}, {
+			done: async (result: { name: string | null, permissions: string[] }) => {
+				resolve(result);
+			},
+			closed: () => {
+				resolve(null);
+			},
+		});
+	});
+
+	if (!permissionResult) return;
 
 	try {
 		await misskeyApi('oauth-apps/update', {
 			appId: app.id,
-			name: result.name,
-			description: result.description,
-			callbackUrl: result.callbackUrl || null,
-			iconUrl: result.iconUrl || null,
-			websiteUrl: result.websiteUrl || null,
+			name: basicInfo.name,
+			description: basicInfo.description,
+			permission: permissionResult.permissions,
+			callbackUrl: basicInfo.callbackUrl || null,
+			iconUrl: basicInfo.iconUrl || null,
+			websiteUrl: basicInfo.websiteUrl || null,
 		});
 
 		os.success();

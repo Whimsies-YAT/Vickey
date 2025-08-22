@@ -26,8 +26,8 @@ export class OAuthAppServerService {
 		}>('/oauth/app/:appId', async (request, reply) => {
 			const appId = request.params.appId;
 
-			const app = await this.appsRepository.findOneBy({ id: appId });
-			if (!app) {
+			const app = await this.appsRepository.findOneBy({ id: appId, isOAuth: true });
+			if (!app || !app.callbackUrl) {
 				reply.code(404);
 				return { error: 'App not found' };
 			}
