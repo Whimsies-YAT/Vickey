@@ -586,10 +586,19 @@ type AppCreateRequest = operations['app___create']['requestBody']['content']['ap
 type AppCreateResponse = operations['app___create']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type AppDeleteRequest = operations['app___delete']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type AppShowRequest = operations['app___show']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type AppShowResponse = operations['app___show']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AppUpdateRequest = operations['app___update']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AppUpdateResponse = operations['app___update']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type ApShowRequest = operations['ap___show']['requestBody']['content']['application/json'];
@@ -1681,8 +1690,11 @@ declare namespace entities {
         ApShowResponse,
         AppCreateRequest,
         AppCreateResponse,
+        AppDeleteRequest,
         AppShowRequest,
         AppShowResponse,
+        AppUpdateRequest,
+        AppUpdateResponse,
         AuthAcceptRequest,
         AuthSessionGenerateRequest,
         AuthSessionGenerateResponse,
@@ -2074,6 +2086,12 @@ declare namespace entities {
         NotesUserListTimelineRequest,
         NotesUserListTimelineResponse,
         NotificationsCreateRequest,
+        OauthAppsCreateRequest,
+        OauthAppsCreateResponse,
+        OauthAppsDeleteRequest,
+        OauthAppsListResponse,
+        OauthAppsUpdateRequest,
+        OauthAppsUpdateResponse,
         PagePushRequest,
         PagesCreateRequest,
         PagesCreateResponse,
@@ -3272,6 +3290,24 @@ export const notificationTypes: readonly ["note", "follow", "mention", "reply", 
 
 // @public (undocumented)
 export function nyaize(text: string): string;
+
+// @public (undocumented)
+type OauthAppsCreateRequest = operations['oauth-apps___create']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type OauthAppsCreateResponse = operations['oauth-apps___create']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type OauthAppsDeleteRequest = operations['oauth-apps___delete']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type OauthAppsListResponse = operations['oauth-apps___list']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type OauthAppsUpdateRequest = operations['oauth-apps___update']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type OauthAppsUpdateResponse = operations['oauth-apps___update']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type Page = components['schemas']['Page'];

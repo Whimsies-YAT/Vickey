@@ -99,6 +99,8 @@ interface ClientInformation {
 	name: string;
 	logo: string | null;
 	secret?: string;
+	description?: string;
+	websiteUrl?: string | null;
 }
 
 // https://indieauth.spec.indieweb.org/#client-information-discovery
@@ -251,7 +253,7 @@ export class OAuth2ProviderService {
 		private config: Config,
 		private httpRequestService: HttpRequestService,
 		@Inject(DI.accessTokensRepository)
-		accessTokensRepository: AccessTokensRepository,
+		private accessTokensRepository: AccessTokensRepository,
 		idService: IdService,
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
@@ -339,7 +341,7 @@ export class OAuth2ProviderService {
 					grantCodeCache.delete(code);
 					granted.revoked = true;
 					if (granted.grantedToken) {
-						await accessTokensRepository.delete({ token: granted.grantedToken });
+						await this.accessTokensRepository.delete({ token: granted.grantedToken });
 					}
 					return;
 				}
@@ -373,7 +375,7 @@ export class OAuth2ProviderService {
 
 				// Nya: Revoke old tokens and generate new one
 				if (granted.clientRegistered) {
-					await accessTokensRepository.delete({
+					await this.accessTokensRepository.delete({
 						userId: granted.userId,
 						appId: granted.clientId,
 					});
@@ -381,7 +383,7 @@ export class OAuth2ProviderService {
 
 				if (!granted.revoked) {
 					// NOTE: we don't have a setup for automatic token expiration
-					await accessTokensRepository.insert({
+					await this.accessTokensRepository.insert({
 						id: idService.gen(now.getTime()),
 						lastUsedAt: now,
 						userId: granted.userId,
@@ -394,7 +396,7 @@ export class OAuth2ProviderService {
 				} else {
 					// Token been revoked
 					this.#logger.info('Canceling the token as the authorization code was revoked in parallel during the process.');
-					await accessTokensRepository.delete({ token: accessToken });
+					await this.accessTokensRepository.delete({ token: accessToken });
 					return;
 				}
 
@@ -413,6 +415,7 @@ export class OAuth2ProviderService {
 			issuer: this.config.url,
 			authorization_endpoint: new URL('/oauth/authorize', this.config.url),
 			token_endpoint: new URL('/oauth/token', this.config.url),
+			revocation_endpoint: new URL('/oauth/revoke', this.config.url),
 			scopes_supported: kinds,
 			response_types_supported: ['code'],
 			grant_types_supported: ['authorization_code'],
@@ -437,6 +440,8 @@ export class OAuth2ProviderService {
 				transactionId: oauth2.transactionID,
 				clientName: oauth2.client.name,
 				clientLogo: oauth2.client.logo,
+				clientDescription: oauth2.client.description,
+				clientWebsiteUrl: oauth2.client.websiteUrl,
 				scope: oauth2.req.scope.join(' '),
 			});
 		});
@@ -502,8 +507,10 @@ export class OAuth2ProviderService {
 						registered: true,
 						redirectUris: [clientApp.callbackUrl],
 						name: clientApp.name,
-						logo: clientInfoPre.logo,
+						logo: clientApp.iconUrl || clientInfoPre.logo,
 						secret: clientApp.secret,
+						description: clientApp.description,
+						websiteUrl: clientApp.websiteUrl,
 					};
 
 					// TODO: Check whether can be skipped -> if already authorized, not revoked, and request no more scopes
@@ -557,7 +564,15 @@ export class OAuth2ProviderService {
 
 		// Return 404 for any unknown paths under /oauth so that clients can know
 		// whether a certain endpoint is supported or not.
-		fastify.all('/*', async (_request, reply) => {
+		// Only catch paths that don't match known endpoints
+		fastify.get('/*', async (request, reply) => {
+			const url = request.url;
+			// Don't catch /token or /revoke as they are handled by separate servers
+			if (url.startsWith('/token') || url.startsWith('/revoke')) {
+				// reply.code(404);
+				return;
+			}
+
 			reply.code(404);
 			reply.send({
 				error: {
@@ -581,5 +596,40 @@ export class OAuth2ProviderService {
 		fastify.use('', bodyParser.json({ strict: true }));
 		fastify.use('', this.#server.token());
 		fastify.use('', this.#server.errorHandler());
+	}
+
+	@bindThis
+	public async createRevokeServer(fastify: FastifyInstance): Promise<void> {
+		fastify.register(fastifyCors);
+		fastify.post('', async (request, reply) => {
+			const body = request.body as { token?: string; token_type_hint?: string };
+
+			if (!body.token) {
+				reply.code(400);
+				return { error: 'invalid_request', error_description: 'Missing token parameter' };
+			}
+
+			try {
+				const tokenRecord = await this.accessTokensRepository.findOne({
+					where: { token: body.token }
+				});
+
+				if (tokenRecord) {
+					await this.accessTokensRepository.delete({ token: body.token });
+					this.#logger.info(`Token revoked: ${body.token.substring(0, 8)}...`);
+				}
+
+				reply.code(200);
+				return {};
+			} catch (error) {
+				this.#logger.error('Token revocation error:', { error });
+				reply.code(503);
+				return { error: 'server_error', error_description: 'Unable to revoke token' };
+			}
+		});
+
+		await fastify.register(fastifyExpress);
+		fastify.use('', bodyParser.urlencoded({ extended: false }));
+		fastify.use('', bodyParser.json({ strict: true }));
 	}
 }

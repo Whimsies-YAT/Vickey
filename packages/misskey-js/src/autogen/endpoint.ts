@@ -168,8 +168,11 @@ import type {
 	ApShowResponse,
 	AppCreateRequest,
 	AppCreateResponse,
+	AppDeleteRequest,
 	AppShowRequest,
 	AppShowResponse,
+	AppUpdateRequest,
+	AppUpdateResponse,
 	AuthAcceptRequest,
 	AuthSessionGenerateRequest,
 	AuthSessionGenerateResponse,
@@ -561,6 +564,12 @@ import type {
 	NotesUserListTimelineRequest,
 	NotesUserListTimelineResponse,
 	NotificationsCreateRequest,
+	OauthAppsCreateRequest,
+	OauthAppsCreateResponse,
+	OauthAppsDeleteRequest,
+	OauthAppsListResponse,
+	OauthAppsUpdateRequest,
+	OauthAppsUpdateResponse,
 	PagePushRequest,
 	PagesCreateRequest,
 	PagesCreateResponse,
@@ -791,7 +800,9 @@ export type Endpoints = {
 	'ap/get': { req: ApGetRequest; res: ApGetResponse };
 	'ap/show': { req: ApShowRequest; res: ApShowResponse };
 	'app/create': { req: AppCreateRequest; res: AppCreateResponse };
+	'app/delete': { req: AppDeleteRequest; res: EmptyResponse };
 	'app/show': { req: AppShowRequest; res: AppShowResponse };
+	'app/update': { req: AppUpdateRequest; res: AppUpdateResponse };
 	'auth/accept': { req: AuthAcceptRequest; res: EmptyResponse };
 	'auth/session/generate': { req: AuthSessionGenerateRequest; res: AuthSessionGenerateResponse };
 	'auth/session/show': { req: AuthSessionShowRequest; res: AuthSessionShowResponse };
@@ -1044,6 +1055,10 @@ export type Endpoints = {
 	'notifications/flush': { req: EmptyRequest; res: EmptyResponse };
 	'notifications/mark-all-as-read': { req: EmptyRequest; res: EmptyResponse };
 	'notifications/test-notification': { req: EmptyRequest; res: EmptyResponse };
+	'oauth-apps/create': { req: OauthAppsCreateRequest; res: OauthAppsCreateResponse };
+	'oauth-apps/delete': { req: OauthAppsDeleteRequest; res: EmptyResponse };
+	'oauth-apps/list': { req: EmptyRequest; res: OauthAppsListResponse };
+	'oauth-apps/update': { req: OauthAppsUpdateRequest; res: OauthAppsUpdateResponse };
 	'page-push': { req: PagePushRequest; res: EmptyResponse };
 	'pages/create': { req: PagesCreateRequest; res: PagesCreateResponse };
 	'pages/delete': { req: PagesDeleteRequest; res: EmptyResponse };

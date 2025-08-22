@@ -129,7 +129,9 @@ export * as 'antennas/update' from './endpoints/antennas/update.js';
 export * as 'ap/get' from './endpoints/ap/get.js';
 export * as 'ap/show' from './endpoints/ap/show.js';
 export * as 'app/create' from './endpoints/app/create.js';
+export * as 'app/delete' from './endpoints/app/delete.js';
 export * as 'app/show' from './endpoints/app/show.js';
+export * as 'app/update' from './endpoints/app/update.js';
 export * as 'auth/accept' from './endpoints/auth/accept.js';
 export * as 'auth/session/generate' from './endpoints/auth/session/generate.js';
 export * as 'auth/session/show' from './endpoints/auth/session/show.js';
@@ -452,3 +454,7 @@ export * as 'chat/rooms/invitations/outbox' from './endpoints/chat/rooms/invitat
 export * as 'chat/history' from './endpoints/chat/history.js';
 export * as 'chat/read-all' from './endpoints/chat/read-all.js';
 export * as 'v2/admin/emoji/list' from './endpoints/v2/admin/emoji/list.js';
+export * as 'oauth-apps/create' from './endpoints/oauth-apps/create.js';
+export * as 'oauth-apps/delete' from './endpoints/oauth-apps/delete.js';
+export * as 'oauth-apps/update' from './endpoints/oauth-apps/update.js';
+export * as 'oauth-apps/list' from './endpoints/oauth-apps/list.js';

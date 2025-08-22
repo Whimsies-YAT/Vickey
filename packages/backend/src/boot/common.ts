@@ -13,6 +13,7 @@ import { ServerStatsService } from '@/daemons/ServerStatsService.js';
 import { ServerService } from '@/server/ServerService.js';
 import { MainModule } from '@/MainModule.js';
 import { loadConfig, Config } from '@/config.js';
+import { CacheService } from '@/core/CacheService.js';
 
 export async function server() {
 	const app = await NestFactory.createApplicationContext(MainModule, {
@@ -33,6 +34,11 @@ export async function server() {
 		if (reason) console.log(reason);
 
 		try {
+			const cacheService = app.get(CacheService);
+			if (cacheService && typeof cacheService.beforeApplicationShutdown === 'function') {
+				await cacheService.beforeApplicationShutdown();
+			}
+
 			const serverService = app.get(ServerService);
 			await serverService.dispose();
 

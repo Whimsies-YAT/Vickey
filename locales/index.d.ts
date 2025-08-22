@@ -141,6 +141,164 @@ export interface Locale extends ILocale {
      * {name} is one of the services powered by the open source platform <b>Vickey</b> (referred to as a "Vickey instance").
      */
     "poweredByVickeyDescription": ParameterizedString<"name">;
+    /**
+     * OAuth Authorization
+     */
+    "authTitle": string;
+    /**
+     * The following application is requesting access to your account:
+     */
+    "authDescription": string;
+    /**
+     * updated
+     */
+    "updated": string;
+    /**
+     * Not Available
+     */
+    "notAvailable": string;
+    "_oauthAppVK": {
+        /**
+         * OAuth Application
+         */
+        "title": string;
+        /**
+         * OAuth Applications for third-party integrations using the OAuth 2.0 / IndieAuth standard.
+         */
+        "description": string;
+        /**
+         * No OAuth applications
+         */
+        "noApp": string;
+        /**
+         * None configured
+         */
+        "noneConfigured": string;
+        /**
+         * Client ID
+         */
+        "id": string;
+        /**
+         * Client Secret
+         */
+        "secret": string;
+        /**
+         * Client ID:
+         */
+        "idAlt": string;
+        /**
+         * Client Secret:
+         */
+        "secretAlt": string;
+        /**
+         * OAuth Endpoints
+         */
+        "endpoints": string;
+        /**
+         * Authorization:
+         */
+        "authorization": string;
+        /**
+         * Token:
+         */
+        "token": string;
+        /**
+         * Revoke:
+         */
+        "revoke": string;
+        /**
+         * Website
+         */
+        "website": string;
+        /**
+         * Website URL (optional)
+         */
+        "websiteURL": string;
+        /**
+         * Icon URL (optional)
+         */
+        "iconURL": string;
+        /**
+         * Scopes
+         */
+        "scopes": string;
+        /**
+         * This is the only time the full secret will be shown. Please save it now!
+         */
+        "firstTime": string;
+        /**
+         * Create your first OAuth application to integrate with third-party services
+         */
+        "createDescription": string;
+        /**
+         * Are you sure you want to delete {appname}? This will revoke all access tokens and cannot be undone.
+         */
+        "deleteDescription": ParameterizedString<"appname">;
+        /**
+         * Create OAuth Application
+         */
+        "createApp": string;
+        /**
+         * Edit OAuth Application
+         */
+        "editApp": string;
+        /**
+         * Delete OAuth Application
+         */
+        "deleteApp": string;
+        /**
+         * OAuth Application Created
+         */
+        "created": string;
+        /**
+         * OAuth Application Updated
+         */
+        "updated": string;
+        /**
+         * OAuth Application Deleted
+         */
+        "deleted": string;
+        /**
+         * Application created successfully
+         */
+        "appCreated": string;
+        /**
+         * Failed to create application
+         */
+        "createFailed": string;
+        /**
+         * Failed to update application
+         */
+        "updateFailed": string;
+        /**
+         * Failed to delete application
+         */
+        "deleteFailed": string;
+        /**
+         * Callback URL
+         */
+        "callbackURL": string;
+        /**
+         * My Awesome App
+         */
+        "myApp": string;
+        /**
+         * Application Name
+         */
+        "appName": string;
+        /**
+         * Description
+         */
+        "appDescription": string;
+        /**
+         * OAuth application for authentication
+         */
+        "appDescriptionText": string;
+        /**
+         * Client secret is not available. The full secret is only shown once after creation.
+         */
+        "copySecret": string;
+    };
     "_tokenMigration": {
         /**
          * Old token format detected

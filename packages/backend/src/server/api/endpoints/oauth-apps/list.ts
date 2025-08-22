@@ -10,7 +10,7 @@ import { AppEntityService } from '@/core/entities/AppEntityService.js';
 import { DI } from '@/di-symbols.js';
 
 export const meta = {
-	tags: ['account', 'app'],
+	tags: ['oauth-apps'],
 
 	requireCredential: true,
 	kind: 'read:account',
@@ -28,15 +28,11 @@ export const meta = {
 
 export const paramDef = {
 	type: 'object',
-	properties: {
-		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
-		offset: { type: 'integer', default: 0 },
-	},
-	required: [],
+	properties: {},
 } as const;
 
 @Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
+export default class extends Endpoint<typeof meta, typeof paramDef> {
 	constructor(
 		@Inject(DI.appsRepository)
 		private appsRepository: AppsRepository,
@@ -44,15 +40,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private appEntityService: AppEntityService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const query = {
-				userId: me.id,
-				isOAuth: false, // Only return traditional (non-OAuth) apps
-			};
-
 			const apps = await this.appsRepository.find({
-				where: query,
-				take: ps.limit,
-				skip: ps.offset,
+				where: {
+					userId: me.id,
+					isOAuth: true,
+				},
 				order: {
 					createdAt: 'DESC',
 				},

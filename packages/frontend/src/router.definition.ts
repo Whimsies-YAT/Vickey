@@ -165,6 +165,10 @@ export const ROUTE_DEF = [{
 		name: 'connect',
 		component: page(() => import('@/pages/settings/apps.vue')),
 	}, {
+		path: '/oauth',
+		name: 'oauth',
+		component: page(() => import('@/pages/settings/oauth.vue')),
+	}, {
 		path: '/webhook/edit/:webhookId',
 		name: 'connect',
 		component: page(() => import('@/pages/settings/webhook.edit.vue')),

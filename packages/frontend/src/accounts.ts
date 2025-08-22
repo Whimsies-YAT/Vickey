@@ -39,9 +39,12 @@ export async function getAccounts(): Promise<{
 }
 
 async function addAccount(host: string, user: Misskey.entities.User, token: AccountWithToken['token']) {
+	// Always update token and user info (token might be refreshed)
+	store.set('accountTokens', { ...store.s.accountTokens, [host + '/' + user.id]: token });
+	store.set('accountInfos', { ...store.s.accountInfos, [host + '/' + user.id]: user });
+	
+	// Only add to accounts list if it doesn't exist
 	if (!prefer.s.accounts.some(x => x[0] === host && x[1].id === user.id)) {
-		store.set('accountTokens', { ...store.s.accountTokens, [host + '/' + user.id]: token });
-		store.set('accountInfos', { ...store.s.accountInfos, [host + '/' + user.id]: user });
 		prefer.commit('accounts', [...prefer.s.accounts, [host, { id: user.id, username: user.username }]]);
 	}
 }
