@@ -98,10 +98,10 @@ export class JWTService {
 		} = {},
 	): Promise<JWTPayload> {
 		const decoded = this.decode(token);
-		
+
 		// Get JWK Set
 		const jwks = await this.getJWKSet(jwksUri);
-		
+
 		// Find matching key
 		const jwk = this.findMatchingKey(jwks, decoded.header);
 		if (!jwk) {
@@ -159,7 +159,7 @@ export class JWTService {
 		if (options.audience) {
 			const expectedAudiences = Array.isArray(options.audience) ? options.audience : [options.audience];
 			const actualAudiences = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
-			
+
 			const hasValidAudience = expectedAudiences.some(expected =>
 				actualAudiences.includes(expected),
 			);
@@ -176,7 +176,7 @@ export class JWTService {
 	@bindThis
 	private async getJWKSet(jwksUri: string): Promise<JWKSet> {
 		const now = Date.now();
-		
+
 		// Try cache first
 		const cached = this.jwksCache.get(jwksUri);
 		if (cached && cached.expiresAt > now) {
@@ -312,7 +312,7 @@ export class JWTService {
 
 		const verifier = createVerify('sha256');
 		verifier.update(message);
-		
+
 		return verifier.verify(publicKey, signature);
 	}
 

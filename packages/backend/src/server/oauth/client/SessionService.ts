@@ -61,7 +61,7 @@ export class SessionService {
 	public async createSession(request: CreateSessionRequest): Promise<SessionInfo> {
 		const sessionId = this.idService.gen();
 		const now = new Date();
-		const expiresAt = request.tokenResponse.expires_in 
+		const expiresAt = request.tokenResponse.expires_in
 			? new Date(Date.now() + (request.tokenResponse.expires_in * 1000))
 			: null;
 		try {
@@ -145,7 +145,7 @@ export class SessionService {
 	 */
 	@bindThis
 	public async updateTokens(sessionId: string, tokenResponse: TokenResponse): Promise<void> {
-		const expiresAt = tokenResponse.expires_in 
+		const expiresAt = tokenResponse.expires_in
 			? new Date(Date.now() + (tokenResponse.expires_in * 1000))
 			: null;
 
@@ -292,7 +292,7 @@ export class SessionService {
 	}> {
 		try {
 			const now = new Date();
-			
+
 			const [total, expired] = await Promise.all([
 				this.userSessionsRepository.count(),
 				this.userSessionsRepository

@@ -13,7 +13,7 @@ import { AppEntityService } from '@/core/entities/AppEntityService.js';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { permissions as allPermissions } from 'misskey-js';
-import {ApiError} from "@/server/api/error.js";
+import { ApiError } from "@/server/api/error.js";
 
 export const meta = {
 	tags: ['oauth-apps'],
@@ -69,7 +69,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			// Filter out admin permissions for non-admin users
 			const nonAdminPermissions = allPermissions.filter(p => !p.startsWith('read:admin:') && !p.startsWith('write:admin:'));
 
-			let requestedPermissions = unique(ps.permission.map(v => v.replace(/^(.+)([\/\-])(read|write)$/, '$3:$1')));
+			const requestedPermissions = unique(ps.permission.map(v => v.replace(/^(.+)([\/\-])(read|write)$/, '$3:$1')));
 
 			// Validate permissions - only allow non-admin permissions
 			const invalidPermissions = requestedPermissions.filter(p => !nonAdminPermissions.includes(p as any));

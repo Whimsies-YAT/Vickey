@@ -94,9 +94,9 @@ if (iAmAdmin) {
 
 if (props.initialPermissions) {
 	for (const kind of props.initialPermissions) {
-		if (permissionSwitches.value.hasOwnProperty(kind)) {
+		if (Object.hasOwn(permissionSwitches.value, kind)) {
 			permissionSwitches.value[kind] = true;
-		} else if (iAmAdmin && permissionSwitchesForAdmin.value.hasOwnProperty(kind)) {
+		} else if (iAmAdmin && Object.hasOwn(permissionSwitchesForAdmin.value, kind)) {
 			permissionSwitchesForAdmin.value[kind] = true;
 		}
 	}

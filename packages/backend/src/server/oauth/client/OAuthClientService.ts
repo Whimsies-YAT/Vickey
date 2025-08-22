@@ -85,19 +85,19 @@ export class OAuthClientService {
 	public async generateAuthorizationUrl(config: OAuthClientConfig): Promise<AuthorizationRequest> {
 		const state = this.generateRandomString(32);
 		const nonce = this.generateRandomString(32);
-		
+
 		const authUrl = new URL(config.authorizationEndpoint);
 		const params = new URLSearchParams();
-		
+
 		params.set('response_type', config.responseType || 'code');
 		params.set('client_id', config.clientId);
 		params.set('redirect_uri', config.redirectUri);
 		params.set('state', state);
-		
+
 		if (config.scope && config.scope.length > 0) {
 			params.set('scope', config.scope.join(' '));
 		}
-		
+
 		let codeVerifier: string | undefined;
 		if (config.pkce) {
 			codeVerifier = this.generateCodeVerifier();
@@ -105,14 +105,14 @@ export class OAuthClientService {
 			params.set('code_challenge', codeChallenge);
 			params.set('code_challenge_method', 'S256');
 		}
-		
+
 		// For OIDC
 		if (config.scope?.includes('openid')) {
 			params.set('nonce', nonce);
 		}
-		
+
 		authUrl.search = params.toString();
-		
+
 		// Cache state for validation
 		this.stateCache.set(state, {
 			data: {
@@ -126,7 +126,7 @@ export class OAuthClientService {
 
 		// Clean up expired states
 		this.cleanupExpiredStates();
-		
+
 		return {
 			state,
 			codeVerifier,
@@ -151,22 +151,22 @@ export class OAuthClientService {
 
 		const stateData = cached.data;
 		this.stateCache.delete(state);
-		
+
 		const { config, codeVerifier } = stateData;
-		
+
 		const tokenUrl = new URL(config.tokenEndpoint);
 		const body = new URLSearchParams();
-		
+
 		body.set('grant_type', 'authorization_code');
 		body.set('client_id', config.clientId);
 		body.set('client_secret', config.clientSecret);
 		body.set('code', code);
 		body.set('redirect_uri', config.redirectUri);
-		
+
 		if (codeVerifier) {
 			body.set('code_verifier', codeVerifier);
 		}
-		
+
 		try {
 			const response = await this.httpRequestService.send(tokenUrl.toString(), {
 				method: 'POST',
@@ -176,17 +176,17 @@ export class OAuthClientService {
 				},
 				body: body.toString(),
 			});
-			
+
 			if (!response.ok) {
 				const errorText = await response.text();
 				this.logger.error('Token exchange failed', { status: response.status, error: errorText });
 				throw new Error(`Token exchange failed: ${response.status} ${errorText}`);
 			}
-			
+
 			const tokenData = await response.json() as TokenResponse;
-			
+
 			// State already cleaned up above
-			
+
 			return tokenData;
 		} catch (error) {
 			this.logger.error('Error exchanging code for token', { error });
@@ -204,12 +204,12 @@ export class OAuthClientService {
 	): Promise<TokenResponse> {
 		const tokenUrl = new URL(config.tokenEndpoint);
 		const body = new URLSearchParams();
-		
+
 		body.set('grant_type', 'refresh_token');
 		body.set('client_id', config.clientId);
 		body.set('client_secret', config.clientSecret);
 		body.set('refresh_token', refreshToken);
-		
+
 		try {
 			const response = await this.httpRequestService.send(tokenUrl.toString(), {
 				method: 'POST',
@@ -219,13 +219,13 @@ export class OAuthClientService {
 				},
 				body: body.toString(),
 			});
-			
+
 			if (!response.ok) {
 				const errorText = await response.text();
 				this.logger.error('Token refresh failed', { status: response.status, error: errorText });
 				throw new Error(`Token refresh failed: ${response.status} ${errorText}`);
 			}
-			
+
 			return await response.json() as TokenResponse;
 		} catch (error) {
 			this.logger.error('Error refreshing token', { error });
@@ -244,7 +244,7 @@ export class OAuthClientService {
 		if (!config.userInfoEndpoint) {
 			throw new Error('UserInfo endpoint not configured');
 		}
-		
+
 		try {
 			const response = await this.httpRequestService.send(config.userInfoEndpoint, {
 				method: 'GET',
@@ -253,13 +253,13 @@ export class OAuthClientService {
 					'Accept': 'application/json',
 				},
 			});
-			
+
 			if (!response.ok) {
 				const errorText = await response.text();
 				this.logger.error('UserInfo request failed', { status: response.status, error: errorText });
 				throw new Error(`UserInfo request failed: ${response.status} ${errorText}`);
 			}
-			
+
 			return await response.json() as UserInfo;
 		} catch (error) {
 			this.logger.error('Error getting user info', { error });
@@ -279,16 +279,16 @@ export class OAuthClientService {
 		// Construct revocation endpoint from token endpoint if not provided
 		const tokenUrl = new URL(config.tokenEndpoint);
 		const revokeUrl = new URL('/oauth/revoke', tokenUrl.origin);
-		
+
 		const body = new URLSearchParams();
 		body.set('token', token);
 		body.set('client_id', config.clientId);
 		body.set('client_secret', config.clientSecret);
-		
+
 		if (tokenTypeHint) {
 			body.set('token_type_hint', tokenTypeHint);
 		}
-		
+
 		try {
 			const response = await this.httpRequestService.send(revokeUrl.toString(), {
 				method: 'POST',
@@ -298,7 +298,7 @@ export class OAuthClientService {
 				},
 				body: body.toString(),
 			});
-			
+
 			if (!response.ok) {
 				const errorText = await response.text();
 				this.logger.error('Token revocation failed', { status: response.status, error: errorText });
