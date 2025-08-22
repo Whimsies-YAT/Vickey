@@ -14,9 +14,10 @@ import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 
 export const meta = {
-	tags: ['app'],
+	tags: ['oauth-apps'],
 
-	requireCredential: false,
+	requireCredential: true,
+	kind: 'write:account',
 
 	res: {
 		type: 'object',
@@ -28,18 +29,20 @@ export const meta = {
 export const paramDef = {
 	type: 'object',
 	properties: {
-		name: { type: 'string' },
-		description: { type: 'string' },
+		name: { type: 'string', maxLength: 128 },
+		description: { type: 'string', maxLength: 512 },
 		permission: { type: 'array', uniqueItems: true, items: {
 			type: 'string',
 		} },
-		callbackUrl: { type: 'string', nullable: true },
+		callbackUrl: { type: 'string', nullable: true, maxLength: 512 },
+		iconUrl: { type: 'string', nullable: true, maxLength: 512 },
+		websiteUrl: { type: 'string', nullable: true, maxLength: 512 },
 	},
 	required: ['name', 'description', 'permission'],
 } as const;
 
 @Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
+export default class extends Endpoint<typeof meta, typeof paramDef> {
 	constructor(
 		@Inject(DI.config)
 		private config: Config,
@@ -51,30 +54,32 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private idService: IdService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			// Generate secret
 			const secret = secureRndstr(32);
 
-			// for backward compatibility
-			const permission = unique(ps.permission.map(v => v.replace(/^(.+)(\/|-)(read|write)$/, '$3:$1')));
+			const permission = unique(ps.permission.map(v => v.replace(/^(.+)([\/\-])(read|write)$/, '$3:$1')));
 
-			// Create traditional (non-OAuth) account with random ID
+			const appId = this.idService.gen();
+			const clientId = `${this.config.url}/oauth/app/${appId}`;
+
 			const app = await this.appsRepository.insertOne({
-				id: this.idService.gen(),
-				userId: me ? me.id : null,
+				id: appId,
+				clientId: clientId,
+				userId: me.id,
 				name: ps.name,
 				description: ps.description,
 				permission,
 				callbackUrl: ps.callbackUrl,
 				secret: secret,
-				isOAuth: false,
-				iconUrl: null,
-				websiteUrl: null,
+				isOAuth: true,
+				iconUrl: ps.iconUrl,
+				websiteUrl: ps.websiteUrl,
 				createdAt: new Date(),
 			});
 
-			return await this.appEntityService.pack(app, null, {
+			return await this.appEntityService.pack(app, me, {
 				detail: true,
 				includeSecret: true,
+				includeFullSecret: true,
 			});
 		});
 	}

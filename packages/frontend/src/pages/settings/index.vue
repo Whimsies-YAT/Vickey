@@ -145,6 +145,11 @@ const menuDef = computed<SuperMenuDef[]>(() => [{
 		to: '/settings/connect',
 		active: currentPage.value?.route.name === 'connect',
 	}, {
+		icon: 'ti ti-apps',
+		text: i18n.ts._oauthAppVK.title,
+		to: '/settings/oauth',
+		active: currentPage.value?.route.name === 'oauth',
+	}, {
 		icon: 'ti ti-package',
 		text: i18n.ts._settings.accountData,
 		to: '/settings/account-data',

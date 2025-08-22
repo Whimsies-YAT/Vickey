@@ -165,6 +165,10 @@ export const ROUTE_DEF = [{
 		name: 'connect',
 		component: page(() => import('@/pages/settings/apps.vue')),
 	}, {
+		path: '/oauth',
+		name: 'oauth',
+		component: page(() => import('@/pages/settings/oauth.vue')),
+	}, {
 		path: '/webhook/edit/:webhookId',
 		name: 'connect',
 		component: page(() => import('@/pages/settings/webhook.edit.vue')),
@@ -202,6 +206,9 @@ export const ROUTE_DEF = [{
 }, {
 	path: '/signup-complete/:code',
 	component: page(() => import('@/pages/signup-complete.vue')),
+}, {
+	path: '/verify-email/:code',
+	component: page(() => import('@/pages/verify-email.vue')),
 }, {
 	path: '/announcements',
 	component: page(() => import('@/pages/announcements.vue')),

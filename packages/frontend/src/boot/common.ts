@@ -29,6 +29,7 @@ import { miLocalStorage } from '@/local-storage.js';
 import { fetchCustomEmojis } from '@/custom-emojis.js';
 import { prefer } from '@/preferences.js';
 import { $i } from '@/i.js';
+import { launchPlugins } from '@/plugin.js';
 
 export async function common(createVue: () => Promise<App<Element>>) {
 	console.info(`Vickey v${version}-Vickey_fork`);
@@ -535,6 +536,12 @@ export async function common(createVue: () => Promise<App<Element>>) {
 				console.warn('Completely isolated Sentry init failed:', err);
 			});
 		}, 0);
+	}
+
+	try {
+		await launchPlugins();
+	} catch (error) {
+		console.error('Failed to launch plugins:', error);
 	}
 
 	app.mount(rootEl);

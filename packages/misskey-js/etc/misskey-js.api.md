@@ -586,10 +586,19 @@ type AppCreateRequest = operations['app___create']['requestBody']['content']['ap
 type AppCreateResponse = operations['app___create']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type AppDeleteRequest = operations['app___delete']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type AppShowRequest = operations['app___show']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type AppShowResponse = operations['app___show']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AppUpdateRequest = operations['app___update']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AppUpdateResponse = operations['app___update']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type ApShowRequest = operations['ap___show']['requestBody']['content']['application/json'];
@@ -1230,6 +1239,9 @@ type ClipsDeleteRequest = operations['clips___delete']['requestBody']['content']
 type ClipsFavoriteRequest = operations['clips___favorite']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type ClipsListRequest = operations['clips___list']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type ClipsListResponse = operations['clips___list']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
@@ -1678,8 +1690,11 @@ declare namespace entities {
         ApShowResponse,
         AppCreateRequest,
         AppCreateResponse,
+        AppDeleteRequest,
         AppShowRequest,
         AppShowResponse,
+        AppUpdateRequest,
+        AppUpdateResponse,
         AuthAcceptRequest,
         AuthSessionGenerateRequest,
         AuthSessionGenerateResponse,
@@ -1785,6 +1800,7 @@ declare namespace entities {
         ClipsCreateResponse,
         ClipsDeleteRequest,
         ClipsFavoriteRequest,
+        ClipsListRequest,
         ClipsListResponse,
         ClipsMyFavoritesResponse,
         ClipsNotesRequest,
@@ -2070,6 +2086,12 @@ declare namespace entities {
         NotesUserListTimelineRequest,
         NotesUserListTimelineResponse,
         NotificationsCreateRequest,
+        OauthAppsCreateRequest,
+        OauthAppsCreateResponse,
+        OauthAppsDeleteRequest,
+        OauthAppsListResponse,
+        OauthAppsUpdateRequest,
+        OauthAppsUpdateResponse,
         PagePushRequest,
         PagesCreateRequest,
         PagesCreateResponse,
@@ -2177,6 +2199,7 @@ declare namespace entities {
         UsersUpdateMemoRequest,
         V2AdminEmojiListRequest,
         V2AdminEmojiListResponse,
+        VerifyEmailRequest,
         Error_2 as Error,
         UserLite,
         UserDetailedNotMeOnly,
@@ -3269,6 +3292,24 @@ export const notificationTypes: readonly ["note", "follow", "mention", "reply", 
 export function nyaize(text: string): string;
 
 // @public (undocumented)
+type OauthAppsCreateRequest = operations['oauth-apps___create']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type OauthAppsCreateResponse = operations['oauth-apps___create']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type OauthAppsDeleteRequest = operations['oauth-apps___delete']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type OauthAppsListResponse = operations['oauth-apps___list']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type OauthAppsUpdateRequest = operations['oauth-apps___update']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type OauthAppsUpdateResponse = operations['oauth-apps___update']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type Page = components['schemas']['Page'];
 
 // @public (undocumented)
@@ -3872,6 +3913,9 @@ type V2AdminEmojiListRequest = operations['v2___admin___emoji___list']['requestB
 
 // @public (undocumented)
 type V2AdminEmojiListResponse = operations['v2___admin___emoji___list']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type VerifyEmailRequest = operations['verify-email']['requestBody']['content']['application/json'];
 
 // Warnings were encountered during analysis:
 //

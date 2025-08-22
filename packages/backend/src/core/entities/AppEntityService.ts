@@ -29,23 +29,37 @@ export class AppEntityService {
 		options?: {
 			detail?: boolean,
 			includeSecret?: boolean,
+			includeFullSecret?: boolean,
 			includeProfileImageIds?: boolean
 		},
 	): Promise<Packed<'App'>> {
 		const opts = Object.assign({
 			detail: false,
 			includeSecret: false,
+			includeFullSecret: false,
 			includeProfileImageIds: false,
 		}, options);
 
 		const app = typeof src === 'object' ? src : await this.appsRepository.findOneByOrFail({ id: src });
 
+		const formatSecret = (secret: string) => {
+			if (opts.includeFullSecret) return secret;
+			return secret.substring(0, 3) + '*'.repeat(28);
+		};
+
 		return {
 			id: app.id,
 			name: app.name,
+			description: app.description,
 			callbackUrl: app.callbackUrl,
 			permission: app.permission,
-			...(opts.includeSecret ? { secret: app.secret } : {}),
+			isOAuth: app.isOAuth,
+			clientId: app.clientId,
+			iconUrl: app.iconUrl,
+			websiteUrl: app.websiteUrl,
+			createdAt: app.createdAt.toISOString(),
+			...(opts.includeSecret ? { secret: formatSecret(app.secret) } : {}),
+			...(opts.includeFullSecret ? { fullSecret: app.secret } : {}),
 			...(me ? {
 				isAuthorized: await this.accessTokensRepository.countBy({
 					appId: app.id,

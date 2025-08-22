@@ -9,6 +9,8 @@ import { $i } from '@/i.js';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
 import { miLocalStorage } from '@/local-storage.js';
+import { store } from '@/store.js';
+import { host } from '@@/js/config.js';
 
 export async function checkAndRegenerateToken(): Promise<boolean> {
 	if (!$i?.token) {
@@ -46,6 +48,8 @@ export async function checkAndRegenerateToken(): Promise<boolean> {
 		if (result && typeof result === 'object' && 'token' in result) {
 			$i.token = result.token;
 			miLocalStorage.setItem('account', JSON.stringify($i));
+			// Update token in multi-user storage
+			store.set('accountTokens', { ...store.s.accountTokens, [host + '/' + $i.id]: result.token });
 		}
 
 		console.log('Token successfully regenerated');
@@ -77,6 +81,8 @@ export async function silentTokenRefresh(): Promise<boolean> {
 		if (result && typeof result === 'object' && 'token' in result) {
 			$i.token = result.token;
 			miLocalStorage.setItem('account', JSON.stringify($i));
+			// Update token in multi-user storage
+			store.set('accountTokens', { ...store.s.accountTokens, [host + '/' + $i.id]: result.token });
 		}
 
 		return true;
