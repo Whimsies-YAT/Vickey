@@ -69,12 +69,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</template>
 						</MkKeyValue>
 
-						<MkKeyValue oneline v-if="app.callbackUrl">
+						<MkKeyValue v-if="app.callbackUrl" oneline>
 							<template #key><i class="ti ti-link"></i> {{ i18n.ts._oauthAppVK.callbackURL }}</template>
 							<template #value>{{ app.callbackUrl }}</template>
 						</MkKeyValue>
 
-						<MkKeyValue oneline v-if="app.websiteUrl">
+						<MkKeyValue v-if="app.websiteUrl" oneline>
 							<template #key><i class="ti ti-world"></i> {{ i18n.ts._oauthAppVK.website }}</template>
 							<template #value><a :href="app.websiteUrl" target="_blank" rel="noopener noreferrer">{{ app.websiteUrl }}</a></template>
 						</MkKeyValue>
