@@ -42,7 +42,7 @@ export class OAuthClientManager implements OnModuleInit {
 	async onModuleInit() {
 		// Initialize and register configured SSO providers
 		await this.initializeProviders();
-		
+
 		// Set up cleanup tasks
 		this.scheduleCleanupTasks();
 	}
@@ -88,7 +88,7 @@ export class OAuthClientManager implements OnModuleInit {
 
 		const provider = this.oauthClientConfigService.toSSOProvider(config);
 		this.ssoService.registerProvider(provider);
-		
+
 		this.logger.info(`Registered SSO provider: ${provider.name} for user ${userId}`);
 	}
 
@@ -113,7 +113,7 @@ export class OAuthClientManager implements OnModuleInit {
 	 */
 	@bindThis
 	public async completeSSOLogin(
-		code: string, 
+		code: string,
 		state: string,
 		ipAddress?: string,
 		userAgent?: string,
@@ -123,7 +123,7 @@ export class OAuthClientManager implements OnModuleInit {
 		isNewUser: boolean;
 	}> {
 		const loginResult = await this.ssoService.completeLogin(code, state);
-		
+
 		// Create session
 		const sessionInfo = await this.sessionService.createSession({
 			user: loginResult.user,
@@ -134,7 +134,7 @@ export class OAuthClientManager implements OnModuleInit {
 				access_token: loginResult.session.accessToken!,
 				token_type: 'Bearer',
 				refresh_token: loginResult.session.refreshToken,
-				expires_in: loginResult.session.expiresAt ? 
+				expires_in: loginResult.session.expiresAt ?
 					Math.floor((loginResult.session.expiresAt - Date.now()) / 1000) : undefined,
 			},
 			idTokenClaims: loginResult.session.idTokenClaims,
@@ -201,7 +201,7 @@ export class OAuthClientManager implements OnModuleInit {
 	@bindThis
 	public async getUserSessions(userId: string): Promise<any[]> {
 		const sessions = await this.sessionService.getUserSessions(userId);
-		
+
 		return sessions.map(session => ({
 			sessionId: session.sessionId,
 			providerName: session.providerName,
@@ -312,10 +312,10 @@ export class OAuthClientManager implements OnModuleInit {
 		errors: string[];
 	}> {
 		const errors: string[] = [];
-		
+
 		try {
 			const stats = await this.getStatistics();
-			
+
 			return {
 				status: errors.length > 0 ? 'degraded' : 'ok',
 				providers: stats.providers,
@@ -324,7 +324,7 @@ export class OAuthClientManager implements OnModuleInit {
 			};
 		} catch (error) {
 			errors.push(error instanceof Error ? error.message : 'Unknown error');
-			
+
 			return {
 				status: 'error',
 				providers: 0,

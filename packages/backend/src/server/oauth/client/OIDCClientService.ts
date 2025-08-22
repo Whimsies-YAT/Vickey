@@ -106,7 +106,7 @@ export class OIDCClientService {
 	@bindThis
 	public async discoverConfiguration(issuer: string): Promise<OIDCConfiguration> {
 		const wellKnownUrl = new URL('/.well-known/openid_configuration', issuer);
-		
+
 		try {
 			const response = await this.httpRequestService.send(wellKnownUrl.toString(), {
 				method: 'GET',
@@ -114,24 +114,24 @@ export class OIDCClientService {
 					'Accept': 'application/json',
 				},
 			});
-			
+
 			if (!response.ok) {
 				throw new Error(`Failed to fetch OIDC configuration: ${response.status}`);
 			}
-			
+
 			const config = await response.json() as OIDCConfiguration;
-			
+
 			// Validate required fields
 			if (!config.issuer || !config.authorization_endpoint || !config.token_endpoint || !config.jwks_uri) {
 				throw new Error('Invalid OIDC configuration: missing required fields');
 			}
-			
+
 			// Cache configuration
 			this.configCache.set(issuer, {
 				config,
 				expiresAt: Date.now() + (1000 * 60 * 60), // 1 hour
 			});
-			
+
 			return config;
 		} catch (error) {
 			this.logger.error('Error discovering OIDC configuration', { issuer, error });
@@ -151,19 +151,19 @@ export class OIDCClientService {
 					'Accept': 'application/json',
 				},
 			});
-			
+
 			if (!response.ok) {
 				throw new Error(`Failed to fetch JWK Set: ${response.status}`);
 			}
-			
+
 			const jwks = await response.json() as JWKSet;
-			
+
 			// Cache JWK Set
 			this.jwksCache.set(jwksUri, {
 				jwks,
 				expiresAt: Date.now() + (1000 * 60 * 60), // 1 hour
 			});
-			
+
 			return jwks;
 		} catch (error) {
 			this.logger.error('Error fetching JWK Set', { jwksUri, error });
@@ -183,7 +183,7 @@ export class OIDCClientService {
 		scopes: string[] = ['openid', 'profile', 'email'],
 	): Promise<OAuthClientConfig> {
 		const oidcConfig = await this.discoverConfiguration(issuer);
-		
+
 		return {
 			clientId,
 			clientSecret,
@@ -209,23 +209,23 @@ export class OIDCClientService {
 		if (parts.length !== 3) {
 			throw new Error('Invalid ID Token format');
 		}
-		
+
 		try {
 			const payload = parts[1];
 			const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
 			const decodedPayload = Buffer.from(paddedPayload, 'base64url').toString('utf8');
 			const claims = JSON.parse(decodedPayload) as IDTokenClaims;
-			
+
 			// Basic validation
 			if (!claims.iss || !claims.sub || !claims.aud || !claims.exp || !claims.iat) {
 				throw new Error('Invalid ID Token: missing required claims');
 			}
-			
+
 			// Check expiration
 			if (claims.exp * 1000 < Date.now()) {
 				throw new Error('ID Token has expired');
 			}
-			
+
 			return claims;
 		} catch (error) {
 			this.logger.error('Error parsing ID Token', { error });
@@ -244,47 +244,47 @@ export class OIDCClientService {
 	): boolean {
 		// Validate issuer
 		if (config.issuer && claims.iss !== config.issuer) {
-			this.logger.error('ID Token issuer validation failed', { 
-				expected: config.issuer, 
-				actual: claims.iss 
+			this.logger.error('ID Token issuer validation failed', {
+				expected: config.issuer,
+				actual: claims.iss
 			});
 			return false;
 		}
-		
+
 		// Validate audience
 		const audiences = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
 		if (!audiences.includes(config.clientId)) {
-			this.logger.error('ID Token audience validation failed', { 
-				clientId: config.clientId, 
-				audiences 
+			this.logger.error('ID Token audience validation failed', {
+				clientId: config.clientId,
+				audiences
 			});
 			return false;
 		}
-		
+
 		// Validate nonce if provided
 		if (nonce && claims.nonce !== nonce) {
-			this.logger.error('ID Token nonce validation failed', { 
-				expected: nonce, 
-				actual: claims.nonce 
+			this.logger.error('ID Token nonce validation failed', {
+				expected: nonce,
+				actual: claims.nonce
 			});
 			return false;
 		}
-		
+
 		// Validate issued at time (not too far in the past or future)
 		const now = Math.floor(Date.now() / 1000);
 		const issuedAt = claims.iat;
 		const maxAge = 60 * 60; // 1 hour
-		
+
 		if (issuedAt > now + 300) { // 5 minutes clock skew
 			this.logger.error('ID Token issued in the future', { issuedAt, now });
 			return false;
 		}
-		
+
 		if (now - issuedAt > maxAge) {
 			this.logger.error('ID Token too old', { issuedAt, now, age: now - issuedAt });
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -321,30 +321,30 @@ export class OIDCClientService {
 		if (!stateData) {
 			throw new Error('Invalid or expired state');
 		}
-		
+
 		const { config, nonce } = stateData;
-		
+
 		// Exchange code for tokens
 		const tokenResponse = await this.oauthClientService.exchangeCodeForToken(code, state);
-		
+
 		let idTokenClaims: IDTokenClaims | undefined;
 		let userInfo: UserInfo;
-		
+
 		// If we have an ID token, parse and validate it
 		if (tokenResponse.id_token) {
 			idTokenClaims = this.parseIDToken(tokenResponse.id_token);
-			
+
 			if (!this.validateIDTokenClaims(idTokenClaims, config, nonce)) {
 				throw new Error('ID Token validation failed');
 			}
-			
+
 			// Extract user info from ID token
 			userInfo = this.extractUserInfoFromIDToken(idTokenClaims);
 		} else {
 			// Fallback to UserInfo endpoint
 			userInfo = await this.oauthClientService.getUserInfo(config, tokenResponse.access_token);
 		}
-		
+
 		return {
 			tokenResponse,
 			userInfo,

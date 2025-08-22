@@ -60,7 +60,7 @@ export class OAuthClientConfigService {
 	@bindThis
 	public async create(request: CreateOAuthClientConfigRequest, userId: string): Promise<MiOAuthClientConfig> {
 		const id = this.idService.gen();
-		
+
 		const config = await this.oauthClientConfigsRepository.insert({
 			id,
 			userId,
@@ -82,7 +82,7 @@ export class OAuthClientConfigService {
 		}).then(result => result.generatedMaps[0] as MiOAuthClientConfig);
 
 		this.logger.info(`Created OAuth client config: ${request.name} (${request.type})`);
-		
+
 		return config;
 	}
 
@@ -100,7 +100,7 @@ export class OAuthClientConfigService {
 		}
 
 		const updates: any = {};
-		
+
 		if (request.name !== undefined) updates.name = request.name;
 		if (request.type !== undefined) updates.type = request.type;
 		if (request.clientId !== undefined) updates.clientId = request.clientId;
@@ -119,9 +119,9 @@ export class OAuthClientConfigService {
 		await this.oauthClientConfigsRepository.update(config.id, updates);
 
 		const updatedConfig = await this.oauthClientConfigsRepository.findOneByOrFail({ id: config.id });
-		
+
 		this.logger.info(`Updated OAuth client config: ${updatedConfig.name}`);
-		
+
 		return updatedConfig;
 	}
 
@@ -139,7 +139,7 @@ export class OAuthClientConfigService {
 		}
 
 		await this.oauthClientConfigsRepository.delete(id);
-		
+
 		this.logger.info(`Deleted OAuth client config: ${config.name}`);
 	}
 
@@ -193,9 +193,9 @@ export class OAuthClientConfigService {
 		});
 
 		const updatedConfig = await this.oauthClientConfigsRepository.findOneByOrFail({ id });
-		
+
 		this.logger.info(`Toggled OAuth client config active status: ${updatedConfig.name} -> ${updatedConfig.isActive}`);
-		
+
 		return updatedConfig;
 	}
 
@@ -257,7 +257,7 @@ export class OAuthClientConfigService {
 			}
 
 			// TODO: Add more sophisticated testing like endpoint reachability
-			
+
 			return { success: true };
 		} catch (error) {
 			this.logger.error('Failed to test OAuth client configuration', { id, error });

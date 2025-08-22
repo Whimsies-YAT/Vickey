@@ -77,7 +77,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			if (ps.permission) {
 				const nonAdminPermissions = allPermissions.filter(p => !p.startsWith('read:admin:') && !p.startsWith('write:admin:'));
 
-				let requestedPermissions = unique(ps.permission.map(v => v.replace(/^(.+)([\/\-])(read|write)$/, '$3:$1')));
+				const requestedPermissions = unique(ps.permission.map(v => v.replace(/^(.+)([\/\-])(read|write)$/, '$3:$1')));
 
 				const invalidPermissions = requestedPermissions.filter(p => !nonAdminPermissions.includes(p as any));
 				if (invalidPermissions.length > 0) {
