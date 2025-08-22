@@ -25,9 +25,8 @@ export class OAuthAppServerService {
 			Params: { appId: string };
 		}>('/oauth/app/:appId', async (request, reply) => {
 			const appId = request.params.appId;
-			const clientId = `${this.config.url}/oauth/app/${appId}`;
 
-			const app = await this.appsRepository.findOneBy({ id: clientId });
+			const app = await this.appsRepository.findOneBy({ id: appId });
 			if (!app) {
 				reply.code(404);
 				return { error: 'App not found' };
@@ -36,9 +35,9 @@ export class OAuthAppServerService {
 			// Return IndieAuth client metadata
 			reply.header('Content-Type', 'application/json');
 			return {
-				client_id: clientId,
+				client_id: appId,
 				client_name: app.name,
-				client_uri: app.callbackUrl || clientId,
+				client_uri: app.callbackUrl || `${ this.config.url }/oauth/app/${ appId }`,
 				redirect_uris: app.callbackUrl ? [app.callbackUrl] : [],
 				response_types: ['code'],
 				grant_types: ['authorization_code', 'refresh_token'],

@@ -600,11 +600,28 @@ export class OAuth2ProviderService {
 
 	@bindThis
 	public async createRevokeServer(fastify: FastifyInstance): Promise<void> {
-		fastify.register(fastifyCors);
-		fastify.post('', async (request, reply) => {
+		await fastify.register(fastifyCors);
+
+		fastify.post('', {
+			preHandler: async (request, reply) => {
+				if (request.headers['content-type']?.includes('application/x-www-form-urlencoded')) {
+					const chunks: Buffer[] = [];
+					for await (const chunk of request.raw) {
+						chunks.push(chunk);
+					}
+					const body = Buffer.concat(chunks).toString();
+					const params = new URLSearchParams(body);
+					const parsed: Record<string, string> = {};
+					for (const [key, value] of params) {
+						parsed[key] = value;
+					}
+					request.body = parsed;
+				}
+			}
+		}, async (request, reply) => {
 			const body = request.body as { token?: string; token_type_hint?: string };
 
-			if (!body.token) {
+			if (!body || !body.token) {
 				reply.code(400);
 				return { error: 'invalid_request', error_description: 'Missing token parameter' };
 			}
@@ -627,9 +644,5 @@ export class OAuth2ProviderService {
 				return { error: 'server_error', error_description: 'Unable to revoke token' };
 			}
 		});
-
-		await fastify.register(fastifyExpress);
-		fastify.use('', bodyParser.urlencoded({ extended: false }));
-		fastify.use('', bodyParser.json({ strict: true }));
 	}
 }
