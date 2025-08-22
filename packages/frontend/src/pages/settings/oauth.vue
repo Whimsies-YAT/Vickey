@@ -141,7 +141,7 @@ async function createOAuthApp() {
 		},
 		description: {
 			type: 'string',
-			label: i18n.ts._oauthAppVK.description,
+			label: i18n.ts._oauthAppVK.appDescription,
 			placeholder: i18n.ts._oauthAppVK.appDescriptionText,
 		},
 		callbackUrl: {
@@ -202,7 +202,7 @@ async function editApp(app: any) {
 		},
 		description: {
 			type: 'string',
-			label: i18n.ts._oauthAppVK.description,
+			label: i18n.ts._oauthAppVK.appDescription,
 			default: app.description,
 		},
 		callbackUrl: {
