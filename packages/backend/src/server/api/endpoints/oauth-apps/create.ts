@@ -12,6 +12,8 @@ import { secureRndstr } from '@/misc/secure-rndstr.js';
 import { AppEntityService } from '@/core/entities/AppEntityService.js';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
+import { permissions as allPermissions } from 'misskey-js';
+import {ApiError} from "@/server/api/error.js";
 
 export const meta = {
 	tags: ['oauth-apps'],
@@ -24,6 +26,14 @@ export const meta = {
 		optional: false, nullable: false,
 		ref: 'App',
 	},
+
+	errors: {
+		notAllowed: {
+			message: 'Invalid permissions.',
+			code: 'NOT_ALLOWED',
+			id: '8893b521-7f6c-11f0-8aaf-b025aa6cce5f',
+		}
+	}
 } as const;
 
 export const paramDef = {
@@ -56,7 +66,19 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		super(meta, paramDef, async (ps, me) => {
 			const secret = secureRndstr(32);
 
-			const permission = unique(ps.permission.map(v => v.replace(/^(.+)([\/\-])(read|write)$/, '$3:$1')));
+			// Filter out admin permissions for non-admin users
+			const nonAdminPermissions = allPermissions.filter(p => !p.startsWith('read:admin:') && !p.startsWith('write:admin:'));
+
+			let requestedPermissions = unique(ps.permission.map(v => v.replace(/^(.+)([\/\-])(read|write)$/, '$3:$1')));
+
+			// Validate permissions - only allow non-admin permissions
+			const invalidPermissions = requestedPermissions.filter(p => !nonAdminPermissions.includes(p as any));
+			if (invalidPermissions.length > 0) {
+				console.log(`Invalid permissions: ${invalidPermissions.join(', ')}`);
+				throw new ApiError(meta.errors.notAllowed);
+			}
+
+			const permission = requestedPermissions;
 
 			const appId = this.idService.gen();
 			const clientId = `${this.config.url}/oauth/app/${appId}`;

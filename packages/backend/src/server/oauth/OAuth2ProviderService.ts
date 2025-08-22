@@ -35,6 +35,7 @@ import Logger from '@/logger.js';
 import { StatusError } from '@/misc/status-error.js';
 import type { ServerResponse } from 'node:http';
 import type { FastifyInstance } from 'fastify';
+import { loadConfig } from '@/config.js';
 
 // TODO: Consider migrating to @node-oauth/oauth2-server once
 // https://github.com/node-oauth/node-oauth2-server/issues/180 is figured out.
@@ -48,7 +49,14 @@ function validateClientId(raw: string): URL {
 	const url = ((): URL => {
 		try {
 			return new URL(raw);
-		} catch { throw new AuthorizationError('client_id must be a valid URL', 'invalid_request'); }
+		} catch {
+			try {
+				const baseUrl = new URL(loadConfig().url);
+				return new URL(`oauth/app/${raw}`, baseUrl);
+			} catch {
+				throw new AuthorizationError('Failed to construct URL with client_id', 'invalid_request');
+			}
+		}
 	})();
 
 	// "Client identifier URLs MUST have either an https or http scheme"
@@ -567,8 +575,8 @@ export class OAuth2ProviderService {
 		// Only catch paths that don't match known endpoints
 		fastify.get('/*', async (request, reply) => {
 			const url = request.url;
-			// Don't catch /token or /revoke as they are handled by separate servers
-			if (url.startsWith('/token') || url.startsWith('/revoke')) {
+			// Don't catch /token, /revoke, or /app as they are handled by separate servers
+			if (url.startsWith('/token') || url.startsWith('/revoke') || url.startsWith('/app')) {
 				// reply.code(404);
 				return;
 			}

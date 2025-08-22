@@ -9,6 +9,8 @@ import type { AppsRepository } from '@/models/_.js';
 import { AppEntityService } from '@/core/entities/AppEntityService.js';
 import { DI } from '@/di-symbols.js';
 import { ApiError } from '../../error.js';
+import { permissions as allPermissions } from 'misskey-js';
+import { unique } from '@/misc/prelude/array.js';
 
 export const meta = {
 	tags: ['oauth-apps'],
@@ -27,6 +29,11 @@ export const meta = {
 			message: 'No such OAuth app.',
 			code: 'NO_SUCH_OAUTH_APP',
 			id: 'dce83914-2dc6-4093-8a7b-71dbb9043fa4'
+		},
+		notAllowed: {
+			message: 'Invalid permissions.',
+			code: 'NOT_ALLOWED',
+			id: '8893b521-7f6c-11f0-8aaf-b025aa6cce5f',
 		}
 	}
 } as const;
@@ -37,6 +44,9 @@ export const paramDef = {
 		appId: { type: 'string' },
 		name: { type: 'string', maxLength: 128 },
 		description: { type: 'string', maxLength: 512 },
+		permission: { type: 'array', uniqueItems: true, items: {
+			type: 'string',
+		} },
 		callbackUrl: { type: 'string', nullable: true, maxLength: 512 },
 		iconUrl: { type: 'string', nullable: true, maxLength: 512 },
 		websiteUrl: { type: 'string', nullable: true, maxLength: 512 },
@@ -63,9 +73,25 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				throw new ApiError(meta.errors.noSuchApp);
 			}
 
+			let permission = app.permission;
+			if (ps.permission) {
+				const nonAdminPermissions = allPermissions.filter(p => !p.startsWith('read:admin:') && !p.startsWith('write:admin:'));
+
+				let requestedPermissions = unique(ps.permission.map(v => v.replace(/^(.+)([\/\-])(read|write)$/, '$3:$1')));
+
+				const invalidPermissions = requestedPermissions.filter(p => !nonAdminPermissions.includes(p as any));
+				if (invalidPermissions.length > 0) {
+					console.log(`Invalid permissions: ${invalidPermissions.join(', ')}`);
+					throw new ApiError(meta.errors.notAllowed);
+				}
+
+				permission = requestedPermissions;
+			}
+
 			await this.appsRepository.update(app.id, {
 				name: ps.name,
 				description: ps.description,
+				permission: permission,
 				callbackUrl: ps.callbackUrl,
 				iconUrl: ps.iconUrl,
 				websiteUrl: ps.websiteUrl,

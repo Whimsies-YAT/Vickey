@@ -150,10 +150,10 @@ export class ServerService implements OnApplicationShutdown {
 		fastify.register(this.activityPubServerService.createServer);
 		fastify.register(this.nodeinfoServerService.createServer);
 		fastify.register(this.wellKnownServerService.createServer);
-		fastify.register(this.oauth2ProviderService.createServer, { prefix: '/oauth' });
+		fastify.register(this.oauthAppServerService.createServer.bind(this.oauthAppServerService));
 		fastify.register(this.oauth2ProviderService.createTokenServer, { prefix: '/oauth/token' });
 		fastify.register(this.oauth2ProviderService.createRevokeServer, { prefix: '/oauth/revoke' });
-		fastify.register(this.oauthAppServerService.createServer);
+		fastify.register(this.oauth2ProviderService.createServer, { prefix: '/oauth' });
 		fastify.register(this.healthServerService.createServer, { prefix: '/healthz' });
 
 		fastify.get<{ Params: { path: string }; Querystring: { static?: any; badge?: any; }; }>('/emoji/:path(.*)', async (request, reply) => {
