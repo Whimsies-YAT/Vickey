@@ -33,6 +33,7 @@ import { ClientServerService } from './web/ClientServerService.js';
 import { OpenApiServerService } from './api/openapi/OpenApiServerService.js';
 import { OAuth2ProviderService } from './oauth/OAuth2ProviderService.js';
 import { OAuthAppServerService } from './oauth/OAuthAppServerService.js';
+import { IconService } from './IconService.js';
 
 const _dirname = fileURLToPath(new URL('.', import.meta.url));
 
@@ -72,6 +73,7 @@ export class ServerService implements OnApplicationShutdown {
 		private loggerService: LoggerService,
 		private oauth2ProviderService: OAuth2ProviderService,
 		private oauthAppServerService: OAuthAppServerService,
+		private iconService: IconService,
 	) {
 		this.logger = this.loggerService.getLogger('server', 'gray');
 	}
@@ -144,6 +146,7 @@ export class ServerService implements OnApplicationShutdown {
 			});
 		}
 
+		fastify.register(this.iconService.createServer.bind(this.iconService));
 		fastify.register(this.apiServerService.createServer, { prefix: '/api' });
 		fastify.register(this.openApiServerService.createServer);
 		fastify.register(this.fileServerService.createServer);

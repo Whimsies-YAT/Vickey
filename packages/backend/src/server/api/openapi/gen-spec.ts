@@ -14,12 +14,12 @@ export function genOpenapiSpec(config: Config, includeSelfRef = false) {
 
 		info: {
 			version: config.version,
-			title: 'Misskey API',
+			title: 'Vickey API',
 		},
 
 		externalDocs: {
 			description: 'Repository',
-			url: 'https://github.com/misskey-dev/misskey',
+			url: 'https://github.com/Whimsies-YAT/Vickey',
 		},
 
 		servers: [{

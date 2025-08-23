@@ -140,17 +140,24 @@ async function discoverClientInformation(logger: Logger, httpRequestService: Htt
 		let name = id;
 		let logo: string | null = null;
 		if (text) {
-			const microformats = mf2(text, { baseUrl: res.url });
-			const correspondingProperties = microformats.items.find(item => item.type?.includes('h-app') && item.properties.url.includes(id));
-			if (correspondingProperties) {
-				const nameProperty = correspondingProperties.properties.name?.[0];
-				if (typeof nameProperty === 'string') {
-					name = nameProperty;
+			try {
+				const microformats = mf2(text, { baseUrl: res.url });
+				const correspondingProperties = microformats.items.find(item => item.type?.includes('h-app') && item.properties.url.includes(id));
+				if (correspondingProperties) {
+					const nameProperty = correspondingProperties.properties.name?.[0];
+					if (typeof nameProperty === 'string') {
+						name = nameProperty;
+					}
+					const logoProperty = correspondingProperties.properties.logo?.[0];
+					if (typeof logoProperty === 'string') {
+						logo = logoProperty;
+					}
 				}
-				const logoProperty = correspondingProperties.properties.logo?.[0];
-				if (typeof logoProperty === 'string') {
-					logo = logoProperty;
-				}
+			} catch (microformatsError) {
+				logger.warn('Failed to parse microformats from client HTML, using default values', {
+					clientId: id,
+					error: microformatsError
+				});
 			}
 		}
 
