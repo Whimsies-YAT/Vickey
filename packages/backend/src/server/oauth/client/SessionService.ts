@@ -7,7 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { LoggerService } from '@/core/LoggerService.js';
 import { IdService } from '@/core/IdService.js';
 import { DI } from '@/di-symbols.js';
-import type { UserSessionsRepository } from '@/models/_.js';
+import type { UserSessionRepository } from '@/models/_.js';
 import type { MiLocalUser } from '@/models/User.js';
 import Logger from '@/logger.js';
 import { bindThis } from '@/decorators.js';
@@ -45,8 +45,8 @@ export class SessionService {
 	private readonly logger: Logger;
 
 	constructor(
-		@Inject(DI.userSessionsRepository)
-		private readonly userSessionsRepository: UserSessionsRepository,
+		@Inject(DI.userSessionRepository)
+		private readonly userSessionRepository: UserSessionRepository,
 
 		private readonly loggerService: LoggerService,
 		private readonly idService: IdService,
@@ -66,7 +66,7 @@ export class SessionService {
 			: null;
 		try {
 			// Store in database using direct query to ensure field mapping
-			await this.userSessionsRepository
+			await this.userSessionRepository
 				.createQueryBuilder()
 				.insert()
 				.into('user_session')
@@ -116,7 +116,7 @@ export class SessionService {
 	 */
 	@bindThis
 	public async getSession(sessionId: string): Promise<SessionInfo | null> {
-		const session = await this.userSessionsRepository.findOne({
+		const session = await this.userSessionRepository.findOne({
 			where: { id: sessionId },
 		});
 
@@ -150,7 +150,7 @@ export class SessionService {
 			: null;
 
 		try {
-			const result = await this.userSessionsRepository.update(
+			const result = await this.userSessionRepository.update(
 				{ id: sessionId },
 				{
 					accessToken: tokenResponse.access_token || null,
@@ -177,7 +177,7 @@ export class SessionService {
 	@bindThis
 	public async validateSession(sessionId: string): Promise<boolean> {
 		try {
-			const session = await this.userSessionsRepository.findOne({
+			const session = await this.userSessionRepository.findOne({
 				where: { id: sessionId },
 			});
 
@@ -191,7 +191,7 @@ export class SessionService {
 			}
 
 			// Update last used time
-			await this.userSessionsRepository.update(
+			await this.userSessionRepository.update(
 				{ id: sessionId },
 				{ lastUsedAt: new Date() }
 			);
@@ -209,7 +209,7 @@ export class SessionService {
 	@bindThis
 	public async deleteSession(sessionId: string): Promise<void> {
 		try {
-			const result = await this.userSessionsRepository.delete({ id: sessionId });
+			const result = await this.userSessionRepository.delete({ id: sessionId });
 			if (result.affected && result.affected > 0) {
 				this.logger.info(`Deleted session ${sessionId}`);
 			} else {
@@ -227,7 +227,7 @@ export class SessionService {
 	@bindThis
 	public async getUserSessions(userId: string): Promise<SessionInfo[]> {
 		try {
-			const sessions = await this.userSessionsRepository.find({
+			const sessions = await this.userSessionRepository.find({
 				where: { userId },
 				order: { createdAt: 'DESC' },
 			});
@@ -257,7 +257,7 @@ export class SessionService {
 	 */
 	@bindThis
 	public async deleteUserSessions(userId: string): Promise<void> {
-		const result = await this.userSessionsRepository.delete({ userId });
+		const result = await this.userSessionRepository.delete({ userId });
 		this.logger.info(`Deleted ${result.affected || 0} sessions for user ${userId}`);
 	}
 
@@ -267,7 +267,7 @@ export class SessionService {
 	@bindThis
 	public async cleanupExpiredSessions(): Promise<void> {
 		try {
-			const result = await this.userSessionsRepository
+			const result = await this.userSessionRepository
 				.createQueryBuilder('session')
 				.delete()
 				.where('session.tokenExpiresAt < :now AND session.tokenExpiresAt IS NOT NULL', { now: new Date() })
@@ -294,8 +294,8 @@ export class SessionService {
 			const now = new Date();
 
 			const [total, expired] = await Promise.all([
-				this.userSessionsRepository.count(),
-				this.userSessionsRepository
+				this.userSessionRepository.count(),
+				this.userSessionRepository
 					.createQueryBuilder('session')
 					.where('session.tokenExpiresAt < :now AND session.tokenExpiresAt IS NOT NULL', { now })
 					.getCount(),
@@ -304,7 +304,7 @@ export class SessionService {
 			const active = total - expired;
 
 			// Get sessions by provider
-			const providerCounts = await this.userSessionsRepository
+			const providerCounts = await this.userSessionRepository
 				.createQueryBuilder('session')
 				.select('session.providerId', 'providerId')
 				.addSelect('COUNT(*)', 'count')

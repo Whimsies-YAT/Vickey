@@ -167,7 +167,6 @@ export class IconService {
 			reply.header('Cache-Control', 'public, max-age=86400');
 			reply.header('Vary', 'Accept');
 			return reply.send(result.data);
-
 		} catch (error) {
 			console.warn(`Failed to fetch ${iconType}:`, error);
 			reply.code(404).send('Failed to fetch icon');

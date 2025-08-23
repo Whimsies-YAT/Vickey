@@ -95,5 +95,6 @@ export const DI = {
 	noteDraftsRepository: Symbol('noteDraftsRepository'),
 	userSessionsRepository: Symbol('userSessionsRepository'),
 	oauthClientConfigsRepository: Symbol('oauthClientConfigsRepository'),
+	userSessionRepository: Symbol('userSessionRepository'),
 	//#endregion
 };
