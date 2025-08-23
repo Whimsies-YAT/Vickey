@@ -142,14 +142,14 @@ export class ClientServerService {
 			'icons': [{
 				// 空文字列の場合右辺を使いたいため
 				// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-				'src': this.meta.app192IconUrl || '/static-assets/icons/192.png',
+				'src': this.meta.app192IconUrl || this.meta.iconUrl || '/static-assets/icons/192.png',
 				'sizes': '192x192',
 				'type': 'image/png',
 				'purpose': 'maskable',
 			}, {
 				// 空文字列の場合右辺を使いたいため
 				// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-				'src': this.meta.app512IconUrl || '/static-assets/icons/512.png',
+				'src': this.meta.app512IconUrl || this.meta.iconUrl || '/static-assets/icons/512.png',
 				'sizes': '512x512',
 				'type': 'image/png',
 				'purpose': 'maskable',
@@ -187,7 +187,7 @@ export class ClientServerService {
 	@bindThis
 	private async generateCommonPugData(meta: MiMeta) {
 		return {
-			instanceName: meta.name ?? 'Misskey',
+			instanceName: meta.name ?? 'Vickey',
 			icon: meta.iconUrl,
 			appleTouchIcon: meta.app512IconUrl,
 			themeColor: meta.themeColor,
@@ -296,13 +296,13 @@ export class ClientServerService {
 			done();
 		});
 
-		fastify.get('/favicon.ico', async (request, reply) => {
-			return reply.sendFile('/favicon.ico', staticAssets);
-		});
-
-		fastify.get('/apple-touch-icon.png', async (request, reply) => {
-			return reply.sendFile('/apple-touch-icon.png', staticAssets);
-		});
+		// fastify.get('/favicon.ico', async (request, reply) => {
+		// 	return reply.sendFile('/favicon.ico', staticAssets);
+		// });
+		//
+		// fastify.get('/apple-touch-icon.png', async (request, reply) => {
+		// 	return reply.sendFile('/apple-touch-icon.png', staticAssets);
+		// });
 
 		fastify.get<{ Params: { path: string } }>('/fluent-emoji/:path(.*)', async (request, reply) => {
 			const path = request.params.path;
