@@ -10,7 +10,7 @@ import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { DI } from '@/di-symbols.js';
 import { ApiError } from '@/server/api/error.js';
-import {MiLocalUser} from "@/models/User.js";
+import { MiLocalUser } from "@/models/User.js";
 import { IsNull } from "typeorm";
 
 export const meta = {
