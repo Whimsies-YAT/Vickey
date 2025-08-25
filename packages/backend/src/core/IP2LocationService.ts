@@ -245,12 +245,28 @@ export class IP2LocationService {
 
 			const finalResult = order.map(key => {
 				const value = result[key as keyof typeof result];
-				return value !== undefined && value !== null ? value.toString() : '';
+
+				if (value === undefined || value === null) {
+					return '';
+				}
+
+				const stringValue = value.toString();
+
+				if (stringValue === 'MISSING FILE' ||
+					stringValue === 'MISSING_FILE' ||
+					stringValue.includes('MISSING') ||
+					stringValue === 'Unknown' ||
+					stringValue === '-') {
+					return key === 'ip' ? ip : '-';
+				}
+
+				return stringValue;
 			});
+
 			await this.cacheService.checkLocationCache.set(ip, finalResult);
 			return finalResult;
 		} catch (error) {
-			console.error(error);
+			console.error('Failed to get IP location details:', error);
 			return [];
 		}
 	}

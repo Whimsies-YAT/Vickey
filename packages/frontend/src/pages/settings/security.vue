@@ -37,9 +37,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 									<code class="ip _monospace">{{ item.ip[0] }}</code>
 									<code class="location _monospace">
 										{{
-											(['-', 'Unknown'].includes(item.ip[5]) &&
-												['-', 'Unknown'].includes(item.ip[4]) &&
-												['-', 'Unknown'].includes(item.ip[2]))
+											isLocationDataUnavailable(item.ip)
 												? '-'
 												: `${item.ip[5]}, ${item.ip[4]}, ${item.ip[2]}`
 										}}
@@ -84,6 +82,14 @@ import { miLocalStorage } from '@/local-storage.js';
 const paginator = markRaw(new Paginator('i/signin-history', {
 	limit: 3,
 }));
+
+function isLocationDataUnavailable(ipData: string[]): boolean {
+	const unavailableValues = ['-', 'Unknown', 'MISSING_FILE', 'MISSING FILE', '', null, undefined];
+
+	return [ipData[5], ipData[4], ipData[2]].every(value =>
+		unavailableValues.includes(value as any) || value.includes('MISSING')
+	);
+}
 
 async function change() {
 	const { canceled: canceled2, result: newPassword } = await os.inputText({
@@ -148,12 +154,13 @@ async function regenerateToken() {
 	}
 }
 
-async function showIP(item) {
-	const parts = [item[5], item[4], item[3]];
-	const allUnknown = parts.every(p => p === '-' || p === 'Unknown');
-	const locationText = allUnknown ? '-' : parts.join(', ');
+async function showIP(item: string[]) {
+	// 使用相同的检查逻辑
+	const locationText = isLocationDataUnavailable(item)
+		? '-'
+		: `${item[5]}, ${item[4]}, ${item[2]}`;
 
-	os.alert({
+	await os.alert({
 		type: 'info',
 		text: `IP: ${item[0]}\nLocation: ${locationText}`,
 	});
