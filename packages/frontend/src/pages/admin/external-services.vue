@@ -240,8 +240,8 @@ function save_googleAnalytics() {
 }
 
 function save_ra() {
-	const banCountryArray = banCountry.value.split('\n').map(item => item.trim()).filter(item => item);
-	const exemptIPArray = exemptIP.value.split('\n').map(item => item.trim()).filter(item => item);
+	const banCountryArray = String(banCountry.value || '').split('\n').map(item => item.trim()).filter(item => item);
+	const exemptIPArray = String(exemptIP.value || '').split('\n').map(item => item.trim()).filter(item => item);
 
 	os.apiWithDialog('admin/update-meta', {
 		ip2lAuthKey: ip2lAuthKey.value,
