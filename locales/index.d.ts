@@ -157,6 +157,22 @@ export interface Locale extends ILocale {
      * Not Available
      */
     "notAvailable": string;
+    /**
+     * Remove authenticator app
+     */
+    "unregister2fa": string;
+    /**
+     * Remove passkeys
+     */
+    "removeKeys": string;
+    /**
+     * Are you sure you want to remove the authenticator app?
+     */
+    "unregister2faConfirm": string;
+    /**
+     * Are you sure you want to remove the passkeys?
+     */
+    "removeKeysConfirm": string;
     "_oauthAppVK": {
         /**
          * OAuth Application
@@ -1523,7 +1539,7 @@ export interface Locale extends ILocale {
         /**
          * アクティビティを表示する
          */
-        "showActivityiesForVisitor": string;
+        "showActivitiesForVisitor": string;
         "_userGeneratedContentsVisibilityForVisitor": {
             /**
              * 全て公開
