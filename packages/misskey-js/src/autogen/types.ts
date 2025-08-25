@@ -696,6 +696,16 @@ export type paths = {
          */
         post: operations['admin___relays___remove'];
     };
+    '/admin/remove-keys': {
+        /**
+         * admin/remove-keys
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes* / **Permission**: *write:admin:reset-password*
+         */
+        post: operations['admin___remove-keys'];
+    };
     '/admin/reset-password': {
         /**
          * admin/reset-password
@@ -926,6 +936,16 @@ export type paths = {
          *     **Credential required**: *Yes* / **Permission**: *write:admin:system-webhook*
          */
         post: operations['admin___system-webhook___update'];
+    };
+    '/admin/unregister-2fa': {
+        /**
+         * admin/unregister-2fa
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes* / **Permission**: *write:admin:reset-password*
+         */
+        post: operations['admin___unregister-2fa'];
     };
     '/admin/unset-user-avatar': {
         /**
@@ -4495,6 +4515,7 @@ export type components = {
             secret?: string;
             fullSecret?: string;
             isOAuth: boolean;
+            clientId: string | null;
             iconUrl: string | null;
             websiteUrl: string | null;
             createdAt: string;
@@ -11210,6 +11231,68 @@ export interface operations {
             };
         };
     };
+    'admin___remove-keys': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    userId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (without any results) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
     'admin___reset-password': {
         requestBody: {
             content: {
@@ -13084,6 +13167,68 @@ export interface operations {
                 };
                 content: {
                     'application/json': components['schemas']['SystemWebhook'];
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'admin___unregister-2fa': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    userId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (without any results) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
                 };
             };
             /** @description Client error */
@@ -33014,6 +33159,7 @@ export interface operations {
                     appId: string;
                     name: string;
                     description: string;
+                    permission?: string[];
                     callbackUrl?: string | null;
                     iconUrl?: string | null;
                     websiteUrl?: string | null;

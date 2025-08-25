@@ -101,6 +101,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 						<div>
 							<MkButton v-if="user.host == null" inline style="margin-right: 8px;" @click="resetPassword"><i class="ti ti-key"></i> {{ i18n.ts.resetPassword }}</MkButton>
+							<MkButton v-if="iAmModerator && user.host == null && user.twoFactorEnabled" inline danger style="margin-right: 8px;" @click="remove2fa"><i class="ti ti-key"></i> {{ i18n.ts.unregister2fa }}</MkButton>
+							<MkButton v-if="iAmModerator && user.host == null && user.usePasswordLessLogin" inline danger style="margin-right: 8px;" @click="removeKeys"><i class="ti ti-key"></i> {{ i18n.ts.removeKeys }}</MkButton>
 						</div>
 
 						<MkFolder>
@@ -325,6 +327,40 @@ async function resetPassword() {
 		os.alert({
 			type: 'success',
 			text: i18n.tsx.newPasswordIs({ password }),
+		});
+	}
+}
+
+async function remove2fa() {
+	const confirm = await os.confirm({
+		type: 'warning',
+		text: i18n.ts.unregister2faConfirm,
+	});
+	if (confirm.canceled) {
+		return;
+	} else {
+		await misskeyApi('admin/unregister-2fa', {
+			userId: user.value.id,
+		});
+		os.alert({
+			type: 'success',
+		});
+	}
+}
+
+async function removeKeys() {
+	const confirm = await os.confirm({
+		type: 'warning',
+		text: i18n.ts.removeKeysConfirm,
+	});
+	if (confirm.canceled) {
+		return;
+	} else {
+		await misskeyApi('admin/remove-keys', {
+			userId: user.value.id,
+		});
+		os.alert({
+			type: 'success',
 		});
 	}
 }

@@ -345,6 +345,9 @@ type AdminRelaysListResponse = operations['admin___relays___list']['responses'][
 type AdminRelaysRemoveRequest = operations['admin___relays___remove']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type AdminRemoveKeysRequest = operations['admin___remove-keys']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type AdminResetPasswordRequest = operations['admin___reset-password']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -457,6 +460,9 @@ type AdminSystemWebhookUpdateRequest = operations['admin___system-webhook___upda
 
 // @public (undocumented)
 type AdminSystemWebhookUpdateResponse = operations['admin___system-webhook___update']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AdminUnregister2faRequest = operations['admin___unregister-2fa']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type AdminUnsetUserAvatarRequest = operations['admin___unset-user-avatar']['requestBody']['content']['application/json'];
@@ -1624,6 +1630,7 @@ declare namespace entities {
         AdminRelaysAddResponse,
         AdminRelaysListResponse,
         AdminRelaysRemoveRequest,
+        AdminRemoveKeysRequest,
         AdminResetPasswordRequest,
         AdminResetPasswordResponse,
         AdminResolveAbuseUserReportRequest,
@@ -1662,6 +1669,7 @@ declare namespace entities {
         AdminSystemWebhookTestRequest,
         AdminSystemWebhookUpdateRequest,
         AdminSystemWebhookUpdateResponse,
+        AdminUnregister2faRequest,
         AdminUnsetUserAvatarRequest,
         AdminUnsetUserBannerRequest,
         AdminUnsuspendUserRequest,

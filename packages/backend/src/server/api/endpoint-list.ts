@@ -83,6 +83,7 @@ export * as 'admin/queue/jobs' from './endpoints/admin/queue/jobs.js';
 export * as 'admin/queue/stats' from './endpoints/admin/queue/stats.js';
 export * as 'admin/queue/queues' from './endpoints/admin/queue/queues.js';
 export * as 'admin/queue/queue-stats' from './endpoints/admin/queue/queue-stats.js';
+export * as 'admin/remove-keys' from './endpoints/admin/remove-keys.js';
 export * as 'admin/relays/add' from './endpoints/admin/relays/add.js';
 export * as 'admin/relays/list' from './endpoints/admin/relays/list.js';
 export * as 'admin/relays/remove' from './endpoints/admin/relays/remove.js';
@@ -111,6 +112,7 @@ export * as 'admin/system-webhook/list' from './endpoints/admin/system-webhook/l
 export * as 'admin/system-webhook/show' from './endpoints/admin/system-webhook/show.js';
 export * as 'admin/system-webhook/test' from './endpoints/admin/system-webhook/test.js';
 export * as 'admin/system-webhook/update' from './endpoints/admin/system-webhook/update.js';
+export * as 'admin/unregister-2fa' from './endpoints/admin/unregister-2fa.js';
 export * as 'admin/unset-user-avatar' from './endpoints/admin/unset-user-avatar.js';
 export * as 'admin/unset-user-banner' from './endpoints/admin/unset-user-banner.js';
 export * as 'admin/unsuspend-user' from './endpoints/admin/unsuspend-user.js';
