@@ -123,7 +123,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 	 *   - Code commented out to avoid confusion, retained only as reference.
 	 *   - May be helpful if a similar issue arises in the future.
 	 */
-	if (process.env.NODE_ENV === "development") {
+	if (_DEV_) {
 		checkExtensionsInList()
 			.then((detected) => {
 				if (detected.length > 0) {
