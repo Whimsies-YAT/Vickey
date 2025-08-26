@@ -116,7 +116,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 	 * [Deprecated] Extension detection block
 	 *
 	 * Context:
-	 *   - Originally added to handle a bug where certain prohibited extensions were not filtered.
+	 *   - Originally added to detect certain browser extensions that could cause the frontend to crash.
 	 *   - The bug has since been fixed.
 	 *
 	 * Action:
