@@ -112,21 +112,34 @@ export async function common(createVue: () => Promise<App<Element>>) {
 		return detectedExtensions;
 	};
 
-	checkExtensionsInList()
-		.then((detected) => {
-			if (detected.length > 0) {
-				let errorMsg = "[Detection Error] The following prohibited extensions have been detected: \n";
-				detected.forEach((ext) => {
-					errorMsg += `- ${ext.name}\n`;
-				});
-				console.error(errorMsg);
-			} else {
-				console.log("No prohibited extensions were detected.");
-			}
-		})
-		.catch((error) => {
-			console.error(error.message);
-		});
+	/*
+	 * [Deprecated] Extension detection block
+	 *
+	 * Context:
+	 *   - Originally added to detect certain browser extensions that could cause the frontend to crash.
+	 *   - The bug has since been fixed.
+	 *
+	 * Action:
+	 *   - Code commented out to avoid confusion, retained only as reference.
+	 *   - May be helpful if a similar issue arises in the future.
+	 */
+	if (_DEV_) {
+		checkExtensionsInList()
+			.then((detected) => {
+				if (detected.length > 0) {
+					let errorMsg = "[Detection Error] The following prohibited extensions have been detected: \n";
+					detected.forEach((ext) => {
+						errorMsg += `- ${ext.name}\n`;
+					});
+					console.error(errorMsg);
+				} else {
+					console.log("No prohibited extensions were detected.");
+				}
+			})
+			.catch((error) => {
+				console.error(error.message);
+			});
+	}
 
 	if (_DEV_) {
 		console.warn('Development mode!!!');

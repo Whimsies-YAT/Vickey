@@ -7,13 +7,73 @@
 
 // ブロックの中に入れないと、定義した変数がブラウザのグローバルスコープに登録されてしまい邪魔なので
 (async () => {
-	window.onerror = (e) => {
-		console.error(e);
-		renderError('SOMETHING_HAPPENED', e);
+	let hasRenderedError = false;
+	let criticalErrors = 0;
+
+	function isCriticalError(error) {
+		const errorStr = error.toString().toLowerCase();
+		const stackStr = (error.stack || '').toLowerCase();
+
+		const pluginPatterns = [
+			'/plugins/', '/extensions/', '/addons/',
+			'userscript', 'tampermonkey', 'greasemonkey',
+			'chrome-extension:', 'moz-extension:',
+			'third-party', 'plugin', 'extension'
+		];
+
+		const corePatterns = [
+			'/vite/', '/_boot_', CLIENT_ENTRY || '',
+			'misskey', 'lang', 'theme'
+		];
+
+		if (pluginPatterns.some(pattern => errorStr.includes(pattern) || stackStr.includes(pattern))) {
+			return false;
+		}
+
+		if (corePatterns.some(pattern => pattern && (errorStr.includes(pattern) || stackStr.includes(pattern)))) {
+			return true;
+		}
+
+		if (errorStr.includes('network') || errorStr.includes('fetch') || errorStr.includes('cors')) {
+			return false;
+		}
+
+		return false;
+	}
+
+	window.onerror = (message, source, lineno, colno, error) => {
+		console.error('Global error:', { message, source, lineno, colno, error });
+
+		if (isCriticalError(error || new Error(message))) {
+			criticalErrors++;
+			console.error('Critical error detected:', message);
+
+			if (criticalErrors > 2 && !hasRenderedError) {
+				hasRenderedError = true;
+				renderError('SOMETHING_HAPPENED', error || message);
+			}
+		} else {
+			console.warn('Non-critical error (likely plugin-related), continuing execution:', message);
+		}
 	};
+
 	window.onunhandledrejection = (e) => {
-		console.error(e);
-		renderError('SOMETHING_HAPPENED_IN_PROMISE', e);
+		console.error('Unhandled promise rejection:', e);
+
+		const error = e.reason;
+
+		if (error && error.message && error.message.includes('import') && isCriticalError(error)) {
+			criticalErrors++;
+			console.error('Critical import error detected:', error);
+
+			if (criticalErrors > 1 && !hasRenderedError) {
+				hasRenderedError = true;
+				renderError('SOMETHING_HAPPENED_IN_PROMISE', e);
+				return;
+			}
+		}
+
+		console.warn('Non-critical promise rejection (likely plugin-related), continuing execution:', error);
 	};
 
 	let forceError = localStorage.getItem('forceError');
@@ -23,17 +83,24 @@
 	}
 
 	//#region Detect language
-	const supportedLangs = LANGS;
-	/** @type { string } */
+	let supportedLangs;
 	let lang = localStorage.getItem('lang');
-	if (lang == null || !supportedLangs.includes(lang)) {
-		if (supportedLangs.includes(navigator.language)) {
-			lang = navigator.language;
-		} else {
-			lang = supportedLangs.find(x => x.split('-')[0] === navigator.language);
 
-			// Fallback
-			if (lang == null) lang = 'en-US';
+	if (typeof LANGS === 'undefined' || !Array.isArray(LANGS) || LANGS.length === 0) {
+		console.warn('LANGS is not defined or invalid, falling back to en-US');
+		lang = 'en-US';
+	} else {
+		supportedLangs = LANGS;
+
+		if (lang == null || !supportedLangs.includes(lang)) {
+			if (supportedLangs.includes(navigator.language)) {
+				lang = navigator.language;
+			} else {
+				lang = supportedLangs.find(x => x.split('-')[0] === navigator.language);
+
+				// Fallback
+				if (lang == null) lang = 'en-US';
+			}
 		}
 	}
 
@@ -150,7 +217,7 @@
 		if (!messages) messages = {};
 
 		messages = Object.assign({
-			title: 'Failed to initialize Misskey',
+			title: 'Failed to initialize Vickey',
 			solution: 'The following actions may solve the problem.',
 			solution1: 'Update your os and browser',
 			solution2: 'Disable an adblocker',
@@ -161,7 +228,7 @@
 			otherOption1: 'Clear preferences and cache',
 			otherOption2: 'Start the simple client',
 			otherOption3: 'Start the repair tool',
-			otherOption4: 'Start Misskey in safe mode',
+			otherOption4: 'Start Vickey in safe mode',
 			reload: 'Reload',
 		}, messages);
 
@@ -228,111 +295,111 @@
 		<code>${details.toString()} ${JSON.stringify(details)}</code>`;
 		errorsElement.appendChild(detailsElement);
 		addStyle(`
-		* {
-			font-family: BIZ UDGothic, Roboto, HelveticaNeue, Arial, sans-serif;
-		}
-
-		#misskey_app,
-		#splash {
-			display: none !important;
-		}
-
-		body,
-		html {
-			background-color: #222;
-			color: #dfddcc;
-			justify-content: center;
-			margin: auto;
-			padding: 10px;
-			text-align: center;
-		}
-
-		button {
-			border-radius: 999px;
-			padding: 0px 12px 0px 12px;
-			border: none;
-			cursor: pointer;
-			margin-bottom: 12px;
-		}
-
-		.button-big {
-			background: linear-gradient(90deg, rgb(134, 179, 0), rgb(74, 179, 0));
-			line-height: 50px;
-		}
-
-		.button-big:hover {
-			background: rgb(153, 204, 0);
-		}
-
-		.button-small {
-			background: #444;
-			line-height: 40px;
-		}
-
-		.button-small:hover {
-			background: #555;
-		}
-
-		.button-label-big {
-			color: #222;
-			font-weight: bold;
-			font-size: 1.2em;
-			padding: 12px;
-		}
-
-		.button-label-small {
-			color: rgb(153, 204, 0);
-			font-size: 16px;
-			padding: 12px;
-		}
-
-		a {
-			color: rgb(134, 179, 0);
-			text-decoration: none;
-		}
-
-		p,
-		li {
-			font-size: 16px;
-		}
-
-		.icon-warning {
-			color: #dec340;
-			height: 4rem;
-			padding-top: 2rem;
-		}
-
-		h1 {
-			font-size: 1.5em;
-			margin: 1em;
-		}
-
-		code {
-			font-family: Fira, FiraCode, monospace;
-		}
-
-		#errorInfo {
-			background: #333;
-			margin-bottom: 2rem;
-			padding: 0.5rem 1rem;
-			width: 40rem;
-			border-radius: 10px;
-			justify-content: center;
-			margin: auto;
-		}
-
-		#errorInfo summary {
-			cursor: pointer;
-		}
-
-		#errorInfo summary > * {
-			display: inline;
-		}
-
-		@media screen and (max-width: 500px) {
-			#errorInfo {
-				width: 50%;
+			* {
+				font-family: BIZ UDGothic, Roboto, HelveticaNeue, Arial, sans-serif;
 			}
-		}`);
+
+			#misskey_app,
+			#splash {
+				display: none !important;
+			}
+
+			body,
+			html {
+				background-color: #222;
+				color: #dfddcc;
+				justify-content: center;
+				margin: auto;
+				padding: 10px;
+				text-align: center;
+			}
+
+			button {
+				border-radius: 999px;
+				padding: 0px 12px 0px 12px;
+				border: none;
+				cursor: pointer;
+				margin-bottom: 12px;
+			}
+
+			.button-big {
+				background: linear-gradient(90deg, rgb(134, 179, 0), rgb(74, 179, 0));
+				line-height: 50px;
+			}
+
+			.button-big:hover {
+				background: rgb(153, 204, 0);
+			}
+
+			.button-small {
+				background: #444;
+				line-height: 40px;
+			}
+
+			.button-small:hover {
+				background: #555;
+			}
+
+			.button-label-big {
+				color: #222;
+				font-weight: bold;
+				font-size: 1.2em;
+				padding: 12px;
+			}
+
+			.button-label-small {
+				color: rgb(153, 204, 0);
+				font-size: 16px;
+				padding: 12px;
+			}
+
+			a {
+				color: rgb(134, 179, 0);
+				text-decoration: none;
+			}
+
+			p,
+			li {
+				font-size: 16px;
+			}
+
+			.icon-warning {
+				color: #dec340;
+				height: 4rem;
+				padding-top: 2rem;
+			}
+
+			h1 {
+				font-size: 1.5em;
+				margin: 1em;
+			}
+
+			code {
+				font-family: Fira, FiraCode, monospace;
+			}
+
+			#errorInfo {
+				background: #333;
+				margin-bottom: 2rem;
+				padding: 0.5rem 1rem;
+				width: 40rem;
+				border-radius: 10px;
+				justify-content: center;
+				margin: auto;
+			}
+
+			#errorInfo summary {
+				cursor: pointer;
+			}
+
+			#errorInfo summary > * {
+				display: inline;
+			}
+
+			@media screen and (max-width: 500px) {
+				#errorInfo {
+					width: 50%;
+				}
+			}`);
 	}
 })();
