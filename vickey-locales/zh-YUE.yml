@@ -1,6 +1,6 @@
 _lang_: "廣東話"
 result: "結果"
-flagAsVI: "需要自動TTS功能"
+flagAsVI: "需要自動TTS功能。"
 flagAsVIDescription: "Enable this if you need the automatic TTS feature. If you belong to an authorized user group, the automatic TTS feature will be activated within a specific scope."
 approvals: "Approvals"
 registerApproveConfirm: "Do you want to approve the registration?"
