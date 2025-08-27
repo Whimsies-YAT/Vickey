@@ -209,6 +209,9 @@ export type ModerationLog = {
 } | {
 	type: 'deleteChatRoom';
 	info: ModerationLogPayloads['deleteChatRoom'];
+} | {
+	type: 'updateProxyAccountDescription';
+	info: ModerationLogPayloads['updateProxyAccountDescription'];
 });
 
 export type ServerStats = {
