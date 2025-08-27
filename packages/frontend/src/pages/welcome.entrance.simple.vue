@@ -6,10 +6,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <div v-if="meta" :class="$style.root">
 	<MkFeaturedPhotos :class="$style.bg"/>
+	<!--
 	<div :class="$style.logoWrapper">
 		<div :class="$style.poweredBy">Powered by</div>
 		<img :src="misskeysvg" :class="$style.misskey"/>
 	</div>
+	-->
 	<div :class="$style.contents">
 		<MkVisitorDashboard/>
 	</div>
