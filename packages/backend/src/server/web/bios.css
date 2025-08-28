@@ -228,7 +228,6 @@ button:disabled {
 	background: linear-gradient(135deg, #1d4ed8, #3b82f6);
 }
 
-/* 动画 */
 @keyframes fadeInUp {
 	from {
 		opacity: 0;
