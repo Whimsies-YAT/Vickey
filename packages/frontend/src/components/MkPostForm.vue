@@ -98,7 +98,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<button v-tooltip="i18n.ts.mention" class="_button" :class="$style.footerButton" @click="insertMention"><i class="ti ti-at"></i></button>
 			<button v-if="showAddMfmFunction" v-tooltip="i18n.ts.addMfmFunction" :class="['_button', $style.footerButton]" @click="insertMfmFunction"><i class="ti ti-palette"></i></button>
 			<button v-if="postFormActions.length > 0" v-tooltip="i18n.ts.plugins" class="_button" :class="$style.footerButton" @click="showActions"><i class="ti ti-plug"></i></button>
-			<button v-tooltip="i18n.ts.location" class="_button" :class="[$style.footerButton, { [$style.footerButtonActive]: locationInfo }]" @click="toggleLocation" :disabled="locating"><i class="ti" :class="locating ? 'ti-loader-2' : 'ti-map-pin'"></i></button>
+			<button v-tooltip="i18n.ts.location" class="_button" :class="[$style.footerButton, { [$style.footerButtonActive]: locationInfo }]" :disabled="locating" @click="toggleLocation"><i class="ti" :class="locating ? 'ti-loader-2' : 'ti-map-pin'"></i></button>
 		</div>
 		<div :class="$style.footerRight">
 			<button v-tooltip="i18n.ts.emoji" :class="['_button', $style.footerButton]" @click="insertEmoji"><i class="ti ti-mood-happy"></i></button>
@@ -1259,7 +1259,7 @@ async function getCurrentLocation(): Promise<{ lat: number; lon: number } | null
 
 async function reverseGeocode(lat: number, lon: number): Promise<any> {
 	try {
-		const response = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&lang=en&limit=1`);
+		const response = await window.fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&lang=en&limit=1`);
 		const data = await response.json();
 
 		if (data.features && data.features.length > 0) {

@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and misskey-project
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 	<div v-if="hasLocationData" class="note-location">
 		<i class="ti ti-map-pin location-icon"></i>

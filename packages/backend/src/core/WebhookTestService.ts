@@ -110,6 +110,8 @@ function generateDummyNote(override?: Partial<MiNote>): MiNote {
 		replyUserHost: null,
 		renoteUserId: null,
 		renoteUserHost: null,
+		geojson: null,
+		location: null,
 		...override,
 	};
 }
