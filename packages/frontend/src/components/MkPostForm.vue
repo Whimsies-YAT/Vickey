@@ -81,6 +81,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</div>
 	<MkPollEditor v-if="poll" v-model="poll" @destroyed="poll = null"/>
 	<MkNotePreview v-if="showPreview" :class="$style.preview" :text="text" :files="files" :poll="poll ?? undefined" :useCw="useCw" :cw="cw" :user="postAccount ?? $i"/>
+	<div v-if="locationInfo" :class="$style.locationDisplay">
+		<i class="ti ti-map-pin"></i>
+		<span>{{ locationInfo.city }}</span>
+		<button class="_button" :class="$style.locationCancel" @click="clearLocation"><i class="ti ti-x"></i></button>
+	</div>
 	<div v-if="showingOptions" style="padding: 8px 16px;">
 	</div>
 	<footer :class="$style.footer">
@@ -93,6 +98,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<button v-tooltip="i18n.ts.mention" class="_button" :class="$style.footerButton" @click="insertMention"><i class="ti ti-at"></i></button>
 			<button v-if="showAddMfmFunction" v-tooltip="i18n.ts.addMfmFunction" :class="['_button', $style.footerButton]" @click="insertMfmFunction"><i class="ti ti-palette"></i></button>
 			<button v-if="postFormActions.length > 0" v-tooltip="i18n.ts.plugins" class="_button" :class="$style.footerButton" @click="showActions"><i class="ti ti-plug"></i></button>
+			<button v-tooltip="i18n.ts.location" class="_button" :class="[$style.footerButton, { [$style.footerButtonActive]: locationInfo }]" @click="toggleLocation" :disabled="locating"><i class="ti" :class="locating ? 'ti-loader-2' : 'ti-map-pin'"></i></button>
 		</div>
 		<div :class="$style.footerRight">
 			<button v-tooltip="i18n.ts.emoji" :class="['_button', $style.footerButton]" @click="insertEmoji"><i class="ti ti-mood-happy"></i></button>
@@ -210,6 +216,9 @@ const justEndedComposition = ref(false);
 const renoteTargetNote: ShallowRef<PostFormProps['renote'] | null> = shallowRef(props.renote);
 const replyTargetNote: ShallowRef<PostFormProps['reply'] | null> = shallowRef(props.reply);
 const targetChannel = shallowRef(props.channel);
+const locationInfo = ref<{ city: string; lat: number; lon: number; geoJson: any; geometry: any } | null>(null);
+const locating = ref(false);
+const lastKnownLocation = ref<{ city: string; lat: number; lon: number; geoJson: any; geometry: any } | null>(null);
 
 const serverDraftId = ref<string | null>(null);
 const postFormActions = getPluginHandlers('post_form_action');
@@ -410,6 +419,7 @@ function watchForDraft() {
 	watch(localOnly, () => saveDraft());
 	watch(quoteId, () => saveDraft());
 	watch(reactionAcceptance, () => saveDraft());
+	watch(locationInfo, () => saveDraft());
 }
 
 function checkMissingMention() {
@@ -650,6 +660,7 @@ function clear() {
 	files.value = [];
 	poll.value = null;
 	quoteId.value = null;
+	locationInfo.value = null;
 }
 
 function onKeydown(ev: KeyboardEvent) {
@@ -805,6 +816,7 @@ function saveDraft() {
 			...( visibleUsers.value.length > 0 ? { visibleUserIds: visibleUsers.value.map(x => x.id) } : {}),
 			quoteId: quoteId.value,
 			reactionAcceptance: reactionAcceptance.value,
+			locationInfo: locationInfo.value,
 		},
 	};
 
@@ -926,6 +938,7 @@ async function post(ev?: MouseEvent) {
 		visibility: visibility.value,
 		visibleUserIds: visibility.value === 'specified' ? visibleUsers.value.map(u => u.id) : undefined,
 		reactionAcceptance: reactionAcceptance.value,
+		...(locationInfo.value ? { geoJson: locationInfo.value.geoJson } : {}),
 	};
 
 	if (withHashtags.value && hashtags.value && hashtags.value.trim() !== '') {
@@ -1218,6 +1231,160 @@ function showDraftMenu(ev: MouseEvent) {
 	}], (ev.currentTarget ?? ev.target ?? undefined) as HTMLElement | undefined);
 }
 
+async function getCurrentLocation(): Promise<{ lat: number; lon: number } | null> {
+	return new Promise((resolve) => {
+		if (!navigator.geolocation) {
+			resolve(null);
+			return;
+		}
+
+		navigator.geolocation.getCurrentPosition(
+			(position) => {
+				resolve({
+					lat: position.coords.latitude,
+					lon: position.coords.longitude,
+				});
+			},
+			() => {
+				resolve(null);
+			},
+			{
+				enableHighAccuracy: true,
+				timeout: 10000,
+				maximumAge: 300000,
+			}
+		);
+	});
+}
+
+async function reverseGeocode(lat: number, lon: number): Promise<any> {
+	try {
+		const response = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&lang=en&limit=1`);
+		const data = await response.json();
+
+		if (data.features && data.features.length > 0) {
+			const feature = data.features[0];
+			const properties = feature.properties;
+
+			const transformedProperties: any = {
+				osm_type: properties.osm_type || undefined,
+				osm_id: properties.osm_id || undefined,
+				osm_key: properties.osm_key || undefined,
+				osm_value: properties.osm_value || undefined,
+				type: properties.type || undefined,
+				postcode: properties.postcode || undefined,
+				housenumber: properties.housenumber || undefined,
+				countrycode: properties.countrycode || undefined,
+				country: properties.country || undefined,
+				city: properties.city || undefined,
+				district: properties.district || undefined,
+				street: properties.street || undefined,
+				state: properties.state || undefined
+			};
+
+			Object.keys(transformedProperties).forEach(key => {
+				if (transformedProperties[key] === undefined) {
+					delete transformedProperties[key];
+				}
+			});
+
+			return {
+				type: "FeatureCollection",
+				features: [
+					{
+						type: "Feature",
+						properties: transformedProperties,
+						geometry: {
+							type: "Point",
+							coordinates: [lon, lat]
+						}
+					}
+				]
+			};
+		}
+
+		return { type: "FeatureCollection", features: [] };
+	} catch (error) {
+		console.error('Reverse geocoding failed:', error);
+		return { type: "FeatureCollection", features: [] };
+	}
+}
+
+async function toggleLocation() {
+	if (locationInfo.value) {
+		clearLocation();
+		return;
+	}
+
+	if (lastKnownLocation.value) {
+		locationInfo.value = lastKnownLocation.value;
+		return;
+	}
+
+	locating.value = true;
+
+	try {
+		const coords = await getCurrentLocation();
+		if (!coords) {
+			os.alert({
+				type: 'error',
+				text: i18n.ts._geoShare.unableToGetLocation,
+			});
+			return;
+		}
+
+		const geoJsonResult = await reverseGeocode(coords.lat, coords.lon);
+
+		let cityName = i18n.ts._geoShare.unknown;
+		let geoJson: object = {
+			type: 'FeatureCollection',
+			features: []
+		};
+
+		const baseGeometry = {
+			type: 'Point',
+			coordinates: [coords.lon, coords.lat]
+		};
+
+		if (geoJsonResult && geoJsonResult.features && geoJsonResult.features.length > 0) {
+			const properties = geoJsonResult.features[0].properties;
+			cityName = properties.city || properties.district || properties.country || i18n.ts._geoShare.unknown;
+			geoJson = geoJsonResult;
+		} else {
+			geoJson = {
+				type: 'FeatureCollection',
+				features: [{
+					type: 'Feature',
+					properties: {},
+					geometry: baseGeometry
+				}]
+			};
+		}
+
+		const location = {
+			city: cityName,
+			lat: coords.lat,
+			lon: coords.lon,
+			geoJson: geoJson,
+			geometry: baseGeometry
+		};
+
+		locationInfo.value = location;
+		lastKnownLocation.value = location;
+	} catch (error) {
+		os.alert({
+			type: 'error',
+			text: i18n.ts._geoShare.unableToGetInfo,
+		});
+	} finally {
+		locating.value = false;
+	}
+}
+
+function clearLocation() {
+	locationInfo.value = null;
+}
+
 onMounted(() => {
 	if (props.autofocus) {
 		focus();
@@ -1253,6 +1420,7 @@ onMounted(() => {
 				}
 				quoteId.value = draft.data.quoteId;
 				reactionAcceptance.value = draft.data.reactionAcceptance;
+				locationInfo.value = draft.data.locationInfo || null;
 			}
 		}
 
@@ -1652,6 +1820,36 @@ html[data-color-scheme=light] .preview {
 
 .previewButtonActive {
 	color: var(--MI_THEME-accent);
+}
+
+.locationDisplay {
+	margin: 8px 16px;
+	padding: 8px 12px;
+	background: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.05));
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+
+	> i {
+		color: var(--MI_THEME-accent);
+	}
+
+	> span {
+		flex: 1;
+	}
+}
+
+.locationCancel {
+	padding: 4px;
+	border-radius: 4px;
+	opacity: 0.7;
+
+	&:hover {
+		background: light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.1));
+		opacity: 1;
+	}
 }
 
 @container (max-width: 500px) {

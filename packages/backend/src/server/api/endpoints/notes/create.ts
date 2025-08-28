@@ -189,6 +189,38 @@ export const paramDef = {
 			},
 			required: ['choices'],
 		},
+		geoJson: {
+			type: 'object',
+			nullable: true,
+			properties: {
+				type: { type: 'string', enum: ['FeatureCollection'] },
+				features: {
+					type: 'array',
+					items: {
+						type: 'object',
+						properties: {
+							type: { type: 'string', enum: ['Feature'] },
+							properties: { type: 'object' },
+							geometry: {
+								type: 'object',
+								properties: {
+									type: { type: 'string', enum: ['Point'] },
+									coordinates: {
+										type: 'array',
+										minItems: 2,
+										maxItems: 2,
+										items: { type: 'number' }
+									}
+								},
+								required: ['type', 'coordinates']
+							}
+						},
+						required: ['type', 'geometry']
+					}
+				}
+			},
+			required: ['type', 'features']
+		},
 	},
 	// (re)note with text, files and poll are optional
 	if: {
@@ -388,6 +420,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					apMentions: ps.noExtractMentions ? [] : undefined,
 					apHashtags: ps.noExtractHashtags ? [] : undefined,
 					apEmojis: ps.noExtractEmojis ? [] : undefined,
+					geoJson: ps.geoJson,
 				});
 
 				return {
