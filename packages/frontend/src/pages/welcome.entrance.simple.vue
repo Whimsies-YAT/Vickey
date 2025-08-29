@@ -6,12 +6,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <div v-if="meta" :class="$style.root">
 	<MkFeaturedPhotos :class="$style.bg"/>
-	<!--
 	<div :class="$style.logoWrapper">
 		<div :class="$style.poweredBy">Powered by</div>
-		<img :src="misskeysvg" :class="$style.misskey"/>
+		<div :class="$style.vickey">Vickey</div>
 	</div>
-	-->
 	<div :class="$style.contents">
 		<MkVisitorDashboard/>
 	</div>
@@ -20,7 +18,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import MkFeaturedPhotos from '@/components/MkFeaturedPhotos.vue';
-import misskeysvg from '/client-assets/misskey.svg';
 import MkVisitorDashboard from '@/components/MkVisitorDashboard.vue';
 import { instance as meta } from '@/instance.js';
 </script>
@@ -54,11 +51,15 @@ import { instance as meta } from '@/instance.js';
 	margin-bottom: 2px;
 }
 
-.misskey {
-	width: 120px;
+.vickey {
+	font-family: 'Google Sans', 'Roboto', sans-serif;
+	font-size: 32px;
+	font-weight: 400;
+	color: #fff;
+	letter-spacing: 0.5px;
 
 	@media (max-width: 450px) {
-		width: 100px;
+		font-size: 28px;
 	}
 }
 

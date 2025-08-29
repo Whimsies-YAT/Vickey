@@ -4,55 +4,52 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div>
-	<PageWithHeader :tabs="headerTabs">
-		<MkSpacer :contentMax="700" :marginMin="16" :marginMax="32">
-			<FormSuspense :p="init">
-				<div class="_gaps_m">
-					<MkSwitch :modelValue="enableEmailTemplates" @update:modelValue="onChange_enableEmailTemplates">
-						<template #label>{{ i18n.ts._emailTemplates.global }}</template>
-						<template #caption>
-							<div><i class="ti ti-alert-triangle" style="color: var(--MI_THEME-warn);"></i> {{ i18n.ts._emailTemplates.globalDescription }}</div>
-							<div class="formatted-global-vars">
-								{{ i18n.ts._emailTemplates.globalVars }}
-							</div>
-							<div><i class="ti ti-alert-triangle" style="color: var(--MI_THEME-warn);"></i><b> {{ i18n.ts._emailTemplates.globalEditWarning }} </b></div>
-						</template>
-					</MkSwitch>
-
-					<div v-if="enableEmailTemplates">
-						<div v-for="(folder, index) in folderConfigs" :key="index" class="_gaps">
-							<MkFolder>
-								<template #icon><i class="ti ti-message-exclamation"></i></template>
-								<template #label>{{ folder.label }}</template>
-
-								<div class="_gaps">
-									<MkSwitch :modelValue="folder.enabled" @update:modelValue="(newValue) => onSwitchChange(index, newValue)">
-										<template #label>{{ i18n.ts._emailTemplates.singleSwitch }}</template>
-										<template #caption>
-											<div>{{ i18n.ts._emailTemplates.singleSwitchDescription }}</div>
-										</template>
-									</MkSwitch>
-
-									<div v-if="folder.enabled">
-										<MkInput v-model="folder.value[0]">
-											<template #caption>{{ i18n.ts._emailTemplates.title }}</template>
-										</MkInput>
-										<MkTextarea v-model="folder.value[1]" :placeholder="i18n.ts._emailTemplates.textareaDescription">
-										</MkTextarea>
-										<div class="formatted-single-vars">{{ folder.description || '' }}</div>
-									</div>
-									<MkButton primary @click="saveFolder(index)">{{ i18n.ts.save }}</MkButton>
-								</div>
-							</MkFolder>
-							<br/>
+<PageWithHeader :tabs="headerTabs">
+	<div class="_spacer" style="--MI_SPACER-w: 700px; --MI_SPACER-min: 16px; --MI_SPACER-max: 32px;">
+		<FormSuspense :p="init">
+			<div class="_gaps_m">
+				<MkSwitch :modelValue="enableEmailTemplates" @update:modelValue="onChange_enableEmailTemplates">
+					<template #label>{{ i18n.ts._emailTemplates.global }}</template>
+					<template #caption>
+						<div><i class="ti ti-alert-triangle" style="color: var(--MI_THEME-warn);"></i> {{ i18n.ts._emailTemplates.globalDescription }}</div>
+						<div class="global-vars">
+							{{ i18n.ts._emailTemplates.globalVars }}
 						</div>
+						<div><i class="ti ti-alert-triangle" style="color: var(--MI_THEME-warn);"></i><b> {{ i18n.ts._emailTemplates.globalEditWarning }} </b></div>
+					</template>
+				</MkSwitch>
+
+				<div v-if="enableEmailTemplates" class="_gaps_m">
+					<div v-for="(folder, index) in folderConfigs" :key="index" class="template-folder">
+						<MkFolder>
+							<template #icon><i class="ti ti-message-exclamation"></i></template>
+							<template #label>{{ folder.label }}</template>
+
+							<div class="_gaps_m">
+								<MkSwitch :modelValue="folder.enabled" @update:modelValue="(newValue) => onSwitchChange(index, newValue)">
+									<template #label>{{ i18n.ts._emailTemplates.singleSwitch }}</template>
+									<template #caption>
+										<div>{{ i18n.ts._emailTemplates.singleSwitchDescription }}</div>
+									</template>
+								</MkSwitch>
+
+								<div v-if="folder.enabled" class="_gaps_m">
+									<MkInput v-model="folder.value[0]">
+										<template #caption>{{ i18n.ts._emailTemplates.title }}</template>
+									</MkInput>
+									<MkTextarea v-model="folder.value[1]" :placeholder="i18n.ts._emailTemplates.textareaDescription" class="template-textarea">
+									</MkTextarea>
+									<div v-if="folder.description" class="template-vars">{{ folder.description }}</div>
+								</div>
+								<MkButton primary @click="saveFolder(index)">{{ i18n.ts.save }}</MkButton>
+							</div>
+						</MkFolder>
 					</div>
 				</div>
-			</FormSuspense>
-		</MkSpacer>
-	</PageWithHeader>
-</div>
+			</div>
+		</FormSuspense>
+	</div>
+</PageWithHeader>
 </template>
 
 <script lang="ts" setup>
@@ -259,11 +256,31 @@ definePage(() => ({
 </script>
 
 <style lang="scss" scoped>
-.formatted-global-vars {
-	white-space: pre-line;
+.template-textarea {
+	min-height: 120px;
 }
 
-.formatted-single-vars {
+.template-vars {
+	background: var(--MI_THEME-panel);
+	border: 1px solid var(--MI_THEME-divider);
+	border-radius: var(--MI-radius);
+	padding: var(--MI-margin-half);
+	font-size: 0.9em;
+	color: var(--MI_THEME-fgTransparentWeak);
 	white-space: pre-line;
+	line-height: 1.4;
+}
+
+.global-vars {
+	background: var(--MI_THEME-accentedBg);
+	border-left: 4px solid var(--MI_THEME-accent);
+	border-radius: var(--MI-radius);
+	padding: var(--MI-margin-half);
+	margin: var(--MI-margin-half) 0;
+	font-size: 0.85em;
+	color: var(--MI_THEME-fg);
+	white-space: pre-line;
+	line-height: 1.5;
+	font-family: var(--MI-fontFamilyCode);
 }
 </style>
