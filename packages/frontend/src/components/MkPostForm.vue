@@ -1257,34 +1257,39 @@ async function getCurrentLocation(): Promise<{ lat: number; lon: number } | null
 	});
 }
 
+function formatLocationDisplay(properties: any): string {
+	const langCode = ($i?.lang || navigator.language || 'en-US').split('-')[0];
+	const isWestern = ['en', 'fr', 'de', 'es', 'pt', 'it', 'nl', 'sv', 'no', 'da', 'fi', 'pl', 'cs', 'sk', 'hu', 'ro', 'bg', 'hr', 'sl', 'et', 'lv', 'lt'].includes(langCode);
+	const parts: string[] = [];
+
+	if (isWestern) {
+		if (properties.name) parts.push(properties.name);
+		if (properties.district) parts.push(properties.district);
+		if (properties.city) parts.push(properties.city);
+	} else {
+		if (properties.city) parts.push(properties.city);
+		if (properties.district) parts.push(properties.district);
+		if (properties.name) parts.push(properties.name);
+	}
+
+	return parts.length > 0 ? parts.join(', ') : i18n.ts._geoShare.unknown;
+}
+
 async function reverseGeocode(lat: number, lon: number): Promise<any> {
 	try {
-		const response = await window.fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&lang=en&limit=1`);
+		const response = await window.fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&lang=en&limit=1`, { referrerPolicy: 'no-referrer', referrer: '' });
 		const data = await response.json();
 
 		if (data.features && data.features.length > 0) {
 			const feature = data.features[0];
 			const properties = feature.properties;
 
-			const transformedProperties: any = {
-				osm_type: properties.osm_type || undefined,
-				osm_id: properties.osm_id || undefined,
-				osm_key: properties.osm_key || undefined,
-				osm_value: properties.osm_value || undefined,
-				type: properties.type || undefined,
-				postcode: properties.postcode || undefined,
-				housenumber: properties.housenumber || undefined,
-				countrycode: properties.countrycode || undefined,
-				country: properties.country || undefined,
-				city: properties.city || undefined,
-				district: properties.district || undefined,
-				street: properties.street || undefined,
-				state: properties.state || undefined
-			};
+			const transformedProperties: any = {};
 
-			Object.keys(transformedProperties).forEach(key => {
-				if (transformedProperties[key] === undefined) {
-					delete transformedProperties[key];
+			Object.keys(properties).forEach(key => {
+				const value = properties[key];
+				if (value !== undefined && value !== null) {
+					transformedProperties[key] = value;
 				}
 			});
 
@@ -1335,7 +1340,7 @@ async function toggleLocation() {
 
 		const geoJsonResult = await reverseGeocode(coords.lat, coords.lon);
 
-		let cityName = i18n.ts._geoShare.unknown;
+		let displayName = i18n.ts._geoShare.unknown;
 		let geoJson: object = {
 			type: 'FeatureCollection',
 			features: []
@@ -1348,7 +1353,7 @@ async function toggleLocation() {
 
 		if (geoJsonResult && geoJsonResult.features && geoJsonResult.features.length > 0) {
 			const properties = geoJsonResult.features[0].properties;
-			cityName = properties.city || properties.district || properties.country || i18n.ts._geoShare.unknown;
+			displayName = formatLocationDisplay(properties);
 			geoJson = geoJsonResult;
 		} else {
 			geoJson = {
@@ -1362,7 +1367,7 @@ async function toggleLocation() {
 		}
 
 		const location = {
-			city: cityName,
+			city: displayName,
 			lat: coords.lat,
 			lon: coords.lon,
 			geoJson: geoJson,

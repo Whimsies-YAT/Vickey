@@ -786,7 +786,7 @@ export class ApRendererService {
 				properties: {}
 			};
 
-			['country', 'state', 'city', 'district'].forEach(key => {
+			['country', 'state', 'county', 'city', 'district', 'name'].forEach(key => {
 				if (props[key]) result.properties[key] = props[key];
 			});
 

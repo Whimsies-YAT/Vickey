@@ -397,7 +397,7 @@ export class ApNoteService {
 
 			const props = geoShareData.properties;
 
-			const hasValidProperty = ['country', 'state', 'city', 'district'].some(key => {
+			const hasValidProperty = ['country', 'state', 'county', 'city', 'district', 'name'].some(key => {
 				const value = props[key];
 				return value && typeof value === 'string' && value.length > 0 && value.length <= 100;
 			});
@@ -409,7 +409,7 @@ export class ApNoteService {
 
 			const sanitizedProps: any = {};
 			for (const [key, value] of Object.entries(props)) {
-				if (['country', 'state', 'city', 'district'].includes(key) && typeof value === 'string') {
+				if (['country', 'state', 'county', 'city', 'district', 'name'].includes(key) && typeof value === 'string') {
 					const trimmed = value.trim();
 					if (trimmed.length > 0 && trimmed.length <= 100) {
 						sanitizedProps[key] = trimmed.replace(/[<>"'&]/g, '');

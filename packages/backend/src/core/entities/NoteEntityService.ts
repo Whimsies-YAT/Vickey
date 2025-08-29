@@ -245,12 +245,20 @@ export class NoteEntityService implements OnModuleInit {
 			result.properties.state = properties.state;
 		}
 
+		if (properties.county) {
+			result.properties.county = properties.county;
+		}
+
 		if (properties.city) {
 			result.properties.city = properties.city;
 		}
 
 		if (properties.district) {
 			result.properties.district = properties.district;
+		}
+
+		if (properties.name) {
+			result.properties.name = properties.name;
 		}
 
 		if (Object.keys(result.properties).length > 0) {
