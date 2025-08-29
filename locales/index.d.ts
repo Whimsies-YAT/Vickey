@@ -1991,6 +1991,28 @@ export interface Locale extends ILocale {
          */
         "output": string;
     };
+    "_geoShare": {
+        /**
+         * Unable to get your current location. Please check location permissions.
+         */
+        "unableToGetLocation": string;
+        /**
+         * Unable to determine city from your location.
+         */
+        "unableToGetCity": string;
+        /**
+         * Failed to get location information.
+         */
+        "unableToGetInfo": string;
+        /**
+         * Unknown location
+         */
+        "unknown": string;
+        /**
+         * Location
+         */
+        "location": string;
+    };
     /**
      * ノートでつながるネットワーク
      */

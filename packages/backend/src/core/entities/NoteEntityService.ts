@@ -206,8 +206,66 @@ export class NoteEntityService implements OnModuleInit {
 			packedNote.poll = undefined;
 			packedNote.cw = null;
 			packedNote.isHidden = true;
+			packedNote.geojson = null;
 			// TODO: hiddenReason みたいなのを提供しても良さそう
 		}
+	}
+
+	@bindThis
+	private processGeoJsonForDisplay(geoJsonData: Record<string, any> | null): object | null {
+		if (!geoJsonData) return null;
+
+		if (geoJsonData.type === 'FeatureCollection' && geoJsonData.features?.length > 0) {
+			const firstFeature = geoJsonData.features[0];
+			if (firstFeature.properties) {
+				return this.createDisplayGeoJson(firstFeature.properties);
+			}
+		}
+
+		if (geoJsonData.type === 'Feature' && geoJsonData.properties) {
+			return this.createDisplayGeoJson(geoJsonData.properties);
+		}
+
+		return null;
+	}
+
+	@bindThis
+	private createDisplayGeoJson(properties: any): object | null {
+		const result: any = {
+			type: 'Feature',
+			geometry: null,
+			properties: {}
+		};
+
+		if (properties.country) {
+			result.properties.country = properties.country;
+		}
+
+		if (properties.state) {
+			result.properties.state = properties.state;
+		}
+
+		if (properties.county) {
+			result.properties.county = properties.county;
+		}
+
+		if (properties.city) {
+			result.properties.city = properties.city;
+		}
+
+		if (properties.district) {
+			result.properties.district = properties.district;
+		}
+
+		if (properties.name) {
+			result.properties.name = properties.name;
+		}
+
+		if (Object.keys(result.properties).length > 0) {
+			return result;
+		}
+
+		return null;
 	}
 
 	@bindThis
@@ -473,6 +531,7 @@ export class NoteEntityService implements OnModuleInit {
 			hasPoll: note.hasPoll || undefined,
 			uri: note.uri ?? undefined,
 			url: note.url ?? undefined,
+			geojson: this.processGeoJsonForDisplay(note.geojson),
 
 			...(opts.detail ? {
 				clippedCount: note.clippedCount,

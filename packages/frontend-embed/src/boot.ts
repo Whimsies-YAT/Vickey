@@ -14,8 +14,8 @@ if (import.meta.env.DEV) {
 
 import '@/style.scss';
 import { createApp, defineAsyncComponent } from 'vue';
-import defaultLightTheme from '@@/themes/l-dolphin.json5';
-import defaultDarkTheme from '@@/themes/d-discord.json5';
+import defaultLightTheme from '@@/themes/_light.json5';
+import defaultDarkTheme from '@@/themes/_dark.json5';
 import { MediaProxy } from '@@/js/media-proxy.js';
 import { storeBootloaderErrors } from '@@/js/store-boot-errors';
 import { applyTheme, assertIsTheme } from '@/theme.js';

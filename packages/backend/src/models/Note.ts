@@ -248,6 +248,19 @@ export class MiNote {
 	})
 	public renoteUserHost: string | null;
 
+	@Column('jsonb', {
+		nullable: true,
+		comment: 'Original GeoJSON data (shared with lower precision if needed).',
+	})
+	public geojson: Record<string, any> | null;
+
+	@Index({ spatial: true })
+	@Column('text', {
+		nullable: true,
+		comment: 'Geographic location as Point (lon/lat, WGS84).',
+	})
+	public location: string | null;
+
 	constructor(data: Partial<MiNote>) {
 		if (data == null) return;
 

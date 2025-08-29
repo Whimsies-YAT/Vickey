@@ -476,7 +476,10 @@ export class ApRendererService {
 			})),
 		} as const : {};
 
-		return {
+		// Process geographical location for sharing
+		const geoShare = this.processGeoLocationForSharing(note.geojson);
+
+		const noteObject: any = {
 			id: `${this.config.url}/notes/${note.id}`,
 			type: 'Note',
 			attributedTo,
@@ -500,6 +503,13 @@ export class ApRendererService {
 			tag,
 			...asPoll,
 		};
+
+		// Add geographical sharing data if available
+		if (geoShare) {
+			noteObject._vickey_geoShare_v1 = geoShare;
+		}
+
+		return noteObject;
 	}
 
 	@bindThis
@@ -753,6 +763,39 @@ export class ApRendererService {
 		if (orderedItems) page.orderedItems = orderedItems;
 
 		return page;
+	}
+
+	@bindThis
+	private processGeoLocationForSharing(geoJson: Record<string, any> | null): object | null {
+		if (!geoJson) return null;
+
+		let geoData: any = geoJson;
+
+		if (geoData.type === 'FeatureCollection' && geoData.features?.length > 0) {
+			const firstFeature = geoData.features[0];
+			if (firstFeature.properties) {
+				geoData = firstFeature;
+			}
+		}
+
+		if (geoData && geoData.properties) {
+			const props = geoData.properties;
+			const result: any = {
+				type: 'Feature',
+				geometry: null,
+				properties: {}
+			};
+
+			['country', 'state', 'county', 'city', 'district', 'name'].forEach(key => {
+				if (props[key]) result.properties[key] = props[key];
+			});
+
+			if (Object.keys(result.properties).length > 0) {
+				return result;
+			}
+		}
+
+		return null;
 	}
 
 	@bindThis
