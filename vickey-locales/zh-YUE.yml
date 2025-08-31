@@ -1,6 +1,6 @@
 _lang_: "廣東話"
 result: "結果"
-flagAsVI: "需要自動TTS功能"
+flagAsVI: "需要自動TTS功能。"
 flagAsVIDescription: "Enable this if you need the automatic TTS feature. If you belong to an authorized user group, the automatic TTS feature will be activated within a specific scope."
 approvals: "Approvals"
 registerApproveConfirm: "Do you want to approve the registration?"
@@ -185,3 +185,9 @@ _devTools:
   outputType: "Output Type"
   input: "Input"
   output: "Output"
+_geoShare:
+  unableToGetLocation: "Unable to get your current location. Please check location permissions."
+  unableToGetCity: "Unable to determine city from your location."
+  unableToGetInfo: "Failed to get location information."
+  unknown: "Unknown location"
+  location: "Location"

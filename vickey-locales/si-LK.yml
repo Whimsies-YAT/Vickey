@@ -185,3 +185,9 @@ _devTools:
   outputType: "Output Type"
   input: "Input"
   output: "Output"
+_geoShare:
+  unableToGetLocation: "Unable to get your current location. Please check location permissions."
+  unableToGetCity: "Unable to determine city from your location."
+  unableToGetInfo: "Failed to get location information."
+  unknown: "Unknown location"
+  location: "Location"
