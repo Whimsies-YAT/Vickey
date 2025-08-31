@@ -9,12 +9,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<XTimeline :class="$style.tl"/>
 	<div :class="$style.shape1"></div>
 	<div :class="$style.shape2"></div>
-	<!--
 	<div :class="$style.logoWrapper">
 		<div :class="$style.poweredBy">Powered by</div>
-		<img :src="misskeysvg" :class="$style.misskey"/>
+		<div :class="$style.vickey">Vickey</div>
 	</div>
-	-->
 	<div :class="$style.contents">
 		<MkVisitorDashboard/>
 	</div>
@@ -36,7 +34,6 @@ import * as Misskey from 'misskey-js';
 import XTimeline from './welcome.timeline.vue';
 import MkMarqueeText from '@/components/MkMarqueeText.vue';
 import MkFeaturedPhotos from '@/components/MkFeaturedPhotos.vue';
-import misskeysvg from '/client-assets/misskey.svg';
 import { misskeyApiGet } from '@/utility/misskey-api.js';
 import MkVisitorDashboard from '@/components/MkVisitorDashboard.vue';
 import { getProxiedImageUrl } from '@/utility/media-proxy.js';
@@ -128,11 +125,15 @@ misskeyApiGet('federation/instances', {
 	margin-bottom: 2px;
 }
 
-.misskey {
-	width: 120px;
+.vickey {
+	font-family: 'Google Sans', 'Roboto', sans-serif;
+	font-size: 32px;
+	font-weight: 400;
+	color: #fff;
+	letter-spacing: 0.5px;
 
 	@media (max-width: 450px) {
-		width: 100px;
+		font-size: 28px;
 	}
 }
 

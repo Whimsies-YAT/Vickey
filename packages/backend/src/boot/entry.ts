@@ -19,7 +19,7 @@ import { readyRef } from './ready.js';
 
 import 'reflect-metadata';
 
-process.title = `Misskey (${cluster.isPrimary ? 'master' : 'worker'})`;
+process.title = `Vickey (${cluster.isPrimary ? 'master' : 'worker'})`;
 
 Error.stackTraceLimit = Infinity;
 EventEmitter.defaultMaxListeners = 128;

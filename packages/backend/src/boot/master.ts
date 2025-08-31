@@ -42,7 +42,7 @@ function greet() {
 		console.log(' ' + chalk.gray(v) + themeColor('                         \n'.substring(v.length)));
 		//#endregion
 
-		console.log(' Vickey Is Not Just Key, It\'s Yours!');
+		console.log(' Vickey Inspires Connection, Keeping Everyone Yours!');
 		console.log(chalk.rgb(255, 136, 0)(' If you like Vickey, please donate to support development. https://ko-fi.com/yateam'));
 
 		console.log('');

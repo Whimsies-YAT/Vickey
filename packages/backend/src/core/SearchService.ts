@@ -181,7 +181,7 @@ export class SearchService {
 		}
 
 		this.provider = config.fulltextSearch?.provider ?? 'sqlLike';
-		this.loggerService.getLogger('SearchService').info(`-- Provider: ${this.provider}`);
+		this.loggerService.getLogger('SearchService').info(`-- Provider: ${this.provider === 'searchengine' ? 'Search Engine' : this.provider}`);
 	}
 
 	@bindThis
@@ -316,9 +316,9 @@ export class SearchService {
 				// 今後の拡張で差が出る用であれば関数を分ける.
 				return this.searchNoteByLike(q, me, opts, pagination);
 			}
-			case 'meilisearch': { // save for compatibility
-				return this.searchNoteBySearchEngine(q, me, opts, pagination);
-			}
+			case 'meilisearch': // save for compatibility
+			case "SearchEngine":
+			case "searchEngine":
 			case 'searchengine': {
 				return this.searchNoteBySearchEngine(q, me, opts, pagination);
 			}

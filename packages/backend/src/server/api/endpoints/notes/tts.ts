@@ -66,7 +66,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private httpRequestService: HttpRequestService,
 		private roleService: RoleService,
 	) {
-		// @ts-expect-error: to be resolved in the future.
 		super(meta, paramDef, async (ps, me) => {
 			const policies = await this.roleService.getUserPolicies(me.id);
 			if (!policies.canUseTTS) {
@@ -92,7 +91,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new ApiError(meta.errors.unavailable);
 			}
 
-			let outofQuota;
+			let outofQuota = false;
 
 			if (instance.hfSpace) {
 				const langlist = ['Chinese', 'English', 'Japanese', 'Yue', 'Korean', 'Chinese-English Mixed', 'Japanese-English Mixed', 'Yue-English Mixed', 'Korean-English Mixed', 'Multilingual Mixed', 'Multilingual Mixed(Yue)'];
@@ -118,7 +117,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				}
 
 				let result;
-				let notcontinue;
 
 				try {
 					result = await app.predict("/get_tts_wav", [
@@ -135,19 +133,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						instance.hfSpeedRate / 100,
 						instance.hfdas,
 					]);
-				} catch (e) {
-					const responseMessage = (e as any).message || ((e as any).original_msg && (e as any).original_msg.message);
 
-					if (responseMessage && responseMessage.includes('You have exceeded your GPU quota')) {
-						outofQuota = true;
-						console.info("Fallback to Inference API");
-						notcontinue = true;
-					} else {
-						throw new ApiError(meta.errors.unavailable);
-					}
-				}
-
-				if (!notcontinue) {
 					const resurl = result.data[0].url;
 
 					const res = await this.httpRequestService.send(resurl, {
@@ -165,10 +151,19 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					} else {
 						throw new ApiError(meta.errors.unavailable);
 					}
+				} catch (e) {
+					const responseMessage = (e as any).message || ((e as any).original_msg && (e as any).original_msg.message);
+
+					if (responseMessage && responseMessage.includes('You have exceeded your GPU quota')) {
+						outofQuota = true;
+						console.info("Fallback to Inference API");
+					} else {
+						throw new ApiError(meta.errors.unavailable);
+					}
 				}
 			}
 
-			if ((!instance.hfSpace) || ((instance.hfSpace) && (outofQuota))) {
+			if (!instance.hfSpace || outofQuota) {
 				const endpoint = 'https://api-inference.huggingface.co/models/suno/bark';
 
 				const res = await this.httpRequestService.send(endpoint, {
@@ -179,9 +174,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						Accept: 'audio/flac, */*',
 					},
 					body: JSON.stringify({
-                    	inputs: note.text,
-                	}),
-            	    timeout: 60000,
+						inputs: note.text,
+					}),
+					timeout: 60000,
 				});
 
 				const contentType = res.headers.get('Content-Type') || 'application/octet-stream';
@@ -192,7 +187,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					throw new ApiError(meta.errors.unavailable);
 				}
 			}
+
+			throw new ApiError(meta.errors.unavailable);
 		});
-		return;
 	}
 }

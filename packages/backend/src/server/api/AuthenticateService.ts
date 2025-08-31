@@ -53,7 +53,7 @@ export class AuthenticateService implements OnApplicationShutdown {
 	}
 
 	@bindThis
-	public async authenticate(token: string | null | undefined): Promise<AuthenticationResult> {
+	public async authenticate(token: string | null | undefined, clientIp?: string): Promise<AuthenticationResult> {
 		if (token == null) {
 			return { user: null, accessToken: null };
 		}
@@ -70,7 +70,7 @@ export class AuthenticateService implements OnApplicationShutdown {
 			return { user, accessToken: null };
 		}
 
-		const sessionValidation = await this.userSessionsService.validateToken(token);
+		const sessionValidation = await this.userSessionsService.validateToken(token, undefined, clientIp);
 
 		if (sessionValidation.isValid && sessionValidation.userId) {
 			const user = await this.cacheService.localUserByIdCache.fetch(sessionValidation.userId,

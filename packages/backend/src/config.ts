@@ -235,7 +235,7 @@ export type Config = {
 	nativeTokenExpiry: number;
 };
 
-export type FulltextSearchProvider = 'sqlLike' | 'sqlPgroonga' | 'meilisearch' | 'searchengine';
+export type FulltextSearchProvider = 'sqlLike' | 'sqlPgroonga' | 'meilisearch' | 'searchengine' | 'SearchEngine' | 'searchEngine';
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);

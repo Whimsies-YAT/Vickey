@@ -4,117 +4,120 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<PageWithHeader :actions="headerActions" :tabs="headerTabs">
-	<div style="overflow: clip;">
-		<div class="_spacer" style="--MI_SPACER-w: 600px; --MI_SPACER-min: 20px;">
-			<div class="_gaps_m znqjceqz">
-				<div v-panel class="about">
-					<div ref="containerEl" class="container" :class="{ playing: easterEggEngine != null }">
-						<img src="/client-assets/about-icon.png" alt="" class="icon" draggable="false" @load="iconLoaded" @click="gravity"/>
-						<div class="misskey">Misskey (Vickey Fork)</div>
-						<div class="version">{{ codename }} v{{ version }}</div>
-						<span v-for="emoji in easterEggEmojis" :key="emoji.id" class="emoji" :data-physics-x="emoji.left" :data-physics-y="emoji.top" :class="{ _physics_circle_: !emoji.emoji.startsWith(':') }">
+	<PageWithHeader :actions="headerActions" :tabs="headerTabs">
+		<div style="overflow: clip;">
+			<div class="_spacer" style="--MI_SPACER-w: 600px; --MI_SPACER-min: 20px;">
+				<div class="_gaps_m znqjceqz">
+					<div v-panel class="about">
+						<div ref="containerEl" class="container" :class="{ playing: easterEggEngine != null }">
+							<div class="icon-container">
+								<img src="/client-assets/about-icon-vk-2.png" alt="" class="icon" draggable="false" @load="iconLoaded" @click="gravity"/>
+								<!-- <img src="/client-assets/about-icon.png" alt="" class="icon" draggable="false" @load="iconLoaded" @click="gravity"/> -->
+							</div>
+							<div class="misskey">Misskey (Vickey Fork)</div>
+							<div class="version">{{ codename }} v{{ version }}</div>
+							<span v-for="emoji in easterEggEmojis" :key="emoji.id" class="emoji" :data-physics-x="emoji.left" :data-physics-y="emoji.top" :class="{ _physics_circle_: !emoji.emoji.startsWith(':') }">
 							<MkCustomEmoji v-if="emoji.emoji[0] === ':'" class="emoji" :name="emoji.emoji" :normal="true" :noStyle="true" :fallbackToImage="true"/>
 							<MkEmoji v-else class="emoji" :emoji="emoji.emoji" :normal="true" :noStyle="true"/>
 						</span>
+						</div>
+						<button v-if="thereIsTreasure" class="_button treasure" @click="getTreasure"><img src="/fluent-emoji/1f3c6.png" class="treasureImg"></button>
 					</div>
-					<button v-if="thereIsTreasure" class="_button treasure" @click="getTreasure"><img src="/fluent-emoji/1f3c6.png" class="treasureImg"></button>
-				</div>
-				<div style="text-align: center;">
-					{{ i18n.ts._aboutMisskey.about }}<br><a href="https://misskey-hub.net/docs/about-misskey/" target="_blank" class="_link">{{ i18n.ts.learnMore }}</a>
-				</div>
-				<div style="text-align: center;">
-					{{ i18n.ts._aboutVickey.about }}
-				</div>
-				<div v-if="$i != null" style="text-align: center;">
-					<MkButton primary rounded inline @click="iLoveMisskey">I <Mfm text="$[jelly ❤]"/> #Misskey</MkButton>
-				</div>
-				<FormSection>
-					<div class="_gaps_s">
-						<FormLink to="https://github.com/misskey-dev/misskey" external>
-							<template #icon><i class="ti ti-code"></i></template>
-							{{ i18n.ts._aboutMisskey.source }} (Misskey)
-							<template #suffix>GitHub</template>
-						</FormLink>
-						<FormLink to="https://github.com/Whimsies-YAT/Vickey" external>
-							<template #icon><i class="ti ti-code"></i></template>
-							{{ i18n.ts._aboutVickey.source }} ({{ i18n.ts._aboutVickey.original }})
-							<template #suffix>GitHub</template>
-						</FormLink>
-						<FormLink to="https://crowdin.com/project/misskey" external>
-							<template #icon><i class="ti ti-language-hiragana"></i></template>
-							{{ i18n.ts._aboutMisskey.translation }}
-							<template #suffix>Crowdin</template>
-						</FormLink>
-						<FormLink to="https://crowdin.com/project/vickey" external>
-							<template #icon><i class="ti ti-language-hiragana"></i></template>
-							{{ i18n.ts._aboutVickey.translation }}
-							<template #suffix>Crowdin</template>
-						</FormLink>
-						<FormLink to="https://www.patreon.com/syuilo" external>
-							<template #icon><i class="ti ti-pig-money"></i></template>
-							{{ i18n.ts._aboutMisskey.donate }}
-							<template #suffix>Patreon</template>
-						</FormLink>
-						<FormLink to="https://www.patreon.com/yateam" external>
-							<template #icon><i class="ti ti-pig-money"></i></template>
-							{{ i18n.ts._aboutVickey.donate }}
-							<template #suffix>Vickey Patreon</template>
-						</FormLink>
+					<div style="text-align: center;">
+						{{ i18n.ts._aboutMisskey.about }}<br><a href="https://misskey-hub.net/docs/about-misskey/" target="_blank" class="_link">{{ i18n.ts.learnMore }}</a>
 					</div>
-				</FormSection>
-				<FormSection v-if="repositoryUrlLC !== 'https://github.com/whimsies-yat/vickey'">
-					<div class="_gaps_s">
-						<MkInfo>
-							{{ i18n.tsx._aboutVickey.thisIsModifiedVersionVK({ name: instance.name ?? host }) }}
-						</MkInfo>
-						<FormLink v-if="instance.repositoryUrl" :to="instance.repositoryUrl" external>
-							<template #icon><i class="ti ti-code"></i></template>
-							{{ i18n.ts._aboutVickey.source }}
-						</FormLink>
-						<FormLink v-if="instance.providesTarball" :to="`/tarball/vickey-${version}.tar.gz`" external>
-							<template #icon><i class="ti ti-download"></i></template>
-							{{ i18n.ts._aboutVickey.source }}
-							<template #suffix>Tarball</template>
-						</FormLink>
-						<MkInfo v-if="!instance.repositoryUrl && !instance.providesTarball" warn>
-							{{ i18n.ts.sourceCodeIsNotYetProvided }}
-						</MkInfo>
+					<div style="text-align: center;">
+						{{ i18n.ts._aboutVickey.about }}
 					</div>
-				</FormSection>
-				<FormSection>
-					<template #label>{{ i18n.ts._aboutMisskey.projectMembers }} (Misskey)</template>
-					<div :class="$style.contributors">
-						<a href="https://github.com/syuilo" target="_blank" :class="$style.contributor">
-							<img src="https://avatars.githubusercontent.com/u/4439005?v=4" :class="$style.contributorAvatar">
-							<span :class="$style.contributorUsername">@syuilo</span>
-						</a>
-						<a href="https://github.com/acid-chicken" target="_blank" :class="$style.contributor">
-							<img src="https://avatars.githubusercontent.com/u/20679825?v=4" :class="$style.contributorAvatar">
-							<span :class="$style.contributorUsername">@acid-chicken</span>
-						</a>
-						<a href="https://github.com/kakkokari-gtyih" target="_blank" :class="$style.contributor">
-							<img src="https://avatars.githubusercontent.com/u/67428053?v=4" :class="$style.contributorAvatar">
-							<span :class="$style.contributorUsername">@kakkokari-gtyih</span>
-						</a>
-						<a href="https://github.com/tai-cha" target="_blank" :class="$style.contributor">
-							<img src="https://avatars.githubusercontent.com/u/40626578?v=4" :class="$style.contributorAvatar">
-							<span :class="$style.contributorUsername">@tai-cha</span>
-						</a>
-						<a href="https://github.com/samunohito" target="_blank" :class="$style.contributor">
-							<img src="https://avatars.githubusercontent.com/u/46447427?v=4" :class="$style.contributorAvatar">
-							<span :class="$style.contributorUsername">@samunohito</span>
-						</a>
-						<a href="https://github.com/anatawa12" target="_blank" :class="$style.contributor">
-							<img src="https://avatars.githubusercontent.com/u/22656849?v=4" :class="$style.contributorAvatar">
-							<span :class="$style.contributorUsername">@anatawa12</span>
-						</a>
+					<div v-if="$i != null" style="text-align: center;">
+						<MkButton primary rounded inline @click="iLoveMisskey">I <Mfm text="$[jelly ❤]"/> #Misskey</MkButton>
 					</div>
-				</FormSection>
+					<FormSection>
+						<div class="_gaps_s">
+							<FormLink to="https://github.com/misskey-dev/misskey" external>
+								<template #icon><i class="ti ti-code"></i></template>
+								{{ i18n.ts._aboutMisskey.source }} (Misskey)
+								<template #suffix>GitHub</template>
+							</FormLink>
+							<FormLink to="https://github.com/Whimsies-YAT/Vickey" external>
+								<template #icon><i class="ti ti-code"></i></template>
+								{{ i18n.ts._aboutVickey.source }} ({{ i18n.ts._aboutVickey.original }})
+								<template #suffix>GitHub</template>
+							</FormLink>
+							<FormLink to="https://crowdin.com/project/misskey" external>
+								<template #icon><i class="ti ti-language-hiragana"></i></template>
+								{{ i18n.ts._aboutMisskey.translation }}
+								<template #suffix>Crowdin</template>
+							</FormLink>
+							<FormLink to="https://crowdin.com/project/vickey" external>
+								<template #icon><i class="ti ti-language-hiragana"></i></template>
+								{{ i18n.ts._aboutVickey.translation }}
+								<template #suffix>Crowdin</template>
+							</FormLink>
+							<FormLink to="https://www.patreon.com/syuilo" external>
+								<template #icon><i class="ti ti-pig-money"></i></template>
+								{{ i18n.ts._aboutMisskey.donate }}
+								<template #suffix>Patreon</template>
+							</FormLink>
+							<FormLink to="https://www.patreon.com/yateam" external>
+								<template #icon><i class="ti ti-pig-money"></i></template>
+								{{ i18n.ts._aboutVickey.donate }}
+								<template #suffix>Vickey Patreon</template>
+							</FormLink>
+						</div>
+					</FormSection>
+					<FormSection v-if="repositoryUrlLC !== 'https://github.com/whimsies-yat/vickey'">
+						<div class="_gaps_s">
+							<MkInfo>
+								{{ i18n.tsx._aboutVickey.thisIsModifiedVersionVK({ name: instance.name ?? host }) }}
+							</MkInfo>
+							<FormLink v-if="instance.repositoryUrl" :to="instance.repositoryUrl" external>
+								<template #icon><i class="ti ti-code"></i></template>
+								{{ i18n.ts._aboutVickey.source }}
+							</FormLink>
+							<FormLink v-if="instance.providesTarball" :to="`/tarball/vickey-${version}.tar.gz`" external>
+								<template #icon><i class="ti ti-download"></i></template>
+								{{ i18n.ts._aboutVickey.source }}
+								<template #suffix>Tarball</template>
+							</FormLink>
+							<MkInfo v-if="!instance.repositoryUrl && !instance.providesTarball" warn>
+								{{ i18n.ts.sourceCodeIsNotYetProvided }}
+							</MkInfo>
+						</div>
+					</FormSection>
+					<FormSection>
+						<template #label>{{ i18n.ts._aboutMisskey.projectMembers }} (Misskey)</template>
+						<div :class="$style.contributors">
+							<a href="https://github.com/syuilo" target="_blank" :class="$style.contributor">
+								<img src="https://avatars.githubusercontent.com/u/4439005?v=4" :class="$style.contributorAvatar">
+								<span :class="$style.contributorUsername">@syuilo</span>
+							</a>
+							<a href="https://github.com/acid-chicken" target="_blank" :class="$style.contributor">
+								<img src="https://avatars.githubusercontent.com/u/20679825?v=4" :class="$style.contributorAvatar">
+								<span :class="$style.contributorUsername">@acid-chicken</span>
+							</a>
+							<a href="https://github.com/kakkokari-gtyih" target="_blank" :class="$style.contributor">
+								<img src="https://avatars.githubusercontent.com/u/67428053?v=4" :class="$style.contributorAvatar">
+								<span :class="$style.contributorUsername">@kakkokari-gtyih</span>
+							</a>
+							<a href="https://github.com/tai-cha" target="_blank" :class="$style.contributor">
+								<img src="https://avatars.githubusercontent.com/u/40626578?v=4" :class="$style.contributorAvatar">
+								<span :class="$style.contributorUsername">@tai-cha</span>
+							</a>
+							<a href="https://github.com/samunohito" target="_blank" :class="$style.contributor">
+								<img src="https://avatars.githubusercontent.com/u/46447427?v=4" :class="$style.contributorAvatar">
+								<span :class="$style.contributorUsername">@samunohito</span>
+							</a>
+							<a href="https://github.com/anatawa12" target="_blank" :class="$style.contributor">
+								<img src="https://avatars.githubusercontent.com/u/22656849?v=4" :class="$style.contributorAvatar">
+								<span :class="$style.contributorUsername">@anatawa12</span>
+							</a>
+						</div>
+					</FormSection>
+				</div>
 			</div>
 		</div>
-	</div>
-</PageWithHeader>
+	</PageWithHeader>
 </template>
 
 <script lang="ts" setup>
@@ -208,6 +211,7 @@ definePage(() => ({
 		border-radius: var(--MI-radius);
 
 		> .treasure {
+			visibility: hidden;
 			position: absolute;
 			top: 60px;
 			left: 0;
@@ -240,13 +244,19 @@ definePage(() => ({
 				}
 			}
 
-			> .icon {
-				display: block;
-				width: 80px;
-				margin: 0 auto;
-				border-radius: 16px;
+			> .icon-container {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				gap: 12px;
 				position: relative;
 				z-index: 1;
+
+				> .icon {
+					display: block;
+					width: 80px;
+					border-radius: 16px;
+				}
 			}
 
 			> .misskey {
@@ -316,3 +326,6 @@ definePage(() => ({
 	margin-left: 12px;
 }
 </style>
+
+<script setup lang="ts">
+</script>
