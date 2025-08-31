@@ -98,7 +98,6 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			this.logger.error('Pipeline exec returned null');
 		}
 
-		// 验证写入结果
 		const verifyKeys = await this.redisClient.keys('activeUserSession:*');
 		this.logger.info(`After pipeline: found ${verifyKeys.length} keys in Redis`);
 	}
