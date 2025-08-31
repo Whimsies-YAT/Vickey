@@ -167,7 +167,7 @@ export class ApiCallService implements OnApplicationShutdown {
 			reply.code(400);
 			return;
 		}
-		this.authenticateService.authenticate(token).then((auth) => {
+		this.authenticateService.authenticate(token, request.ip).then((auth) => {
 			this.call(endpoint, auth.user, auth.accessToken, body, null, request, token).then((res) => {
 				if (request.method === 'GET' && endpoint.meta.cacheSec && !token && !auth.user) {
 					reply.header('Cache-Control', `public, max-age=${endpoint.meta.cacheSec}`);
@@ -229,7 +229,7 @@ export class ApiCallService implements OnApplicationShutdown {
 			reply.code(400);
 			return;
 		}
-		this.authenticateService.authenticate(token).then((auth) => {
+		this.authenticateService.authenticate(token, request.ip).then((auth) => {
 			this.call(endpoint, auth.user, auth.accessToken, fields, {
 				name: multipartData.filename,
 				path: path,

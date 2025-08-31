@@ -18,6 +18,7 @@ type ActiveUserSessionCacheData = {
 	token: string;
 	userId: string;
 	lastUsedAt: Date;
+	ip?: Array<{ address: string; count: number; lastSeen: Date }> | null;
 };
 
 @Injectable()
@@ -63,7 +64,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 
 		for (const session of sessions) {
 			if (session.expiresAt && session.expiresAt <= new Date()) {
-				this.logger.warn(`Skipping expired session: ${session.token.slice(0, 5)}...`);
+				this.logger.warn(`Skipping expired session: ${session.token.slice(-5)}...`);
 				continue;
 			}
 
@@ -90,7 +91,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 
 			if (failCount > 0) {
 				const failures = result.filter(r => r && r[0] !== null);
-				for (const failure of failures.slice(0, 3)) {
+				for (const failure of failures.slice(-3)) {
 					this.logger.error('Pipeline failure:', failure[0]);
 				}
 			}
@@ -102,8 +103,35 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 		this.logger.info(`After pipeline: found ${verifyKeys.length} keys in Redis`);
 	}
 
+	private updateIpList(currentIpList: Array<{
+		address: string;
+		count: number;
+		lastSeen: Date
+	}> | null | undefined, newIp: string): Array<{ address: string; count: number; lastSeen: Date }> {
+		const ipList = currentIpList || [];
+		const now = new Date();
+
+		const existingIndex = ipList.findIndex(item => item.address === newIp);
+
+		if (existingIndex >= 0) {
+			const existingItem = ipList[existingIndex];
+			existingItem.count++;
+			existingItem.lastSeen = now;
+			ipList.splice(existingIndex, 1);
+			ipList.unshift(existingItem);
+		} else {
+			ipList.unshift({
+				address: newIp,
+				count: 1,
+				lastSeen: now
+			});
+		}
+
+		return ipList.slice(-100);
+	}
+
 	@bindThis
-	public async validateToken(token: string, expectedUserId?: string): Promise<{
+	public async validateToken(token: string, expectedUserId?: string, clientIp?: string): Promise<{
 		isValid: boolean;
 		needRefresh: boolean;
 		signInId?: string;
@@ -113,6 +141,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 		userId?: string;
 		lastUsedAt?: Date;
 		reason?: string;
+		ip?: Array<{ address: string; count: number; lastSeen: Date }> | null;
 	}> {
 		const tokenValidation = isNewToken(token, false);
 		if (!token || !tokenValidation.valid) {
@@ -123,7 +152,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 						{ isActive: false, expiresAt: new Date() }
 					);
 					await this.redisClient.del(`activeUserSession:${token}`);
-					this.logger.warn(`Invalidated expired token: ${token.slice(0, 5)}...`);
+					this.logger.warn(`Invalidated expired token: ${token.slice(-5)}...`);
 				} catch (error) {
 					this.logger.warn(`Failed to invalidate expired token: ${error}`);
 				}
@@ -143,7 +172,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			if (cacheData) {
 				const dbSession = await this.userSessionsRepository.findOne({
 					where: { token, isActive: true },
-					select: ['token', 'userId', 'lastUsedAt', 'expiresAt', 'isActive']
+					select: ['token', 'userId', 'lastUsedAt', 'expiresAt', 'isActive', 'signInId', 'deviceId']
 				});
 
 				if (!dbSession) {
@@ -156,10 +185,10 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				}
 
 				const currentTime = new Date();
-				this.logger.debug(`Token validation: expiresAt=${dbSession.expiresAt.toISOString()}, now=${currentTime.toISOString()}, isActive=${dbSession.isActive}, token=${token.slice(0, 10)}...`);
+				this.logger.debug(`Token validation: expiresAt=${dbSession.expiresAt.toISOString()}, now=${currentTime.toISOString()}, isActive=${dbSession.isActive}, token=${token.slice(-10)}...`);
 
 				if (dbSession.expiresAt <= currentTime) {
-					this.logger.warn(`Token expired: expiresAt=${dbSession.expiresAt.toISOString()}, now=${currentTime.toISOString()}, token=${token.slice(0, 10)}...`);
+					this.logger.warn(`Token expired: expiresAt=${dbSession.expiresAt.toISOString()}, now=${currentTime.toISOString()}, token=${token.slice(-10)}...`);
 					await this.redisClient.del(`activeUserSession:${token}`);
 					return {
 						isValid: false,
@@ -188,20 +217,26 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 					};
 				}
 
+				let updatedIpList = cacheData.ip;
+				if (clientIp) {
+					updatedIpList = this.updateIpList(cacheData.ip, clientIp);
+				}
+
 				try {
-					const cacheData = {
+					const newCacheData = {
 						token: token,
 						userId: dbSession.userId,
-						lastUsedAt: currentTime
+						lastUsedAt: currentTime,
+						ip: updatedIpList
 					};
 					await this.redisClient.setex(
 						`activeUserSession:${token}`,
 						Math.floor(UserSessionsService.CACHE_TTL / 1000),
-						JSON.stringify(cacheData)
+						JSON.stringify(newCacheData)
 					);
 				} catch (e) {
 					const updateError = e as Error;
-					this.logger.warn(`Failed to update lastUsedAt for token ${token.slice(0, 5)}:`, updateError);
+					this.logger.warn(`Failed to update lastUsedAt for token ${token.slice(-5)}:`, updateError);
 				}
 
 				return {
@@ -212,7 +247,8 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 					signInId: dbSession.signInId,
 					deviceId: dbSession.deviceId,
 					userId: dbSession.userId,
-					lastUsedAt: currentTime
+					lastUsedAt: currentTime,
+					ip: updatedIpList
 				};
 			} else {
 				const dbSession = await this.userSessionsRepository.findOne({
@@ -229,10 +265,10 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				}
 
 				const currentTime = new Date();
-				this.logger.debug(`Token validation (no cache): expiresAt=${dbSession.expiresAt.toISOString()}, now=${currentTime.toISOString()}, isActive=${dbSession.isActive}, token=${token.slice(0, 10)}...`);
+				this.logger.debug(`Token validation (no cache): expiresAt=${dbSession.expiresAt.toISOString()}, now=${currentTime.toISOString()}, isActive=${dbSession.isActive}, token=${token.slice(-10)}...`);
 
 				if (dbSession.expiresAt <= currentTime) {
-					this.logger.warn(`Token expired (no cache): expiresAt=${dbSession.expiresAt.toISOString()}, now=${currentTime.toISOString()}, token=${token.slice(0, 10)}...`);
+					this.logger.warn(`Token expired (no cache): expiresAt=${dbSession.expiresAt.toISOString()}, now=${currentTime.toISOString()}, token=${token.slice(-10)}...`);
 					return {
 						isValid: false,
 						needRefresh: false,
@@ -259,10 +295,39 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 					};
 				}
 
+				if (clientIp) {
+					const session = await this.userSessionsRepository.findOne({
+						where: { token, isActive: true },
+						select: ['ip']
+					});
+					if (session) {
+						const updatedIpList = this.updateIpList(session.ip, clientIp);
+						await this.userSessionsRepository.update(
+							{ token, isActive: true },
+							{ ip: updatedIpList, lastUsedAt: currentTime } as any
+						);
+					}
+				} else {
+					await this.userSessionsRepository.update(
+						{ token, isActive: true },
+						{ lastUsedAt: currentTime }
+					);
+				}
+
+				let ipListForCache: Array<{ address: string; count: number; lastSeen: Date }> | null = null;
+				if (clientIp) {
+					const sessionForCache = await this.userSessionsRepository.findOne({
+						where: { token, isActive: true },
+						select: ['ip']
+					});
+					ipListForCache = sessionForCache?.ip || null;
+				}
+
 				const cacheData = {
 					token: dbSession.token,
 					userId: dbSession.userId,
-					lastUsedAt: currentTime
+					lastUsedAt: currentTime,
+					ip: ipListForCache
 				};
 				await this.redisClient.setex(
 					`activeUserSession:${token}`,
@@ -278,17 +343,57 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 					signInId: dbSession.signInId,
 					deviceId: dbSession.deviceId,
 					userId: dbSession.userId,
-					lastUsedAt: currentTime
+					lastUsedAt: currentTime,
+					ip: ipListForCache
 				};
 			}
 		} catch (e) {
 			const error = e as Error;
-			this.logger.error(`Token validation failed for ${token.slice(0, 5)}:`, error);
+			this.logger.error(`Token validation failed for ${token.slice(-5)}:`, error);
 			return {
 				isValid: false,
 				needRefresh: false,
 				reason: 'Internal validation error'
 			};
+		}
+	}
+
+	private async flushCacheToDatabase(tokens: string[]): Promise<void> {
+		if (tokens.length === 0) return;
+
+		const cacheKeys = tokens.map(token => `activeUserSession:${token}`);
+		const cacheValues = await this.redisClient.mget(cacheKeys);
+
+		const updates: Array<{ token: string; userId: string; lastUsedAt: Date; ip?: Array<{ address: string; count: number; lastSeen: Date }> | null }> = [];
+
+		for (let i = 0; i < tokens.length; i++) {
+			const raw = cacheValues[i];
+			if (!raw) continue;
+
+			try {
+				const parsed = JSON.parse(raw) as ActiveUserSessionCacheData;
+				if (parsed.token === tokens[i]) {
+					updates.push({
+						token: parsed.token,
+						userId: parsed.userId,
+						lastUsedAt: new Date(parsed.lastUsedAt),
+						ip: parsed.ip || null
+					});
+				}
+			} catch (err) {
+				const e = err as Error;
+				this.logger.warn(`Failed to parse cache data for token ${tokens[i].slice(-5)}:`, e);
+			}
+		}
+
+		if (updates.length > 0) {
+			try {
+				await this.batchUpdateSessionsWithTransaction(updates);
+				this.logger.info(`Flushed ${updates.length} cache entries to database before invalidation`);
+			} catch (e) {
+				const err = e as Error;
+				this.logger.warn(`Failed to flush cache to database:`, err);
+			}
 		}
 	}
 
@@ -319,7 +424,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			);
 
 			if (!lockAcquired) {
-				this.logger.warn(`Could not acquire lock for token invalidation: ${token.slice(0, 5)}`);
+				this.logger.warn(`Could not acquire lock for token invalidation: ${token.slice(-5)}`);
 				return {
 					success: false,
 					invalidatedCount: 0,
@@ -328,6 +433,8 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			}
 
 			try {
+				await this.flushCacheToDatabase([token]);
+
 				const expiredTime = new Date(Date.now() - 1000);
 				await Promise.all([
 					this.userSessionsRepository.update(
@@ -343,7 +450,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				};
 			} catch (e) {
 				const err = e as Error;
-				this.logger.error(`Failed to invalidate token ${token.slice(0, 5)}:`, err);
+				this.logger.error(`Failed to invalidate token ${token.slice(-5)}:`, err);
 				return {
 					success: false,
 					invalidatedCount: 0,
@@ -384,6 +491,9 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 						reason: 'No active sessions found'
 					};
 				}
+
+				const tokens = activeSessions.map(session => session.token);
+				await this.flushCacheToDatabase(tokens);
 
 				const expiredTime = new Date(Date.now() - 1000);
 				const cacheKeys = activeSessions.map(session => `activeUserSession:${session.token}`);
@@ -548,6 +658,9 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 		signInId?: string;
 		deviceInfo?: string;
 		deviceId?: string;
+		clientIp?: string;
+		inheritIpFrom?: string;
+		inheritedIp?: Array<{ address: string; count: number; lastSeen: Date }>;
 	}): Promise<string | null> {
 		const deviceId = sessionData.deviceId || generateDeviceId(sessionData.deviceInfo);
 		const token = generateNewToken(1);
@@ -561,12 +674,29 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 		);
 
 		if (!lockAcquired) {
-			this.logger.warn(`Could not acquire lock for token creation: ${token.slice(0, 5)}`);
+			this.logger.warn(`Could not acquire lock for token creation: ${token.slice(-5)}`);
 			return null;
 		}
 
 		try {
 			const newTime = new Date();
+			let initialIpList: Array<{ address: string; count: number; lastSeen: Date }> | null = null;
+
+			if (sessionData.inheritedIp) {
+				initialIpList = [...sessionData.inheritedIp];
+				if (sessionData.clientIp) {
+					initialIpList = this.updateIpList(initialIpList, sessionData.clientIp);
+				}
+			}
+
+			if (!initialIpList && sessionData.clientIp) {
+				initialIpList = [{
+					address: sessionData.clientIp,
+					count: 1,
+					lastSeen: newTime
+				}];
+			}
+
 			await this.userSessionsRepository.save({
 				id: this.idService.gen(),
 				token: token,
@@ -576,12 +706,14 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				createdAt: newTime,
 				lastUsedAt: newTime,
 				isActive: true,
-			});
+				ip: initialIpList,
+			} as any);
 
 			const cacheData = {
 				token: token,
 				userId: sessionData.userId,
-				lastUsedAt: newTime
+				lastUsedAt: newTime,
+				ip: initialIpList
 			};
 
 			await this.redisClient.setex(
@@ -593,7 +725,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			return token;
 		} catch (e) {
 			const err = e as Error;
-			this.logger.error(`Failed to create token ${token.slice(0, 5)}:`, err);
+			this.logger.error(`Failed to create token ${token.slice(-5)}:`, err);
 			return null;
 		} finally {
 			await this.redisClient.del(lockKey);
@@ -833,7 +965,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 		const sessionsFromDB = await this.userSessionsRepository.manager.transaction(async (manager) => {
 			return await manager.find(this.userSessionsRepository.target, {
 				where: { token: In(tokens), isActive: true },
-				select: ['token', 'userId', 'lastUsedAt', 'expiresAt'],
+				select: ['token', 'userId', 'lastUsedAt', 'expiresAt', 'ip'],
 				lock: { mode: 'pessimistic_read' }
 			});
 		});
@@ -847,7 +979,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			});
 		}
 
-		const updates: Array<{ token: string; userId: string; lastUsedAt: Date }> = [];
+		const updates: Array<{ token: string; userId: string; lastUsedAt: Date; ip?: Array<{ address: string; count: number; lastSeen: Date }> | null }> = [];
 		const deletes: string[] = [];
 		const currentTime = new Date();
 
@@ -860,7 +992,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			}
 
 			if (dbSession.userId !== entry.userId) {
-				this.logger.warn(`UserId mismatch for token ${entry.token.slice(0, 5)}: cache=${entry.userId}, db=${dbSession.userId}`);
+				this.logger.warn(`UserId mismatch for token ${entry.token.slice(-5)}: cache=${entry.userId}, db=${dbSession.userId}`);
 				deletes.push(`activeUserSession:${entry.token}`);
 				continue;
 			}
@@ -868,17 +1000,18 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			const cacheTime = new Date(entry.lastUsedAt);
 			const dbTime = new Date(dbSession.lastUsedAt);
 
-			// this.logger.info(`Token ${entry.token.slice(0, 8)}: DB=${dbTime.toISOString()}, Cache=${cacheTime.toISOString()}, needsUpdate=${dbTime.getTime() < cacheTime.getTime()}`);
+			// this.logger.info(`Token ${entry.token.slice(-8)}: DB=${dbTime.toISOString()}, Cache=${cacheTime.toISOString()}, needsUpdate=${dbTime.getTime() < cacheTime.getTime()}`);
 
 			if (dbTime.getTime() < cacheTime.getTime()) {
-				// this.logger.info(`Will update token ${entry.token.slice(0, 8)} from ${dbTime.toISOString()} to ${cacheTime.toISOString()}`);
+				// this.logger.info(`Will update token ${entry.token.slice(-8)} from ${dbTime.toISOString()} to ${cacheTime.toISOString()}`);
 				updates.push({
 					token: entry.token,
 					userId: entry.userId,
-					lastUsedAt: cacheTime
+					lastUsedAt: cacheTime,
+					ip: entry.ip || null
 				});
 			} else {
-				// this.logger.info(`No update needed for token ${entry.token.slice(0, 8)}: cache time (${cacheTime.toISOString()}) is not newer than DB time (${dbTime.toISOString()})`);
+				// this.logger.info(`No update needed for token ${entry.token.slice(-8)}: cache time (${cacheTime.toISOString()}) is not newer than DB time (${dbTime.toISOString()})`);
 			}
 		}
 
@@ -898,25 +1031,31 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 		}
 	}
 
-	private async batchUpdateSessionsWithTransaction(updates: Array<{ token: string; userId: string; lastUsedAt: Date }>): Promise<void> {
+	private async batchUpdateSessionsWithTransaction(updates: Array<{ token: string; userId: string; lastUsedAt: Date; ip?: Array<{ address: string; count: number; lastSeen: Date }> | null }>): Promise<void> {
 		if (updates.length === 0) return;
 
 		await this.userSessionsRepository.manager.transaction(async (manager) => {
-			const cases = updates.map((u, index) =>
-				`WHEN token = $${index * 3 + 1} AND "userId" = $${index * 3 + 2} THEN $${index * 3 + 3}`
+			const lastUsedAtCases = updates.map((u, index) =>
+				`WHEN token = $${index * 4 + 1} AND "userId" = $${index * 4 + 2} THEN $${index * 4 + 3}`
+			).join(' ');
+
+			const ipCases = updates.map((u, index) =>
+				`WHEN token = $${index * 4 + 1} AND "userId" = $${index * 4 + 2} THEN $${index * 4 + 4}`
 			).join(' ');
 
 			const params: any[] = [];
 			const tokenConditions: string[] = [];
 
 			updates.forEach((u, index) => {
-				params.push(u.token, u.userId, u.lastUsedAt);
-				tokenConditions.push(`(token = $${index * 3 + 1} AND "userId" = $${index * 3 + 2})`);
+				params.push(u.token, u.userId, u.lastUsedAt, JSON.stringify(u.ip));
+				tokenConditions.push(`(token = $${index * 4 + 1} AND "userId" = $${index * 4 + 2})`);
 			});
 
 			const query = `
 				UPDATE user_sessions
-				SET "lastUsedAt" = CASE ${cases} ELSE "lastUsedAt" END
+				SET
+					"lastUsedAt" = CASE ${lastUsedAtCases} ELSE "lastUsedAt" END,
+					"ip" = CASE ${ipCases} ELSE "ip" END
 				WHERE "isActive" = true
 				AND "expiresAt" > NOW()
 				AND (${tokenConditions.join(' OR ')})
@@ -1170,7 +1309,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			totalInconsistencies: inconsistencies.length,
 			inconsistencyRate: ((inconsistencies.length / sampleSize) * 100).toFixed(2) + '%',
 			issueBreakdown: this.analyzeInconsistencies(inconsistencies),
-			examples: inconsistencies.slice(0, 5)
+			examples: inconsistencies.slice(-5)
 		};
 
 		if (inconsistencies.length > 0) {
@@ -1247,7 +1386,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				}
 			} catch (e) {
 				const err = e as Error;
-				this.logger.warn(`Failed to fix ${item.token.slice(0, 5)}:`, err);
+				this.logger.warn(`Failed to fix ${item.token.slice(-5)}:`, err);
 			} finally {
 				await this.redisClient.del(lockKey);
 			}

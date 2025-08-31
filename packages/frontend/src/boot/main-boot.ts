@@ -328,12 +328,9 @@ export async function mainBoot() {
 			let activeReloadDialog: { close: () => void } | null = null;
 
 			stream.on('_disconnected_', () => {
-				// DEPRECATED: Replaced by advanced reload dialog.
-				// Old behavior: Auto reload when server disconnected.
-				// if (prefer.s.serverDisconnectedBehavior === 'reload') {
-				// 	window.location.reload();
-				// 	return;
-				// }
+				if (!["dialog", "reload"].includes(prefer.s.serverDisconnectedBehavior)) {
+					return;
+				}
 
 				if (disconnectTimer) {
 					window.clearTimeout(disconnectTimer);
@@ -351,13 +348,21 @@ export async function mainBoot() {
 
 					activeReloadDialog = confirmDialog;
 
-					const { canceled } = await confirmDialog;
+					try {
+						const { canceled } = await confirmDialog;
 
-					reloadDialogShowing = false;
-					activeReloadDialog = null;
-
-					if (!canceled) {
-						window.location.reload();
+						if (activeReloadDialog === confirmDialog) {
+							if (!canceled) {
+								window.location.reload();
+							}
+						}
+					} catch (error) {
+						console.warn('Dialog error:', error);
+					} finally {
+						if (activeReloadDialog === confirmDialog) {
+							reloadDialogShowing = false;
+							activeReloadDialog = null;
+						}
 					}
 				}, DIALOG_DELAY_MS);
 			});

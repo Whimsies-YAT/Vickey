@@ -13,6 +13,12 @@ import { MiSignin } from "@/models/Signin.js";
 @Index('idx_user_sessions_user_active', ['userId'], { where: `"isActive" = true` })
 @Index('idx_user_sessions_user_valid_device', ['userId', 'deviceId', 'signInId', 'expiresAt'])
 @Index('idx_user_sessions_token_active', ['token'], { unique: true, where: `"isActive" = true` })
+@Index('idx_user_sessions_cleanup', ['isActive', 'expiresAt'])
+@Index('idx_user_sessions_active_lastused', ['isActive', 'lastUsedAt'])
+@Index('idx_user_sessions_risk_user_time', ['userId', 'createdAt', 'lastUsedAt'])
+@Index('idx_user_sessions_risk_device', ['deviceId', 'createdAt'])
+@Index('idx_user_sessions_risk_signin', ['signInId', 'userId'])
+@Index('idx_user_sessions_risk_user_device', ['userId', 'deviceId', 'createdAt'])
 export class MiUserSessions {
 	@PrimaryColumn(id())
 	public id: string;
@@ -43,4 +49,8 @@ export class MiUserSessions {
 
 	@Column('boolean', { nullable: false, default: true })
 	public isActive: boolean;
+
+	@Index('idx_user_sessions_ip_gin', { synchronize: false })
+	@Column('jsonb', { nullable: true })
+	public ip: Array<{ address: string; count: number; lastSeen: Date }> | null;
 }

@@ -55,12 +55,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			let currentDeviceId: string | undefined = undefined;
 			let signInHistory: any = null;
 			let inheritedDeviceId: string | undefined = undefined;
+			let inheritedIp: Array<{ address: string; count: number; lastSeen: Date }> | undefined = undefined;
 
 			if (rawToken) {
 				try {
-					const currentTokenValidation = await this.userSessionsService.validateToken(rawToken, me.id);
+					const currentTokenValidation = await this.userSessionsService.validateToken(rawToken, me.id, ip ?? undefined);
 					if (currentTokenValidation.isValid) {
 						inheritedDeviceId = currentTokenValidation.deviceId;
+						inheritedIp = currentTokenValidation.ip || undefined;
 					}
 				} catch (error) {}
 			}
@@ -112,13 +114,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						currentDeviceId = inheritedDeviceId || generateDeviceId(currentDeviceType);
 					}
 				} else {
-					const validation = await this.userSessionsService.validateToken(rawToken, me.id);
+					const validation = await this.userSessionsService.validateToken(rawToken, me.id, ip ?? undefined);
 					if (!validation.isValid || validation.userId !== me.id) {
 						throw new Error('invalid token');
 					}
 
 					currentSignInId = validation.signInId || undefined;
 					currentDeviceId = validation.deviceId || undefined;
+					inheritedIp = validation.ip || undefined;
 				}
 				forceCurrentOnly = true;
 			} else if (ps.password) {
@@ -187,7 +190,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				userId: me.id,
 				signInId: currentSignInId,
 				deviceId: currentDeviceId,
-			});
+				clientIp: ip ?? undefined,
+				inheritedIp: inheritedIp,
+			} as any);
 
 			if (!newToken) {
 				throw new Error('Failed to create new session token');
