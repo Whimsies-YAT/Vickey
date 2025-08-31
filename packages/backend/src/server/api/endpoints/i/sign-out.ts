@@ -44,7 +44,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					success: true,
 				};
 			}
-			const isNew = await this.userSessionsService.validateToken(rawToken, me.id, ip);
+			const isNew = await this.userSessionsService.validateToken(rawToken, me.id, ip ?? undefined);
 
 			if (isNew) {
 				await this.userSessionsService.invalidateTokenSafely(me.id, rawToken);
