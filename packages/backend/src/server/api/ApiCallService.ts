@@ -64,7 +64,7 @@ export class ApiCallService implements OnApplicationShutdown {
 	#sendApiError(reply: FastifyReply, err: ApiError): void {
 		let statusCode = err.httpStatusCode;
 		if (err.httpStatusCode === 401) {
-			reply.header('WWW-Authenticate', 'Bearer realm="Misskey"');
+			reply.header('WWW-Authenticate', 'Bearer realm="Vickey"');
 		} else if (err.code === 'RATE_LIMIT_EXCEEDED') {
 			const info: unknown = err.info;
 			const unixEpochInSeconds = Date.now();
@@ -76,12 +76,12 @@ export class ApiCallService implements OnApplicationShutdown {
 				this.logger.warn(`rate limit information has unexpected type ${typeof(err.info?.reset)}`);
 			}
 		} else if (err.kind === 'client') {
-			reply.header('WWW-Authenticate', `Bearer realm="Misskey", error="invalid_request", error_description="${err.message}"`);
+			reply.header('WWW-Authenticate', `Bearer realm="Vickey", error="invalid_request", error_description="${err.message}"`);
 			statusCode = statusCode ?? 400;
 		} else if (err.kind === 'permission') {
 			// (ROLE_PERMISSION_DENIEDは関係ない)
 			if (err.code === 'PERMISSION_DENIED') {
-				reply.header('WWW-Authenticate', `Bearer realm="Misskey", error="insufficient_scope", error_description="${err.message}"`);
+				reply.header('WWW-Authenticate', `Bearer realm="Vickey", error="insufficient_scope", error_description="${err.message}"`);
 			}
 			statusCode = statusCode ?? 403;
 		} else if (!statusCode) {
@@ -93,7 +93,7 @@ export class ApiCallService implements OnApplicationShutdown {
 	#sendAuthenticationError(reply: FastifyReply, err: unknown): void {
 		if (err instanceof AuthenticationError) {
 			const message = 'Authentication failed. Please ensure your token is correct.';
-			reply.header('WWW-Authenticate', `Bearer realm="Misskey", error="invalid_token", error_description="${message}"`);
+			reply.header('WWW-Authenticate', `Bearer realm="Vickey", error="invalid_token", error_description="${message}"`);
 			this.send(reply, 401, new ApiError({
 				message: 'Authentication failed. Please ensure your token is correct.',
 				code: 'AUTHENTICATION_FAILED',
@@ -167,18 +167,22 @@ export class ApiCallService implements OnApplicationShutdown {
 			reply.code(400);
 			return;
 		}
-		this.authenticateService.authenticate(token).then(([user, app]) => {
-			this.call(endpoint, user, app, body, null, request).then((res) => {
-				if (request.method === 'GET' && endpoint.meta.cacheSec && !token && !user) {
+		this.authenticateService.authenticate(token, request.ip).then((auth) => {
+			this.call(endpoint, auth.user, auth.accessToken, body, null, request, token).then((res) => {
+				if (request.method === 'GET' && endpoint.meta.cacheSec && !token && !auth.user) {
 					reply.header('Cache-Control', `public, max-age=${endpoint.meta.cacheSec}`);
+				}
+
+				if (auth.needRefresh) {
+					reply.header('X-Token-Needs-Refresh', 'true');
 				}
 				this.send(reply, res);
 			}).catch((err: ApiError) => {
 				this.#sendApiError(reply, err);
 			});
 
-			if (user) {
-				this.logIp(request, user);
+			if (auth.user) {
+				this.logIp(request, auth.user);
 			}
 		}).catch(err => {
 			this.#sendAuthenticationError(reply, err);
@@ -225,18 +229,21 @@ export class ApiCallService implements OnApplicationShutdown {
 			reply.code(400);
 			return;
 		}
-		this.authenticateService.authenticate(token).then(([user, app]) => {
-			this.call(endpoint, user, app, fields, {
+		this.authenticateService.authenticate(token, request.ip).then((auth) => {
+			this.call(endpoint, auth.user, auth.accessToken, fields, {
 				name: multipartData.filename,
 				path: path,
-			}, request).then((res) => {
+			}, request, token).then((res) => {
+				if (auth.needRefresh) {
+					reply.header('X-Token-Needs-Refresh', 'true');
+				}
 				this.send(reply, res);
 			}).catch((err: ApiError) => {
 				this.#sendApiError(reply, err);
 			});
 
-			if (user) {
-				this.logIp(request, user);
+			if (auth.user) {
+				this.logIp(request, auth.user);
 			}
 		}).catch(err => {
 			this.#sendAuthenticationError(reply, err);
@@ -299,6 +306,7 @@ export class ApiCallService implements OnApplicationShutdown {
 			path: string;
 		} | null,
 		request: FastifyRequest<{ Body: Record<string, unknown> | undefined, Querystring: Record<string, unknown> }>,
+		rawToken?: string | null,
 	) {
 		const isSecure = user != null && token == null;
 
@@ -443,10 +451,10 @@ export class ApiCallService implements OnApplicationShutdown {
 		if (this.config.sentryForBackend) {
 			return await Sentry.startSpan({
 				name: 'API: ' + ep.name,
-			}, () => ep.exec(data, user, token, file, request.ip, request.headers)
+			}, () => ep.exec(data, user, token, file, request.ip, request.headers, rawToken)
 				.catch((err: Error) => this.#onExecError(ep, data, err, user?.id)));
 		} else {
-			return await ep.exec(data, user, token, file, request.ip, request.headers)
+			return await ep.exec(data, user, token, file, request.ip, request.headers, rawToken)
 				.catch((err: Error) => this.#onExecError(ep, data, err, user?.id));
 		}
 	}

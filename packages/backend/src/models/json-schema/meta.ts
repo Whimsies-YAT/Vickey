@@ -71,6 +71,10 @@ export const packedMetaLiteSchema = {
 			type: 'string',
 			optional: false, nullable: true,
 		},
+		clientOptions: {
+			type: 'object',
+			optional: false, nullable: false,
+		},
 		disableRegistration: {
 			type: 'boolean',
 			optional: false, nullable: false,
@@ -338,6 +342,18 @@ export const packedMetaLiteSchema = {
 			enum: ['all', 'specified', 'none'],
 			optional: false, nullable: false,
 		},
+		enableBcc: {
+			type: 'boolean',
+			optional: false, nullable: false,
+		},
+		bccLimit: {
+			type: 'number',
+			optional: false, nullable: false,
+		},
+		visibleRecipient: {
+			type: 'string',
+			optional: false, nullable: true,
+		}
 	},
 } as const;
 

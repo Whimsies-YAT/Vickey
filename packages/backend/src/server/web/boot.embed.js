@@ -7,13 +7,73 @@
 
 // ブロックの中に入れないと、定義した変数がブラウザのグローバルスコープに登録されてしまい邪魔なので
 (async () => {
-	window.onerror = (e) => {
-		console.error(e);
-		renderError('SOMETHING_HAPPENED');
+	let hasRenderedError = false;
+	let criticalErrors = 0;
+
+	function isCriticalError(error) {
+		const errorStr = error.toString().toLowerCase();
+		const stackStr = (error.stack || '').toLowerCase();
+
+		const pluginPatterns = [
+			'/plugins/', '/extensions/', '/addons/',
+			'userscript', 'tampermonkey', 'greasemonkey',
+			'chrome-extension:', 'moz-extension:',
+			'third-party', 'plugin', 'extension'
+		];
+
+		const corePatterns = [
+			'/vite/', '/_boot_', CLIENT_ENTRY || '',
+			'misskey', 'lang', 'theme'
+		];
+
+		if (pluginPatterns.some(pattern => errorStr.includes(pattern) || stackStr.includes(pattern))) {
+			return false;
+		}
+
+		if (corePatterns.some(pattern => pattern && (errorStr.includes(pattern) || stackStr.includes(pattern)))) {
+			return true;
+		}
+
+		if (errorStr.includes('network') || errorStr.includes('fetch') || errorStr.includes('cors')) {
+			return false;
+		}
+
+		return false;
+	}
+
+	window.onerror = (message, source, lineno, colno, error) => {
+		console.error('Global error:', { message, source, lineno, colno, error });
+
+		if (isCriticalError(error || new Error(message))) {
+			criticalErrors++;
+			console.error('Critical error detected:', message);
+
+			if (criticalErrors > 2 && !hasRenderedError) {
+				hasRenderedError = true;
+				renderError('SOMETHING_HAPPENED', error || message);
+			}
+		} else {
+			console.warn('Non-critical error (likely plugin-related), continuing execution:', message);
+		}
 	};
+
 	window.onunhandledrejection = (e) => {
-		console.error(e);
-		renderError('SOMETHING_HAPPENED_IN_PROMISE');
+		console.error('Unhandled promise rejection:', e);
+
+		const error = e.reason;
+
+		if (error && error.message && error.message.includes('import') && isCriticalError(error)) {
+			criticalErrors++;
+			console.error('Critical import error detected:', error);
+
+			if (criticalErrors > 1 && !hasRenderedError) {
+				hasRenderedError = true;
+				renderError('SOMETHING_HAPPENED_IN_PROMISE', e);
+				return;
+			}
+		}
+
+		console.warn('Non-critical promise rejection (likely plugin-related), continuing execution:', error);
 	};
 
 	let forceError = localStorage.getItem('forceError');
@@ -31,10 +91,16 @@
 		document.documentElement.classList.add('noborder');
 	}
 
-	//#region Detect language & fetch translations
-	if (!localStorage.hasOwnProperty('locale')) {
-		const supportedLangs = LANGS;
-		let lang = localStorage.getItem('lang');
+	//#region Detect language
+	let supportedLangs;
+	let lang = localStorage.getItem('lang');
+
+	if (typeof LANGS === 'undefined' || !Array.isArray(LANGS) || LANGS.length === 0) {
+		console.warn('LANGS is not defined or invalid, falling back to en-US');
+		lang = 'en-US';
+	} else {
+		supportedLangs = LANGS;
+
 		if (lang == null || !supportedLangs.includes(lang)) {
 			if (supportedLangs.includes(navigator.language)) {
 				lang = navigator.language;
@@ -45,48 +111,18 @@
 				if (lang == null) lang = 'en-US';
 			}
 		}
+	}
 
-		const metaRes = await window.fetch('/api/meta', {
-			method: 'POST',
-			body: JSON.stringify({}),
-			credentials: 'omit',
-			cache: 'no-cache',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		});
-		if (metaRes.status !== 200) {
-			renderError('META_FETCH');
-			return;
-		}
-		const meta = await metaRes.json();
-		const v = meta.version;
-		if (v == null) {
-			renderError('META_FETCH_V');
-			return;
-		}
-
-		// for https://github.com/misskey-dev/misskey/issues/10202
-		if (lang == null || lang.toString == null || lang.toString() === 'null') {
-			console.error('invalid lang value detected!!!', typeof lang, lang);
-			lang = 'en-US';
-		}
-
-		const localRes = await window.fetch(`/assets/locales/${lang}.${v}.json`);
-		if (localRes.status === 200) {
-			localStorage.setItem('lang', lang);
-			localStorage.setItem('locale', await localRes.text());
-			localStorage.setItem('localeVersion', v);
-		} else {
-			renderError('LOCALE_FETCH');
-			return;
-		}
+	// for https://github.com/misskey-dev/misskey/issues/10202
+	if (lang == null || lang.toString == null || lang.toString() === 'null') {
+		console.error('invalid lang value detected!!!', typeof lang, lang);
+		lang = 'en-US';
 	}
 	//#endregion
 
 	//#region Script
 	async function importAppScript() {
-		await import(`/embed_vite/${CLIENT_ENTRY}`)
+		await import(CLIENT_ENTRY ? `/embed_vite/${CLIENT_ENTRY.replace('scripts', lang)}` : '/embed_vite/src/_boot_.ts')
 			.catch(async e => {
 				console.error(e);
 				renderError('APP_IMPORT');
@@ -115,10 +151,26 @@
 			await new Promise(resolve => window.addEventListener('DOMContentLoaded', resolve));
 		}
 
-		const locale = JSON.parse(localStorage.getItem('locale') || '{}');
+		let messages = null;
+		const bootloaderLocales = localStorage.getItem('bootloaderLocales');
+		if (bootloaderLocales) {
+			messages = JSON.parse(bootloaderLocales);
+		}
+		if (!messages) {
+			// older version of misskey does not store bootloaderLocales, stores locale as a whole
+			const legacyLocale = localStorage.getItem('locale');
+			if (legacyLocale) {
+				const parsed = JSON.parse(legacyLocale);
+				messages = {
+					...(parsed._bootErrors ?? {}),
+					reload: parsed.reload,
+				};
+			}
+		}
+		if (!messages) messages = {};
 
-		const title = locale?._bootErrors?.title || 'Failed to initialize Misskey';
-		const reload = locale?.reload || 'Reload';
+		const title = messages?.title || 'Failed to initialize Vickey';
+		const reload = messages?.reload || 'Reload';
 
 		document.body.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 9v4" /><path d="M12 16v.01" /></svg>
 		<div class="message">${title}</div>
@@ -139,7 +191,7 @@
 
 		body {
 			position: relative;
-			color: #dee7e4;
+			color: #e4f0f7;
 			font-family: Hiragino Maru Gothic Pro, BIZ UDGothic, Roboto, HelveticaNeue, Arial, sans-serif;
 			line-height: 1.35;
 			display: flex;
@@ -153,7 +205,7 @@
 			overflow: hidden;
 
 			border-radius: var(--radius, 12px);
-			border: 1px solid rgba(231, 255, 251, 0.14);
+			border: 1px solid rgba(189, 224, 254, 0.14);
 		}
 
 		body::before {
@@ -163,7 +215,7 @@
 			left: 0;
 			width: 100%;
 			height: 100%;
-			background: #192320;
+			background: #1a2332;
 			border-radius: var(--radius, 12px);
 			z-index: -1;
 		}
@@ -182,7 +234,7 @@
 			width: 100%;
 			height: auto;
 			margin-bottom: 20px;
-			color: #dec340;
+			color: #4da8da;
 		}
 
 		.message {
@@ -209,15 +261,15 @@
 			font-family: Hiragino Maru Gothic Pro, BIZ UDGothic, Roboto, HelveticaNeue, Arial, sans-serif;
 			line-height: 1.35;
 			border-radius: 99rem;
-			background-color: #b4e900;
-			color: #192320;
+			background-color: #2196f3;
+			color: #ffffff;
 			border: none;
 			cursor: pointer;
 			-webkit-tap-highlight-color: transparent;
 		}
 
 		button:hover {
-			background-color: #c6ff03;
+			background-color: #42a5f5;
 		}`);
 	}
 })();

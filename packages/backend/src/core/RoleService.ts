@@ -13,6 +13,7 @@ import type {
 	MiRoleAssignment,
 	RoleAssignmentsRepository,
 	RolesRepository,
+	UserProfilesRepository,
 	UsersRepository,
 } from '@/models/_.js';
 import { MemoryKVCache, MemorySingleCache } from '@/misc/cache.js';
@@ -43,6 +44,7 @@ export type RolePolicies = {
 	canManageCustomEmojis: boolean;
 	canManageAvatarDecorations: boolean;
 	canSearchNotes: boolean;
+	canSearchUsers: boolean;
 	canUseTranslator: boolean;
 	canUseTTS: boolean;
 	canHideAds: boolean;
@@ -83,6 +85,7 @@ export const DEFAULT_POLICIES: RolePolicies = {
 	canManageCustomEmojis: false,
 	canManageAvatarDecorations: false,
 	canSearchNotes: false,
+	canSearchUsers: true,
 	canUseTranslator: true,
 	canUseTTS: true,
 	canHideAds: false,
@@ -146,6 +149,9 @@ export class RoleService implements OnApplicationShutdown, OnModuleInit {
 
 		@Inject(DI.roleAssignmentsRepository)
 		private roleAssignmentsRepository: RoleAssignmentsRepository,
+
+		@Inject(DI.userProfilesRepository)
+		private userProfilesRepository: UserProfilesRepository,
 
 		private cacheService: CacheService,
 		private userEntityService: UserEntityService,
@@ -408,6 +414,7 @@ export class RoleService implements OnApplicationShutdown, OnModuleInit {
 			canManageCustomEmojis: calc('canManageCustomEmojis', vs => vs.some(v => v === true)),
 			canManageAvatarDecorations: calc('canManageAvatarDecorations', vs => vs.some(v => v === true)),
 			canSearchNotes: calc('canSearchNotes', vs => vs.some(v => v === true)),
+			canSearchUsers: calc('canSearchUsers', vs => vs.some(v => v === true)),
 			canUseTranslator: calc('canUseTranslator', vs => vs.some(v => v === true)),
 			canUseTTS: calc('canUseTTS', vs => vs.some(v => v === true)),
 			canHideAds: calc('canHideAds', vs => vs.some(v => v === true)),
@@ -523,6 +530,23 @@ export class RoleService implements OnApplicationShutdown, OnModuleInit {
 				id: In(ids),
 			})
 			: [];
+	}
+
+	@bindThis
+	public async getModeratorsEmail(opts?: {
+		includeAdmins?: boolean,
+		includeRoot?: boolean,
+		excludeExpire?: boolean,
+	}) {
+		const moderators = await this.getModerators(opts);
+		const moderatorIds = moderators.map(m => m.id);
+		const profiles = await this.userProfilesRepository.findBy({
+			userId: In(moderatorIds),
+		});
+
+		return profiles
+			.map(p => p.email?.trim())
+			.filter((e): e is string => !!e);
 	}
 
 	@bindThis

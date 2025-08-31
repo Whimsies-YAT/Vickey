@@ -113,6 +113,7 @@ export class MetaEntityService {
 			maxNoteTextLength: MAX_NOTE_TEXT_LENGTH,
 			defaultLightTheme,
 			defaultDarkTheme,
+			clientOptions: instance.clientOptions,
 			ads: ads.map(ad => ({
 				id: ad.id,
 				url: ad.url,
@@ -145,6 +146,9 @@ export class MetaEntityService {
 			abuseMLInfoUrl: this.meta.abuseMLInfoUrl,
 			abuseMLInfoToken: this.meta.abuseMLInfoToken,
 			abuseMLInfoScore: this.meta.abuseMLInfoScore,
+			enableBcc: instance.enableBcc,
+			bccLimit: instance.bccLimit,
+			visibleRecipient: instance.visibleRecipient && instance.visibleRecipient.trim() !== '' ? instance.visibleRecipient : instance.maintainerEmail,
 		};
 
 		return packed;

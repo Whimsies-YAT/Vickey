@@ -5,8 +5,8 @@
 
 import { markRaw, ref } from 'vue';
 import * as Misskey from 'misskey-js';
-import lightTheme from '@@/themes/l-light.json5';
-import darkTheme from '@@/themes/d-green-lime.json5';
+import lightTheme from '@@/themes/_light.json5';
+import darkTheme from '@@/themes/_dark.json5';
 import { hemisphere } from '@@/js/intl-const.js';
 import type { DeviceKind } from '@/utility/device-kind.js';
 import type { Plugin } from '@/plugin.js';
@@ -106,7 +106,7 @@ export const store = markRaw(new Pizzax('base', {
 	},
 	accountInfos: {
 		where: 'device',
-		default: {} as Record<string, Misskey.entities.User>, // host/userId, user
+		default: {} as Record<string, Misskey.entities.MeDetailed>, // host/userId, user
 	},
 
 	enablePreferencesAutoCloudBackup: {
@@ -208,7 +208,7 @@ export const store = markRaw(new Pizzax('base', {
 	},
 	serverDisconnectedBehavior: {
 		where: 'device',
-		default: null as null | 'quiet' | 'reload' | 'dialog',
+		default: 'quiet' as 'quiet' | 'reload' | 'dialog' | null,
 	},
 	nsfw: {
 		where: 'device',

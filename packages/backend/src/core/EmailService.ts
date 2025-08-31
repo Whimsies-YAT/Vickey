@@ -39,7 +39,48 @@ export class EmailService {
 	}
 
 	@bindThis
-	public async sendEmail(to: string, subject: string, html: string, text: string) {
+	public async sendEmailWithBcc(subject: string, html: string, text: string, bcc: boolean = false, to: string | string[], htmlTemplate?: string) {
+		if (!this.meta.enableEmail) return;
+
+		let emails: string[] = [];
+
+		if (Array.isArray(to)) {
+			emails = to.filter(e => !!e && e.trim() !== '').map(e => e.trim());
+		} else if (to.trim() !== '') {
+			emails = [to.trim()];
+		}
+
+		if (emails.length === 0) return;
+
+		const primaryRecipient =
+			this.meta.visibleRecipient && this.meta.visibleRecipient.trim() !== ""
+				? this.meta.visibleRecipient.trim()
+				: this.meta.maintainerEmail?.trim();
+		if (!primaryRecipient) return;
+
+		if (bcc) {
+			if (this.meta.enableBcc) {
+				const limit = Number(this.meta.bccLimit);
+				if (limit >= 1 && limit <= 20) {
+					while (emails.length) {
+						const batch = emails.splice(0, limit);
+						await this.sendEmail(primaryRecipient, subject, html, text, batch);
+					}
+					return;
+				}
+				this.logger.error('Exceeding the limit');
+				return;
+			}
+		} else {
+			for (const email of emails) {
+				await this.sendEmail(email, subject, html, text, htmlTemplate);
+			}
+			return;
+		}
+	}
+
+	@bindThis
+	public async sendEmail(to: string, subject: string, html: string, text: string, bcc?: string | string[], htmlTemplate?: string) {
 		if (!this.meta.enableEmail) return;
 
 		const iconUrl = `${this.config.url}/static-assets/mi-white.png`;
@@ -59,92 +100,273 @@ export class EmailService {
 			} : undefined,
 		} as any);
 
-		const htmlContent = `<!doctype html>
+		let htmlContent: string;
+
+		if (!htmlTemplate) {
+			htmlContent = `<!doctype html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<title>${ subject }</title>
-		<style>
-			html {
-				background: #eee;
-			}
-
-			body {
-				padding: 16px;
-				margin: 0;
-				font-family: sans-serif;
-				font-size: 14px;
-			}
-
-			a {
-				text-decoration: none;
-				color: #86b300;
-			}
-			a:hover {
-				text-decoration: underline;
-			}
-
-			main {
-				max-width: 500px;
-				margin: 0 auto;
-				background: #fff;
-				color: #555;
-			}
-				main > header {
-					padding: 32px;
-					background: #86b300;
-				}
-					main > header > img {
-						max-width: 128px;
-						max-height: 28px;
-						vertical-align: bottom;
-					}
-				main > article {
-					padding: 32px;
-				}
-					main > article > h1 {
-						margin: 0 0 1em 0;
-					}
-				main > footer {
-					padding: 32px;
-					border-top: solid 1px #eee;
-				}
-
-			nav {
-				box-sizing: border-box;
-				max-width: 500px;
-				margin: 16px auto 0 auto;
-				padding: 0 32px;
-			}
-				nav > a {
-					color: #888;
-				}
-		</style>
-	</head>
-	<body>
-		<main>
-			<header>
-				<img src="${ this.meta.logoImageUrl ?? this.meta.iconUrl ?? iconUrl }"/>
-			</header>
-			<article>
-				<h1>${ subject }</h1>
-				<div>${ html }</div>
-			</article>
-			<footer>
-				<a href="${ emailSettingUrl }">${ 'Email setting' }</a>
-			</footer>
-		</main>
-		<nav>
-			<a href="${ this.config.url }">${ this.config.host }</a>
-		</nav>
-	</body>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${ subject }</title>
+    <style>
+      body, table, td, p, a, li, blockquote {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+      table, td {
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+      }
+      img {
+        -ms-interpolation-mode: bicubic;
+        border: 0;
+        height: auto;
+        line-height: 100%;
+        outline: none;
+        text-decoration: none;
+      }
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: linear-gradient(135deg, #0d1421 0%, #1a1b3d 50%, #2a1b4d 100%);
+        font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
+        min-height: 100vh;
+      }
+      table {
+        border-collapse: collapse !important;
+      }
+      .email-container {
+        max-width: 580px;
+        margin: 0 auto;
+        background: linear-gradient(135deg, #1e2a5a 0%, #2d1b69 100%);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+      }
+      .header-cell {
+        background: linear-gradient(135deg, #1a237e 0%, #3f51b5 30%, #673ab7 70%, #9c27b0 100%);
+        position: relative;
+        padding: 40px;
+        text-align: center;
+      }
+      .header-cell::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(ellipse at center top, rgba(255,255,255,0.1) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .logo-img {
+        max-height: 56px;
+        width: auto;
+        display: block;
+        margin: 0 auto;
+        filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+        position: relative;
+        z-index: 1;
+      }
+      .content-cell {
+        padding: 40px;
+        background: linear-gradient(135deg, #1e2a5a 0%, #2d1b69 100%);
+        position: relative;
+      }
+      .content-cell::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent 0%, rgba(147, 112, 219, 0.3) 50%, transparent 100%);
+      }
+      .content-title {
+        margin: 0 0 24px 0;
+        font-size: 28px;
+        font-weight: 600;
+        color: #f5f7ff;
+        line-height: 1.2;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        letter-spacing: -0.5px;
+      }
+      .content-text {
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.7;
+        color: #e1e7f5;
+        font-weight: 400;
+      }
+      .content-text p {
+        margin: 0 0 18px 0;
+      }
+      .content-text a {
+        color: #7c4dff;
+        text-decoration: none;
+        font-weight: 500;
+        border-bottom: 1px solid rgba(124, 77, 255, 0.3);
+        transition: all 0.3s ease;
+      }
+      .content-text a:hover {
+        color: #b388ff;
+        border-bottom-color: #b388ff;
+      }
+      .footer-cell {
+        padding: 36px 40px;
+        background: linear-gradient(135deg, #151f4a 0%, #1a1b3d 100%);
+        text-align: center;
+        border-top: 1px solid rgba(147, 112, 219, 0.2);
+        position: relative;
+      }
+      .footer-button {
+        display: inline-block;
+        padding: 16px 32px;
+        background: linear-gradient(135deg, #673ab7 0%, #9c27b0 100%);
+        color: #ffffff !important;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 15px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(103, 58, 183, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+        letter-spacing: 0.5px;
+      }
+      .footer-button:hover {
+        background: linear-gradient(135deg, #7c4dff 0%, #b388ff 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(124, 77, 255, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2);
+      }
+      .nav-cell {
+        padding: 20px 40px;
+        text-align: center;
+        background-color: transparent;
+      }
+      .nav-link {
+        color: #b8c5d6;
+        font-size: 14px;
+        text-decoration: none;
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(10px);
+        padding: 12px 24px;
+        border-radius: 24px;
+        display: inline-block;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        transition: all 0.3s ease;
+        font-weight: 500;
+      }
+      .nav-link:hover {
+        background: rgba(147, 112, 219, 0.15);
+        border-color: rgba(147, 112, 219, 0.3);
+        color: #d4e2f2;
+        transform: translateY(-1px);
+      }
+      .decorative-accent {
+        position: absolute;
+        top: -2px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, #7c4dff 0%, #b388ff 50%, #ce93d8 100%);
+        border-radius: 2px;
+      }
+      @media screen and (max-width: 640px) {
+        .email-container {
+          width: 100% !important;
+          max-width: 100% !important;
+          margin: 0 16px;
+          border-radius: 12px;
+        }
+        .header-cell,
+        .content-cell,
+        .footer-cell,
+        .nav-cell {
+          padding-left: 24px !important;
+          padding-right: 24px !important;
+        }
+        .header-cell {
+          padding-top: 32px !important;
+          padding-bottom: 32px !important;
+        }
+        .content-cell {
+          padding-top: 32px !important;
+          padding-bottom: 32px !important;
+        }
+        .content-title {
+          font-size: 24px !important;
+        }
+        .content-text {
+          font-size: 15px !important;
+        }
+      }
+      /*[if mso]>
+      <style type="text/css">
+        .header-cell {
+          background-color: #3f51b5 !important;
+        }
+        .content-cell {
+          background-color: #1e2a5a !important;
+        }
+        .footer-cell {
+          background-color: #151f4a !important;
+        }
+        .footer-button {
+          border: none !important;
+          background-color: #673ab7 !important;
+        }
+      </style>
+      <![endif]-->
+    </style>
+  </head>
+  <body style="margin: 0; padding: 0; background: linear-gradient(135deg, #0d1421 0%, #1a1b3d 50%, #2a1b4d 100%); min-height: 100vh;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, #0d1421 0%, #1a1b3d 50%, #2a1b4d 100%); min-height: 100vh;">
+      <tr>
+        <td style="padding: 32px 0;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="580" class="email-container" style="margin: 0 auto;">
+            <tr>
+              <td class="header-cell" style="position: relative;">
+                <div class="decorative-accent"></div>
+                <img src="${ this.meta.logoImageUrl ?? this.meta.iconUrl ?? iconUrl }" alt="Logo" class="logo-img" style="max-width: 140px; height: auto; display: block; margin: 0 auto; position: relative; z-index: 1;">
+              </td>
+            </tr>
+            <tr>
+              <td class="content-cell">
+                <h1 class="content-title">${ subject }</h1>
+                <div class="content-text">
+                  ${ html }
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="footer-cell">
+                <a href="${ emailSettingUrl }" class="footer-button">${ 'Email setting' }</a>
+              </td>
+            </tr>
+          </table>
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="580" style="margin: 20px auto 0 auto;">
+            <tr>
+              <td class="nav-cell">
+                <a href="${ this.config.url }" class="nav-link">${ this.config.host }</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
 </html>`;
+		} else {
+			htmlContent = htmlTemplate;
+		}
 
 		const inlinedHtml = juice(htmlContent);
 
 		try {
 			// TODO: htmlサニタイズ
-			const info = await transporter.sendMail({
+			const mailOptions: any = {
 				from: this.meta.name ? {
 					name: this.meta.name,
 					address: this.meta.email!,
@@ -153,8 +375,13 @@ export class EmailService {
 				subject: subject,
 				text: text,
 				html: inlinedHtml,
-			});
+			};
 
+			if (bcc) {
+				mailOptions.bcc = bcc;
+			}
+
+			const info = await transporter.sendMail(mailOptions);
 			this.logger.info(`Message sent: ${info.messageId}`);
 		} catch (err) {
 			this.logger.error(err as Error);

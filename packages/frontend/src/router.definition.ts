@@ -165,6 +165,10 @@ export const ROUTE_DEF = [{
 		name: 'connect',
 		component: page(() => import('@/pages/settings/apps.vue')),
 	}, {
+		path: '/oauth',
+		name: 'oauth',
+		component: page(() => import('@/pages/settings/oauth.vue')),
+	}, {
 		path: '/webhook/edit/:webhookId',
 		name: 'connect',
 		component: page(() => import('@/pages/settings/webhook.edit.vue')),
@@ -203,6 +207,9 @@ export const ROUTE_DEF = [{
 	path: '/signup-complete/:code',
 	component: page(() => import('@/pages/signup-complete.vue')),
 }, {
+	path: '/verify-email/:code',
+	component: page(() => import('@/pages/verify-email.vue')),
+}, {
 	path: '/announcements',
 	component: page(() => import('@/pages/announcements.vue')),
 }, {
@@ -218,6 +225,9 @@ export const ROUTE_DEF = [{
 }, {
 	path: '/about-misskey',
 	component: page(() => import('@/pages/about-misskey.vue')),
+}, {
+	path: '/about-vickey',
+	component: page(() => import('@/pages/about-vickey.vue')),
 }, {
 	path: '/invite',
 	name: 'invite',
@@ -503,10 +513,6 @@ export const ROUTE_DEF = [{
 		name: 'performance',
 		component: page(() => import('@/pages/admin/performance.vue')),
 	}, {
-		path: '/server-rules',
-		name: 'server-rules',
-		component: page(() => import('@/pages/admin/server-rules.vue')),
-	}, {
 		path: '/invites',
 		name: 'invites',
 		component: page(() => import('@/pages/admin/invites.vue')),
@@ -618,4 +624,4 @@ export const ROUTE_DEF = [{
 }, {
 	path: '/:(*)',
 	component: page(() => import('@/pages/not-found.vue')),
-}] satisfies RouteDef[];
+}] as const satisfies RouteDef[];

@@ -46,16 +46,21 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		super(meta, paramDef, async (ps, me) => {
 			const query = {
 				userId: me.id,
+				isOAuth: false, // Only return traditional (non-OAuth) apps
 			};
 
 			const apps = await this.appsRepository.find({
 				where: query,
 				take: ps.limit,
 				skip: ps.offset,
+				order: {
+					createdAt: 'DESC',
+				},
 			});
 
 			return await Promise.all(apps.map(app => this.appEntityService.pack(app, me, {
 				detail: true,
+				includeSecret: true,
 			})));
 		});
 	}

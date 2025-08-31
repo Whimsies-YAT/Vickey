@@ -278,6 +278,20 @@ export class MiUserProfile {
 		unlockedAt: number;
 	}[];
 
+	//#region SSO fields
+	@Column('varchar', {
+		length: 128, nullable: true,
+		comment: 'The OAuth provider ID for SSO.',
+	})
+	public ssoProviderId: string | null;
+
+	@Column('varchar', {
+		length: 256, nullable: true,
+		comment: 'The OAuth provider user ID.',
+	})
+	public ssoId: string | null;
+	//#endregion
+
 	//#region Denormalized fields
 	@Index()
 	@Column('varchar', {

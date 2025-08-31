@@ -4,14 +4,14 @@
  */
 
 import { createApp, defineAsyncComponent, markRaw } from 'vue';
-import { ui } from '@@/js/config.js';
+import { ui, DIALOG_DELAY_MS } from '@@/js/config.js';
 import * as Misskey from 'misskey-js';
 import { compareVersions } from 'compare-versions';
 import { common } from './common.js';
 import type { Component } from 'vue';
 import type { Keymap } from '@/utility/hotkey.js';
 import { i18n } from '@/i18n.js';
-import { alert, confirm, popup, post } from '@/os.js';
+import { alert, confirmAdvanced, popup, post } from '@/os.js';
 import { useStream } from '@/stream.js';
 import * as sound from '@/utility/sound.js';
 import { $i } from '@/i.js';
@@ -26,10 +26,10 @@ import { mainRouter } from '@/router.js';
 import { makeHotkey } from '@/utility/hotkey.js';
 import { addCustomEmoji, removeCustomEmojis, updateCustomEmojis } from '@/custom-emojis.js';
 import { prefer } from '@/preferences.js';
-import { launchPlugins } from '@/plugin.js';
 import { updateCurrentAccountPartial } from '@/accounts.js';
-import { signout } from '@/signout.js';
 import { migrateOldSettings } from '@/pref-migrate.js';
+import { unisonReload } from '@/utility/unison-reload.js';
+import { checkAndRegenerateToken, silentTokenRefresh } from '@/utility/auto-token-regenerate.js';
 
 export async function mainBoot() {
 	const { isClientUpdated, lastVersion } = await common(async () => {
@@ -79,8 +79,6 @@ export async function mainBoot() {
 		}
 	}
 
-	launchPlugins();
-
 	try {
 		if (prefer.s.enableSeasonalScreenEffect) {
 			const month = new Date().getMonth() + 1;
@@ -109,6 +107,12 @@ export async function mainBoot() {
 	}
 
 	if ($i) {
+		try {
+			await checkAndRegenerateToken();
+		} catch (error) {
+			console.warn('Token check failed during startup:', error);
+		}
+
 		store.loaded.then(async () => {
 			if (store.s.accountSetupWizard !== -1) {
 				const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkUserSetupDialog.vue')), {}, {
@@ -301,8 +305,8 @@ export async function mainBoot() {
 		}
 		 */
 
-		const modifiedVersionMustProminentlyOfferInAgplV3Section13Read = miLocalStorage.getItem('modifiedVersionMustProminentlyOfferInAgplV3Section13Read');
-		if (modifiedVersionMustProminentlyOfferInAgplV3Section13Read !== 'true' && instance.repositoryUrl !== 'https://github.com/misskey-dev/misskey') {
+		const modifiedVersionMustProminentlyOfferInAgplV3Section13Read = miLocalStorage.getItem('modifiedVersionMustProminentlyOfferInAgplV3Section13ReadAndApplyToVk');
+		if (modifiedVersionMustProminentlyOfferInAgplV3Section13Read !== 'true' && instance.repositoryUrl.toLowerCase() !== 'https://github.com/whimsies-yat/vickey') {
 			const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSourceCodeAvailablePopup.vue')), {}, {
 				closed: () => dispose(),
 			});
@@ -318,22 +322,61 @@ export async function mainBoot() {
 		if (store.s.realtimeMode) {
 			const stream = useStream();
 
+			let disconnectTimer: number | null = null;
+
 			let reloadDialogShowing = false;
-			stream.on('_disconnected_', async () => {
-				if (prefer.s.serverDisconnectedBehavior === 'reload') {
-					window.location.reload();
-				} else if (prefer.s.serverDisconnectedBehavior === 'dialog') {
+			let activeReloadDialog: { close: () => void } | null = null;
+
+			stream.on('_disconnected_', () => {
+				if (!["dialog", "reload"].includes(prefer.s.serverDisconnectedBehavior)) {
+					return;
+				}
+
+				if (disconnectTimer) {
+					window.clearTimeout(disconnectTimer);
+				}
+
+				disconnectTimer = window.setTimeout(async () => {
 					if (reloadDialogShowing) return;
 					reloadDialogShowing = true;
-					const { canceled } = await confirm({
+
+					const confirmDialog = confirmAdvanced({
 						type: 'warning',
 						title: i18n.ts.disconnectedFromServer,
 						text: i18n.ts.reloadConfirm,
 					});
-					reloadDialogShowing = false;
-					if (!canceled) {
-						window.location.reload();
+
+					activeReloadDialog = confirmDialog;
+
+					try {
+						const { canceled } = await confirmDialog;
+
+						if (activeReloadDialog === confirmDialog) {
+							if (!canceled) {
+								window.location.reload();
+							}
+						}
+					} catch (error) {
+						console.warn('Dialog error:', error);
+					} finally {
+						if (activeReloadDialog === confirmDialog) {
+							reloadDialogShowing = false;
+							activeReloadDialog = null;
+						}
 					}
+				}, DIALOG_DELAY_MS);
+			});
+
+			stream.on('_connected_', () => {
+				if (disconnectTimer) {
+					window.clearTimeout(disconnectTimer);
+					disconnectTimer = null;
+				}
+
+				if (activeReloadDialog) {
+					activeReloadDialog.close();
+					activeReloadDialog = null;
+					reloadDialogShowing = false;
 				}
 			});
 
@@ -373,11 +416,6 @@ export async function mainBoot() {
 				});
 			});
 
-			main.on('unreadAntenna', () => {
-				updateCurrentAccountPartial({ hasUnreadAntenna: true });
-				sound.playMisskeySfx('antenna');
-			});
-
 			main.on('newChatMessage', () => {
 				updateCurrentAccountPartial({ hasUnreadChatMessages: true });
 				sound.playMisskeySfx('chatMessage');
@@ -389,10 +427,20 @@ export async function mainBoot() {
 
 			// 個人宛てお知らせが発行されたとき
 			main.on('announcementCreated', onAnnouncementCreated);
+
+			// Token refresh notification from server
+			main.on('tokenRefreshNeeded', () => {
+				console.log('WebSocket: Token refresh needed');
+				silentTokenRefresh().catch(error => {
+					console.warn('WebSocket-triggered token refresh failed:', error);
+				});
+			});
 		}
 	}
 
 	// shortcut
+	let safemodeRequestCount = 0;
+	let safemodeRequestTimer: number | null = null;
 	const keymap = {
 		'p|n': () => {
 			if ($i == null) return;
@@ -403,6 +451,24 @@ export async function mainBoot() {
 		},
 		's': () => {
 			mainRouter.push('/search');
+		},
+		'g': {
+			callback: () => {
+				// mを5回押すとセーフモードに入る
+				safemodeRequestCount++;
+				if (safemodeRequestCount >= 5) {
+					miLocalStorage.setItem('isSafeMode', 'true');
+					unisonReload();
+				} else {
+					if (safemodeRequestTimer != null) {
+						window.clearTimeout(safemodeRequestTimer);
+					}
+					safemodeRequestTimer = window.setTimeout(() => {
+						safemodeRequestCount = 0;
+					}, 300);
+				}
+			},
+			allowRepeat: true,
 		},
 	} as const satisfies Keymap;
 	window.document.addEventListener('keydown', makeHotkey(keymap), { passive: false });

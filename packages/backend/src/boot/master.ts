@@ -32,7 +32,7 @@ const themeColor = chalk.hex('#86b300');
 function greet() {
 	if (!envOption.quiet) {
 		//#region Vickey logo
-		const v = `v${meta.version}`;
+		const v = `${meta.codename} v${meta.version}`;
 		console.log(themeColor(' __     ___      _                   '));
 		console.log(themeColor(' \\ \\   / (_) ___| | _____ _   _    '));
 		console.log(themeColor('  \\ \\ / /| |/ __| |/ / _ \\ | | |  '));
@@ -42,7 +42,7 @@ function greet() {
 		console.log(' ' + chalk.gray(v) + themeColor('                         \n'.substring(v.length)));
 		//#endregion
 
-		console.log(' Vickey Is Not Just Key, It\'s Yours!');
+		console.log(' Vickey Inspires Connection, Keeping Everyone Yours!');
 		console.log(chalk.rgb(255, 136, 0)(' If you like Vickey, please donate to support development. https://ko-fi.com/yateam'));
 
 		console.log('');
@@ -50,7 +50,7 @@ function greet() {
 	}
 
 	bootLogger.info('Welcome to Vickey!');
-	bootLogger.info(`Vickey v${meta.version}`, null, true);
+	bootLogger.info(`Vickey ${meta.codename} v${meta.version}`, null, true);
 }
 
 /**

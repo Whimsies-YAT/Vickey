@@ -56,4 +56,34 @@ export class MiApp {
 		comment: 'The callbackUrl of the App.',
 	})
 	public callbackUrl: string | null;
+
+	@Column('boolean', {
+		default: false,
+		comment: 'Whether this is an OAuth app (uses URL client_id).',
+	})
+	public isOAuth: boolean;
+
+	@Column('varchar', {
+		length: 512, nullable: true,
+		comment: 'The icon URL of the OAuth App.',
+	})
+	public iconUrl: string | null;
+
+	@Column('varchar', {
+		length: 512, nullable: true,
+		comment: 'The website URL of the OAuth App.',
+	})
+	public websiteUrl: string | null;
+
+	@Column('varchar', {
+		length: 512, nullable: true,
+		comment: 'The OAuth client_id URL for IndieAuth compatibility.',
+	})
+	public clientId: string | null;
+
+	@Column('timestamp with time zone', {
+		default: () => 'CURRENT_TIMESTAMP',
+		comment: 'The created date of the App.',
+	})
+	public createdAt: Date;
 }

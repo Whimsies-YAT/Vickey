@@ -6,147 +6,159 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <PageWithHeader :actions="headerActions" :tabs="headerTabs">
 	<div class="_spacer" style="--MI_SPACER-w: 700px; --MI_SPACER-min: 16px; --MI_SPACER-max: 32px;">
-		<FormSuspense :p="init">
+		<SearchMarker path="/admin/external-services" :label="i18n.ts.externalServices" :keywords="['external', 'services', 'thirdparty']" icon="ti ti-link">
 			<div class="_gaps_m">
-				<MkFolder>
-					<template #label>Google Analytics<span class="_beta">{{ i18n.ts.beta }}</span></template>
+				<SearchMarker v-slot="slotProps">
+					<MkFolder :defaultOpen="slotProps.isParentOfTarget">
+						<template #label><SearchLabel>Google Analytics</SearchLabel><span class="_beta">{{ i18n.ts.beta }}</span></template>
 
-					<div class="_gaps_m">
-						<MkInput v-model="googleAnalyticsMeasurementId">
-							<template #prefix><i class="ti ti-key"></i></template>
-							<template #label>Measurement ID</template>
-						</MkInput>
-						<MkButton primary @click="save_googleAnalytics">Save</MkButton>
-					</div>
-				</MkFolder>
+						<div class="_gaps_m">
+							<SearchMarker>
+								<MkInput v-model="googleAnalyticsMeasurementId">
+									<template #prefix><i class="ti ti-key"></i></template>
+									<template #label><SearchLabel>Measurement ID</SearchLabel></template>
+								</MkInput>
+							</SearchMarker>
 
-				<MkFolder>
-					<template #label>DeepL Translation</template>
+							<MkButton primary @click="save_googleAnalytics">Save</MkButton>
+						</div>
+					</MkFolder>
+				</SearchMarker>
 
-                <div class="_gaps_m">
-                    <MkInput v-model="deeplAuthKey">
-                        <template #prefix><i class="ti ti-key"></i></template>
-                        <template #label>DeepL Auth Key</template>
-                    </MkInput>
-                    <MkSwitch v-model="deeplIsPro">
-                        <template #label>Pro account</template>
-                    </MkSwitch>
-                    <MkButton primary @click="save_deepl">Save</MkButton>
-                </div>
-            </MkFolder>
+				<SearchMarker v-slot="slotProps">
+					<MkFolder :defaultOpen="slotProps.isParentOfTarget">
+						<template #label><SearchLabel>DeepL Translation</SearchLabel></template>
 
-            <MkFolder>
-                <template #label>Text-To-Speech</template>
-                <div class="_gaps_m">
-                    <MkInput v-model="hfAuthKey">
-                        <template #prefix><i class="ti ti-key"></i></template>
-                        <template #label>HuggingFace Auth Key</template>
-                    </MkInput>
-                    <MkSwitch v-model="hfSpace">
-                        <template #label>HuggingFace Space</template>
-                    </MkSwitch>
-                    <div v-if="hfSpace">
-                        <MkInput v-model="hfSpaceName">
-                            <template #label>Space Name</template>
-                        </MkInput>
-                        <MkInput v-model="hfexampleAudioURL">
-                            <template #label>Example Audio URL</template>
-                        </MkInput>
-						<br />
-                        <MkSwitch v-model="hfnrm">
-                            <template #label>Enable no reference mode</template>
-                        </MkSwitch>
-						<br />
-                        <div v-if="!hfnrm">
-                            <MkInput v-model="hfexampleText">
-                                <template #label>Example Text</template>
-                            </MkInput>
-                        </div>
-                        <MkSelect v-model="hfexampleLang">
-														<template #label>Example Language</template>
-                            <option value="" disabled> </option>
-                            <option value="Chinese">中文</option>
-                            <option value="English">English</option>
-                            <option value="Japanese">日本語</option>
-                            <option value="Yue">中文 (粤语)</option>
-														<option value="Korean">한국어</option>
-														<option value="Chinese-English Mixed">中文 - English</option>
-														<option value="Japanese-English Mixed">日本語 - English</option>
-														<option value="Yue-English Mixed">中文 (粤语) - English</option>
-														<option value="Korean-English Mixed">한국어 - English</option>
-														<option value="Multilingual Mixed">Multilingual Mixed</option>
-														<option value="Multilingual Mixed(Yue)">Multilingual Mixed (Yue)</option>
-                        </MkSelect>
-						<br />
-                        <MkSwitch v-model="hfdas">
-                            <template #label>Whether to directly adjust the speech rate and timebre of the last synthesis result to prevent randomness</template>
-                        </MkSwitch>
-						<br />
-												<MkSelect v-model="hfslice">
-														<template #label>Slice</template>
-                            <option value="" disabled> </option>
-                            <option value="No slice">No slice</option>
-                            <option value="Slice once every 4 sentences">Slice once every 4 sentences</option>
-                            <option value="Slice per 50 characters">Slice per 50 characters</option>
-                            <option value="Slice by Chinese punct">Slice by Chinese punct</option>
-														<option value="Slice by English punct">Slice by English punct</option>
-														<option value="Slice by every punct">Slice by every punct</option>
-                        </MkSelect>
-                        <MkInput v-model.number="hftopK" type="range" :min="0" :max="100" :step="1">
-														<template #label>Set top_k Value: {{ hftopK }}</template>
-												</MkInput>
-                        <MkInput v-model.number="hftopP" type="range" :min="0" :max="100" :step="5">
-														<template #label>Set top_p Value: {{ hftopP }}</template>
-												</MkInput>
-												<MkInput v-model.number="hfTemperature" type="range" :min="0" :max="100" :step="5">
-														<template #label>Set Temperature Value: {{ hfTemperature }}</template>
-												</MkInput>
-												<MkInput v-model.number="hfSpeedRate" type="range" :min="60" :max="165" :step="5">
-														<template #label>Set Speed Rate Value: {{ hfSpeedRate }}</template>
-												</MkInput>
-                    </div>
-                    <MkButton primary @click="save_tts">Save</MkButton>
-                </div>
-            </MkFolder>
+						<div class="_gaps_m">
+							<SearchMarker>
+								<MkInput v-model="deeplAuthKey">
+									<template #prefix><i class="ti ti-key"></i></template>
+									<template #label><SearchLabel>Auth Key</SearchLabel></template>
+								</MkInput>
+							</SearchMarker>
 
-					  <MkFolder>
-						  <template #label>Restricted Regions</template>
+							<SearchMarker>
+								<MkSwitch v-model="deeplIsPro">
+									<template #label><SearchLabel>Pro account</SearchLabel></template>
+								</MkSwitch>
+							</SearchMarker>
 
-						  <div class="_gaps_m">
-							  <MkInput v-model="ip2lAuthKey">
-								  <template #prefix><i class="ti ti-key"></i></template>
-								  <template #label>IP2Location Auth Key</template>
-							  </MkInput>
-							  <MkSwitch v-model="ip2lIsPro">
-								  <template #label>Pro</template>
-							  </MkSwitch>
-								<MkTextarea v-model="banCountry">
-									<template #label>Restricted regions (one per line)</template>
-								</MkTextarea>
-								<MkButton primary @click="addRestrictedArea">Add GDPR-compliant regions</MkButton>
-								<MkTextarea v-model="exemptIP">
-									<template #label>Exempt IPs (one per line)</template>
-								</MkTextarea>
-							  <MkButton primary @click="save_ra">Save</MkButton>
-						  </div>
-					  </MkFolder>
-
-				<MkFolder>
-					<template #label>Proxy Database</template>
-
-					<div class="_gaps_m">
-						<MkInput v-model="ip2lProxyAuthKey">
-							<template #prefix><i class="ti ti-key"></i></template>
-							<template #label>IP2Proxy Auth Key</template>
-						</MkInput>
-						<MkSwitch v-model="ip2lProxyIsPro">
-							<template #label>Pro</template>
-						</MkSwitch>
-						<MkButton primary @click="save_pd">Save</MkButton>
-					</div>
-				</MkFolder>
+							<MkButton primary @click="save_deepl">Save</MkButton>
+						</div>
+					</MkFolder>
+				</SearchMarker>
 			</div>
-		</FormSuspense>
+			<MkFolder>
+				<template #label><SearchLabel>Text-To-Speech</SearchLabel></template>
+				<div class="_gaps_m">
+					<MkInput v-model="hfAuthKey">
+						<template #prefix><i class="ti ti-key"></i></template>
+						<template #label><SearchLabel>HuggingFace Auth Key</SearchLabel></template>
+					</MkInput>
+					<MkSwitch v-model="hfSpace">
+						<template #label><SearchLabel>HuggingFace Space</SearchLabel></template>
+					</MkSwitch>
+					<div v-if="hfSpace">
+						<MkInput v-model="hfSpaceName">
+							<template #label>Space Name</template>
+						</MkInput>
+						<MkInput v-model="hfexampleAudioURL">
+							<template #label>Example Audio URL</template>
+						</MkInput>
+						<br />
+						<MkSwitch v-model="hfnrm">
+							<template #label>Enable no reference mode</template>
+						</MkSwitch>
+						<br />
+						<div v-if="!hfnrm">
+							<MkInput v-model="hfexampleText">
+								<template #label>Example Text</template>
+							</MkInput>
+						</div>
+						<MkSelect v-model="hfexampleLang">
+							<template #label>Example Language</template>
+							<option value="" disabled> </option>
+							<option value="Chinese">中文</option>
+							<option value="English">English</option>
+							<option value="Japanese">日本語</option>
+							<option value="Yue">中文 (粤语)</option>
+							<option value="Korean">한국어</option>
+							<option value="Chinese-English Mixed">中文 - English</option>
+							<option value="Japanese-English Mixed">日本語 - English</option>
+							<option value="Yue-English Mixed">中文 (粤语) - English</option>
+							<option value="Korean-English Mixed">한국어 - English</option>
+							<option value="Multilingual Mixed">Multilingual Mixed</option>
+							<option value="Multilingual Mixed(Yue)">Multilingual Mixed (Yue)</option>
+						</MkSelect>
+						<br />
+						<MkSwitch v-model="hfdas">
+							<template #label>Whether to directly adjust the speech rate and timebre of the last synthesis result to prevent randomness</template>
+						</MkSwitch>
+						<br />
+						<MkSelect v-model="hfslice">
+							<template #label>Slice</template>
+							<option value="" disabled> </option>
+							<option value="No slice">No slice</option>
+							<option value="Slice once every 4 sentences">Slice once every 4 sentences</option>
+							<option value="Slice per 50 characters">Slice per 50 characters</option>
+							<option value="Slice by Chinese punct">Slice by Chinese punct</option>
+							<option value="Slice by English punct">Slice by English punct</option>
+							<option value="Slice by every punct">Slice by every punct</option>
+						</MkSelect>
+						<MkInput v-model.number="hftopK" type="range" :min="0" :max="100" :step="1">
+							<template #label>Set top_k Value: {{ hftopK }}</template>
+						</MkInput>
+						<MkInput v-model.number="hftopP" type="range" :min="0" :max="100" :step="5">
+							<template #label>Set top_p Value: {{ hftopP }}</template>
+						</MkInput>
+						<MkInput v-model.number="hfTemperature" type="range" :min="0" :max="100" :step="5">
+							<template #label>Set Temperature Value: {{ hfTemperature }}</template>
+						</MkInput>
+						<MkInput v-model.number="hfSpeedRate" type="range" :min="60" :max="165" :step="5">
+							<template #label>Set Speed Rate Value: {{ hfSpeedRate }}</template>
+						</MkInput>
+					</div>
+					<MkButton primary @click="save_tts">Save</MkButton>
+				</div>
+			</MkFolder>
+
+			<MkFolder>
+				<template #label><SearchLabel>Restricted Regions</SearchLabel></template>
+
+				<div class="_gaps_m">
+					<MkInput v-model="ip2lAuthKey">
+						<template #prefix><i class="ti ti-key"></i></template>
+						<template #label><SearchLabel>IP2Location Auth Key</SearchLabel></template>
+					</MkInput>
+					<MkSwitch v-model="ip2lIsPro">
+						<template #label><SearchLabel>IP2Location Pro</SearchLabel></template>
+					</MkSwitch>
+					<MkTextarea v-model="banCountry">
+						<template #label><SearchLabel>Restricted regions (one per line)</SearchLabel></template>
+					</MkTextarea>
+					<MkButton primary @click="addRestrictedArea">Add GDPR-compliant regions</MkButton>
+					<MkTextarea v-model="exemptIP">
+						<template #label><SearchLabel>Exempt IPs (one per line)</SearchLabel></template>
+					</MkTextarea>
+					<MkButton primary @click="save_ra">Save</MkButton>
+				</div>
+			</MkFolder>
+
+			<MkFolder>
+				<template #label>Proxy Database</template>
+
+				<div class="_gaps_m">
+					<MkInput v-model="ip2lProxyAuthKey">
+						<template #prefix><i class="ti ti-key"></i></template>
+						<template #label><SearchLabel>IP2Proxy Auth Key</SearchLabel></template>
+					</MkInput>
+					<MkSwitch v-model="ip2lProxyIsPro">
+						<template #label><SearchLabel>IP2Proxy Pro</SearchLabel></template>
+					</MkSwitch>
+					<MkButton primary @click="save_pd">Save</MkButton>
+				</div>
+			</MkFolder>
+		</SearchMarker>
 	</div>
 </PageWithHeader>
 </template>
@@ -157,7 +169,6 @@ import MkInput from '@/components/MkInput.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
-import FormSuspense from '@/components/form/suspense.vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { fetchInstance } from '@/instance.js';
@@ -166,55 +177,30 @@ import { definePage } from '@/page.js';
 import MkFolder from '@/components/MkFolder.vue';
 import MkTextarea from "@/components/MkTextarea.vue";
 
-const deeplAuthKey = ref<string>('');
-const deeplIsPro = ref<boolean>(false);
-const hfAuthKey = ref<string>('');
-const hfSpace = ref<boolean>(false);
-const hfSpaceName = ref<string | null>(null);
-const hfexampleAudioURL = ref<string | null>(null);
-const hfexampleText = ref<string | null>(null);
-const hfexampleLang = ref<string | null>(null);
-const hfslice = ref<string | null>('Slice once every 4 sentences');
-const hftopK = ref<number>(15);
-const hftopP = ref<number>(100);
-const hfTemperature = ref<number>(100);
-const hfnrm = ref<boolean>(false);
-const hfSpeedRate = ref<number>(125);
-const hfdas = ref<boolean>(false);
-const ip2lAuthKey = ref<string>('');
-const ip2lIsPro = ref<boolean>(false);
-const banCountry = ref<string>('');
-const exemptIP = ref<string>('');
-const ip2lProxyAuthKey = ref<string>('');
-const ip2lProxyIsPro = ref<boolean>(false);
+const meta = await misskeyApi('admin/meta');
 
-const googleAnalyticsMeasurementId = ref<string>('');
-
-async function init() {
-	const meta = await misskeyApi('admin/meta');
-  deeplAuthKey.value = meta.deeplAuthKey ?? '';
-  deeplIsPro.value = meta.deeplIsPro;
-  hfAuthKey.value = meta.hfAuthKey;
-	googleAnalyticsMeasurementId.value = meta.googleAnalyticsMeasurementId ?? '';
-  hfSpace.value = meta.hfSpace;
-  hfSpaceName.value = meta.hfSpaceName;
-  hfexampleAudioURL.value = meta.hfexampleAudioURL;
-  hfexampleText.value = meta.hfexampleText;
-  hfexampleLang.value = meta.hfexampleLang;
-  hfslice.value = meta.hfslice;
-  hftopK.value = meta.hftopK;
-  hftopP.value = meta.hftopP;
-  hfTemperature.value = meta.hfTemperature;
-  hfnrm.value = meta.hfnrm;
-  hfSpeedRate.value = meta.hfSpeedRate;
-  hfdas.value = meta.hfdas;
-	ip2lAuthKey.value = meta.ip2lAuthKey;
-	ip2lIsPro.value = meta.ip2lIsPro;
-	banCountry.value = meta.banCountry.join('\n');
-	exemptIP.value = meta.exemptIP.join('\n');
-	ip2lProxyAuthKey.value = meta.ip2lProxyAuthKey;
-	ip2lProxyIsPro.value = meta.ip2lProxyIsPro;
-}
+const deeplAuthKey = ref(meta.deeplAuthKey ?? '');
+const deeplIsPro = ref(meta.deeplIsPro);
+const googleAnalyticsMeasurementId = ref(meta.googleAnalyticsMeasurementId ?? '');
+const hfAuthKey = ref(meta.hfAuthKey ?? '');
+const hfSpace = ref(meta.hfSpace ?? false);
+const hfSpaceName = ref(meta.hfSpaceName ?? null);
+const hfexampleAudioURL = ref(meta.hfexampleAudioURL ?? null);
+const hfexampleText = ref(meta.hfexampleText ?? null);
+const hfexampleLang = ref(meta.hfexampleLang ?? null);
+const hfslice = ref(meta.hfslice ?? 'Slice once every 4 sentences');
+const hftopK = ref(meta.hftopK ?? 15);
+const hftopP = ref(meta.hftopP ?? 100);
+const hfTemperature = ref(meta.hfTemperature ?? 100);
+const hfnrm = ref(meta.hfnrm ?? false);
+const hfSpeedRate = ref(meta.hfSpeedRate ?? 125);
+const hfdas = ref(meta.hfdas ?? false);
+const ip2lAuthKey = ref(meta.ip2lAuthKey ?? '');
+const ip2lIsPro = ref(meta.ip2lIsPro ?? false);
+const banCountry = ref(meta.banCountry ?? '');
+const exemptIP = ref(meta.exemptIP ?? '');
+const ip2lProxyAuthKey = ref(meta.ip2lProxyAuthKey ?? '');
+const ip2lProxyIsPro = ref(meta.ip2lProxyIsPro ?? false);
 
 function save_deepl() {
     os.apiWithDialog('admin/update-meta', {
@@ -254,8 +240,8 @@ function save_googleAnalytics() {
 }
 
 function save_ra() {
-	const banCountryArray = banCountry.value.split('\n').map(item => item.trim()).filter(item => item);
-	const exemptIPArray = exemptIP.value.split('\n').map(item => item.trim()).filter(item => item);
+	const banCountryArray = String(banCountry.value || '').split('\n').map(item => item.trim()).filter(item => item);
+	const exemptIPArray = String(exemptIP.value || '').split('\n').map(item => item.trim()).filter(item => item);
 
 	os.apiWithDialog('admin/update-meta', {
 		ip2lAuthKey: ip2lAuthKey.value,

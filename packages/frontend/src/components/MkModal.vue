@@ -74,6 +74,7 @@ const props = withDefaults(defineProps<{
 	transparentBg?: boolean;
 	hasInteractionWithOtherFocusTrappedEls?: boolean;
 	returnFocusTo?: HTMLElement | null;
+	open?: boolean;
 }>(), {
 	manualShowing: null,
 	anchorElement: null,
@@ -84,6 +85,7 @@ const props = withDefaults(defineProps<{
 	transparentBg: false,
 	hasInteractionWithOtherFocusTrappedEls: false,
 	returnFocusTo: null,
+	open: true,
 });
 
 const emit = defineEmits<{
@@ -91,7 +93,7 @@ const emit = defineEmits<{
 	(ev: 'opened'): void;
 	(ev: 'click'): void;
 	(ev: 'esc'): void;
-	(ev: 'close'): void;
+	(ev: 'close'): void; // TODO: (refactor) closing に改名する
 	(ev: 'closed'): void;
 }>();
 
@@ -100,7 +102,7 @@ provide(DI.inModal, true);
 const maxHeight = ref<number>();
 const fixed = ref(false);
 const transformOrigin = ref('center');
-const showing = ref(true);
+const showing = ref(props.open);
 const modalRootEl = useTemplateRef('modalRootEl');
 const content = useTemplateRef('content');
 const zIndex = os.claimZIndex(props.zPriority);
@@ -148,7 +150,6 @@ function close(opts: { useSendAnimation?: boolean } = {}) {
 		useSendAnime.value = true;
 	}
 
-	// eslint-disable-next-line vue/no-mutating-props
 	if (props.anchorElement) props.anchorElement.style.pointerEvents = 'auto';
 	showing.value = false;
 	emit('close');
@@ -319,7 +320,6 @@ const alignObserver = new ResizeObserver((entries, observer) => {
 onMounted(() => {
 	watch(() => props.anchorElement, async () => {
 		if (props.anchorElement) {
-			// eslint-disable-next-line vue/no-mutating-props
 			props.anchorElement.style.pointerEvents = 'none';
 		}
 		fixed.value = (type.value === 'drawer') || (getFixedContainer(props.anchorElement) != null);
@@ -343,8 +343,18 @@ onMounted(() => {
 		}
 	}, { immediate: true });
 
+	watch(() => props.open, (newValue) => {
+		if (newValue) {
+			showing.value = true;
+		} else {
+			close();
+		}
+	});
+
 	nextTick(() => {
-		alignObserver.observe(content.value!);
+		if (content.value) {
+			alignObserver.observe(content.value);
+		}
 	});
 });
 

@@ -12,6 +12,8 @@ import { QueueStatsService } from '@/daemons/QueueStatsService.js';
 import { ServerStatsService } from '@/daemons/ServerStatsService.js';
 import { ServerService } from '@/server/ServerService.js';
 import { MainModule } from '@/MainModule.js';
+import { loadConfig, Config } from '@/config.js';
+import { CacheService } from '@/core/CacheService.js';
 
 export async function server() {
 	const app = await NestFactory.createApplicationContext(MainModule, {
@@ -28,21 +30,36 @@ export async function server() {
 		app.get(ServerStatsService).start();
 	}
 
-	const handleSignal = async (signal: string) => {
-		console.log(`Received ${signal} signal, closing application...`);
+	const closeAppSafely = async (app: any, reason?: string) => {
+		if (reason) console.log(reason);
 
 		try {
+			const cacheService = app.get(CacheService);
+			if (cacheService && typeof cacheService.beforeApplicationShutdown === 'function') {
+				await cacheService.beforeApplicationShutdown();
+			}
+
 			const serverService = app.get(ServerService);
 			await serverService.dispose();
 
 			await app.close();
 			console.log('Application closed successfully');
-
 			process.exit(0);
 		} catch (err) {
 			console.error('Error when closing application:', err);
 			process.exit(1);
 		}
+	};
+
+	let config: Config | null = loadConfig();
+	if ((!config.tokenSalt || config.tokenSalt === "ThisIsNOTSecureEnoughChangeItPoweredByVickey") || (!config.hmacKey || config.hmacKey === "ThisIsNOTSecureEnoughChangeItPoweredByVickey")) {
+		await closeAppSafely(app, 'Token salt missing or unsafe, closing application...');
+	}
+
+	config = null;
+
+	const handleSignal = async (signal: string) => {
+		await closeAppSafely(app, `Received ${signal} signal, closing application...`);
 	};
 
 	process.on('SIGINT', () => handleSignal('SIGINT'));

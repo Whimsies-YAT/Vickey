@@ -32,6 +32,8 @@ import { HealthServerService } from './HealthServerService.js';
 import { ClientServerService } from './web/ClientServerService.js';
 import { OpenApiServerService } from './api/openapi/OpenApiServerService.js';
 import { OAuth2ProviderService } from './oauth/OAuth2ProviderService.js';
+import { OAuthAppServerService } from './oauth/OAuthAppServerService.js';
+import { IconService } from './IconService.js';
 
 const _dirname = fileURLToPath(new URL('.', import.meta.url));
 
@@ -70,6 +72,8 @@ export class ServerService implements OnApplicationShutdown {
 		private globalEventService: GlobalEventService,
 		private loggerService: LoggerService,
 		private oauth2ProviderService: OAuth2ProviderService,
+		private oauthAppServerService: OAuthAppServerService,
+		private iconService: IconService,
 	) {
 		this.logger = this.loggerService.getLogger('server', 'gray');
 	}
@@ -142,14 +146,17 @@ export class ServerService implements OnApplicationShutdown {
 			});
 		}
 
+		fastify.register(this.iconService.createServer.bind(this.iconService));
 		fastify.register(this.apiServerService.createServer, { prefix: '/api' });
 		fastify.register(this.openApiServerService.createServer);
 		fastify.register(this.fileServerService.createServer);
 		fastify.register(this.activityPubServerService.createServer);
 		fastify.register(this.nodeinfoServerService.createServer);
 		fastify.register(this.wellKnownServerService.createServer);
-		fastify.register(this.oauth2ProviderService.createServer, { prefix: '/oauth' });
+		fastify.register(this.oauthAppServerService.createServer.bind(this.oauthAppServerService));
 		fastify.register(this.oauth2ProviderService.createTokenServer, { prefix: '/oauth/token' });
+		fastify.register(this.oauth2ProviderService.createRevokeServer, { prefix: '/oauth/revoke' });
+		fastify.register(this.oauth2ProviderService.createServer, { prefix: '/oauth' });
 		fastify.register(this.healthServerService.createServer, { prefix: '/healthz' });
 
 		fastify.get<{ Params: { path: string }; Querystring: { static?: any; badge?: any; }; }>('/emoji/:path(.*)', async (request, reply) => {
@@ -237,30 +244,6 @@ export class ServerService implements OnApplicationShutdown {
 				return await genIdenticon(request.params.x);
 			} else {
 				return reply.redirect('/static-assets/avatar.png');
-			}
-		});
-
-		fastify.get<{ Params: { code: string } }>('/verify-email/:code', async (request, reply) => {
-			const profile = await this.userProfilesRepository.findOneBy({
-				emailVerifyCode: request.params.code,
-			});
-
-			if (profile != null) {
-				await this.userProfilesRepository.update({ userId: profile.userId }, {
-					emailVerified: true,
-					emailVerifyCode: null,
-				});
-
-				this.globalEventService.publishMainStream(profile.userId, 'meUpdated', await this.userEntityService.pack(profile.userId, { id: profile.userId }, {
-					schema: 'MeDetailed',
-					includeSecrets: true,
-				}));
-
-				reply.code(200).send('Verification succeeded! メールアドレスの認証に成功しました。');
-				return;
-			} else {
-				reply.code(404).send('Verification failed. Please try again. メールアドレスの認証に失敗しました。もう一度お試しください');
-				return;
 			}
 		});
 

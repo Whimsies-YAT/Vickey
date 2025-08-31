@@ -69,7 +69,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private userEntityService: UserEntityService,
 		private signupService: SignupService,
 	) {
-		super(meta, paramDef, async (ps, _me, token) => {
+		super(meta, paramDef, async (ps, _me, token, file, cleanup, ip, headers) => {
 			const me = _me ? await this.usersRepository.findOneByOrFail({ id: _me.id }) : null;
 
 			if (this.serverSettings.rootUserId == null && me == null && token == null) {
@@ -94,6 +94,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				password: ps.password,
 				ignorePreservedUsernames: true,
 				approved: true,
+				ip: ip || '127.0.0.1',
+				headers: headers,
 			});
 
 			const res = await this.userEntityService.pack(account, account, {

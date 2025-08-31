@@ -43,7 +43,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 </div>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts">
+type SupportedTypes = 'text' | 'password' | 'email' | 'url' | 'tel' | 'number' | 'search';
+type ModelValueType<T extends SupportedTypes> =
+	T extends 'number' ? number :
+	T extends 'text' | 'password' | 'email' | 'url' | 'tel' | 'search' ? string :
+	never;
+</script>
+
+<script lang="ts" setup generic="T extends SupportedTypes = 'text'">
 import { onMounted, onUnmounted, nextTick, ref, useTemplateRef, watch, computed, toRefs } from 'vue';
 import { debounce } from 'throttle-debounce';
 import { useInterval } from '@@/js/use-interval.js';
@@ -55,8 +63,8 @@ import { Autocomplete } from '@/utility/autocomplete.js';
 import { genId } from '@/utility/id.js';
 
 const props = defineProps<{
-	modelValue: string | number | null;
-	type?: InputHTMLAttributes['type'];
+	modelValue: ModelValueType<T> | null;
+	type?: T;
 	required?: boolean;
 	readonly?: boolean;
 	disabled?: boolean;
@@ -83,11 +91,11 @@ const emit = defineEmits<{
 	(ev: 'change', _ev: KeyboardEvent): void;
 	(ev: 'keydown', _ev: KeyboardEvent): void;
 	(ev: 'enter', _ev: KeyboardEvent): void;
-	(ev: 'update:modelValue', value: string | number): void;
+	(ev: 'update:modelValue', value: ModelValueType<T>): void;
 }>();
 
-const { modelValue, type, autofocus } = toRefs(props);
-const v = ref(modelValue.value);
+const { modelValue } = toRefs(props);
+const v = ref<ModelValueType<T> | null>(modelValue.value);
 const id = genId();
 const focused = ref(false);
 const changed = ref(false);
@@ -120,8 +128,8 @@ const onKeydown = (ev: KeyboardEvent) => {
 
 const updated = () => {
 	changed.value = false;
-	if (type.value === 'number') {
-		emit('update:modelValue', typeof v.value === 'number' ? v.value : parseFloat(v.value ?? '0'));
+	if (props.type === 'number') {
+		emit('update:modelValue', typeof v.value === 'number' ? v.value as ModelValueType<T> : parseFloat(v.value ?? '0') as ModelValueType<T>);
 	} else {
 		emit('update:modelValue', v.value ?? '');
 	}
@@ -167,7 +175,7 @@ useInterval(() => {
 
 onMounted(() => {
 	nextTick(() => {
-		if (autofocus.value) {
+		if (props.autofocus) {
 			focus();
 		}
 	});
@@ -256,6 +264,56 @@ defineExpose({
 
 	&:hover {
 		border-color: var(--MI_THEME-inputBorderHover) !important;
+	}
+}
+
+.inputCore[type="range"] {
+	padding: 0;
+	background: transparent;
+
+	&::-webkit-slider-runnable-track {
+		width: 100%;
+		height: 8px;
+		cursor: pointer;
+		background: color(from var(--MI_THEME-accent) srgb r g b / 0.25);
+		border-radius: 4px;
+	}
+
+	&::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		height: 20px;
+		width: 20px;
+		border-radius: 50%;
+		background: var(--MI_THEME-accent);
+		cursor: pointer;
+		margin-top: -6px;
+		transition: transform 0.1s ease;
+	}
+
+	&::-moz-range-track {
+		width: 100%;
+		height: 8px;
+		cursor: pointer;
+		background: color(from var(--MI_THEME-accent) srgb r g b / 0.25);
+		border-radius: 4px;
+	}
+
+	&::-moz-range-thumb {
+		height: 20px;
+		width: 20px;
+		border-radius: 50%;
+		background: var(--MI_THEME-accent);
+		cursor: pointer;
+		border: none;
+		transition: transform 0.1s ease;
+	}
+
+	&:focus::-webkit-slider-thumb {
+		box-shadow: 0 0 0 4px var(--MI_THEME-focus);
+	}
+	&:focus::-moz-range-thumb {
+		box-shadow: 0 0 0 4px var(--MI_THEME-focus);
 	}
 }
 

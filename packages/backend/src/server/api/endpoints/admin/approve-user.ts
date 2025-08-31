@@ -45,7 +45,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private emailService: EmailService,
 		private emailTemplatesService: EmailTemplatesService,
 	) {
-		super(meta, paramDef, async (ps, me) => {
+		super(meta, paramDef, async (ps, me, token, file, cleanup, ip, headers) => {
 			const pendingUser = await this.userPendingsRepository.findOneByOrFail({ id: ps.userId, isProcessed: false });
 
 			const { account, secret } = await this.signupService.signup({
@@ -53,6 +53,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				passwordHash: pendingUser.password,
 				reason: pendingUser.reason,
 				approved: true,
+				ip: ip || '127.0.0.1',
+				headers,
 			});
 
 			const user = await this.usersRepository.findOneByOrFail({ id: account.id });

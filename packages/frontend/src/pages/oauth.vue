@@ -7,15 +7,26 @@ SPDX-License-Identifier: AGPL-3.0-only
 <PageWithAnimBg>
 	<div :class="$style.formContainer">
 		<div :class="$style.form">
-			<MkAuthConfirm
-				ref="authRoot"
-				:name="name"
-				:icon="logo"
-				:permissions="permissions"
-				:waitOnDeny="true"
-				@accept="onAccept"
-				@deny="onDeny"
-			/>
+			<div :class="$style.authContainer">
+				<div :class="$style.authHeader">
+					<i class="ti ti-shield-check" :class="$style.authIcon"></i>
+					<h1 :class="$style.authTitle">{{ i18n.ts.authTitle }}</h1>
+					<p :class="$style.authDescription">
+						{{ i18n.ts.authDescription }}
+					</p>
+				</div>
+				<MkAuthConfirm
+					ref="authRoot"
+					:name="name"
+					:icon="logo"
+					:description="description"
+					:websiteUrl="websiteUrl"
+					:permissions="permissions"
+					:waitOnDeny="true"
+					@accept="onAccept"
+					@deny="onDeny"
+				/>
+			</div>
 		</div>
 	</div>
 </PageWithAnimBg>
@@ -25,6 +36,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import * as Misskey from 'misskey-js';
 import { definePage } from '@/page.js';
 import MkAuthConfirm from '@/components/MkAuthConfirm.vue';
+import { i18n } from '@/i18n.js';
 
 const transactionIdMeta = window.document.querySelector<HTMLMetaElement>('meta[name="misskey:oauth:transaction-id"]');
 if (transactionIdMeta) {
@@ -33,6 +45,8 @@ if (transactionIdMeta) {
 
 const name = window.document.querySelector<HTMLMetaElement>('meta[name="misskey:oauth:client-name"]')?.content;
 const logo = window.document.querySelector<HTMLMetaElement>('meta[name="misskey:oauth:client-logo"]')?.content;
+const description = window.document.querySelector<HTMLMetaElement>('meta[name="misskey:oauth:client-description"]')?.content;
+const websiteUrl = window.document.querySelector<HTMLMetaElement>('meta[name="misskey:oauth:client-website"]')?.content;
 const permissions = window.document.querySelector<HTMLMetaElement>('meta[name="misskey:oauth:scope"]')?.content.split(' ').filter((p): p is typeof Misskey.permissions[number] => (Misskey.permissions as readonly string[]).includes(p)) ?? [];
 
 function doPost(token: string, decision: 'accept' | 'deny') {
@@ -99,5 +113,39 @@ definePage(() => ({
 	width: calc(100vw - 64px);
 	height: min(65svh, calc(100svh - calc(env(safe-area-inset-bottom, 0px) + 64px)));
 	overflow-y: scroll;
+}
+
+.authContainer {
+	position: relative;
+}
+
+.authHeader {
+	text-align: center;
+	padding: 24px 24px 8px 24px;
+	border-bottom: 1px solid var(--MI_THEME-divider);
+	margin-bottom: 16px;
+}
+
+.authIcon {
+	display: block;
+	font-size: 48px;
+	color: var(--MI_THEME-accent);
+	margin: 0 auto 16px;
+	width: 48px;
+	height: 48px;
+}
+
+.authTitle {
+	font-size: 20px;
+	font-weight: 700;
+	color: var(--MI_THEME-fg);
+	margin: 0 0 8px 0;
+}
+
+.authDescription {
+	font-size: 14px;
+	color: var(--MI_THEME-fgTransparentWeak);
+	margin: 0;
+	line-height: 1.5;
 }
 </style>

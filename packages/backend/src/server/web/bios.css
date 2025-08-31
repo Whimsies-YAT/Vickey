@@ -5,42 +5,262 @@
  */
 
 * {
-	font-family: Fira code, Fira Mono, Consolas, Menlo, Courier, monospace;
+	font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	box-sizing: border-box;
 }
 
 html {
-	background: #ffb4e1;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	min-height: 100vh;
+	margin: 0;
+	padding: 20px;
 }
 
 main {
-	background: #dedede;
+	background: rgba(255, 255, 255, 0.95);
+	backdrop-filter: blur(10px);
+	border-radius: 16px;
+	box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+	overflow: hidden;
+	max-width: 1200px;
+	margin: 0 auto;
 }
+
 main > .tabs {
-	padding: 16px;
-	border-bottom: solid 4px #c3c3c3;
+	padding: 24px 32px;
+	background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
+	color: white;
+	font-weight: 600;
+	font-size: 18px;
+	border: none;
+	position: relative;
+}
+
+main > .tabs::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 4px;
+	background: linear-gradient(90deg, #60a5fa, #3b82f6);
 }
 
 #lsEditor > .adder {
-	margin: 16px;
-	padding: 16px;
-	border: solid 2px #c3c3c3;
+	margin: 24px;
+	padding: 24px;
+	background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+	border: 2px solid #bfdbfe;
+	border-radius: 12px;
+	transition: all 0.3s ease;
+	position: relative;
+	overflow: hidden;
 }
+
+#lsEditor > .adder::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd);
+	border-radius: 12px 12px 0 0;
+}
+
+#lsEditor > .adder:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 12px 24px rgba(59, 130, 246, 0.15);
+	border-color: #93c5fd;
+}
+
+#lsEditor > .adder > input {
+	display: block;
+	width: 100%;
+	padding: 12px 16px;
+	margin-bottom: 12px;
+	border: 2px solid #e0e7ff;
+	border-radius: 8px;
+	background: white;
+	font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+	font-size: 14px;
+	color: #1e40af;
+	transition: all 0.3s ease;
+}
+
+#lsEditor > .adder > input:focus {
+	outline: none;
+	border-color: #3b82f6;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+	background: #fefeff;
+}
+
 #lsEditor > .adder > textarea {
 	display: block;
 	width: 100%;
-	min-height: 5em;
-	box-sizing: border-box;
-}
-#lsEditor > .record {
+	min-height: 120px;
 	padding: 16px;
-	border-bottom: solid 1px #c3c3c3;
+	margin-bottom: 12px;
+	border: 2px solid #e0e7ff;
+	border-radius: 8px;
+	background: white;
+	font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+	font-size: 14px;
+	line-height: 1.6;
+	color: #1e40af;
+	transition: all 0.3s ease;
+	resize: vertical;
 }
+
+#lsEditor > .adder > textarea:focus {
+	outline: none;
+	border-color: #3b82f6;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+	background: #fefeff;
+}
+
+#lsEditor > .record {
+	padding: 24px 32px;
+	border-bottom: 1px solid #e5e7eb;
+	background: white;
+	transition: all 0.3s ease;
+	position: relative;
+}
+
+#lsEditor > .record:hover {
+	background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+	border-left: 4px solid #3b82f6;
+	padding-left: 28px;
+}
+
+#lsEditor > .record:last-child {
+	border-bottom: none;
+}
+
 #lsEditor > .record > header {
-	font-weight: bold;
+	font-weight: 700;
+	color: #1e40af;
+	font-size: 16px;
+	margin-bottom: 12px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
 }
+
+#lsEditor > .record > header::before {
+	content: '●';
+	color: #3b82f6;
+	font-size: 12px;
+}
+
 #lsEditor > .record > textarea {
 	display: block;
 	width: 100%;
-	min-height: 5em;
-	box-sizing: border-box;
+	min-height: 100px;
+	padding: 16px;
+	margin-bottom: 12px;
+	border: 2px solid #f1f5f9;
+	border-radius: 8px;
+	background: #fafbff;
+	font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+	font-size: 14px;
+	line-height: 1.6;
+	color: #374151;
+	transition: all 0.3s ease;
+	resize: vertical;
+}
+
+#lsEditor > .record > textarea:focus {
+	outline: none;
+	border-color: #3b82f6;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+	background: white;
+}
+
+button {
+	font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+	font-weight: 600;
+	border: none;
+	border-radius: 8px;
+	padding: 12px 24px;
+	font-size: 14px;
+	cursor: pointer;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+	color: white;
+	box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+	margin: 4px;
+}
+
+button:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+	background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+}
+
+button:active {
+	transform: translateY(0);
+	box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	transform: none !important;
+	box-shadow: none !important;
+}
+
+::-webkit-scrollbar {
+	width: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: #f1f5f9;
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+	background: linear-gradient(135deg, #3b82f6, #60a5fa);
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+}
+
+@keyframes fadeInUp {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+#lsEditor > .record,
+#lsEditor > .adder {
+	animation: fadeInUp 0.5s ease-out;
+}
+
+@media (max-width: 768px) {
+	html {
+		padding: 12px;
+	}
+
+	main > .tabs,
+	#lsEditor > .record {
+		padding: 20px;
+	}
+
+	#lsEditor > .adder {
+		margin: 16px;
+		padding: 20px;
+	}
+
+	button {
+		padding: 10px 20px;
+		font-size: 13px;
+	}
 }

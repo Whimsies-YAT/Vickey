@@ -95,11 +95,14 @@ import type {
 	AdminQueueRetryJobRequest,
 	AdminQueueShowJobRequest,
 	AdminQueueShowJobResponse,
+	AdminQueueShowJobLogsRequest,
+	AdminQueueShowJobLogsResponse,
 	AdminQueueStatsResponse,
 	AdminRelaysAddRequest,
 	AdminRelaysAddResponse,
 	AdminRelaysListResponse,
 	AdminRelaysRemoveRequest,
+	AdminRemoveKeysRequest,
 	AdminResetPasswordRequest,
 	AdminResetPasswordResponse,
 	AdminResolveAbuseUserReportRequest,
@@ -138,6 +141,7 @@ import type {
 	AdminSystemWebhookTestRequest,
 	AdminSystemWebhookUpdateRequest,
 	AdminSystemWebhookUpdateResponse,
+	AdminUnregister2faRequest,
 	AdminUnsetUserAvatarRequest,
 	AdminUnsetUserBannerRequest,
 	AdminUnsuspendUserRequest,
@@ -166,8 +170,11 @@ import type {
 	ApShowResponse,
 	AppCreateRequest,
 	AppCreateResponse,
+	AppDeleteRequest,
 	AppShowRequest,
 	AppShowResponse,
+	AppUpdateRequest,
+	AppUpdateResponse,
 	AuthAcceptRequest,
 	AuthSessionGenerateRequest,
 	AuthSessionGenerateResponse,
@@ -273,6 +280,7 @@ import type {
 	ClipsCreateResponse,
 	ClipsDeleteRequest,
 	ClipsFavoriteRequest,
+	ClipsListRequest,
 	ClipsListResponse,
 	ClipsMyFavoritesResponse,
 	ClipsNotesRequest,
@@ -558,6 +566,12 @@ import type {
 	NotesUserListTimelineRequest,
 	NotesUserListTimelineResponse,
 	NotificationsCreateRequest,
+	OauthAppsCreateRequest,
+	OauthAppsCreateResponse,
+	OauthAppsDeleteRequest,
+	OauthAppsListResponse,
+	OauthAppsUpdateRequest,
+	OauthAppsUpdateResponse,
 	PagePushRequest,
 	PagesCreateRequest,
 	PagesCreateResponse,
@@ -665,6 +679,7 @@ import type {
 	UsersUpdateMemoRequest,
 	V2AdminEmojiListRequest,
 	V2AdminEmojiListResponse,
+	VerifyEmailRequest,
 } from './entities.js';
 
 export type Endpoints = {
@@ -739,10 +754,12 @@ export type Endpoints = {
 	'admin/queue/remove-job': { req: AdminQueueRemoveJobRequest; res: EmptyResponse };
 	'admin/queue/retry-job': { req: AdminQueueRetryJobRequest; res: EmptyResponse };
 	'admin/queue/show-job': { req: AdminQueueShowJobRequest; res: AdminQueueShowJobResponse };
+	'admin/queue/show-job-logs': { req: AdminQueueShowJobLogsRequest; res: AdminQueueShowJobLogsResponse };
 	'admin/queue/stats': { req: EmptyRequest; res: AdminQueueStatsResponse };
 	'admin/relays/add': { req: AdminRelaysAddRequest; res: AdminRelaysAddResponse };
 	'admin/relays/list': { req: EmptyRequest; res: AdminRelaysListResponse };
 	'admin/relays/remove': { req: AdminRelaysRemoveRequest; res: EmptyResponse };
+	'admin/remove-keys': { req: AdminRemoveKeysRequest; res: EmptyResponse };
 	'admin/reset-password': { req: AdminResetPasswordRequest; res: AdminResetPasswordResponse };
 	'admin/resolve-abuse-user-report': { req: AdminResolveAbuseUserReportRequest; res: EmptyResponse };
 	'admin/roles/assign': { req: AdminRolesAssignRequest; res: EmptyResponse };
@@ -768,6 +785,7 @@ export type Endpoints = {
 	'admin/system-webhook/show': { req: AdminSystemWebhookShowRequest; res: AdminSystemWebhookShowResponse };
 	'admin/system-webhook/test': { req: AdminSystemWebhookTestRequest; res: EmptyResponse };
 	'admin/system-webhook/update': { req: AdminSystemWebhookUpdateRequest; res: AdminSystemWebhookUpdateResponse };
+	'admin/unregister-2fa': { req: AdminUnregister2faRequest; res: EmptyResponse };
 	'admin/unset-user-avatar': { req: AdminUnsetUserAvatarRequest; res: EmptyResponse };
 	'admin/unset-user-banner': { req: AdminUnsetUserBannerRequest; res: EmptyResponse };
 	'admin/unsuspend-user': { req: AdminUnsuspendUserRequest; res: EmptyResponse };
@@ -786,7 +804,9 @@ export type Endpoints = {
 	'ap/get': { req: ApGetRequest; res: ApGetResponse };
 	'ap/show': { req: ApShowRequest; res: ApShowResponse };
 	'app/create': { req: AppCreateRequest; res: AppCreateResponse };
+	'app/delete': { req: AppDeleteRequest; res: EmptyResponse };
 	'app/show': { req: AppShowRequest; res: AppShowResponse };
+	'app/update': { req: AppUpdateRequest; res: AppUpdateResponse };
 	'auth/accept': { req: AuthAcceptRequest; res: EmptyResponse };
 	'auth/session/generate': { req: AuthSessionGenerateRequest; res: AuthSessionGenerateResponse };
 	'auth/session/show': { req: AuthSessionShowRequest; res: AuthSessionShowResponse };
@@ -850,7 +870,7 @@ export type Endpoints = {
 	'clips/create': { req: ClipsCreateRequest; res: ClipsCreateResponse };
 	'clips/delete': { req: ClipsDeleteRequest; res: EmptyResponse };
 	'clips/favorite': { req: ClipsFavoriteRequest; res: EmptyResponse };
-	'clips/list': { req: EmptyRequest; res: ClipsListResponse };
+	'clips/list': { req: ClipsListRequest; res: ClipsListResponse };
 	'clips/my-favorites': { req: EmptyRequest; res: ClipsMyFavoritesResponse };
 	'clips/notes': { req: ClipsNotesRequest; res: ClipsNotesResponse };
 	'clips/remove-note': { req: ClipsRemoveNoteRequest; res: EmptyResponse };
@@ -977,6 +997,7 @@ export type Endpoints = {
 	'i/registry/scopes-with-domain': { req: EmptyRequest; res: IRegistryScopesWithDomainResponse };
 	'i/registry/set': { req: IRegistrySetRequest; res: EmptyResponse };
 	'i/revoke-token': { req: IRevokeTokenRequest; res: EmptyResponse };
+	'i/sign-out': { req: EmptyRequest; res: EmptyResponse };
 	'i/signin-history': { req: ISigninHistoryRequest; res: ISigninHistoryResponse };
 	'i/unpin': { req: IUnpinRequest; res: IUnpinResponse };
 	'i/update': { req: IUpdateRequest; res: IUpdateResponse };
@@ -1038,6 +1059,10 @@ export type Endpoints = {
 	'notifications/flush': { req: EmptyRequest; res: EmptyResponse };
 	'notifications/mark-all-as-read': { req: EmptyRequest; res: EmptyResponse };
 	'notifications/test-notification': { req: EmptyRequest; res: EmptyResponse };
+	'oauth-apps/create': { req: OauthAppsCreateRequest; res: OauthAppsCreateResponse };
+	'oauth-apps/delete': { req: OauthAppsDeleteRequest; res: EmptyResponse };
+	'oauth-apps/list': { req: EmptyRequest; res: OauthAppsListResponse };
+	'oauth-apps/update': { req: OauthAppsUpdateRequest; res: OauthAppsUpdateResponse };
 	'page-push': { req: PagePushRequest; res: EmptyResponse };
 	'pages/create': { req: PagesCreateRequest; res: PagesCreateResponse };
 	'pages/delete': { req: PagesDeleteRequest; res: EmptyResponse };
@@ -1107,6 +1132,7 @@ export type Endpoints = {
 	'users/show': { req: UsersShowRequest; res: UsersShowResponse };
 	'users/update-memo': { req: UsersUpdateMemoRequest; res: EmptyResponse };
 	'v2/admin/emoji/list': { req: V2AdminEmojiListRequest; res: V2AdminEmojiListResponse };
+	'verify-email': { req: VerifyEmailRequest; res: EmptyResponse };
 };
 
 /**

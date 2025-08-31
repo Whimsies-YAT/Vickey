@@ -36,7 +36,7 @@ export class MiNote {
 	public replyId: MiNote['id'] | null;
 
 	@ManyToOne(type => MiNote, {
-		onDelete: 'CASCADE',
+		createForeignKeyConstraints: false,
 	})
 	@JoinColumn()
 	public reply: MiNote | null;
@@ -50,7 +50,7 @@ export class MiNote {
 	public renoteId: MiNote['id'] | null;
 
 	@ManyToOne(type => MiNote, {
-		onDelete: 'CASCADE',
+		createForeignKeyConstraints: false,
 	})
 	@JoinColumn()
 	public renote: MiNote | null;
@@ -113,6 +113,13 @@ export class MiNote {
 		default: 0,
 	})
 	public clippedCount: number;
+
+	// The number of note page blocks referencing this note.
+	// This column is used by Remote Note Cleaning and manually updated rather than automatically with triggers.
+	@Column('smallint', {
+		default: 0,
+	})
+	public pageCount: number;
 
 	@Column('jsonb', {
 		default: {},
@@ -240,6 +247,19 @@ export class MiNote {
 		comment: '[Denormalized]',
 	})
 	public renoteUserHost: string | null;
+
+	@Column('jsonb', {
+		nullable: true,
+		comment: 'Original GeoJSON data (shared with lower precision if needed).',
+	})
+	public geojson: Record<string, any> | null;
+
+	@Index({ spatial: true })
+	@Column('text', {
+		nullable: true,
+		comment: 'Geographic location as Point (lon/lat, WGS84).',
+	})
+	public location: string | null;
 
 	constructor(data: Partial<MiNote>) {
 		if (data == null) return;

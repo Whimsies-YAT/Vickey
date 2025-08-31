@@ -28,7 +28,8 @@ type ParametersOf<T extends ILocale, TKey extends FlattenKeys<T, ParameterizedSt
 		: never;
 
 type Tsx<T extends ILocale> = {
-	readonly [K in keyof T as T[K] extends string ? never : K]: T[K] extends ParameterizedString<infer P>
+	// `string extends T[K] ? never : K` part removes non-parameterized string keys from Tsx type.
+	readonly [K in keyof T as string extends T[K] ? never : K]: T[K] extends ParameterizedString<infer P>
 		? (arg: { readonly [_ in P]: string | number }) => string
 		// @ts-expect-error -- 証明省略
 		: Tsx<T[K]>;
@@ -38,12 +39,8 @@ export class I18n<T extends ILocale> {
 	private tsxCache?: Tsx<T>;
 	private devMode: boolean;
 
-	constructor(public locale: T, devMode = false) {
-		// 場合によってはバージョンアップ前の翻訳データを参照した結果存在しないプロパティにアクセスしてクライアントが起動できなくなることがある問題の応急処置として非devモードでもプロキシする
-		// TODO: https://github.com/misskey-dev/misskey/issues/14453 が実装されたらそのようなことは発生し得なくなるため消す
-		const oukyuusyoti = true;
-
-		this.devMode = devMode || oukyuusyoti;
+	constructor(public locale: T | null, devMode = false) {
+		this.devMode = devMode;
 
 		//#region BIND
 		this.t = this.t.bind(this);
@@ -51,12 +48,38 @@ export class I18n<T extends ILocale> {
 	}
 
 	public get ts(): T {
+		if (!this.locale) {
+			console.warn('Locale is null, using fallback proxy');
+			return new Proxy({} as T, {
+				get(target, p: string | symbol): unknown {
+					const key = String(p);
+					console.warn(`Accessing missing locale key: ${key}`);
+
+					if (typeof p === 'string') {
+						return new Proxy({} as any, {
+							get: (nestedTarget, nestedP) => {
+								const nestedKey = String(nestedP);
+								console.warn(`Accessing missing nested locale key: ${key}.${nestedKey}`);
+								return nestedKey;
+							}
+						});
+					}
+					return key;
+				}
+			});
+		}
+
 		if (this.devMode) {
 			class Handler<TTarget extends ILocale> implements ProxyHandler<TTarget> {
 				get(target: TTarget, p: string | symbol): unknown {
+					if (!target) {
+						console.warn(`Target is null when accessing ${String(p)}`);
+						return String(p);
+					}
+
 					const value = target[p as keyof TTarget];
 
-					if (typeof value === 'object') {
+					if (typeof value === 'object' && value !== null) {
 						return new Proxy(value, new Handler<TTarget[keyof TTarget] & ILocale>());
 					}
 
@@ -83,6 +106,24 @@ export class I18n<T extends ILocale> {
 	}
 
 	public get tsx(): Tsx<T> {
+		if (!this.locale) {
+			console.warn('Locale is null, using fallback tsx proxy');
+			return new Proxy({} as Tsx<T>, {
+				get(target, p: string | symbol): unknown {
+					const key = String(p);
+					console.warn(`Accessing missing tsx locale key: ${key}`);
+
+					return new Proxy({} as any, {
+						get: (nestedTarget, nestedP) => {
+							const nestedKey = String(nestedP);
+							console.warn(`Accessing missing nested tsx locale key: ${key}.${nestedKey}`);
+							return () => `${key}.${nestedKey}`;
+						}
+					});
+				}
+			});
+		}
+
 		if (this.devMode) {
 			if (this.tsxCache) {
 				return this.tsxCache;
@@ -216,6 +257,11 @@ export class I18n<T extends ILocale> {
 	 */
 	public t<TKey extends FlattenKeys<T, ParameterizedString>>(key: TKey, args: { readonly [_ in ParametersOf<T, TKey>]: string | number }): string;
 	public t(key: string, args?: { readonly [_: string]: string | number }) {
+		if (!this.locale) {
+			console.warn(`Locale is null, returning key as fallback: ${key}`);
+			return key;
+		}
+
 		let str: string | ParameterizedString | ILocale = this.locale;
 
 		for (const k of key.split('.')) {

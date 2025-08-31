@@ -4,13 +4,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div v-if="hasDisconnected && prefer.s.serverDisconnectedBehavior === 'quiet'" :class="$style.root" class="_panel _shadow" @click="resetDisconnected">
-	<div><i class="ti ti-alert-triangle"></i> {{ i18n.ts.disconnectedFromServer }}</div>
-	<div :class="$style.command" class="_buttons">
-		<MkButton small primary @click="reload">{{ i18n.ts.reload }}</MkButton>
-		<MkButton small>{{ i18n.ts.doNothing }}</MkButton>
+	<div v-if="shouldShow && prefer.s.serverDisconnectedBehavior === 'quiet'" :class="$style.root" class="_panel _shadow" @click="resetDisconnected">
+		<div><i class="ti ti-alert-triangle"></i> {{ i18n.ts.disconnectedFromServer }}</div>
+		<div :class="$style.command" class="_buttons">
+			<MkButton small primary @click="reload">{{ i18n.ts.reload }}</MkButton>
+			<MkButton small>{{ i18n.ts.doNothing }}</MkButton>
+		</div>
 	</div>
-</div>
 </template>
 
 <script lang="ts" setup>
@@ -21,17 +21,34 @@ import MkButton from '@/components/MkButton.vue';
 import * as os from '@/os.js';
 import { prefer } from '@/preferences.js';
 import { store } from '@/store.js';
+import { DIALOG_DELAY_MS } from '@@/js/config.js';
 
 const zIndex = os.claimZIndex('high');
+const shouldShow = ref(false);
 
-const hasDisconnected = ref(false);
+let showDelayTimer: number | null = null;
 
 function onDisconnected() {
-	hasDisconnected.value = true;
+	if (showDelayTimer) {
+		window.clearTimeout(showDelayTimer);
+	}
+
+	showDelayTimer = window.setTimeout(() => {
+		shouldShow.value = true;
+	}, DIALOG_DELAY_MS);
+}
+
+function onConnected() {
+	shouldShow.value = false;
+
+	if (showDelayTimer) {
+		window.clearTimeout(showDelayTimer);
+		showDelayTimer = null;
+	}
 }
 
 function resetDisconnected() {
-	hasDisconnected.value = false;
+	shouldShow.value = false;
 }
 
 function reload() {
@@ -39,10 +56,18 @@ function reload() {
 }
 
 if (store.s.realtimeMode) {
-	useStream().on('_disconnected_', onDisconnected);
+	const stream = useStream();
+
+	stream.on('_disconnected_', onDisconnected);
+	stream.on('_connected_', onConnected);
 
 	onUnmounted(() => {
-		useStream().off('_disconnected_', onDisconnected);
+		stream.off('_disconnected_', onDisconnected);
+		stream.off('_connected_', onConnected);
+
+		if (showDelayTimer) {
+			window.clearTimeout(showDelayTimer);
+		}
 	});
 }
 </script>

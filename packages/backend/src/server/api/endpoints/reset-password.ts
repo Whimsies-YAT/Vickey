@@ -27,7 +27,7 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		token: { type: 'string' },
-		password: { type: 'string' },
+		password: { type: 'string', minLength: 8, maxLength: 72 },
 	},
 	required: ['token', 'password'],
 } as const;

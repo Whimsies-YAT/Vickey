@@ -7,13 +7,73 @@
 
 // ブロックの中に入れないと、定義した変数がブラウザのグローバルスコープに登録されてしまい邪魔なので
 (async () => {
-	window.onerror = (e) => {
-		console.error(e);
-		renderError('SOMETHING_HAPPENED', e);
+	let hasRenderedError = false;
+	let criticalErrors = 0;
+
+	function isCriticalError(error) {
+		const errorStr = error.toString().toLowerCase();
+		const stackStr = (error.stack || '').toLowerCase();
+
+		const pluginPatterns = [
+			'/plugins/', '/extensions/', '/addons/',
+			'userscript', 'tampermonkey', 'greasemonkey',
+			'chrome-extension:', 'moz-extension:',
+			'third-party', 'plugin', 'extension'
+		];
+
+		const corePatterns = [
+			'/vite/', '/_boot_', CLIENT_ENTRY || '',
+			'misskey', 'lang', 'theme'
+		];
+
+		if (pluginPatterns.some(pattern => errorStr.includes(pattern) || stackStr.includes(pattern))) {
+			return false;
+		}
+
+		if (corePatterns.some(pattern => pattern && (errorStr.includes(pattern) || stackStr.includes(pattern)))) {
+			return true;
+		}
+
+		if (errorStr.includes('network') || errorStr.includes('fetch') || errorStr.includes('cors')) {
+			return false;
+		}
+
+		return false;
+	}
+
+	window.onerror = (message, source, lineno, colno, error) => {
+		console.error('Global error:', { message, source, lineno, colno, error });
+
+		if (isCriticalError(error || new Error(message))) {
+			criticalErrors++;
+			console.error('Critical error detected:', message);
+
+			if (criticalErrors > 2 && !hasRenderedError) {
+				hasRenderedError = true;
+				renderError('SOMETHING_HAPPENED', error || message);
+			}
+		} else {
+			console.warn('Non-critical error (likely plugin-related), continuing execution:', message);
+		}
 	};
+
 	window.onunhandledrejection = (e) => {
-		console.error(e);
-		renderError('SOMETHING_HAPPENED_IN_PROMISE', e);
+		console.error('Unhandled promise rejection:', e);
+
+		const error = e.reason;
+
+		if (error && error.message && error.message.includes('import') && isCriticalError(error)) {
+			criticalErrors++;
+			console.error('Critical import error detected:', error);
+
+			if (criticalErrors > 1 && !hasRenderedError) {
+				hasRenderedError = true;
+				renderError('SOMETHING_HAPPENED_IN_PROMISE', e);
+				return;
+			}
+		}
+
+		console.warn('Non-critical promise rejection (likely plugin-related), continuing execution:', error);
 	};
 
 	let forceError = localStorage.getItem('forceError');
@@ -22,10 +82,16 @@
 		return;
 	}
 
-	//#region Detect language & fetch translations
-	if (!localStorage.hasOwnProperty('locale')) {
-		const supportedLangs = LANGS;
-		let lang = localStorage.getItem('lang');
+	//#region Detect language
+	let supportedLangs;
+	let lang = localStorage.getItem('lang');
+
+	if (typeof LANGS === 'undefined' || !Array.isArray(LANGS) || LANGS.length === 0) {
+		console.warn('LANGS is not defined or invalid, falling back to en-US');
+		lang = 'en-US';
+	} else {
+		supportedLangs = LANGS;
+
 		if (lang == null || !supportedLangs.includes(lang)) {
 			if (supportedLangs.includes(navigator.language)) {
 				lang = navigator.language;
@@ -36,48 +102,18 @@
 				if (lang == null) lang = 'en-US';
 			}
 		}
+	}
 
-		const metaRes = await window.fetch('/api/meta', {
-			method: 'POST',
-			body: JSON.stringify({}),
-			credentials: 'omit',
-			cache: 'no-cache',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		});
-		if (metaRes.status !== 200) {
-			renderError('META_FETCH');
-			return;
-		}
-		const meta = await metaRes.json();
-		const v = meta.version;
-		if (v == null) {
-			renderError('META_FETCH_V');
-			return;
-		}
-
-		// for https://github.com/misskey-dev/misskey/issues/10202
-		if (lang == null || lang.toString == null || lang.toString() === 'null') {
-			console.error('invalid lang value detected!!!', typeof lang, lang);
-			lang = 'en-US';
-		}
-
-		const localRes = await window.fetch(`/assets/locales/${lang}.${v}.json`);
-		if (localRes.status === 200) {
-			localStorage.setItem('lang', lang);
-			localStorage.setItem('locale', await localRes.text());
-			localStorage.setItem('localeVersion', v);
-		} else {
-			renderError('LOCALE_FETCH');
-			return;
-		}
+	// for https://github.com/misskey-dev/misskey/issues/10202
+	if (lang == null || lang.toString == null || lang.toString() === 'null') {
+		console.error('invalid lang value detected!!!', typeof lang, lang);
+		lang = 'en-US';
 	}
 	//#endregion
 
 	//#region Script
 	async function importAppScript() {
-		await import(`/vite/${CLIENT_ENTRY}`)
+		await import(CLIENT_ENTRY ? `/vite/${CLIENT_ENTRY.replace('scripts', lang)}` : '/vite/src/_boot_.ts')
 			.catch(async e => {
 				console.error(e);
 				renderError('APP_IMPORT', e);
@@ -94,23 +130,37 @@
 	}
 	//#endregion
 
-	//#region Theme
-	const theme = localStorage.getItem('theme');
-	if (theme) {
-		for (const [k, v] of Object.entries(JSON.parse(theme))) {
-			document.documentElement.style.setProperty(`--MI_THEME-${k}`, v.toString());
+	let isSafeMode = (localStorage.getItem('isSafeMode') === 'true');
 
-			// HTMLの theme-color 適用
-			if (k === 'htmlThemeColor') {
-				for (const tag of document.head.children) {
-					if (tag.tagName === 'META' && tag.getAttribute('name') === 'theme-color') {
-						tag.setAttribute('content', v);
-						break;
+	if (!isSafeMode) {
+		const urlParams = new URLSearchParams(window.location.search);
+
+		if (urlParams.has('safemode') && urlParams.get('safemode') === 'true') {
+			localStorage.setItem('isSafeMode', 'true');
+			isSafeMode = true;
+		}
+	}
+
+	//#region Theme
+	if (!isSafeMode) {
+		const theme = localStorage.getItem('theme');
+		if (theme) {
+			for (const [k, v] of Object.entries(JSON.parse(theme))) {
+				document.documentElement.style.setProperty(`--MI_THEME-${k}`, v.toString());
+
+				// HTMLの theme-color 適用
+				if (k === 'htmlThemeColor') {
+					for (const tag of document.head.children) {
+						if (tag.tagName === 'META' && tag.getAttribute('name') === 'theme-color') {
+							tag.setAttribute('content', v);
+							break;
+						}
 					}
 				}
 			}
 		}
 	}
+
 	const colorScheme = localStorage.getItem('colorScheme');
 	if (colorScheme) {
 		document.documentElement.style.setProperty('color-scheme', colorScheme);
@@ -127,11 +177,13 @@
 		document.documentElement.classList.add('useSystemFont');
 	}
 
-	const customCss = localStorage.getItem('customCss');
-	if (customCss && customCss.length > 0) {
-		const style = document.createElement('style');
-		style.innerHTML = customCss;
-		document.head.appendChild(style);
+	if (!isSafeMode) {
+		const customCss = localStorage.getItem('customCss');
+		if (customCss && customCss.length > 0) {
+			const style = document.createElement('style');
+			style.innerHTML = customCss;
+			document.head.appendChild(style);
+		}
 	}
 
 	async function addStyle(styleText) {
@@ -146,10 +198,26 @@
 			await new Promise(resolve => window.addEventListener('DOMContentLoaded', resolve));
 		}
 
-		const locale = JSON.parse(localStorage.getItem('locale') || '{}');
+		let messages = null;
+		const bootloaderLocales = localStorage.getItem('bootloaderLocales');
+		if (bootloaderLocales) {
+			messages = JSON.parse(bootloaderLocales);
+		}
+		if (!messages) {
+			// older version of misskey does not store bootloaderLocales, stores locale as a whole
+			const legacyLocale = localStorage.getItem('locale');
+			if (legacyLocale) {
+				const parsed = JSON.parse(legacyLocale);
+				messages = {
+					...(parsed._bootErrors ?? {}),
+					reload: parsed.reload,
+				};
+			}
+		}
+		if (!messages) messages = {};
 
-		const messages = Object.assign({
-			title: 'Failed to initialize Misskey',
+		messages = Object.assign({
+			title: 'Failed to initialize Vickey',
 			solution: 'The following actions may solve the problem.',
 			solution1: 'Update your os and browser',
 			solution2: 'Disable an adblocker',
@@ -160,8 +228,12 @@
 			otherOption1: 'Clear preferences and cache',
 			otherOption2: 'Start the simple client',
 			otherOption3: 'Start the repair tool',
-		}, locale?._bootErrors || {});
-		const reload = locale?.reload || 'Reload';
+			otherOption4: 'Start Vickey in safe mode',
+			reload: 'Reload',
+		}, messages);
+
+		const safeModeUrl = new URL(window.location.href);
+		safeModeUrl.searchParams.set('safemode', 'true');
 
 		let errorsElement = document.getElementById('errors');
 
@@ -174,7 +246,7 @@
 			</svg>
 			<h1>${messages.title}</h1>
 			<button class="button-big" onclick="location.reload(true);">
-				<span class="button-label-big">${reload}</span>
+				<span class="button-label-big">${messages?.reload}</span>
 			</button>
 			<p><b>${messages.solution}</b></p>
 			<p>${messages.solution1}</p>
@@ -184,6 +256,12 @@
 			<p>${messages.solution5}</p>
 			<details style="color: #86b300;">
 				<summary>${messages.otherOption}</summary>
+				<a href="${safeModeUrl}">
+					<button class="button-small">
+						<span class="button-label-small">${messages.otherOption4}</span>
+					</button>
+				</a>
+				<br>
 				<a href="/flush">
 					<button class="button-small">
 						<span class="button-label-small">${messages.otherOption1}</span>
@@ -217,111 +295,111 @@
 		<code>${details.toString()} ${JSON.stringify(details)}</code>`;
 		errorsElement.appendChild(detailsElement);
 		addStyle(`
-		* {
-			font-family: BIZ UDGothic, Roboto, HelveticaNeue, Arial, sans-serif;
-		}
-
-		#misskey_app,
-		#splash {
-			display: none !important;
-		}
-
-		body,
-		html {
-			background-color: #222;
-			color: #dfddcc;
-			justify-content: center;
-			margin: auto;
-			padding: 10px;
-			text-align: center;
-		}
-
-		button {
-			border-radius: 999px;
-			padding: 0px 12px 0px 12px;
-			border: none;
-			cursor: pointer;
-			margin-bottom: 12px;
-		}
-
-		.button-big {
-			background: linear-gradient(90deg, rgb(134, 179, 0), rgb(74, 179, 0));
-			line-height: 50px;
-		}
-
-		.button-big:hover {
-			background: rgb(153, 204, 0);
-		}
-
-		.button-small {
-			background: #444;
-			line-height: 40px;
-		}
-
-		.button-small:hover {
-			background: #555;
-		}
-
-		.button-label-big {
-			color: #222;
-			font-weight: bold;
-			font-size: 1.2em;
-			padding: 12px;
-		}
-
-		.button-label-small {
-			color: rgb(153, 204, 0);
-			font-size: 16px;
-			padding: 12px;
-		}
-
-		a {
-			color: rgb(134, 179, 0);
-			text-decoration: none;
-		}
-
-		p,
-		li {
-			font-size: 16px;
-		}
-
-		.icon-warning {
-			color: #dec340;
-			height: 4rem;
-			padding-top: 2rem;
-		}
-
-		h1 {
-			font-size: 1.5em;
-			margin: 1em;
-		}
-
-		code {
-			font-family: Fira, FiraCode, monospace;
-		}
-
-		#errorInfo {
-			background: #333;
-			margin-bottom: 2rem;
-			padding: 0.5rem 1rem;
-			width: 40rem;
-			border-radius: 10px;
-			justify-content: center;
-			margin: auto;
-		}
-
-		#errorInfo summary {
-			cursor: pointer;
-		}
-
-		#errorInfo summary > * {
-			display: inline;
-		}
-
-		@media screen and (max-width: 500px) {
-			#errorInfo {
-				width: 50%;
+			* {
+				font-family: BIZ UDGothic, Roboto, HelveticaNeue, Arial, sans-serif;
 			}
-		}`);
+
+			#misskey_app,
+			#splash {
+				display: none !important;
+			}
+
+			body,
+			html {
+				background-color: #222;
+				color: #dfddcc;
+				justify-content: center;
+				margin: auto;
+				padding: 10px;
+				text-align: center;
+			}
+
+			button {
+				border-radius: 999px;
+				padding: 0px 12px 0px 12px;
+				border: none;
+				cursor: pointer;
+				margin-bottom: 12px;
+			}
+
+			.button-big {
+				background: linear-gradient(90deg, rgb(134, 179, 0), rgb(74, 179, 0));
+				line-height: 50px;
+			}
+
+			.button-big:hover {
+				background: rgb(153, 204, 0);
+			}
+
+			.button-small {
+				background: #444;
+				line-height: 40px;
+			}
+
+			.button-small:hover {
+				background: #555;
+			}
+
+			.button-label-big {
+				color: #222;
+				font-weight: bold;
+				font-size: 1.2em;
+				padding: 12px;
+			}
+
+			.button-label-small {
+				color: rgb(153, 204, 0);
+				font-size: 16px;
+				padding: 12px;
+			}
+
+			a {
+				color: rgb(134, 179, 0);
+				text-decoration: none;
+			}
+
+			p,
+			li {
+				font-size: 16px;
+			}
+
+			.icon-warning {
+				color: #dec340;
+				height: 4rem;
+				padding-top: 2rem;
+			}
+
+			h1 {
+				font-size: 1.5em;
+				margin: 1em;
+			}
+
+			code {
+				font-family: Fira, FiraCode, monospace;
+			}
+
+			#errorInfo {
+				background: #333;
+				margin-bottom: 2rem;
+				padding: 0.5rem 1rem;
+				width: 40rem;
+				border-radius: 10px;
+				justify-content: center;
+				margin: auto;
+			}
+
+			#errorInfo summary {
+				cursor: pointer;
+			}
+
+			#errorInfo summary > * {
+				display: inline;
+			}
+
+			@media screen and (max-width: 500px) {
+				#errorInfo {
+					width: 50%;
+				}
+			}`);
 	}
 })();

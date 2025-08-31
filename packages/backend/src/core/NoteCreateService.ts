@@ -142,6 +142,7 @@ type Option = {
 	uri?: string | null;
 	url?: string | null;
 	app?: MiApp | null;
+	geoJson?: object | null;
 };
 
 @Injectable()
@@ -421,7 +422,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 			emojis,
 			userId: user.id,
 			localOnly: data.localOnly!,
-			reactionAcceptance: data.reactionAcceptance,
+			reactionAcceptance: data.reactionAcceptance ?? null,
 			visibility: data.visibility as any,
 			visibleUserIds: data.visibility === 'specified'
 				? data.visibleUsers
@@ -441,6 +442,19 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		if (data.uri != null) insert.uri = data.uri;
 		if (data.url != null) insert.url = data.url;
+
+		if (data.geoJson != null) {
+			insert.geojson = data.geoJson;
+
+			const geoJsonData = data.geoJson as any;
+			if (geoJsonData.features && geoJsonData.features.length > 0) {
+				const firstFeature = geoJsonData.features[0];
+				if (firstFeature.geometry && firstFeature.geometry.type === 'Point' && firstFeature.geometry.coordinates) {
+					const [lon, lat] = firstFeature.geometry.coordinates;
+					insert.location = `POINT(${lon} ${lat})`;
+				}
+			}
+		}
 
 		// Append mentions data
 		if (mentionedUsers.length > 0) {
@@ -483,7 +497,11 @@ export class NoteCreateService implements OnApplicationShutdown {
 				await this.notesRepository.insert(insert);
 			}
 
-			return insert;
+			return {
+				...insert,
+				reply: data.reply ?? null,
+				renote: data.renote ?? null,
+			};
 		} catch (e) {
 			// duplicate key error
 			if (isDuplicateKeyValueError(e)) {

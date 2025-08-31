@@ -20,17 +20,6 @@ import type { Config } from '@/config.js';
 import { getNoteSummary } from '@/misc/get-note-summary.js';
 import { DI } from '@/di-symbols.js';
 import * as Acct from '@/misc/acct.js';
-import type {
-	DbQueue,
-	DeliverQueue,
-	EndedPollNotificationQueue,
-	InboxQueue,
-	ObjectStorageQueue,
-	RelationshipQueue,
-	SystemQueue,
-	UserWebhookDeliverQueue,
-	SystemWebhookDeliverQueue,
-} from '@/core/QueueModule.js';
 import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
@@ -131,16 +120,6 @@ export class ClientServerService {
 		private feedService: FeedService,
 		private roleService: RoleService,
 		private clientLoggerService: ClientLoggerService,
-
-		@Inject('queue:system') public systemQueue: SystemQueue,
-		@Inject('queue:endedPollNotification') public endedPollNotificationQueue: EndedPollNotificationQueue,
-		@Inject('queue:deliver') public deliverQueue: DeliverQueue,
-		@Inject('queue:inbox') public inboxQueue: InboxQueue,
-		@Inject('queue:db') public dbQueue: DbQueue,
-		@Inject('queue:relationship') public relationshipQueue: RelationshipQueue,
-		@Inject('queue:objectStorage') public objectStorageQueue: ObjectStorageQueue,
-		@Inject('queue:userWebhookDeliver') public userWebhookDeliverQueue: UserWebhookDeliverQueue,
-		@Inject('queue:systemWebhookDeliver') public systemWebhookDeliverQueue: SystemWebhookDeliverQueue,
 	) {
 		//this.createServer = this.createServer.bind(this);
 	}
@@ -163,14 +142,14 @@ export class ClientServerService {
 			'icons': [{
 				// 空文字列の場合右辺を使いたいため
 				// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-				'src': this.meta.app192IconUrl || '/static-assets/icons/192.png',
+				'src': this.meta.app192IconUrl || this.meta.iconUrl || '/static-assets/icons/192.png',
 				'sizes': '192x192',
 				'type': 'image/png',
 				'purpose': 'maskable',
 			}, {
 				// 空文字列の場合右辺を使いたいため
 				// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-				'src': this.meta.app512IconUrl || '/static-assets/icons/512.png',
+				'src': this.meta.app512IconUrl || this.meta.iconUrl || '/static-assets/icons/512.png',
 				'sizes': '512x512',
 				'type': 'image/png',
 				'purpose': 'maskable',
@@ -190,6 +169,10 @@ export class ClientServerService {
 					'url': 'url',
 				},
 			},
+			'shortcuts': [{
+				'name': 'Safemode',
+				'url': '/?safemode=true',
+			}],
 		};
 
 		manifest = {
@@ -204,7 +187,7 @@ export class ClientServerService {
 	@bindThis
 	private async generateCommonPugData(meta: MiMeta) {
 		return {
-			instanceName: meta.name ?? 'Misskey',
+			instanceName: meta.name ?? 'Vickey',
 			icon: meta.iconUrl,
 			appleTouchIcon: meta.app512IconUrl,
 			themeColor: meta.themeColor,
@@ -313,13 +296,13 @@ export class ClientServerService {
 			done();
 		});
 
-		fastify.get('/favicon.ico', async (request, reply) => {
-			return reply.sendFile('/favicon.ico', staticAssets);
-		});
-
-		fastify.get('/apple-touch-icon.png', async (request, reply) => {
-			return reply.sendFile('/apple-touch-icon.png', staticAssets);
-		});
+		// fastify.get('/favicon.ico', async (request, reply) => {
+		// 	return reply.sendFile('/favicon.ico', staticAssets);
+		// });
+		//
+		// fastify.get('/apple-touch-icon.png', async (request, reply) => {
+		// 	return reply.sendFile('/apple-touch-icon.png', staticAssets);
+		// });
 
 		fastify.get<{ Params: { path: string } }>('/fluent-emoji/:path(.*)', async (request, reply) => {
 			const path = request.params.path;
@@ -583,7 +566,7 @@ export class ClientServerService {
 					id: request.params.note,
 					visibility: In(['public', 'home']),
 				},
-				relations: ['user'],
+				relations: ['user', 'reply', 'renote'],
 			});
 
 			if (
@@ -824,8 +807,11 @@ export class ClientServerService {
 		fastify.get<{ Params: { note: string; } }>('/embed/notes/:note', async (request, reply) => {
 			reply.removeHeader('X-Frame-Options');
 
-			const note = await this.notesRepository.findOneBy({
-				id: request.params.note,
+			const note = await this.notesRepository.findOne({
+				where: {
+					id: request.params.note,
+				},
+				relations: ['user', 'reply', 'renote'],
 			});
 
 			if (note == null) return;

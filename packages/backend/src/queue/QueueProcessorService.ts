@@ -45,11 +45,14 @@ import { CheckExpiredMutingsProcessorService } from './processors/CheckExpiredMu
 import { BakeBufferedReactionsProcessorService } from './processors/BakeBufferedReactionsProcessorService.js';
 import { CleanProcessorService } from './processors/CleanProcessorService.js';
 import { AggregateRetentionProcessorService } from './processors/AggregateRetentionProcessorService.js';
+import { CleanRemoteNotesProcessorService } from './processors/CleanRemoteNotesProcessorService.js';
 import { QueueLoggerService } from './QueueLoggerService.js';
 import { CheckSecurityReleaseProcessorService } from "./processors/CheckSecurityReleaseProcessorService.js";
 import { DefaultSecCheckSecurityReleaseProcessorService } from "@/queue/processors/DefaultSecCheckSecurityReleaseProcessorService.js";
 import { CleanExpiredPendingsProcessorService } from './processors/CleanExpiredPendingsProcessorService.js';
 import { CheckIP2LReleaseProcessorService } from './processors/CheckIP2LReleaseProcessorService.js';
+import { UserSessionsProcessorService } from './processors/UserSessionsProcessorService.js';
+import { UserSessionsCleanupProcessorService } from './processors/UserSessionsCleanupProcessorService.js';
 import { QUEUE, baseWorkerOptions } from './const.js';
 
 // ref. https://github.com/misskey-dev/misskey/pull/7635#issue-971097019
@@ -135,6 +138,9 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		private defaultSecCheckSecurityReleaseProcessorService: DefaultSecCheckSecurityReleaseProcessorService,
 		private checkIP2LReleaseProcessorService: CheckIP2LReleaseProcessorService,
 		private cleanExpiredPendingsProcessorService: CleanExpiredPendingsProcessorService,
+		private cleanRemoteNotesProcessorService: CleanRemoteNotesProcessorService,
+		private userSessionsProcessorService: UserSessionsProcessorService,
+		private userSessionsCleanupProcessorService: UserSessionsCleanupProcessorService,
 	) {
 		this.logger = this.queueLoggerService.logger;
 
@@ -180,6 +186,9 @@ export class QueueProcessorService implements OnApplicationShutdown {
 					case 'defaultSec': return this.defaultSecCheckSecurityReleaseProcessorService.process();
 					case 'cleanExpired': return this.cleanExpiredPendingsProcessorService.process();
 					case 'checkIP2L': return this.checkIP2LReleaseProcessorService.process();
+					case 'cleanRemoteNotes': return this.cleanRemoteNotesProcessorService.process(job);
+					case 'syncUserSessions': return this.userSessionsProcessorService.process();
+					case 'clearExpiredSessions': return this.userSessionsCleanupProcessorService.process();
 					default: throw new Error(`unrecognized job type ${job.name} for system`);
 				}
 			};

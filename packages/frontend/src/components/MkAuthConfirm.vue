@@ -53,6 +53,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<i class="ti ti-apps"></i>
 				</div>
 				<div :class="$style.headerText">{{ name ? i18n.tsx._auth.shareAccess({ name }) : i18n.ts._auth.shareAccessAsk }}</div>
+				<div v-if="description" :class="$style.appDescription">{{ description }}</div>
+				<div v-if="websiteUrl" :class="$style.appWebsite">
+					<a :href="websiteUrl" target="_blank" rel="noopener noreferrer">
+						<i class="ti ti-external-link"></i>
+						{{ websiteUrl }}
+					</a>
+				</div>
 			</div>
 			<div v-if="permissions && permissions.length > 0" class="_gaps_s" :class="$style.permissionRoot">
 				<div>{{ name ? i18n.tsx._auth.permission({ name }) : i18n.ts._auth.permissionAsk }}</div>
@@ -128,6 +135,8 @@ import { misskeyApi } from '@/utility/misskey-api.js';
 const props = defineProps<{
 	name?: string;
 	icon?: string;
+	description?: string;
+	websiteUrl?: string;
 	permissions?: (typeof Misskey.permissions[number])[];
 	manualWaiting?: boolean;
 	waitOnDeny?: boolean;
@@ -167,9 +176,13 @@ async function init() {
 		for (const user of usersRes) {
 			if (users.value.has(user.id)) continue;
 
+			const account = accounts.find(a => a.id === user.id);
+
+			if (!account || account.token == null) continue;
+
 			users.value.set(user.id, {
 				...user,
-				token: accounts.find(a => a.id === user.id)!.token,
+				token: account.token,
 			});
 		}
 	}
@@ -445,5 +458,33 @@ defineExpose({
 
 .accountSelectorAcct {
 	opacity: 0.5;
+}
+
+.appDescription {
+	text-align: center;
+	font-size: 14px;
+	color: var(--MI_THEME-fg);
+	margin-top: 8px;
+	line-height: 1.4;
+}
+
+.appWebsite {
+	text-align: center;
+	margin-top: 8px;
+	
+	a {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		color: var(--MI_THEME-accent);
+		text-decoration: none;
+		font-size: 12px;
+		opacity: 0.8;
+		
+		&:hover {
+			opacity: 1;
+			text-decoration: underline;
+		}
+	}
 }
 </style>

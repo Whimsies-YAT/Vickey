@@ -145,6 +145,7 @@ export class SigninApiService {
 		const profile = await this.userProfilesRepository.findOneByOrFail({ userId: user.id });
 		const securityKeysAvailable = await this.userSecurityKeysRepository.countBy({ userId: user.id }).then(result => result >= 1);
 
+		// Never to be reached, retained for compatibility only
 		if (!user.approved && this.meta.approvalRequiredForSignup) {
 			reply.code(403);
 			return {

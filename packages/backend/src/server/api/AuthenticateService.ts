@@ -13,6 +13,8 @@ import type { MiApp } from '@/models/App.js';
 import { CacheService } from '@/core/CacheService.js';
 import { isNativeUserToken } from '@/misc/token.js';
 import { bindThis } from '@/decorators.js';
+import { UserSessionsService } from '@/core/UserSessionsService.js';
+import type { Config } from '@/config.js';
 
 export class AuthenticationError extends Error {
 	constructor(message: string) {
@@ -20,6 +22,12 @@ export class AuthenticationError extends Error {
 		this.name = 'AuthenticationError';
 	}
 }
+
+export type AuthenticationResult = {
+	user: MiLocalUser | null;
+	accessToken: MiAccessToken | null;
+	needRefresh?: boolean;
+};
 
 @Injectable()
 export class AuthenticateService implements OnApplicationShutdown {
@@ -35,18 +43,23 @@ export class AuthenticateService implements OnApplicationShutdown {
 		@Inject(DI.appsRepository)
 		private appsRepository: AppsRepository,
 
+		@Inject(DI.config)
+		private config: Config,
+
 		private cacheService: CacheService,
+		private userSessionsService: UserSessionsService,
 	) {
 		this.appCache = new MemoryKVCache<MiApp>(1000 * 60 * 60 * 24 * 7); // 1w
 	}
 
 	@bindThis
-	public async authenticate(token: string | null | undefined): Promise<[MiLocalUser | null, MiAccessToken | null]> {
+	public async authenticate(token: string | null | undefined, clientIp?: string): Promise<AuthenticationResult> {
 		if (token == null) {
-			return [null, null];
+			return { user: null, accessToken: null };
 		}
 
 		if (isNativeUserToken(token)) {
+			if (Date.now() > this.config.nativeTokenExpiry) throw new AuthenticationError('Native token is no longer supported');
 			const user = await this.cacheService.localUserByNativeTokenCache.fetch(token,
 				() => this.usersRepository.findOneBy({ token }) as Promise<MiLocalUser | null>);
 
@@ -54,21 +67,38 @@ export class AuthenticateService implements OnApplicationShutdown {
 				throw new AuthenticationError('user not found');
 			}
 
-			return [user, null];
-		} else {
-			const accessToken = await this.accessTokensRepository.findOne({
-				where: [{
-					hash: token.toLowerCase(), // app
-				}, {
-					token: token, // miauth
-				}],
-			});
+			return { user, accessToken: null };
+		}
 
-			if (accessToken == null) {
-				throw new AuthenticationError('invalid signature');
+		const sessionValidation = await this.userSessionsService.validateToken(token, undefined, clientIp);
+
+		if (sessionValidation.isValid && sessionValidation.userId) {
+			const user = await this.cacheService.localUserByIdCache.fetch(sessionValidation.userId,
+				() => this.usersRepository.findOneBy({
+					id: sessionValidation.userId,
+				}) as Promise<MiLocalUser>);
+
+			if (user == null) {
+				throw new AuthenticationError('user not found');
 			}
 
-			this.accessTokensRepository.update(accessToken.id, {
+			return {
+				user,
+				accessToken: null,
+				needRefresh: sessionValidation.needRefresh
+			};
+		}
+
+		const accessToken = await this.accessTokensRepository.findOne({
+			where: [{
+				hash: token.toLowerCase(),
+			}, {
+				token: token,
+			}],
+		});
+
+		if (accessToken != null) {
+			await this.accessTokensRepository.update(accessToken.id, {
 				lastUsedAt: new Date(),
 			});
 
@@ -81,14 +111,19 @@ export class AuthenticateService implements OnApplicationShutdown {
 				const app = await this.appCache.fetch(accessToken.appId,
 					() => this.appsRepository.findOneByOrFail({ id: accessToken.appId! }));
 
-				return [user, {
-					id: accessToken.id,
-					permission: app.permission,
-				} as MiAccessToken];
+				return {
+					user,
+					accessToken: {
+						id: accessToken.id,
+						permission: app.permission,
+					} as MiAccessToken
+				};
 			} else {
-				return [user, accessToken];
+				return { user, accessToken };
 			}
 		}
+
+		throw new AuthenticationError('invalid signature');
 	}
 
 	@bindThis

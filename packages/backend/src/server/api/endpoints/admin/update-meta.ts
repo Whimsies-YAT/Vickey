@@ -71,6 +71,7 @@ export const paramDef = {
 		description: { type: 'string', nullable: true },
 		defaultLightTheme: { type: 'string', nullable: true },
 		defaultDarkTheme: { type: 'string', nullable: true },
+		clientOptions: { type: 'object', nullable: false },
 		cacheRemoteFiles: { type: 'boolean' },
 		cacheRemoteSensitiveFiles: { type: 'boolean' },
 		emailRequiredForSignup: { type: 'boolean' },
@@ -243,6 +244,12 @@ export const paramDef = {
 		proxyRemoteFiles: { type: 'boolean' },
 		signToActivityPubGet: { type: 'boolean' },
 		allowExternalApRedirect: { type: 'boolean' },
+		enableRemoteNotesCleaning: { type: 'boolean' },
+		remoteNotesCleaningExpiryDaysForEachNotes: { type: 'number' },
+		remoteNotesCleaningMaxProcessingDurationInMinutes: { type: 'number' },
+		enableBcc: { type: 'boolean', nullable: false },
+		bccLimit: { type: 'number', nullable: false },
+		visibleRecipient: { type: 'string', nullable: true },
 	},
 	required: [],
 } as const;
@@ -376,6 +383,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (ps.defaultDarkTheme !== undefined) {
 				set.defaultDarkTheme = ps.defaultDarkTheme;
+			}
+
+			if (ps.clientOptions !== undefined) {
+				set.clientOptions = ps.clientOptions;
 			}
 
 			if (ps.cacheRemoteFiles !== undefined) {
@@ -916,6 +927,55 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (ps.allowExternalApRedirect !== undefined) {
 				set.allowExternalApRedirect = ps.allowExternalApRedirect;
+			}
+
+			if (ps.enableRemoteNotesCleaning !== undefined) {
+				set.enableRemoteNotesCleaning = ps.enableRemoteNotesCleaning;
+			}
+
+			if (ps.remoteNotesCleaningExpiryDaysForEachNotes !== undefined) {
+				set.remoteNotesCleaningExpiryDaysForEachNotes = ps.remoteNotesCleaningExpiryDaysForEachNotes;
+			}
+
+			if (ps.remoteNotesCleaningMaxProcessingDurationInMinutes !== undefined) {
+				set.remoteNotesCleaningMaxProcessingDurationInMinutes = ps.remoteNotesCleaningMaxProcessingDurationInMinutes;
+			}
+
+			if (ps.enableBcc !== undefined || ps.bccLimit !== undefined) {
+				if (ps.bccLimit !== undefined) {
+					if (ps.bccLimit <= 0) {
+						set.bccLimit = 0;
+						set.enableBcc = false;
+					} else if (ps.bccLimit <= 20) {
+						set.bccLimit = ps.bccLimit;
+					} else {
+						set.bccLimit = 20;
+					}
+				}
+
+				if (ps.enableBcc !== undefined && set.enableBcc !== false) {
+					let effectiveBccLimit: number;
+
+					if (ps.bccLimit !== undefined) {
+						effectiveBccLimit = ps.bccLimit <= 0 ? 0 : Math.min(ps.bccLimit, 20);
+					} else {
+						effectiveBccLimit = set.bccLimit ?? 0;
+					}
+
+					if (ps.enableBcc && effectiveBccLimit <= 0) {
+						set.enableBcc = false;
+					} else {
+						set.enableBcc = ps.enableBcc;
+					}
+				}
+			}
+
+			if (ps.visibleRecipient !== undefined) {
+				if (ps.visibleRecipient?.trim() !== '') {
+					set.visibleRecipient = ps.visibleRecipient;
+				} else {
+					set.visibleRecipient = set.maintainerEmail;
+				}
 			}
 
 			const before = await this.metaService.fetch(true);

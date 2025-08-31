@@ -25,6 +25,10 @@ const configPath = process.env.MISSKEY_CONFIG_YML
 
 let locales = buildLocales();
 
+async function removeUnusedLocales() {
+	await fs.rm('./built/_frontend_dist_/locales', { recursive: true, force: true });
+}
+
 async function loadConfig() {
 	return fs.readFile(configPath, 'utf-8').then(data => yaml.load(data)).catch(() => null);
 }
@@ -83,6 +87,7 @@ async function buildBackendStyle() {
 }
 
 async function build() {
+	await removeUnusedLocales();
   await Promise.all([
     copyFrontendFonts(),
     copyFrontendLocales(),

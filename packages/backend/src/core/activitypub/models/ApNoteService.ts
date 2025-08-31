@@ -308,6 +308,8 @@ export class ApNoteService {
 
 		const apEmojis = emojis.map(emoji => emoji.name);
 
+		const location = this.parseAndValidateGeoShare(note._vickey_geoShare_v1);
+
 		try {
 			return await this.noteCreateService.create(actor, {
 				createdAt: note.published ? new Date(note.published) : null,
@@ -326,6 +328,10 @@ export class ApNoteService {
 				poll,
 				uri: note.id,
 				url: url,
+				geoJson: location ? {
+					type: 'FeatureCollection',
+					features: [JSON.parse(location)]
+				} : null,
 			}, silent);
 		} catch (err: any) {
 			if (err.name !== 'duplicated') {
@@ -373,6 +379,59 @@ export class ApNoteService {
 			return await this.createNote(createFrom, undefined, options.resolver, true);
 		} finally {
 			unlock();
+		}
+	}
+
+	@bindThis
+	public parseAndValidateGeoShare(geoShareData: any): string | null {
+		if (!geoShareData) return null;
+
+		try {
+			if (typeof geoShareData !== 'object' ||
+				geoShareData.type !== 'Feature' ||
+				!geoShareData.properties ||
+				typeof geoShareData.properties !== 'object') {
+				this.logger.warn('Invalid _vickey_geoShare_v1: invalid structure');
+				return null;
+			}
+
+			const props = geoShareData.properties;
+
+			const hasValidProperty = ['country', 'state', 'county', 'city', 'district', 'name'].some(key => {
+				const value = props[key];
+				return value && typeof value === 'string' && value.length > 0 && value.length <= 100;
+			});
+
+			if (!hasValidProperty) {
+				this.logger.warn('Invalid _vickey_geoShare_v1: no valid administrative levels found');
+				return null;
+			}
+
+			const sanitizedProps: any = {};
+			for (const [key, value] of Object.entries(props)) {
+				if (['country', 'state', 'county', 'city', 'district', 'name'].includes(key) && typeof value === 'string') {
+					const trimmed = value.trim();
+					if (trimmed.length > 0 && trimmed.length <= 100) {
+						sanitizedProps[key] = trimmed.replace(/[<>"'&]/g, '');
+					}
+				}
+			}
+
+			if (Object.keys(sanitizedProps).length === 0) {
+				this.logger.warn('Invalid _vickey_geoShare_v1: no valid properties after sanitization');
+				return null;
+			}
+
+			const locationData = {
+				type: 'Feature',
+				geometry: geoShareData.geometry || null,
+				properties: sanitizedProps
+			};
+
+			return JSON.stringify(locationData);
+		} catch (error) {
+			this.logger.warn(`Error parsing _vickey_geoShare_v1: ${error}`);
+			return null;
 		}
 	}
 

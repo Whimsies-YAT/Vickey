@@ -253,3 +253,16 @@ proxyBypassHosts:
 # Default is 12. A value between 10 and 14 is generally recommended for balance.
 # bcryptCost: 12
 
+# tokenSalt: Implement a secure token generation function with optional version input,
+# lazy-initialized sequence counter, and strong entropy. Ensure salts used in password hashing are at least 16 bytes,
+# randomly generated using a CSPRNG, unique per hash, and stored alongside the hash for verification.
+# AFTER THE FIRST CHANGE AND INSTANCE RESTART, IF YOU DON’T KNOW WHAT YOU’RE DOING, DO NOT CHANGE IT!
+tokenSalt: ThisIsNOTSecureEnoughChangeItPoweredByVickey
+
+# hmacKey: Used for signing tokens with HMAC-SHA512.
+# Must be at least 32 bytes (256 bits) of cryptographically secure random data; 64 bytes (512 bits) is recommended.
+# Generate once using a CSPRNG, store securely in a private configuration, and never hardcode or expose in public repositories.
+# Changing this key will immediately invalidate all existing tokens.
+# AFTER THE FIRST SET AND INSTANCE RESTART, IF YOU DO NOT FULLY UNDERSTAND THE IMPACT, DO NOT CHANGE IT!
+hmacKey: ThisIsNOTSecureEnoughChangeItPoweredByVickey
+

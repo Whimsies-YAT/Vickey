@@ -130,6 +130,7 @@ export interface IPost extends IObject {
 	};
 	_misskey_quote?: string;
 	_misskey_content?: string;
+	_vickey_geoShare_v1?: object | string;
 	quoteUrl?: string;
 }
 
@@ -141,6 +142,7 @@ export interface IQuestion extends IObject {
 		mediaType: string;
 	};
 	_misskey_quote?: string;
+	_vickey_geoShare_v1?: object | string;
 	quoteUrl?: string;
 	oneOf?: IQuestionChoice[];
 	anyOf?: IQuestionChoice[];

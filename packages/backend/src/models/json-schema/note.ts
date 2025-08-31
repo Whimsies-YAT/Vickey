@@ -265,5 +265,10 @@ export const packedNoteSchema = {
 			type: 'string',
 			optional: true, nullable: true,
 		},
+
+		geojson: {
+			type: 'object',
+			optional: true, nullable: true,
+		},
 	},
 } as const;

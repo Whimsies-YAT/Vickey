@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <div class="_gaps_m">
 	<div :class="$style.banner" :style="{ backgroundImage: `url(${ instance.bannerUrl })` }">
 		<div style="overflow: clip;">
-			<img :src="instance.iconUrl ?? instance.faviconUrl ?? '/favicon.ico'" alt="" :class="$style.bannerIcon"/>
+			<img :src="instance.iconUrl ?? '/favicon.ico'" alt="" :class="$style.bannerIcon"/>
 			<div :class="$style.bannerName">
 				<b>{{ instance.name ?? host }}</b>
 			</div>
@@ -25,13 +25,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<template #key>Misskey</template>
 				<template #value>{{ version }}</template>
 			</MkKeyValue>
-			<div v-html="i18n.tsx.poweredByMisskeyDescription({ name: instance.name ?? host })">
+			<div v-html="i18n.tsx.poweredByVickeyDescription({ name: instance.name ?? host })">
 			</div>
-			<FormLink to="/about-misskey">
+			<FormLink to="/about-vickey">
 				<template #icon><i class="ti ti-info-circle"></i></template>
-				{{ i18n.ts.aboutMisskey }}
+				{{ i18n.ts.aboutVickey }}
 			</FormLink>
-			<FormLink v-if="instance.repositoryUrl || instance.providesTarball" :to="instance.repositoryUrl || `/tarball/misskey-${version}.tar.gz`" external>
+			<FormLink v-if="instance.repositoryUrl || instance.providesTarball" :to="instance.repositoryUrl || `/tarball/vickey-${version}.tar.gz`" external>
 				<template #icon><i class="ti ti-code"></i></template>
 				{{ i18n.ts.sourceCode }}
 			</FormLink>

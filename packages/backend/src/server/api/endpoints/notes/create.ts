@@ -189,6 +189,38 @@ export const paramDef = {
 			},
 			required: ['choices'],
 		},
+		geoJson: {
+			type: 'object',
+			nullable: true,
+			properties: {
+				type: { type: 'string', enum: ['FeatureCollection'] },
+				features: {
+					type: 'array',
+					items: {
+						type: 'object',
+						properties: {
+							type: { type: 'string', enum: ['Feature'] },
+							properties: { type: 'object' },
+							geometry: {
+								type: 'object',
+								properties: {
+									type: { type: 'string', enum: ['Point'] },
+									coordinates: {
+										type: 'array',
+										minItems: 2,
+										maxItems: 2,
+										items: { type: 'number' }
+									}
+								},
+								required: ['type', 'coordinates']
+							}
+						},
+						required: ['type', 'geometry']
+					}
+				}
+			},
+			required: ['type', 'features']
+		},
 	},
 	// (re)note with text, files and poll are optional
 	if: {
@@ -269,7 +301,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			let renote: MiNote | null = null;
 			if (ps.renoteId != null) {
 				// Fetch renote to note
-				renote = await this.notesRepository.findOneBy({ id: ps.renoteId });
+				renote = await this.notesRepository.findOne({
+					where: { id: ps.renoteId },
+					relations: ['user', 'renote', 'reply'],
+				});
 
 				if (renote == null) {
 					throw new ApiError(meta.errors.noSuchRenoteTarget);
@@ -315,7 +350,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			let reply: MiNote | null = null;
 			if (ps.replyId != null) {
 				// Fetch reply
-				reply = await this.notesRepository.findOneBy({ id: ps.replyId });
+				reply = await this.notesRepository.findOne({
+					where: { id: ps.replyId },
+					relations: ['user'],
+				});
 
 				if (reply == null) {
 					throw new ApiError(meta.errors.noSuchReplyTarget);
@@ -382,6 +420,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					apMentions: ps.noExtractMentions ? [] : undefined,
 					apHashtags: ps.noExtractHashtags ? [] : undefined,
 					apEmojis: ps.noExtractEmojis ? [] : undefined,
+					geoJson: ps.geoJson,
 				});
 
 				return {

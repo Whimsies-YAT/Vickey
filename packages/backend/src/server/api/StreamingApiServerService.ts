@@ -59,6 +59,7 @@ export class StreamingApiServerService {
 
 			let user: MiLocalUser | null = null;
 			let app: MiAccessToken | null = null;
+			let needRefresh = false;
 
 			// https://datatracker.ietf.org/doc/html/rfc6750.html#section-2.1
 			// Note that the standard WHATWG WebSocket API does not support setting any headers,
@@ -68,16 +69,21 @@ export class StreamingApiServerService {
 				: q.get('i');
 
 			try {
-				[user, app] = await this.authenticateService.authenticate(token);
+				const auth = await this.authenticateService.authenticate(token);
+				user = auth.user;
+				app = auth.accessToken;
 
 				if (app !== null && !app.permission.some(p => p === 'read:account')) {
 					throw new AuthenticationError('Your app does not have necessary permissions to use websocket API.');
 				}
+
+				// Store needRefresh flag for later use after connection is established
+				needRefresh = auth.needRefresh || false;
 			} catch (e) {
 				if (e instanceof AuthenticationError) {
 					socket.write([
 						'HTTP/1.1 401 Unauthorized',
-						'WWW-Authenticate: Bearer realm="Misskey", error="invalid_token", error_description="Failed to authenticate"',
+						'WWW-Authenticate: Bearer realm="Vickey", error="invalid_token", error_description="Failed to authenticate"',
 					].join('\r\n') + '\r\n\r\n');
 				} else {
 					socket.write('HTTP/1.1 500 Internal Server Error\r\n\r\n');
@@ -101,6 +107,11 @@ export class StreamingApiServerService {
 			);
 
 			await stream.init();
+
+			// Send token refresh notification if needed
+			if (needRefresh) {
+				stream.sendTokenRefreshNeeded();
+			}
 
 			this.#wss.handleUpgrade(request, socket, head, (ws) => {
 				this.#wss.emit('connection', ws, request, {

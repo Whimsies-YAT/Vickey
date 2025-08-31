@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <SearchMarker path="/settings/security" :label="i18n.ts.security" :keywords="['security']" icon="ti ti-lock" :inlining="['2fa']">
 	<div class="_gaps_m">
 		<MkFeatureBanner icon="/client-assets/locked_with_key_3d.png" color="#ffbf00">
-			<SearchKeyword>{{ i18n.ts._settings.securityBanner }}</SearchKeyword>
+			<SearchText>{{ i18n.ts._settings.securityBanner }}</SearchText>
 		</MkFeatureBanner>
 
 		<SearchMarker :keywords="['password']">
@@ -24,31 +24,41 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<X2fa/>
 
-		<FormSection>
-			<template #label>{{ i18n.ts.signinHistory }}</template>
-			<MkPagination :paginator="paginator" withControl>
-				<template #default="{items}">
-					<div>
-						<div v-for="item in items" :key="item.id" v-panel class="timnmucd" @click.stop="showIP(item.ip)">
-							<header>
-								<i v-if="item.success" class="ti ti-check icon succ"></i>
-								<i v-else class="ti ti-circle-x icon fail"></i>
-								<code class="ip _monospace">{{ item.ip[0] }}</code>
-								<code class="location _monospace">{{ item.ip[5] }}, {{ item.ip[4] }}, {{ item.ip[2] }}</code>
-								<MkTime :time="item.createdAt" class="time"/>
-							</header>
+		<SearchMarker :keywords="['signin', 'login', 'history', 'log']">
+			<FormSection>
+				<template #label><SearchLabel>{{ i18n.ts.signinHistory }}</SearchLabel></template>
+				<MkPagination :paginator="paginator" withControl>
+					<template #default="{items}">
+						<div>
+							<div v-for="item in items" :key="item.id" v-panel class="timnmucd" @click.stop="showIP(item.ip)">
+								<header>
+									<i v-if="item.success" class="ti ti-check icon succ"></i>
+									<i v-else class="ti ti-circle-x icon fail"></i>
+									<code class="ip _monospace">{{ item.ip[0] }}</code>
+									<code class="location _monospace">
+										{{
+											isLocationDataUnavailable(item.ip)
+												? '-'
+												: `${item.ip[5]}, ${item.ip[4]}, ${item.ip[2]}`
+										}}
+									</code>
+									<MkTime :time="item.createdAt" class="time"/>
+								</header>
+							</div>
 						</div>
-					</div>
-				</template>
-			</MkPagination>
-		</FormSection>
+					</template>
+				</MkPagination>
+			</FormSection>
+		</SearchMarker>
 
-		<FormSection>
-			<FormSlot>
-				<MkButton danger @click="regenerateToken"><i class="ti ti-refresh"></i> {{ i18n.ts.regenerateLoginToken }}</MkButton>
-				<template #caption>{{ i18n.ts.regenerateLoginTokenDescription }}</template>
-			</FormSlot>
-		</FormSection>
+		<SearchMarker :keywords="['regenerate', 'refresh', 'reset', 'token']">
+			<FormSection>
+				<FormSlot>
+					<MkButton danger @click="regenerateToken"><i class="ti ti-refresh"></i> <SearchLabel>{{ i18n.ts.regenerateLoginToken }}</SearchLabel></MkButton>
+					<template #caption>{{ i18n.ts.regenerateLoginTokenDescription }}</template>
+				</FormSlot>
+			</FormSection>
+		</SearchMarker>
 	</div>
 </SearchMarker>
 </template>
@@ -66,10 +76,20 @@ import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import MkFeatureBanner from '@/components/MkFeatureBanner.vue';
 import { Paginator } from '@/utility/paginator.js';
+import { $i } from '@/i.js';
+import { miLocalStorage } from '@/local-storage.js';
 
 const paginator = markRaw(new Paginator('i/signin-history', {
 	limit: 3,
 }));
+
+function isLocationDataUnavailable(ipData: string[]): boolean {
+	const unavailableValues = ['-', 'Unknown', 'MISSING_FILE', 'MISSING FILE', '', null, undefined];
+
+	return [ipData[5], ipData[4], ipData[2]].every(value =>
+		unavailableValues.includes(value as any) || value.includes('MISSING')
+	);
+}
 
 async function change() {
 	const { canceled: canceled2, result: newPassword } = await os.inputText({
@@ -77,14 +97,14 @@ async function change() {
 		type: 'password',
 		autocomplete: 'new-password',
 	});
-	if (canceled2) return;
+	if (canceled2 || newPassword == null) return;
 
 	const { canceled: canceled3, result: newPassword2 } = await os.inputText({
 		title: i18n.ts.newPasswordRetype,
 		type: 'password',
 		autocomplete: 'new-password',
 	});
-	if (canceled3) return;
+	if (canceled3 || newPassword2 == null) return;
 
 	if (newPassword !== newPassword2) {
 		os.alert({
@@ -109,23 +129,40 @@ async function regenerateToken() {
 	if (auth.canceled) return;
 
 	try {
-		os.waiting();
-		await misskeyApi('i/regenerate-token', {
+		const result = await misskeyApi('i/regenerate-token', {
 			password: auth.result.password,
 			token: auth.result.token,
+			current: false,
 		});
-	} catch (err) {
-		os.alert({
+
+		if (result && typeof result === 'object' && 'token' in result && $i) {
+			$i.token = result.token;
+			miLocalStorage.setItem('account', JSON.stringify($i));
+		}
+
+		os.success();
+		await os.alert({
+			type: 'success',
+			text: i18n.ts._tokenMigration.tokenRegenerated,
+		});
+	} catch (e) {
+		const error = e as Error;
+		await os.alert({
 			type: 'error',
-			text: err.message || 'Error regenerating token',
+			text: error.message || i18n.ts._tokenMigration.tokenRegeneratedFailed,
 		});
 	}
 }
 
-async function showIP(item) {
-	os.alert({
+async function showIP(item: string[]) {
+	// 使用相同的检查逻辑
+	const locationText = isLocationDataUnavailable(item)
+		? '-'
+		: `${item[5]}, ${item[4]}, ${item[2]}`;
+
+	await os.alert({
 		type: 'info',
-		text: `IP: ${item[0]}\nLocation: ${item[5]}, ${item[4]}, ${item[3]}`,
+		text: `IP: ${item[0]}\nLocation: ${locationText}`,
 	});
 }
 
@@ -164,6 +201,7 @@ definePage(() => ({
 	}
 
 	> header {
+		position: relative;
 		display: flex;
 		align-items: center;
 
@@ -190,9 +228,11 @@ definePage(() => ({
 		}
 
 		> .location {
-			flex-grow: 1;
-			display: flex;
-			justify-content: center;
+			position: absolute;
+			left: 50%;
+			transform: translateX(-50%);
+			text-align: center;
+			white-space: nowrap;
 		}
 
 		> .time {

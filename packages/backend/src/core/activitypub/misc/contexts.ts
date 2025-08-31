@@ -566,6 +566,9 @@ const extension_context_definition = {
 	'isCat': 'misskey:isCat',
 	// vcard
 	vcard: 'http://www.w3.org/2006/vcard/ns#',
+	// Vickey
+	vickey: 'https://vickeyhub.com/ns#',
+	'_vickey_geoShare_v1': 'vickey:_vickey_geoShare_v1',
 } satisfies Context;
 
 export const CONTEXT: (string | Context)[] = [...context_iris, extension_context_definition];

@@ -8,6 +8,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div style="overflow: clip;">
 		<div class="_spacer" style="--MI_SPACER-w: 600px; --MI_SPACER-min: 20px;">
 			<div class="_gaps_m znqjceqz">
+				<MkInfo warn>{{ i18n.ts.pageDeprecated }}</MkInfo>
+				<FormLink to="/about-vickey">
+					<template #icon><i class="ti ti-info-circle"></i></template>
+					{{ i18n.ts.aboutVickey }}
+				</FormLink>
 				<div v-panel class="about">
 					<div ref="containerEl" class="container" :class="{ playing: easterEggEngine != null }">
 						<img src="/client-assets/about-icon.png" alt="" class="icon" draggable="false" @load="iconLoaded" @click="gravity"/>
@@ -33,7 +38,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<div class="_gaps_s">
 						<FormLink to="https://github.com/misskey-dev/misskey" external>
 							<template #icon><i class="ti ti-code"></i></template>
-							{{ i18n.ts._aboutMisskey.source }} ({{ i18n.ts._aboutMisskey.original }})
+							{{ i18n.ts._aboutMisskey.source }} (Misskey)
+							<template #suffix>GitHub</template>
+						</FormLink>
+						<FormLink to="https://github.com/Whimsies-YAT/Vickey" external>
+							<template #icon><i class="ti ti-code"></i></template>
+							{{ i18n.ts._aboutVickey.source }} ({{ i18n.ts._aboutVickey.original }})
 							<template #suffix>GitHub</template>
 						</FormLink>
 						<FormLink to="https://crowdin.com/project/misskey" external>
@@ -58,18 +68,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</FormLink>
 					</div>
 				</FormSection>
-				<FormSection v-if="instance.repositoryUrl !== 'https://github.com/misskey-dev/misskey'">
+				<FormSection v-if="repositoryUrlLC !== 'https://github.com/whimsies-yat/vickey'">
 					<div class="_gaps_s">
 						<MkInfo>
-							{{ i18n.tsx._aboutMisskey.thisIsModifiedVersion({ name: instance.name ?? host }) }}
+							{{ i18n.tsx._aboutVickey.thisIsModifiedVersionVK({ name: instance.name ?? host }) }}
 						</MkInfo>
 						<FormLink v-if="instance.repositoryUrl" :to="instance.repositoryUrl" external>
 							<template #icon><i class="ti ti-code"></i></template>
-							{{ i18n.ts._aboutMisskey.source }}
+							{{ i18n.ts._aboutVickey.source }}
 						</FormLink>
-						<FormLink v-if="instance.providesTarball" :to="`/tarball/misskey-${version}.tar.gz`" external>
+						<FormLink v-if="instance.providesTarball" :to="`/tarball/vickey-${version}.tar.gz`" external>
 							<template #icon><i class="ti ti-download"></i></template>
-							{{ i18n.ts._aboutMisskey.source }}
+							{{ i18n.ts._aboutVickey.source }}
 							<template #suffix>Tarball</template>
 						</FormLink>
 						<MkInfo v-if="!instance.repositoryUrl && !instance.providesTarball" warn>
@@ -78,7 +88,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</FormSection>
 				<FormSection>
-					<template #label>{{ i18n.ts._aboutMisskey.projectMembers }}</template>
+					<template #label>{{ i18n.ts._aboutMisskey.projectMembers }} (Misskey)</template>
 					<div :class="$style.contributors">
 						<a href="https://github.com/syuilo" target="_blank" :class="$style.contributor">
 							<img src="https://avatars.githubusercontent.com/u/4439005?v=4" :class="$style.contributorAvatar">
@@ -129,6 +139,9 @@ import { $i } from '@/i.js';
 import { prefer } from '@/preferences.js';
 
 const thereIsTreasure = ref($i && !claimedAchievements.includes('foundTreasure'));
+const repositoryUrlLC = computed(() => {
+	return typeof instance.repositoryUrl === 'string' ? instance.repositoryUrl.toLowerCase() : '';
+});
 
 let easterEggReady = false;
 const easterEggEmojis = ref<{

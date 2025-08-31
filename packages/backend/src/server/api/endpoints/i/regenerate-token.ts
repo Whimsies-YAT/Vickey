@@ -6,10 +6,14 @@
 import bcrypt from 'bcryptjs';
 import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { UsersRepository, UserProfilesRepository } from '@/models/_.js';
-import { generateNativeUserToken } from '@/misc/token.js';
+import type { UsersRepository, UserProfilesRepository, SigninsRepository } from '@/models/_.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
+import { UserSessionsService } from '@/core/UserSessionsService.js';
 import { DI } from '@/di-symbols.js';
+import { isNativeUserToken, generateDeviceId } from '@/misc/token.js';
+import { IsNull, Not } from "typeorm";
+import { IdService } from '@/core/IdService.js';
+import { detectDeviceType } from '@/misc/device-type.js';
 
 export const meta = {
 	requireCredential: true,
@@ -20,9 +24,10 @@ export const meta = {
 export const paramDef = {
 	type: 'object',
 	properties: {
-		password: { type: 'string' },
+		password: { type: 'string', nullable: true },
+		current: { type: 'boolean', nullable: true, default: false },
 	},
-	required: ['password'],
+	required: [],
 } as const;
 
 @Injectable()
@@ -34,30 +39,179 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.userProfilesRepository)
 		private userProfilesRepository: UserProfilesRepository,
 
+		@Inject(DI.signinsRepository)
+		private signinsRepository: SigninsRepository,
+
 		private globalEventService: GlobalEventService,
+		private userSessionsService: UserSessionsService,
+		private idService: IdService,
 	) {
-		super(meta, paramDef, async (ps, me) => {
+		super(meta, paramDef, async (ps, me, token, file, cleanup, ip, headers, rawToken) => {
 			const freshUser = await this.usersRepository.findOneByOrFail({ id: me.id });
 			const oldToken = freshUser.token!;
 
-			const profile = await this.userProfilesRepository.findOneByOrFail({ userId: me.id });
+			let forceCurrentOnly = false;
+			let currentSignInId: string | undefined = undefined;
+			let currentDeviceId: string | undefined = undefined;
+			let signInHistory: any = null;
+			let inheritedDeviceId: string | undefined = undefined;
+			let inheritedIp: Array<{ address: string; count: number; lastSeen: Date }> | undefined = undefined;
 
-			// Compare password
-			const same = await bcrypt.compare(ps.password, profile.password!);
-
-			if (!same) {
-				throw new Error('incorrect password');
+			if (rawToken) {
+				try {
+					const currentTokenValidation = await this.userSessionsService.validateToken(rawToken, me.id, ip ?? undefined);
+					if (currentTokenValidation.isValid) {
+						inheritedDeviceId = currentTokenValidation.deviceId;
+						inheritedIp = currentTokenValidation.ip || undefined;
+					}
+				} catch (error) {}
 			}
 
-			const newToken = generateNativeUserToken();
+			if (rawToken && !ps.password) {
+				if (isNativeUserToken(rawToken)) {
+					const user = await this.usersRepository.findOneBy({ id: me.id, token: rawToken });
+					if (!user) {
+						throw new Error('invalid token');
+					}
 
-			await this.usersRepository.update(me.id, {
-				token: newToken,
-			});
+					try {
+						const currentDeviceType = detectDeviceType(headers);
+						const userAgent = headers?.['user-agent'] || headers?.['User-Agent'] || '';
 
-			// Publish event
-			this.globalEventService.publishInternalEvent('userTokenRegenerated', { id: me.id, oldToken, newToken });
+						const recentSignIn = await this.signinsRepository.createQueryBuilder('signin')
+							.where('signin.userId = :userId', { userId: me.id })
+							.andWhere('signin.success = true')
+							.andWhere('signin.headers::text LIKE :userAgent', { userAgent: `%${userAgent.slice(0, 100)}%` })
+							.orderBy('signin.id', 'DESC')
+							.getOne();
+
+						if (recentSignIn) {
+							currentSignInId = recentSignIn.id;
+							currentDeviceId = inheritedDeviceId || generateDeviceId(currentDeviceType);
+						} else {
+							const id = this.idService.gen();
+							signInHistory = await this.signinsRepository.insertOne({
+								id,
+								userId: me.id,
+								ip: ip || '127.0.0.1',
+								headers: headers as any,
+								success: true,
+							});
+							currentSignInId = signInHistory.id;
+							currentDeviceId = inheritedDeviceId || generateDeviceId(currentDeviceType);
+						}
+					} catch (error) {
+						const currentDeviceType = detectDeviceType(headers);
+						const id = this.idService.gen();
+						signInHistory = await this.signinsRepository.insertOne({
+							id,
+							userId: me.id,
+							ip: ip || '127.0.0.1',
+							headers: headers as any,
+							success: true,
+						});
+						currentSignInId = signInHistory.id;
+						currentDeviceId = inheritedDeviceId || generateDeviceId(currentDeviceType);
+					}
+				} else {
+					const validation = await this.userSessionsService.validateToken(rawToken, me.id, ip ?? undefined);
+					if (!validation.isValid || validation.userId !== me.id) {
+						throw new Error('invalid token');
+					}
+
+					currentSignInId = validation.signInId || undefined;
+					currentDeviceId = validation.deviceId || undefined;
+					inheritedIp = validation.ip || undefined;
+				}
+				forceCurrentOnly = true;
+			} else if (ps.password) {
+				const profile = await this.userProfilesRepository.findOneByOrFail({ userId: me.id });
+				const same = await bcrypt.compare(ps.password, profile.password!);
+				if (!same) {
+					throw new Error('incorrect password');
+				}
+
+				try {
+					const currentDeviceType = detectDeviceType(headers);
+					const userAgent = headers?.['user-agent'] || headers?.['User-Agent'] || '';
+
+					const recentSignIn = await this.signinsRepository.createQueryBuilder('signin')
+						.where('signin.userId = :userId', { userId: me.id })
+						.andWhere('signin.success = true')
+						.andWhere('signin.headers::text LIKE :userAgent', { userAgent: `%${userAgent.slice(0, 100)}%` })
+						.orderBy('signin.id', 'DESC')
+						.getOne();
+
+					if (recentSignIn) {
+						currentSignInId = recentSignIn.id;
+						currentDeviceId = inheritedDeviceId || generateDeviceId(currentDeviceType);
+					} else {
+						const id = this.idService.gen();
+						const newSignIn = await this.signinsRepository.insertOne({
+							id,
+							userId: me.id,
+							ip: ip || '127.0.0.1',
+							headers: headers as any,
+							success: true,
+						});
+						currentSignInId = newSignIn.id;
+						currentDeviceId = inheritedDeviceId || generateDeviceId(currentDeviceType);
+					}
+				} catch (error) {
+					const currentDeviceType = detectDeviceType(headers);
+					const id = this.idService.gen();
+					const newSignIn = await this.signinsRepository.insertOne({
+						id,
+						userId: me.id,
+						ip: ip || '127.0.0.1',
+						headers: headers as any,
+						success: true,
+					});
+					currentSignInId = newSignIn.id;
+					currentDeviceId = inheritedDeviceId || generateDeviceId(currentDeviceType);
+				}
+			} else {
+				throw new Error('password required');
+			}
+
+			if (!oldToken || !isNativeUserToken(oldToken)) {
+				const shouldInvalidateCurrentOnly = forceCurrentOnly || ps.current;
+
+				if (!shouldInvalidateCurrentOnly) {
+					await this.userSessionsService.invalidateTokenSafely(me.id);
+				} else if (rawToken) {
+					await this.userSessionsService.invalidateTokenSafely(me.id, rawToken);
+				} else {
+					await this.userSessionsService.invalidateTokenSafely(me.id, oldToken);
+				}
+			}
+
+			const newToken = await this.userSessionsService.createTokenSafely({
+				userId: me.id,
+				signInId: currentSignInId,
+				deviceId: currentDeviceId,
+				clientIp: ip ?? undefined,
+				inheritedIp: inheritedIp,
+			} as any);
+
+			if (!newToken) {
+				throw new Error('Failed to create new session token');
+			}
+
+			await this.usersRepository.update(
+				{ id: me.id, token: Not(IsNull()) },
+				{ token: null }
+			);
+
+			if (oldToken && isNativeUserToken(oldToken)) {
+				this.globalEventService.publishInternalEvent('userTokenRegenerated', { id: me.id, oldToken, newToken });
+			}
+
 			this.globalEventService.publishMainStream(me.id, 'myTokenRegenerated');
+
+			return {
+				token: newToken,
+			};
 		});
 	}
 }

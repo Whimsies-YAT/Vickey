@@ -136,6 +136,10 @@ export class SignupApiService {
 		const reason = body['reason'];
 		const emailAddress = body['emailAddress'];
 
+		if (password.length < 8 || password.length > 72) {
+			throw new FastifyReplyError(400, 'INVALID_PASSWORD_LENGTH');
+		}
+
 		if (this.meta.emailRequiredForSignup) {
 			if (emailAddress == null || typeof emailAddress !== 'string' || emailAddress === (await this.userProfilesRepository.findOneBy({ email: emailAddress, emailVerified: true }))?.email || emailAddress === (await this.userPendingsRepository.findOneBy({ email: emailAddress, emailVerified: true, isProcessed: false }))?.email) {
 				reply.code(400);
@@ -252,7 +256,7 @@ export class SignupApiService {
 
 			reply.code(204);
 			return;
-		} else if (this.meta.approvalRequiredForSignup) {
+		} else if (this.meta.approvalRequiredForSignup && !this.meta.emailRequiredForSignup) {
 			if (emailAddress) {
 				const result = await this.emailTemplatesService.sendEmailWithTemplates(emailAddress, 'approvalPending');
 				if (!result) {
@@ -269,6 +273,7 @@ export class SignupApiService {
 				});
 			}
 
+			/*
 			const moderators = await this.roleService.getModerators();
 
 			for (const moderator of moderators) {
@@ -287,13 +292,27 @@ export class SignupApiService {
 					}
 				}
 			}
+			*/
+			const newUserProfile = {
+				username: pendingUser.username,
+				reason: reason,
+			};
+			const modEmails = await this.roleService.getModeratorsEmail();
+			const result = await this.emailTemplatesService.sendEmailWithTemplatesBcc({ key: 'newUserApprovalWithoutEmail', bcc: true, to: modEmails, context: { newUserProfile } });
+			if (!result) {
+				this.emailService.sendEmailWithBcc('New user awaiting approval',
+					`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${reason}"`,
+					`A new user called ${pendingUser.username} is awaiting approval with the following reason: "${reason}"`,
+					true,
+					modEmails);
+			}
 
 			reply.code(204);
 			return;
 		} else {
 			try {
 				const { account, secret } = await this.signupService.signup({
-					username, password, host,
+					username, password, host, request,
 				});
 
 				const res = await this.userEntityService.pack(account, account, {
@@ -371,6 +390,7 @@ export class SignupApiService {
 					}
 				}
 
+				/*
 				const moderators = await this.roleService.getModerators();
 
 				for (const moderator of moderators) {
@@ -382,13 +402,28 @@ export class SignupApiService {
 							username: pendingUser.username,
 							reason: pendingUser.reason,
 						};
-						const result = await this.emailTemplatesService.sendEmailWithTemplates(profile.email, 'newUserApprovalWithoutEmail', { newUserProfile });
+						const result = await this.emailTemplatesService.sendEmailWithTemplates(profile.email, 'newUserApproval', { newUserProfile });
 						if (!result) {
 							await this.emailService.sendEmail(profile.email, 'New user awaiting approval',
 								`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`,
 								`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`);
 						}
 					}
+				}
+				 */
+				const newUserProfile = {
+					email: pendingUser.email,
+					username: pendingUser.username,
+					reason: pendingUser.reason,
+				};
+				const modEmails = await this.roleService.getModeratorsEmail();
+				const result = await this.emailTemplatesService.sendEmailWithTemplatesBcc({ key: 'newUserApproval', bcc: true, to: modEmails, context: { newUserProfile } });
+				if (!result) {
+					this.emailService.sendEmailWithBcc('New user awaiting approval',
+						`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`,
+						`A new user called ${pendingUser.username} (Email: ${pendingUser.email}) is awaiting approval with the following reason: "${pendingUser.reason}"`,
+						true,
+						modEmails);
 				}
 
 				return { pendingApproval: true };
@@ -399,6 +434,7 @@ export class SignupApiService {
 				passwordHash: pendingUser.password,
 				reason: pendingUser.reason,
 				approved: true,
+				request,
 			});
 
 			this.userPendingsRepository.update({ id: pendingUser.id }, { isProcessed: true, result: "Approved" });
