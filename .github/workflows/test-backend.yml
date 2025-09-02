@@ -117,7 +117,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        image: postgis/postgis:17-3.5-alpine
         ports:
           - 54312:5432
         env:
@@ -165,7 +165,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        image: postgis/postgis:17-3.5-alpine
         ports:
           - 54312:5432
         env:
