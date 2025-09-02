@@ -44,7 +44,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</div>
 </template>
 <div v-else>
-	<component :is="inPreviewPopup ? 'div' : (self ? 'MkA' : 'a')" :class="[$style.link, { [$style.compact]: compact, [$style.inPopup]: inPreviewPopup }]" :[attr]="inPreviewPopup ? undefined : maybeRelativeUrl" rel="nofollow noopener" :target="inPreviewPopup ? undefined : target" :title="url" @click="!inPreviewPopup ? handleClick : null">
+	<component :is="inPreviewPopup ? 'div' : (self ? 'MkA' : 'a')" :class="[$style.link, { [$style.compact]: compact, [$style.inPopup]: inPreviewPopup }]" :[attr]="inPreviewPopup ? undefined : maybeRelativeUrl" rel="nofollow noopener" :target="inPreviewPopup ? undefined : target" :title="url" @click="handleClick">
 		<div v-if="thumbnail && !sensitive" :class="$style.thumbnail" :style="prefer.s.dataSaver.urlPreviewThumbnail ? '' : { backgroundImage: `url('${thumbnail}')` }">
 		</div>
 		<article :class="$style.body">
@@ -207,7 +207,6 @@ function openPlayer(): void {
 
 async function handleClick(ev: MouseEvent) {
 	if (self) return;
-	if (props.inPreviewPopup) return;
 
 	if (!self && isExternalLink(props.url)) {
 		ev.preventDefault();
@@ -295,12 +294,11 @@ onUnmounted(() => {
 	}
 
 	&.inPopup {
-		cursor: default;
-		pointer-events: none;
+		cursor: pointer;
 
 		&:hover {
 			> .body > .header > .title {
-				text-decoration: none;
+				text-decoration: underline;
 			}
 		}
 	}

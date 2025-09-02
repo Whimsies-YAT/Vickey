@@ -51,6 +51,7 @@ type MfmProps = {
 	enableEmojiMenu?: boolean;
 	enableEmojiMenuReaction?: boolean;
 	linkNavigationBehavior?: MkABehavior;
+	inPreviewPopup?: boolean;
 };
 
 type MfmEvents = {
@@ -358,6 +359,7 @@ export default function (props: MfmProps, { emit }: { emit: SetupContext<MfmEven
 					url: token.props.url,
 					rel: 'nofollow noopener',
 					navigationBehavior: props.linkNavigationBehavior,
+					inPreviewPopup: props.inPreviewPopup,
 				})];
 			}
 

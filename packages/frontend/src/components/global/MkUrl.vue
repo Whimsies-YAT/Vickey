@@ -93,13 +93,6 @@ const target = self ? null : '_blank';
 async function handleClick(ev: MouseEvent) {
 	if (self) return;
 
-	// If we're in a preview popup, prevent everything
-	if (props.inPreviewPopup) {
-		ev.preventDefault();
-		ev.stopPropagation();
-		return;
-	}
-
 	if (!self && isExternalLink(props.url)) {
 		ev.preventDefault();
 		ev.stopPropagation();
