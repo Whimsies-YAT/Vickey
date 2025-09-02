@@ -142,8 +142,25 @@ export class SearchService {
 							index: idx,
 							mappings: {
 								properties: {
-									text: { type: 'text' },
-									cw: { type: 'text' },
+									text: {
+										type: 'text',
+										analyzer: 'optimized_analyzer',
+										search_analyzer: 'optimized_search_analyzer',
+										fields: {
+											keyword: {
+												type: 'keyword'
+											},
+											exact: {
+												type: 'text',
+												analyzer: 'keyword'
+											}
+										}
+									},
+									cw: {
+										type: 'text',
+										analyzer: 'optimized_analyzer',
+										search_analyzer: 'optimized_search_analyzer'
+									},
 									createdAt: { type: 'long' },
 									userId: { type: 'keyword' },
 									userHost: { type: 'keyword' },
@@ -152,7 +169,48 @@ export class SearchService {
 								},
 							},
 							settings: {
-								//TODO: Make settings for optimization.
+								analysis: {
+									analyzer: {
+										optimized_analyzer: {
+											type: 'custom',
+											tokenizer: 'ik_max_word',
+											filter: [
+												'lowercase',
+												'word_delimiter',
+												'stop',
+												'trim'
+											]
+										},
+										optimized_search_analyzer: {
+											type: 'custom',
+											tokenizer: 'ik_smart',
+											filter: [
+												'lowercase',
+												'word_delimiter',
+												'stop',
+												'trim'
+											]
+										}
+									},
+									tokenizer: {
+										custom_tokenizer: {
+											type: 'pattern',
+											pattern: '[\\s\\p{P}]+',
+											flags: 'CASE_INSENSITIVE'
+										}
+									}
+								},
+								number_of_shards: 1,
+								number_of_replicas: 0,
+								refresh_interval: '30s',
+								max_result_window: 50000,
+								similarity: {
+									default: {
+										type: 'BM25',
+										k1: 1.5,
+										b: 0.75
+									}
+								}
 							},
 						});
 						this.elasticsearchWriteIndex = idx;
@@ -257,6 +315,122 @@ export class SearchService {
 					}
 				}
 			});
+		}
+	}
+
+	@bindThis
+	private buildOptimizedESQuery(q: string) {
+		const cleanQuery = q.trim().replace(/[*?]/g, '');
+
+		const isExactPhrase = /^".*"$/.test(q);
+
+		if (isExactPhrase) {
+			const phrase = cleanQuery.replace(/"/g, '');
+			return {
+				bool: {
+					should: [
+						{
+							match_phrase: {
+								text: {
+									query: phrase,
+									boost: 10
+								}
+							}
+						},
+						{
+							match_phrase: {
+								cw: {
+									query: phrase,
+									boost: 8
+								}
+							}
+						}
+					],
+					minimum_should_match: 1
+				}
+			};
+		} else {
+			return {
+				bool: {
+					should: [
+						{
+							term: {
+								'text.keyword': {
+									value: cleanQuery,
+									boost: 15
+								}
+							}
+						},
+						{
+							match_phrase: {
+								text: {
+									query: cleanQuery,
+									boost: 12
+								}
+							}
+						},
+						{
+							match_phrase: {
+								cw: {
+									query: cleanQuery,
+									boost: 10
+								}
+							}
+						},
+						{
+							match: {
+								text: {
+									query: cleanQuery,
+									operator: 'and',
+									boost: 8,
+									minimum_should_match: '100%'
+								}
+							}
+						},
+						{
+							match: {
+								cw: {
+									query: cleanQuery,
+									operator: 'and',
+									boost: 6,
+									minimum_should_match: '100%'
+								}
+							}
+						},
+						{
+							match: {
+								text: {
+									query: cleanQuery,
+									operator: 'or',
+									boost: 4,
+									minimum_should_match: '75%'
+								}
+							}
+						},
+						{
+							match: {
+								cw: {
+									query: cleanQuery,
+									operator: 'or',
+									boost: 3,
+									minimum_should_match: '75%'
+								}
+							}
+						},
+						{
+							fuzzy: {
+								text: {
+									value: cleanQuery,
+									fuzziness: 'AUTO',
+									boost: 1,
+									max_expansions: 10
+								}
+							}
+						}
+					],
+					minimum_should_match: 1
+				}
+			};
 		}
 	}
 
@@ -380,32 +554,32 @@ export class SearchService {
 				return [];
 			}
 
-		const [
-			userIdsWhoMeMuting,
-			userIdsWhoBlockingMe,
-		] = me
-			? await Promise.all([
-				this.cacheService.userMutingsCache.fetch(me.id),
-				this.cacheService.userBlockedCache.fetch(me.id),
-			])
-			: [new Set<string>(), new Set<string>()];
+			const [
+				userIdsWhoMeMuting,
+				userIdsWhoBlockingMe,
+			] = me
+				? await Promise.all([
+					this.cacheService.userMutingsCache.fetch(me.id),
+					this.cacheService.userBlockedCache.fetch(me.id),
+				])
+				: [new Set<string>(), new Set<string>()];
 
-		const query = this.notesRepository.createQueryBuilder('note')
-			.innerJoinAndSelect('note.user', 'user')
-			.leftJoinAndSelect('note.reply', 'reply')
-			.leftJoinAndSelect('note.renote', 'renote')
-			.leftJoinAndSelect('reply.user', 'replyUser')
-			.leftJoinAndSelect('renote.user', 'renoteUser');
+			const query = this.notesRepository.createQueryBuilder('note')
+				.innerJoinAndSelect('note.user', 'user')
+				.leftJoinAndSelect('note.reply', 'reply')
+				.leftJoinAndSelect('note.renote', 'renote')
+				.leftJoinAndSelect('reply.user', 'replyUser')
+				.leftJoinAndSelect('renote.user', 'renoteUser');
 
-		query.where('note.id IN (:...noteIds)', { noteIds: res.hits.map(x => x.id) });
+			query.where('note.id IN (:...noteIds)', { noteIds: res.hits.map(x => x.id) });
 
-		this.queryService.generateBlockedHostQueryForNote(query);
-		this.queryService.generateSuspendedUserQueryForNote(query);
+			this.queryService.generateBlockedHostQueryForNote(query);
+			this.queryService.generateSuspendedUserQueryForNote(query);
 
-		const notes = (await query.getMany()).filter(note => {
-			if (me && isUserRelated(note, userIdsWhoBlockingMe)) return false;
-			return !(me && isUserRelated(note, userIdsWhoMeMuting));
-		});
+			const notes = (await query.getMany()).filter(note => {
+				if (me && isUserRelated(note, userIdsWhoBlockingMe)) return false;
+				return !(me && isUserRelated(note, userIdsWhoMeMuting));
+			});
 
 			return notes.sort((a, b) => a.id > b.id ? -1 : 1);
 		} else if (this.elasticsearch && this.elasticsearchSearchIndex) {
@@ -426,27 +600,41 @@ export class SearchService {
 				}
 			}
 
+			const searchQuery = this.buildOptimizedESQuery(q);
+
 			const res = await this.elasticsearch.search({
 				index: this.elasticsearchSearchIndex,
 				query: {
 					bool: {
 						must: [
-							{
-								bool: {
-									should: [
-										{ wildcard: { "text": { value: `*${q}*` } } },
-										{ simple_query_string: { fields: ["text"], query: q, default_operator: 'and' } }
-									],
-									minimum_should_match: 1
-								}
-							},
+							searchQuery,
 							esFilter
 						]
 					}
 				},
-				sort: [{ createdAt: { order: "desc" } }],
+				sort: [
+					{ _score: { order: "desc" } },
+					{ createdAt: { order: "desc" } }
+				],
 				_source: ['id', 'createdAt'],
-				size: pagination.limit
+				size: pagination.limit,
+				highlight: {
+					fields: {
+						text: {
+							pre_tags: ["<mark>"],
+							post_tags: ["</mark>"],
+							fragment_size: 100,
+							number_of_fragments: 1
+						},
+						cw: {
+							pre_tags: ["<mark>"],
+							post_tags: ["</mark>"],
+							fragment_size: 50,
+							number_of_fragments: 1
+						}
+					}
+				},
+				min_score: 0.1
 			});
 
 			const noteIds = res.hits.hits.map((hit: any) => hit._id);
@@ -477,7 +665,19 @@ export class SearchService {
 				return !(me && isUserRelated(note, userIdsWhoMeMuting));
 			});
 
-			return notes.sort((a, b) => a.id > b.id ? -1 : 1);
+			const scoreMap = new Map();
+			res.hits.hits.forEach((hit: any, index: number) => {
+				scoreMap.set(hit._id, { score: hit._score, index });
+			});
+
+			return notes.sort((a, b) => {
+				const aScore = scoreMap.get(a.id)?.score || 0;
+				const bScore = scoreMap.get(b.id)?.score || 0;
+				if (aScore !== bScore) {
+					return bScore - aScore;
+				}
+				return a.id > b.id ? -1 : 1;
+			});
 		} else {
 			const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), pagination.sinceId, pagination.untilId);
 
