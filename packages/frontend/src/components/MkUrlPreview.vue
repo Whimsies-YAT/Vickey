@@ -44,7 +44,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</div>
 </template>
 <div v-else>
-	<component :is="self ? 'MkA' : 'a'" :class="[$style.link, { [$style.compact]: compact }]" :[attr]="maybeRelativeUrl" rel="nofollow noopener" :target="target" :title="url">
+	<component :is="inPreviewPopup ? 'div' : (self ? 'MkA' : 'a')" :class="[$style.link, { [$style.compact]: compact, [$style.inPopup]: inPreviewPopup }]" :[attr]="inPreviewPopup ? undefined : maybeRelativeUrl" rel="nofollow noopener" :target="inPreviewPopup ? undefined : target" :title="url" @click="!inPreviewPopup ? handleClick : null">
 		<div v-if="thumbnail && !sensitive" :class="$style.thumbnail" :style="prefer.s.dataSaver.urlPreviewThumbnail ? '' : { backgroundImage: `url('${thumbnail}')` }">
 		</div>
 		<article :class="$style.body">
@@ -95,6 +95,7 @@ import { transformPlayerUrl } from '@/utility/url-preview.js';
 import { store } from '@/store.js';
 import { prefer } from '@/preferences.js';
 import { maybeMakeRelative } from '@@/js/url.js';
+import { isExternalLink } from '@/utility/external-link.js';
 
 type SummalyResult = Awaited<ReturnType<typeof summaly>>;
 
@@ -103,10 +104,12 @@ const props = withDefaults(defineProps<{
 	detail?: boolean;
 	compact?: boolean;
 	showActions?: boolean;
+	inPreviewPopup?: boolean;
 }>(), {
 	detail: false,
 	compact: false,
 	showActions: true,
+	inPreviewPopup: false,
 });
 
 const MOBILE_THRESHOLD = 500;
@@ -202,6 +205,28 @@ function openPlayer(): void {
 	});
 }
 
+async function handleClick(ev: MouseEvent) {
+	if (self) return;
+	if (props.inPreviewPopup) return;
+
+	if (!self && isExternalLink(props.url)) {
+		ev.preventDefault();
+		ev.stopPropagation();
+
+		const { canceled } = await os.confirm({
+			type: 'warning',
+			title: i18n.ts.externalLink,
+			text: i18n.tsx.externalLinkWarning({ url: props.url }),
+			okText: i18n.ts.continue,
+			cancelText: i18n.ts.cancel,
+		});
+
+		if (!canceled) {
+			window.open(props.url, '_blank', 'noopener,noreferrer');
+		}
+	}
+}
+
 window.addEventListener('message', adjustTweetHeight);
 
 onUnmounted(() => {
@@ -265,6 +290,17 @@ onUnmounted(() => {
 				overflow: hidden;
 				white-space: nowrap;
 				text-overflow: ellipsis;
+			}
+		}
+	}
+
+	&.inPopup {
+		cursor: default;
+		pointer-events: none;
+
+		&:hover {
+			> .body > .header > .title {
+				text-decoration: none;
 			}
 		}
 	}

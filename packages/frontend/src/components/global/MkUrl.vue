@@ -7,6 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <component
 	:is="self ? 'MkA' : 'a'" ref="el" :class="$style.root" class="_link" :[attr]="maybeRelativeUrl" :rel="rel ?? 'nofollow noopener'" :target="target"
 	:behavior="props.navigationBehavior"
+	@click="handleClick"
 	@contextmenu.stop="() => {}"
 >
 	<template v-if="!self">
@@ -33,6 +34,8 @@ import type { MkABehavior } from '@/components/global/MkA.vue';
 import * as os from '@/os.js';
 import { useTooltip } from '@/composables/use-tooltip.js';
 import { isEnabledUrlPreview } from '@/utility/url-preview.js';
+import { isExternalLink } from '@/utility/external-link.js';
+import { i18n } from '@/i18n.js';
 
 function safeURIDecode(str: string): string {
 	try {
@@ -47,8 +50,10 @@ const props = withDefaults(defineProps<{
 	rel?: string;
 	showUrlPreview?: boolean;
 	navigationBehavior?: MkABehavior;
+	inPreviewPopup?: boolean;
 }>(), {
 	showUrlPreview: true,
+	inPreviewPopup: false,
 });
 
 const maybeRelativeUrl = maybeMakeRelative(props.url, local);
@@ -57,12 +62,19 @@ const url = new URL(props.url);
 if (!['http:', 'https:'].includes(url.protocol)) throw new Error('invalid url');
 const el = ref();
 
-if (props.showUrlPreview && isEnabledUrlPreview.value) {
+if (props.showUrlPreview && isEnabledUrlPreview.value && !props.inPreviewPopup) {
 	useTooltip(el, (showing) => {
+		const isInDialog = el.value && (
+			el.value.closest?.('[role="dialog"]') ||
+			el.value.closest?.('.mk-modal') ||
+			el.value.closest?.('[data-cy-modal-dialog-ok]')?.closest?.('.mk-modal')
+		);
+
 		const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkUrlPreviewPopup.vue')), {
 			showing,
 			url: props.url,
 			anchorElement: el.value instanceof HTMLElement ? el.value : el.value?.$el,
+			forceHighZIndex: !!isInDialog,
 		}, {
 			closed: () => dispose(),
 		});
@@ -77,6 +89,33 @@ const query = safeURIDecode(url.search);
 const hash = safeURIDecode(url.hash);
 const attr = self ? 'to' : 'href';
 const target = self ? null : '_blank';
+
+async function handleClick(ev: MouseEvent) {
+	if (self) return;
+
+	// If we're in a preview popup, prevent everything
+	if (props.inPreviewPopup) {
+		ev.preventDefault();
+		ev.stopPropagation();
+		return;
+	}
+
+	if (!self && isExternalLink(props.url)) {
+		ev.preventDefault();
+		ev.stopPropagation();
+		const { canceled } = await os.confirm({
+			type: 'warning',
+			title: i18n.ts.externalLink,
+			text: i18n.tsx.externalLinkWarning({ url: `\` ${props.url} \`` }),
+			okText: i18n.ts.continue,
+			cancelText: i18n.ts.cancel,
+		});
+
+		if (!canceled) {
+			window.open(props.url, '_blank', 'noopener,noreferrer');
+		}
+	}
+}
 </script>
 
 <style lang="scss" module>

@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <PageWithHeader :tabs="headerTabs">
 	<div class="_spacer" style="--MI_SPACER-w: 700px; --MI_SPACER-min: 16px; --MI_SPACER-max: 32px;">
-		<FormSuspense :p="init">
+		<MkSuspense :p="init">
 			<div class="_gaps_m">
 				<MkSwitch :modelValue="enableEmailTemplates" @update:modelValue="onChange_enableEmailTemplates">
 					<template #label>{{ i18n.ts._emailTemplates.global }}</template>
@@ -47,7 +47,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</div>
 			</div>
-		</FormSuspense>
+		</MkSuspense>
 	</div>
 </PageWithHeader>
 </template>
@@ -56,7 +56,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { ref, computed } from 'vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkTextarea from '@/components/MkTextarea.vue';
-import FormSuspense from '@/components/form/suspense.vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
