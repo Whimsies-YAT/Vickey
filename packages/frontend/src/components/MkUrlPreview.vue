@@ -215,7 +215,7 @@ async function handleClick(ev: MouseEvent) {
 		const { canceled } = await os.confirm({
 			type: 'warning',
 			title: i18n.ts.externalLink,
-			text: i18n.tsx.externalLinkWarning({ url: props.url }),
+			text: i18n.tsx.externalLinkWarning({ url: `\` ${props.url} \`` }),
 			okText: i18n.ts.continue,
 			cancelText: i18n.ts.cancel,
 		});
