@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <div :class="$style.root" :style="{ zIndex, top: top + 'px', left: left + 'px' }">
 	<Transition :name="prefer.s.animation ? '_transition_zoom' : ''" @afterLeave="emit('closed')">
-		<MkUrlPreview v-if="showing" class="_popup _shadow" :url="url" :showActions="false"/>
+		<MkUrlPreview v-if="showing" class="_popup _shadow" :url="url" :showActions="false" :inPreviewPopup="true"/>
 	</Transition>
 </div>
 </template>
@@ -21,13 +21,14 @@ const props = defineProps<{
 	showing: boolean;
 	url: string;
 	anchorElement: HTMLElement;
+	forceHighZIndex?: boolean;
 }>();
 
 const emit = defineEmits<{
 	(ev: 'closed'): void;
 }>();
 
-const zIndex = os.claimZIndex('middle');
+const zIndex = props.forceHighZIndex ? 9999999 : os.claimZIndex('middle');
 const top = ref(0);
 const left = ref(0);
 
@@ -46,6 +47,5 @@ onMounted(() => {
 	position: absolute;
 	width: 500px;
 	max-width: calc(90vw - 12px);
-	pointer-events: none;
 }
 </style>

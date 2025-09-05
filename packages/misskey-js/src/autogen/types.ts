@@ -4600,6 +4600,7 @@ export type components = {
             clippedCount?: number;
             hasPoll?: boolean;
             myReaction?: string | null;
+            geojson?: Record<string, never> | null;
         };
         NoteDraft: {
             /**
@@ -30252,6 +30253,20 @@ export interface operations {
                         multiple?: boolean;
                         expiresAt?: number | null;
                         expiredAfter?: number | null;
+                    } | null;
+                    geoJson?: {
+                        /** @enum {string} */
+                        type: 'FeatureCollection';
+                        features: {
+                            /** @enum {string} */
+                            type: 'Feature';
+                            properties?: Record<string, never>;
+                            geometry: {
+                                /** @enum {string} */
+                                type: 'Point';
+                                coordinates: number[];
+                            };
+                        }[];
                     } | null;
                 };
             };

@@ -173,6 +173,18 @@ export interface Locale extends ILocale {
      * Are you sure you want to remove the passkeys?
      */
     "removeKeysConfirm": string;
+    /**
+     * External Link
+     */
+    "externalLink": string;
+    /**
+     * You are about to visit an external website:
+     *
+     * <b>{url}</b>
+     *
+     * Are you sure you want to continue?
+     */
+    "externalLinkWarning": ParameterizedString<"url">;
     "_oauthAppVK": {
         /**
          * OAuth Application

@@ -255,7 +255,7 @@ export class MiNote {
 	public geojson: Record<string, any> | null;
 
 	@Index({ spatial: true })
-	@Column('text', {
+	@Column('geometry', {
 		nullable: true,
 		comment: 'Geographic location as Point (lon/lat, WGS84).',
 	})
