@@ -39,6 +39,8 @@ unregister2fa: "Remove authenticator app"
 removeKeys: "Remove passkeys"
 unregister2faConfirm: "Are you sure you want to remove the authenticator app?"
 removeKeysConfirm: "Are you sure you want to remove the passkeys?"
+externalLink: "External Link"
+externalLinkWarning: "You are about to visit an external website:\n\n<b>{url}</b>\n\nAre you sure you want to continue?"
 _oauthAppVK:
   title: "OAuth Application"
   description: "OAuth Applications for third-party integrations using the OAuth 2.0 / IndieAuth standard."
