@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 import { PrimaryColumn, Entity, Column, Index, ManyToOne, JoinColumn } from 'typeorm';
 import { id } from './util/id.js';
 import { MiUser } from './User.js';
