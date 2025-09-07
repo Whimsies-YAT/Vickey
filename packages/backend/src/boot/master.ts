@@ -13,11 +13,12 @@ import chalkTemplate from 'chalk-template';
 import * as Sentry from '@sentry/node';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import Logger from '@/logger.js';
-import { loadConfig } from '@/config.js';
+import { loadConfig, updateGlobalConfig } from '@/config.js';
 import type { Config } from '@/config.js';
 import { showMachineInfo } from '@/misc/show-machine-info.js';
 import { envOption } from '@/env.js';
 import { jobQueue, server } from './common.js';
+import * as argon2 from '@node-rs/argon2';
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
@@ -26,6 +27,16 @@ const meta = JSON.parse(fs.readFileSync(`${_dirname}/../../../../built/meta.json
 
 const logger = new Logger('core', 'cyan');
 const bootLogger = logger.createSubLogger('boot', 'magenta');
+
+// Global Argon2id configuration
+export let globalArgon2Config = {
+	memoryCost: 4096,
+	timeCost: 3,
+	parallelism: 1,
+};
+
+// Global autotune promise - started early, awaited later
+let autotunePromise: Promise<void> | null = null;
 
 const themeColor = chalk.hex('#86b300');
 
@@ -66,6 +77,10 @@ export async function masterMain() {
 		await showMachineInfo(bootLogger);
 		showNodejsVersion();
 		config = loadConfigBoot();
+
+		// Start Argon2id autotune in background immediately after config load
+		autotunePromise = performArgon2Autotune();
+
 		//await connectDb();
 		if (config.pidFile) fs.writeFileSync(config.pidFile, process.pid.toString());
 	} catch (e) {
@@ -96,6 +111,11 @@ export async function masterMain() {
 	bootLogger.info(
 		`mode: [disableClustering: ${envOption.disableClustering}, onlyServer: ${envOption.onlyServer}, onlyQueue: ${envOption.onlyQueue}]`,
 	);
+
+	// Wait for Argon2id autotune to complete before starting services
+	if (autotunePromise) {
+		await autotunePromise;
+	}
 
 	if (!envOption.disableClustering) {
 		// clusterモジュール有効時
@@ -208,4 +228,128 @@ function spawnWorker(): Promise<void> {
 			res();
 		});
 	});
+}
+
+/**
+ * Perform Argon2id dynamic autotune
+ */
+async function performArgon2Autotune() {
+	const argonLogger = bootLogger.createSubLogger('argon2', 'yellow');
+	argonLogger.info('Starting Argon2id autotune...');
+
+	const targetTime = 100; // Target 100ms
+	const testPassword = 'test-password-for-autotune-benchmarking';
+	const availableCpus = os.cpus().length;
+
+	// Start with baseline parameters
+	let bestConfig = {
+		memoryCost: 4096,     // 4MB
+		timeCost: 3,
+		parallelism: Math.min(2, availableCpus),
+	};
+
+	let bestTime = await benchmarkArgon2Config(testPassword, bestConfig);
+	argonLogger.info(`Initial benchmark: ${bestTime.toFixed(1)}ms`);
+
+	// Binary search for memory cost
+	let memoryMin = 1024;      // 1MB minimum
+	let memoryMax = 65536;     // 64MB maximum
+
+	while (memoryMax - memoryMin > 512) {
+		const memoryMid = Math.floor((memoryMin + memoryMax) / 2);
+
+		const testConfig = {
+			...bestConfig,
+			memoryCost: memoryMid,
+		};
+
+		const testTime = await benchmarkArgon2Config(testPassword, testConfig);
+
+		if (testTime <= targetTime) {
+			memoryMin = memoryMid;
+			if (testTime > bestTime && testTime <= targetTime) {
+				bestConfig = { ...testConfig };
+				bestTime = testTime;
+			}
+		} else {
+			memoryMax = memoryMid;
+		}
+	}
+
+	// Fine-tune time cost
+	for (let timeCost = 1; timeCost <= 8; timeCost++) {
+		const testConfig = {
+			...bestConfig,
+			timeCost,
+		};
+
+		const testTime = await benchmarkArgon2Config(testPassword, testConfig);
+
+		if (testTime <= targetTime) {
+			if (testTime > bestTime) {
+				bestConfig = { ...testConfig };
+				bestTime = testTime;
+			}
+		} else {
+			break;
+		}
+	}
+
+	// Optimize parallelism
+	const maxParallelism = Math.min(availableCpus, 6);
+	for (let parallelism = 1; parallelism <= maxParallelism; parallelism++) {
+		const testConfig = {
+			...bestConfig,
+			parallelism,
+		};
+
+		const testTime = await benchmarkArgon2Config(testPassword, testConfig);
+
+		if (testTime <= targetTime && testTime < bestTime) {
+			bestConfig = { ...testConfig };
+			bestTime = testTime;
+		}
+	}
+
+	// Final validation with multiple runs
+	const finalTime = await benchmarkArgon2ConfigMultiple(testPassword, bestConfig, 3);
+
+	// Update global config
+	globalArgon2Config = bestConfig;
+	
+	// Update the global config object so other parts of the app can access it
+	updateGlobalConfig({ argon2Config: bestConfig });
+
+	argonLogger.succ(`Autotune completed: memory=${bestConfig.memoryCost}KiB, time=${bestConfig.timeCost}, parallelism=${bestConfig.parallelism}, avg=${finalTime.toFixed(1)}ms`);
+}
+
+async function benchmarkArgon2Config(password: string, config: typeof globalArgon2Config): Promise<number> {
+	const start = process.hrtime.bigint();
+
+	try {
+		await argon2.hash(password, {
+			memoryCost: config.memoryCost,
+			timeCost: config.timeCost,
+			parallelism: config.parallelism,
+			outputLen: 32,
+		});
+
+		const end = process.hrtime.bigint();
+		return Number(end - start) / 1_000_000; // Convert to milliseconds
+	} catch (error) {
+		return Infinity;
+	}
+}
+
+async function benchmarkArgon2ConfigMultiple(password: string, config: typeof globalArgon2Config, runs: number): Promise<number> {
+	const times: number[] = [];
+
+	for (let i = 0; i < runs; i++) {
+		const time = await benchmarkArgon2Config(password, config);
+		if (time !== Infinity) {
+			times.push(time);
+		}
+	}
+
+	return times.length > 0 ? times.reduce((a, b) => a + b, 0) / times.length : Infinity;
 }

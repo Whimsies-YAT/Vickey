@@ -50,6 +50,7 @@ import { CleanExpiredPendingsProcessorService } from './processors/CleanExpiredP
 import { CheckIP2LReleaseProcessorService } from './processors/CheckIP2LReleaseProcessorService.js';
 import { UserSessionsProcessorService } from './processors/UserSessionsProcessorService.js';
 import { UserSessionsCleanupProcessorService } from './processors/UserSessionsCleanupProcessorService.js';
+import { RiskScoreUpdateProcessorService } from './processors/RiskScoreUpdateProcessorService.js';
 
 @Module({
 	imports: [
@@ -102,6 +103,7 @@ import { UserSessionsCleanupProcessorService } from './processors/UserSessionsCl
 		CheckIP2LReleaseProcessorService,
 		UserSessionsProcessorService,
 		UserSessionsCleanupProcessorService,
+		RiskScoreUpdateProcessorService,
 	],
 	exports: [
 		QueueProcessorService,

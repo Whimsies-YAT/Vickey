@@ -5,7 +5,7 @@
 
 import { generateKeyPair } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
-import bcrypt from 'bcryptjs';
+import * as argon2 from '@node-rs/argon2';
 import { DataSource, IsNull } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { MiMeta, UsedUsernamesRepository, UsersRepository, SigninsRepository } from '@/models/_.js';
@@ -25,6 +25,9 @@ import { MetaService } from '@/core/MetaService.js';
 import { UserSessionsService } from '@/core/UserSessionsService.js';
 import type { FastifyRequest } from "fastify";
 import { detectDeviceType } from '@/misc/device-type.js';
+import { UserRiskScoreService } from '@/core/UserRiskScoreService.js';
+import { RiskEventLogService } from '@/core/RiskEventLogService.js';
+import { QueueService } from '@/core/QueueService.js';
 
 @Injectable()
 export class SignupService {
@@ -55,6 +58,9 @@ export class SignupService {
 		private metaService: MetaService,
 		private usersChart: UsersChart,
 		private userSessionsService: UserSessionsService,
+		private userRiskScoreService: UserRiskScoreService,
+		private riskEventLogService: RiskEventLogService,
+		private queueService: QueueService,
 	) {
 	}
 
@@ -95,13 +101,17 @@ export class SignupService {
 				throw new Error('INVALID_PASSWORD');
 			}
 
-			if (password.length < 8 || password.length > 72) {
+			if (password.length < 8) {
 				throw new Error('INVALID_PASSWORD_LENGTH');
 			}
 
-			// Generate hash of password
-			const salt = await bcrypt.genSalt(this.config.bcryptCost);
-			hash = await bcrypt.hash(password, salt);
+			// Generate hash of password using Argon2id
+			hash = await argon2.hash(password, this.config.argon2Config || {
+				memoryCost: 4096,
+				timeCost: 3,
+				parallelism: 1,
+				outputLen: 32,
+			});
 		}
 
 		// Check username duplication
@@ -208,6 +218,46 @@ export class SignupService {
 		if (this.meta.rootUserId == null) {
 			await this.metaService.update({ rootUserId: account.id });
 		}
+
+		setImmediate(async () => {
+			try {
+				const riskScore = await this.userRiskScoreService.calculateUserRiskScore(account.id);
+
+				// Log risk event to database
+				await this.riskEventLogService.logRiskEvent({
+					userId: account.id,
+					eventType: 'user_registration',
+					riskScore: riskScore.totalScore,
+					riskLevel: riskScore.riskLevel,
+					details: {
+						newUser: true,
+						dimensions: riskScore.dimensions,
+					},
+					timestamp: new Date(),
+				});
+
+				// If new user risk score is too low, may require additional review
+				if (riskScore.riskLevel === 'poor' || riskScore.riskLevel === 'fair') {
+					// Mark high-risk users as requiring approval (backend only, don't modify user-visible reason)
+					if (!account.approved && this.meta.approvalRequiredForSignup) {
+						await this.usersRepository.update(account.id, {
+							approved: false,
+							signupReason: reason || null,
+						});
+					}
+				}
+
+				// Schedule risk score update after delay using dbQueue
+				this.queueService.dbQueue.add('updateUserRiskScore', {
+					userId: account.id,
+					reason: 'new_registration',
+				}, {
+					delay: 60000,
+				});
+			} catch (error) {
+				console.error(`Failed to calculate risk score for new user ${account.id}:`, error);
+			}
+		});
 
 		return { account, secret: sessionToken };
 	}

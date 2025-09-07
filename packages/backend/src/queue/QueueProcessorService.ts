@@ -53,6 +53,7 @@ import { CleanExpiredPendingsProcessorService } from './processors/CleanExpiredP
 import { CheckIP2LReleaseProcessorService } from './processors/CheckIP2LReleaseProcessorService.js';
 import { UserSessionsProcessorService } from './processors/UserSessionsProcessorService.js';
 import { UserSessionsCleanupProcessorService } from './processors/UserSessionsCleanupProcessorService.js';
+import { RiskScoreUpdateProcessorService } from './processors/RiskScoreUpdateProcessorService.js';
 import { QUEUE, baseWorkerOptions } from './const.js';
 
 // ref. https://github.com/misskey-dev/misskey/pull/7635#issue-971097019
@@ -141,6 +142,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		private cleanRemoteNotesProcessorService: CleanRemoteNotesProcessorService,
 		private userSessionsProcessorService: UserSessionsProcessorService,
 		private userSessionsCleanupProcessorService: UserSessionsCleanupProcessorService,
+		private riskScoreUpdateProcessorService: RiskScoreUpdateProcessorService,
 	) {
 		this.logger = this.queueLoggerService.logger;
 
@@ -189,6 +191,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 					case 'cleanRemoteNotes': return this.cleanRemoteNotesProcessorService.process(job);
 					case 'syncUserSessions': return this.userSessionsProcessorService.process();
 					case 'clearExpiredSessions': return this.userSessionsCleanupProcessorService.process();
+					case 'riskScoreUpdate': return this.riskScoreUpdateProcessorService.process(job);
 					default: throw new Error(`unrecognized job type ${job.name} for system`);
 				}
 			};

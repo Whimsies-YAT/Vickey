@@ -4,7 +4,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import bcrypt from 'bcryptjs';
+import * as argon2 from '@node-rs/argon2';
 import { IsNull } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { RegistrationTicketsRepository, UsedUsernamesRepository, UserPendingsRepository, UserProfilesRepository, UsersRepository, MiRegistrationTicket, MiMeta } from '@/models/_.js';
@@ -222,9 +222,13 @@ export class SignupApiService {
 
 		const code = uuidv7() + secureRndstr(16, { chars: L_CHARS });
 
-		// Generate hash of password
-		const salt = await bcrypt.genSalt(this.config.bcryptCost);
-		const hash = await bcrypt.hash(password, salt);
+		// Generate hash of password using Argon2id
+		const hash = await argon2.hash(password, this.config.argon2Config || {
+			memoryCost: 4096,
+			timeCost: 3,
+			parallelism: 1,
+			outputLen: 32,
+		});
 
 		const pendingUser = await this.userPendingsRepository.insertOne({
 			id: this.idService.gen(),

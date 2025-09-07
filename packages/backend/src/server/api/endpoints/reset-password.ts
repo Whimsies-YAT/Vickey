@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import bcrypt from 'bcryptjs';
+import * as argon2 from '@node-rs/argon2';
 import { Inject, Injectable } from '@nestjs/common';
 import type { UserProfilesRepository, PasswordResetRequestsRepository } from '@/models/_.js';
 import type { Config } from '@/config.js';
@@ -27,7 +27,7 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		token: { type: 'string' },
-		password: { type: 'string', minLength: 8, maxLength: 72 },
+		password: { type: 'string', minLength: 8 },
 	},
 	required: ['token', 'password'],
 } as const;
@@ -56,9 +56,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new Error(); // TODO
 			}
 
-			// Generate hash of password
-			const salt = await bcrypt.genSalt(this.config.bcryptCost);
-			const hash = await bcrypt.hash(ps.password, salt);
+			// Generate hash of password using Argon2id
+			const hash = await argon2.hash(ps.password, this.config.argon2Config || {
+				memoryCost: 4096,
+				timeCost: 3,
+				parallelism: 1,
+				outputLen: 32,
+			});
 
 			await this.userProfilesRepository.update(req.userId, {
 				password: hash,

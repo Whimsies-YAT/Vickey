@@ -53,6 +53,7 @@
 		"lodash": "4.17.21"
 	},
 	"dependencies": {
+		"cld": "2.10.1",
 		"cssnano": "7.1.1",
 		"esbuild": "0.25.9",
 		"execa": "9.6.0",

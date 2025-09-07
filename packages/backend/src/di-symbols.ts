@@ -96,5 +96,14 @@ export const DI = {
 	userSessionsRepository: Symbol('userSessionsRepository'),
 	oauthClientConfigsRepository: Symbol('oauthClientConfigsRepository'),
 	userSessionRepository: Symbol('userSessionRepository'),
+	userRiskScoreHistoryRepository: Symbol('userRiskScoreHistoryRepository'),
+	riskEventLogRepository: Symbol('riskEventLogRepository'),
+	userMultiAccountLinkRepository: Symbol('userMultiAccountLinkRepository'),
+	userRecommendationProfileRepository: Symbol('userRecommendationProfileRepository'),
+	contentRecommendationLogRepository: Symbol('contentRecommendationLogRepository'),
+	userInteractionHistoryRepository: Symbol('userInteractionHistoryRepository'),
+	contentEmbeddingRepository: Symbol('contentEmbeddingRepository'),
+	userInterestEmbeddingRepository: Symbol('userInterestEmbeddingRepository'),
+	embeddingBatchQueueRepository: Symbol('embeddingBatchQueueRepository'),
 	//#endregion
 };

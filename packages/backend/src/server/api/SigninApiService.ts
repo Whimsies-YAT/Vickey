@@ -5,6 +5,8 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
+import * as argon2 from '@node-rs/argon2';
+import { getPasswordHashType } from '@/misc/password-hash-type.js';
 import { IsNull } from 'typeorm';
 import * as Misskey from 'misskey-js';
 import { DI } from '@/di-symbols.js';
@@ -61,6 +63,31 @@ export class SigninApiService {
 	) {
 	}
 
+	private async verifyPassword(password: string, hash: string, userId: string): Promise<boolean> {
+		const hashType = getPasswordHashType(hash);
+		const verifyFunctions = {
+			'argon2id': () => argon2.verify(hash, password),
+			'bcrypt': async () => {
+				const isValid = await bcrypt.compare(password, hash);
+				if (isValid && this.config.argon2Config) {
+					// Upgrade to Argon2id in background
+					setImmediate(async () => {
+						try {
+							const newHash = await argon2.hash(password, this.config.argon2Config!);
+							await this.userProfilesRepository.update({ userId }, { password: newHash });
+						} catch (e) {
+							// Silent fail - hash upgrade is non-critical
+						}
+					});
+				}
+				return isValid;
+			},
+			'unknown': () => Promise.resolve(false)
+		};
+
+		return verifyFunctions[hashType]();
+	}
+
 	@bindThis
 	public async signin(
 		request: FastifyRequest<{
@@ -114,16 +141,6 @@ export class SigninApiService {
 			};
 		}
 
-		if (typeof username !== 'string') {
-			reply.code(400);
-			return;
-		}
-
-		if (token != null && typeof token !== 'string') {
-			reply.code(400);
-			return;
-		}
-
 		// Fetch user
 		const user = await this.usersRepository.findOneBy({
 			usernameLower: username.toLowerCase(),
@@ -172,13 +189,8 @@ export class SigninApiService {
 			}
 		}
 
-		if (typeof password !== 'string') {
-			reply.code(400);
-			return;
-		}
-
 		// Compare password
-		const same = await bcrypt.compare(password, profile.password!);
+		const same = await this.verifyPassword(password, profile.password!, user.id);
 
 		const fail = async (status?: number, failure?: { id: string; }) => {
 			// Append signin history

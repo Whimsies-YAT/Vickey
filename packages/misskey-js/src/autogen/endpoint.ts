@@ -150,6 +150,15 @@ import type {
 	AdminUpdateProxyAccountRequest,
 	AdminUpdateProxyAccountResponse,
 	AdminUpdateUserNoteRequest,
+	AdminUsersGetRiskScoreRequest,
+	AdminUsersGetRiskScoreResponse,
+	AdminUsersListHighRiskUsersRequest,
+	AdminUsersListHighRiskUsersResponse,
+	AdminUsersListRiskEventsRequest,
+	AdminUsersListRiskEventsResponse,
+	AdminUsersManageAccountLinksRequest,
+	AdminUsersRiskScoreRequest,
+	AdminUsersRiskScoreResponse,
 	AnnouncementsRequest,
 	AnnouncementsResponse,
 	AnnouncementsShowRequest,
@@ -473,12 +482,15 @@ import type {
 	IRevokeTokenRequest,
 	ISigninHistoryRequest,
 	ISigninHistoryResponse,
+	ITimelinePreferencesResponse,
 	IUnpinRequest,
 	IUnpinResponse,
 	IUpdateRequest,
 	IUpdateResponse,
 	IUpdateEmailRequest,
 	IUpdateEmailResponse,
+	IUpdateTimelinePreferencesRequest,
+	IUpdateTimelinePreferencesResponse,
 	IWebhooksCreateRequest,
 	IWebhooksCreateResponse,
 	IWebhooksDeleteRequest,
@@ -529,6 +541,8 @@ import type {
 	NotesGlobalTimelineResponse,
 	NotesHybridTimelineRequest,
 	NotesHybridTimelineResponse,
+	NotesInteractionRequest,
+	NotesInteractionResponse,
 	NotesLocalTimelineRequest,
 	NotesLocalTimelineResponse,
 	NotesMentionsRequest,
@@ -540,6 +554,8 @@ import type {
 	NotesReactionsResponse,
 	NotesReactionsCreateRequest,
 	NotesReactionsDeleteRequest,
+	NotesRecommendedRequest,
+	NotesRecommendedResponse,
 	NotesRenotesRequest,
 	NotesRenotesResponse,
 	NotesRepliesRequest,
@@ -552,12 +568,16 @@ import type {
 	NotesShowResponse,
 	NotesShowPartialBulkRequest,
 	NotesShowPartialBulkResponse,
+	NotesSmartTimelineRequest,
+	NotesSmartTimelineResponse,
 	NotesStateRequest,
 	NotesStateResponse,
 	NotesThreadMutingCreateRequest,
 	NotesThreadMutingDeleteRequest,
 	NotesTimelineRequest,
 	NotesTimelineResponse,
+	NotesTimelineRefreshResponse,
+	NotesTimelineStatsResponse,
 	NotesTranslateRequest,
 	NotesTranslateResponse,
 	NotesTtsRequest,
@@ -793,6 +813,11 @@ export type Endpoints = {
 	'admin/update-meta': { req: AdminUpdateMetaRequest; res: EmptyResponse };
 	'admin/update-proxy-account': { req: AdminUpdateProxyAccountRequest; res: AdminUpdateProxyAccountResponse };
 	'admin/update-user-note': { req: AdminUpdateUserNoteRequest; res: EmptyResponse };
+	'admin/users/get-risk-score': { req: AdminUsersGetRiskScoreRequest; res: AdminUsersGetRiskScoreResponse };
+	'admin/users/list-high-risk-users': { req: AdminUsersListHighRiskUsersRequest; res: AdminUsersListHighRiskUsersResponse };
+	'admin/users/list-risk-events': { req: AdminUsersListRiskEventsRequest; res: AdminUsersListRiskEventsResponse };
+	'admin/users/manage-account-links': { req: AdminUsersManageAccountLinksRequest; res: EmptyResponse };
+	'admin/users/risk-score': { req: AdminUsersRiskScoreRequest; res: AdminUsersRiskScoreResponse };
 	'announcements': { req: AnnouncementsRequest; res: AnnouncementsResponse };
 	'announcements/show': { req: AnnouncementsShowRequest; res: AnnouncementsShowResponse };
 	'antennas/create': { req: AntennasCreateRequest; res: AntennasCreateResponse };
@@ -999,9 +1024,11 @@ export type Endpoints = {
 	'i/revoke-token': { req: IRevokeTokenRequest; res: EmptyResponse };
 	'i/sign-out': { req: EmptyRequest; res: EmptyResponse };
 	'i/signin-history': { req: ISigninHistoryRequest; res: ISigninHistoryResponse };
+	'i/timeline-preferences': { req: EmptyRequest; res: ITimelinePreferencesResponse };
 	'i/unpin': { req: IUnpinRequest; res: IUnpinResponse };
 	'i/update': { req: IUpdateRequest; res: IUpdateResponse };
 	'i/update-email': { req: IUpdateEmailRequest; res: IUpdateEmailResponse };
+	'i/update-timeline-preferences': { req: IUpdateTimelinePreferencesRequest; res: IUpdateTimelinePreferencesResponse };
 	'i/webhooks/create': { req: IWebhooksCreateRequest; res: IWebhooksCreateResponse };
 	'i/webhooks/delete': { req: IWebhooksDeleteRequest; res: EmptyResponse };
 	'i/webhooks/list': { req: EmptyRequest; res: IWebhooksListResponse };
@@ -1034,6 +1061,7 @@ export type Endpoints = {
 	'notes/featured': { req: NotesFeaturedRequest; res: NotesFeaturedResponse };
 	'notes/global-timeline': { req: NotesGlobalTimelineRequest; res: NotesGlobalTimelineResponse };
 	'notes/hybrid-timeline': { req: NotesHybridTimelineRequest; res: NotesHybridTimelineResponse };
+	'notes/interaction': { req: NotesInteractionRequest; res: NotesInteractionResponse };
 	'notes/local-timeline': { req: NotesLocalTimelineRequest; res: NotesLocalTimelineResponse };
 	'notes/mentions': { req: NotesMentionsRequest; res: NotesMentionsResponse };
 	'notes/polls/recommendation': { req: NotesPollsRecommendationRequest; res: NotesPollsRecommendationResponse };
@@ -1041,16 +1069,20 @@ export type Endpoints = {
 	'notes/reactions': { req: NotesReactionsRequest; res: NotesReactionsResponse };
 	'notes/reactions/create': { req: NotesReactionsCreateRequest; res: EmptyResponse };
 	'notes/reactions/delete': { req: NotesReactionsDeleteRequest; res: EmptyResponse };
+	'notes/recommended': { req: NotesRecommendedRequest; res: NotesRecommendedResponse };
 	'notes/renotes': { req: NotesRenotesRequest; res: NotesRenotesResponse };
 	'notes/replies': { req: NotesRepliesRequest; res: NotesRepliesResponse };
 	'notes/search': { req: NotesSearchRequest; res: NotesSearchResponse };
 	'notes/search-by-tag': { req: NotesSearchByTagRequest; res: NotesSearchByTagResponse };
 	'notes/show': { req: NotesShowRequest; res: NotesShowResponse };
 	'notes/show-partial-bulk': { req: NotesShowPartialBulkRequest; res: NotesShowPartialBulkResponse };
+	'notes/smart-timeline': { req: NotesSmartTimelineRequest; res: NotesSmartTimelineResponse };
 	'notes/state': { req: NotesStateRequest; res: NotesStateResponse };
 	'notes/thread-muting/create': { req: NotesThreadMutingCreateRequest; res: EmptyResponse };
 	'notes/thread-muting/delete': { req: NotesThreadMutingDeleteRequest; res: EmptyResponse };
 	'notes/timeline': { req: NotesTimelineRequest; res: NotesTimelineResponse };
+	'notes/timeline-refresh': { req: EmptyRequest; res: NotesTimelineRefreshResponse };
+	'notes/timeline-stats': { req: EmptyRequest; res: NotesTimelineStatsResponse };
 	'notes/translate': { req: NotesTranslateRequest; res: NotesTranslateResponse };
 	'notes/tts': { req: NotesTtsRequest; res: NotesTtsResponse };
 	'notes/unrenote': { req: NotesUnrenoteRequest; res: EmptyResponse };

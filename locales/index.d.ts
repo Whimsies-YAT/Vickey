@@ -185,6 +185,90 @@ export interface Locale extends ILocale {
      * Are you sure you want to continue?
      */
     "externalLinkWarning": ParameterizedString<"url">;
+    /**
+     * Refresh
+     */
+    "refresh": string;
+    /**
+     * User Id
+     */
+    "userId": string;
+    /**
+     * Account Links Management
+     */
+    "accountLinksManagement": string;
+    /**
+     * User Risk Score
+     */
+    "userRiskScore": string;
+    /**
+     * High Risk Users
+     */
+    "highRiskUsers": string;
+    /**
+     * Total Score
+     */
+    "totalScore": string;
+    /**
+     * Risk Score
+     */
+    "riskScore": string;
+    /**
+     * Risk Level
+     */
+    "riskLevel": string;
+    /**
+     * Calculated At
+     */
+    "calculatedAt": string;
+    /**
+     * Score Details
+     */
+    "scoreDetails": string;
+    /**
+     * Profile Score
+     */
+    "profileScore": string;
+    /**
+     * Activity Score
+     */
+    "activityScore": string;
+    /**
+     * Relationship Score
+     */
+    "relationshipScore": string;
+    /**
+     * Content Score
+     */
+    "contentScore": string;
+    /**
+     * Engagement Score
+     */
+    "engagementScore": string;
+    /**
+     * Multi Account Score
+     */
+    "multiAccountScore": string;
+    /**
+     * User ID is required
+     */
+    "requireUserId": string;
+    /**
+     * Failed to fetch risk score
+     */
+    "failedToFetchRiskScore": string;
+    /**
+     * Smart
+     */
+    "smartTimeline": string;
+    /**
+     * Limit
+     */
+    "limit": string;
+    /**
+     * Analytics
+     */
+    "analytics": string;
     "_oauthAppVK": {
         /**
          * OAuth Application
@@ -788,6 +872,14 @@ export interface Locale extends ILocale {
          * View automated results of reports
          */
         "read:admin:abuse-report:auto-processed": string;
+        /**
+         * View risk management
+         */
+        "read:admin:risk-scores": string;
+        /**
+         * risk management
+         */
+        "write:admin:risk-scores": string;
         /**
          * アカウントの情報を見る
          */
@@ -2024,6 +2116,510 @@ export interface Locale extends ILocale {
          * Location
          */
         "location": string;
+    };
+    "_riskLevel": {
+        /**
+         * Poor
+         */
+        "poor": string;
+        /**
+         * Fair
+         */
+        "fair": string;
+        /**
+         * Good
+         */
+        "good": string;
+        /**
+         * Very Good
+         */
+        "veryGood": string;
+        /**
+         * Excellent
+         */
+        "excellent": string;
+    };
+    "_highRisk": {
+        /**
+         * Found {length} high-risk user(s)
+         */
+        "foundUsers": ParameterizedString<"length">;
+        /**
+         * Showing first {limit} results. Increase limit to see more.
+         */
+        "showResults": ParameterizedString<"limit">;
+        /**
+         * No high-risk users found.
+         */
+        "notFound": string;
+        /**
+         * Failed to load high-risk users
+         */
+        "failedToLoad": string;
+    };
+    "_accountLink": {
+        /**
+         * Create Account Link
+         */
+        "createAccountLink": string;
+        /**
+         * Link Mode
+         */
+        "mode": string;
+        /**
+         * Two Accounts
+         */
+        "pair": string;
+        /**
+         * Multiple Accounts (Group)
+         */
+        "group": string;
+        /**
+         * User 1 ID
+         */
+        "user1": string;
+        /**
+         * User 2 ID
+         */
+        "user2": string;
+        /**
+         * Group Name (Optional)
+         */
+        "groupName": string;
+        /**
+         * Group Description (Optional)
+         */
+        "groupDesc": string;
+        /**
+         * User IDs (One per line or comma separated)
+         */
+        "userIds": string;
+        /**
+         * Users to link:
+         */
+        "usersToLink": string;
+        /**
+         * Create Group ({length} accounts)
+         */
+        "createGroup": ParameterizedString<"length">;
+        /**
+         * List Account Links
+         */
+        "listAccountLinks": string;
+        /**
+         * Network
+         */
+        "network": string;
+        /**
+         * Account Network for {user}
+         */
+        "networkFor": ParameterizedString<"user">;
+        /**
+         * Close Network
+         */
+        "closeNetwork": string;
+        /**
+         * Nodes
+         */
+        "nodes": string;
+        /**
+         * Links
+         */
+        "links": string;
+        /**
+         * Groups
+         */
+        "groups": string;
+        /**
+         * Connected Accounts
+         */
+        "connected": string;
+        /**
+         * {length} users
+         */
+        "usersNum": ParameterizedString<"length">;
+        /**
+         * {linkCount} links
+         */
+        "linksNum": ParameterizedString<"linkCount">;
+        /**
+         * {confidence}% confidence
+         */
+        "confidenceNum": ParameterizedString<"confidence">;
+        /**
+         * Link ID:
+         */
+        "linkId": string;
+        /**
+         * Primary User:
+         */
+        "primUser": string;
+        /**
+         * Linked User:
+         */
+        "linkedUser": string;
+        /**
+         * Confidence:
+         */
+        "confidence": string;
+        /**
+         * Methods:
+         */
+        "methods": string;
+        /**
+         * Manual:
+         */
+        "manual": string;
+        /**
+         * Created:
+         */
+        "created": string;
+        /**
+         * Group:
+         */
+        "groupTxt": string;
+        /**
+         * No account links found for this user.
+         */
+        "noLinks": string;
+        /**
+         * Both User IDs are required
+         */
+        "userIdsRequired": string;
+        /**
+         * Account link created successfully
+         */
+        "createdSucc": string;
+        /**
+         * Failed to create account link
+         */
+        "createFailed": string;
+        /**
+         * Failed to search account links
+         */
+        "searchFailed": string;
+        /**
+         * At least 2 user IDs are required for a group
+         */
+        "atLeast2": string;
+        /**
+         * Account group "{name}" created successfully!
+         */
+        "groupCreated1": ParameterizedString<"name">;
+        /**
+         * {userCount} users, {linkCount} links created.
+         */
+        "groupCreated2": ParameterizedString<"userCount" | "linkCount">;
+        /**
+         * Failed to create account group
+         */
+        "createGroupFailed": string;
+        /**
+         * Account link removed successfully
+         */
+        "removedSucc": string;
+        /**
+         * Failed to remove account link
+         */
+        "removeFailed": string;
+        /**
+         * Failed to load account network
+         */
+        "loadNetworkFailed": string;
+    };
+    "_smartTimeline": {
+        /**
+         * {smartRatio}% Smart
+         */
+        "smartRatio": ParameterizedString<"smartRatio">;
+        /**
+         * New recommendations available
+         */
+        "newRecommendationsAvailable": string;
+        /**
+         * Smart algorithm active
+         */
+        "smartAlgorithmActive": string;
+        /**
+         * Smart Mode
+         */
+        "smartMode": string;
+        /**
+         * Mixed Mode
+         */
+        "mixedMode": string;
+        /**
+         * Chronological Mode
+         */
+        "chronologicalMode": string;
+        /**
+         * Auto Mode
+         */
+        "autoMode": string;
+        /**
+         * Algorithm
+         */
+        "algorithm": string;
+        /**
+         * Smart
+         */
+        "smart": string;
+        /**
+         * Hybrid
+         */
+        "hybrid": string;
+        /**
+         * Social
+         */
+        "social": string;
+        /**
+         * Discovery
+         */
+        "discovery": string;
+        /**
+         * Diversity Level
+         */
+        "diversityLevel": string;
+        /**
+         * Freshness Weight
+         */
+        "freshnessWeight": string;
+        /**
+         * Quality Threshold
+         */
+        "qualityThreshold": string;
+        /**
+         * Show Score Indicator
+         */
+        "showScoreIndicator": string;
+        /**
+         * Settings saved successfully
+         */
+        "settingsSavedSucc": string;
+        /**
+         * Failed to save settings. Please try again.
+         */
+        "settingsSaveFailed": string;
+        /**
+         * Timeline Preferences
+         */
+        "timelinePref": string;
+        /**
+         * Timeline Mode
+         */
+        "timelineMode": string;
+        /**
+         * Algorithm Settings
+         */
+        "algorithmSettings": string;
+        /**
+         * Display Settings
+         */
+        "displaySettings": string;
+        /**
+         * Show Relevance Scores
+         */
+        "showRelevanceScores": string;
+        /**
+         * Adaptive Mode
+         */
+        "adaptiveMode": string;
+        /**
+         * Current Mode
+         */
+        "currentMode": string;
+        /**
+         * Cache Hit Rate
+         */
+        "cacheHitRate": string;
+        /**
+         * Diversity
+         */
+        "diversity": string;
+        /**
+         * Current Status
+         */
+        "currentStatus": string;
+        /**
+         * Automatically chooses the best timeline mode based on your usage patterns
+         */
+        "autoModeDesc": string;
+        /**
+         * Content ranked by relevance and engagement, not time
+         */
+        "smartModeDesc": string;
+        /**
+         * Combines chronological and smart content
+         */
+        "mixedModeDesc": string;
+        /**
+         * Traditional time-based ordering
+         */
+        "chronologicalModeDesc": string;
+        /**
+         * An intelligent timeline that shows content based on relevance and your interests, not just chronological order.
+         */
+        "timelineDesc": string;
+        /**
+         * Discover new content based on your interests and activity patterns.
+         */
+        "recommendedDesc": string;
+        /**
+         * How much to prioritize recent content (0 = ignore time, 1 = only recent)
+         */
+        "freshnessWeightDesc": string;
+        /**
+         * Minimum quality score for content to appear (0 = show all, 1 = only highest quality)
+         */
+        "qualityThresholdDesc": string;
+        /**
+         * Display numerical relevance scores for each post
+         */
+        "showScoreIndicatorDesc": string;
+        /**
+         * Automatically adjust timeline based on your behavior
+         */
+        "adaptiveModeDesc": string;
+        /**
+         * Load Time
+         */
+        "loadTime": string;
+        /**
+         * Settings saved locally (server timeout)
+         */
+        "saveTimeOut": string;
+        /**
+         * Timeline cache refreshed
+         */
+        "cacheRefreshed": string;
+        /**
+         * Timeline refreshed locally
+         */
+        "refreshedLocally": string;
+        /**
+         * Smart Timeline Settings
+         */
+        "smartTimelineSettings": string;
+        /**
+         * Relevance Score
+         */
+        "relevanceScore": string;
+        /**
+         * Content Relevance
+         */
+        "contentRelevance": string;
+        /**
+         * Social Factors
+         */
+        "socialFactors": string;
+        /**
+         * Recency
+         */
+        "recency": string;
+        /**
+         * Quality
+         */
+        "quality": string;
+        /**
+         * Exploration
+         */
+        "exploration": string;
+        /**
+         * Context
+         */
+        "context": string;
+        /**
+         * Timeline
+         */
+        "timeline": string;
+        /**
+         * Related
+         */
+        "related": string;
+        /**
+         * Trending
+         */
+        "trending": string;
+        /**
+         * Include Following
+         */
+        "includeFollowing": string;
+        /**
+         * Show Algorithm Info
+         */
+        "showAlgorithmInfo": string;
+        /**
+         * Show Scores
+         */
+        "showScores": string;
+        /**
+         * Algorithm Parameters
+         */
+        "algorithmParameters": string;
+        /**
+         * Diversity Factor
+         */
+        "diversityFactor": string;
+        /**
+         * Recency Weight
+         */
+        "recencyWeight": string;
+        /**
+         * Controls content variety (0-100%)
+         */
+        "controlsContentVariety": string;
+        /**
+         * Preference for newer content (0-100%)
+         */
+        "preferenceForNewerContent": string;
+        /**
+         * Minimum content quality (0-100%)
+         */
+        "minimumContentQuality": string;
+    };
+    "_timelines": {
+        /**
+         * Smart
+         */
+        "smart": string;
+        /**
+         * ホーム
+         */
+        "home": string;
+        /**
+         * ローカル
+         */
+        "local": string;
+        /**
+         * ソーシャル
+         */
+        "social": string;
+        /**
+         * グローバル
+         */
+        "global": string;
+    };
+    "_timelineDescription": {
+        /**
+         * Switch between Smart, Latest, or Mixed timelines. Personalize your feed by balancing freshness, quality, and variety to match your taste.
+         */
+        "smart": string;
+        /**
+         * ホームタイムラインでは、あなたがフォローしているアカウントの投稿を見られます。
+         */
+        "home": string;
+        /**
+         * ローカルタイムラインでは、このサーバーにいるユーザー全員の投稿を見られます。
+         */
+        "local": string;
+        /**
+         * ソーシャルタイムラインには、ホームタイムラインとローカルタイムラインの投稿が両方表示されます。
+         */
+        "social": string;
+        /**
+         * グローバルタイムラインでは、接続している他のすべてのサーバーからの投稿を見られます。
+         */
+        "global": string;
     };
     /**
      * ノートでつながるネットワーク
@@ -8469,24 +9065,6 @@ export interface Locale extends ILocale {
             "description": ParameterizedString<"link">;
         };
     };
-    "_timelineDescription": {
-        /**
-         * ホームタイムラインでは、あなたがフォローしているアカウントの投稿を見られます。
-         */
-        "home": string;
-        /**
-         * ローカルタイムラインでは、このサーバーにいるユーザー全員の投稿を見られます。
-         */
-        "local": string;
-        /**
-         * ソーシャルタイムラインには、ホームタイムラインとローカルタイムラインの投稿が両方表示されます。
-         */
-        "social": string;
-        /**
-         * グローバルタイムラインでは、接続している他のすべてのサーバーからの投稿を見られます。
-         */
-        "global": string;
-    };
     "_serverRules": {
         /**
          * 新規登録前に表示する、サーバーの簡潔なルールを設定します。内容は利用規約の要約とすることを推奨します。
@@ -11032,24 +11610,6 @@ export interface Locale extends ILocale {
          * ファイル数の累積
          */
         "filesTotal": string;
-    };
-    "_timelines": {
-        /**
-         * ホーム
-         */
-        "home": string;
-        /**
-         * ローカル
-         */
-        "local": string;
-        /**
-         * ソーシャル
-         */
-        "social": string;
-        /**
-         * グローバル
-         */
-        "global": string;
     };
     "_play": {
         /**

@@ -5,6 +5,7 @@
 
 import { URLSearchParams } from 'node:url';
 import { Inject, Injectable } from '@nestjs/common';
+import cld from 'cld';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
@@ -57,8 +58,86 @@ export const paramDef = {
 	required: ['noteId', 'targetLang'],
 } as const;
 
+const languageMapping: Record<string, string> = {
+	'zh-cn': 'zh',
+	'zh-tw': 'zh',
+	'zh-hans': 'zh',
+	'zh-hant': 'zh',
+	'pt-br': 'pt',
+	'pt-pt': 'pt',
+	'en-us': 'en',
+	'en-gb': 'en',
+	'es-es': 'es',
+	'es-mx': 'es',
+	'fr-fr': 'fr',
+	'fr-ca': 'fr',
+	'de-de': 'de',
+	'it-it': 'it',
+	'ja-jp': 'ja',
+	'ko-kr': 'ko',
+	'ru-ru': 'ru',
+	'ar-sa': 'ar',
+	'hi-in': 'hi',
+	'tr-tr': 'tr',
+	'pl-pl': 'pl',
+	'nl-nl': 'nl',
+	'sv-se': 'sv',
+	'da-dk': 'da',
+	'nb-no': 'nb',
+	'fi-fi': 'fi',
+	'el-gr': 'el',
+	'cs-cz': 'cs',
+	'sk-sk': 'sk',
+	'hu-hu': 'hu',
+	'ro-ro': 'ro',
+	'bg-bg': 'bg',
+	'hr-hr': 'hr',
+	'sr-rs': 'sr',
+	'sl-si': 'sl',
+	'et-ee': 'et',
+	'lv-lv': 'lv',
+	'lt-lt': 'lt',
+	'uk-ua': 'uk',
+	'be-by': 'be',
+	'mk-mk': 'mk',
+	'mt-mt': 'mt',
+	'is-is': 'is',
+	'ga-ie': 'ga',
+	'cy-gb': 'cy',
+	'eu-es': 'eu',
+	'ca-es': 'ca',
+	'gl-es': 'gl',
+	'oc-fr': 'oc',
+	'br-fr': 'br',
+	'co-fr': 'co',
+	'lb-lu': 'lb',
+	'rm-ch': 'rm',
+	'fur-it': 'fur',
+	'sc-it': 'sc',
+	'nap-it': 'nap',
+	'scn-it': 'scn',
+	'vec-it': 'vec',
+	'lij-it': 'lij',
+	'pms-it': 'pms',
+	'lmo-it': 'lmo',
+	'eml-it': 'eml',
+	'rgn-it': 'rgn',
+	'lad-es': 'lad',
+	'an-es': 'an',
+	'ast-es': 'ast',
+	'ext-es': 'ext',
+	'mwl-pt': 'mwl',
+	'gl-pt': 'gl',
+	'mir-pt': 'mir',
+};
+
+function normalizeLanguageCode(langCode: string): string {
+	const normalized = langCode.toLowerCase();
+	return languageMapping[normalized] || normalized.split('-')[0];
+}
+
 @Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
+export default class extends Endpoint<typeof meta, typeof paramDef> {
 	constructor(
 		@Inject(DI.meta)
 		private serverSettings: MiMeta,
@@ -91,13 +170,26 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new ApiError(meta.errors.unavailable);
 			}
 
-			let targetLang = ps.targetLang;
-			if (targetLang.includes('-')) targetLang = targetLang.split('-')[0];
+			const targetLang = normalizeLanguageCode(ps.targetLang);
+
+			try {
+				const result = await cld.detect(note.text);
+				const detectedLang = result.languages[0]?.code;
+
+				if (detectedLang && result.reliable && normalizeLanguageCode(detectedLang) === targetLang) {
+					return {
+						sourceLang: detectedLang.toUpperCase(),
+						text: note.text,
+					};
+				}
+			} catch (error) {
+				// Continue with translation if detection fails
+			}
 
 			const params = new URLSearchParams();
 			params.append('auth_key', this.serverSettings.deeplAuthKey);
 			params.append('text', note.text);
-			params.append('target_lang', targetLang);
+			params.append('target_lang', ps.targetLang.includes('-') ? ps.targetLang.split('-')[0] : ps.targetLang);
 
 			const endpoint = this.serverSettings.deeplIsPro ? 'https://api.deepl.com/v2/translate' : 'https://api-free.deepl.com/v2/translate';
 

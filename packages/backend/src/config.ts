@@ -123,8 +123,15 @@ type Source = {
 	}
 
 	bcryptCost?: number;
+	argon2Config?: {
+		memoryCost: number;
+		timeCost: number;
+		parallelism: number;
+	};
 	tokenSalt: string;
 	hmacKey: string;
+
+	enableLocalAIContentAnalysis?: boolean;
 };
 
 export type Config = {
@@ -193,6 +200,11 @@ export type Config = {
 		}
 	}
 	bcryptCost?: number;
+	argon2Config?: {
+		memoryCost: number;
+		timeCost: number;
+		parallelism: number;
+	};
 	tokenSalt: string;
 	hmacKey: string;
 
@@ -233,6 +245,7 @@ export type Config = {
 	deactivateAntennaThreshold: number;
 	pidFile: string;
 	nativeTokenExpiry: number;
+	enableLocalAIContentAnalysis: boolean;
 };
 
 export type FulltextSearchProvider = 'sqlLike' | 'sqlPgroonga' | 'meilisearch' | 'searchengine' | 'SearchEngine' | 'searchEngine';
@@ -254,7 +267,17 @@ export const path = process.env.MISSKEY_CONFIG_YML
 		? resolve(dir, 'test.yml')
 		: resolve(dir, 'default.yml');
 
+let globalConfig: Config | null = null;
+
+export function updateGlobalConfig(updates: Partial<Config>): void {
+	if (globalConfig) {
+		Object.assign(globalConfig, updates);
+	}
+}
+
 export function loadConfig(): Config {
+	if (globalConfig) return globalConfig;
+
 	const meta = JSON.parse(fs.readFileSync(`${_dirname}/../../../built/meta.json`, 'utf-8'));
 
 	const frontendManifestExists = fs.existsSync(_dirname + '/../../../built/_frontend_vite_/manifest.json');
@@ -321,7 +344,7 @@ export function loadConfig(): Config {
 	const redis = convertRedisOptions(config.redis, host);
 	const nativeTokenExpiry = tokenTime.time;
 
-	return {
+	const configObject = {
 		version,
 		codename,
 		publishTarballInsteadOfProvideRepositoryUrl: !!config.publishTarballInsteadOfProvideRepositoryUrl,
@@ -385,10 +408,16 @@ export function loadConfig(): Config {
 		pidFile: config.pidFile,
 		logging: config.logging,
 		bcryptCost: Math.max(8, config.bcryptCost ?? 12),
+		argon2Config: config.argon2Config,
 		tokenSalt: config.tokenSalt ?? "ThisIsNOTSecureEnoughChangeItPoweredByVickey",
 		hmacKey: config.hmacKey ?? "ThisIsNOTSecureEnoughChangeItPoweredByVickey",
 		nativeTokenExpiry,
+		enableLocalAIContentAnalysis: config.enableLocalAIContentAnalysis ?? false,
 	};
+
+	globalConfig = configObject;
+
+	return configObject;
 }
 
 function tryCreateUrl(url: string) {

@@ -4,7 +4,6 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import * as Misskey from 'misskey-js';
 import { DI } from '@/di-symbols.js';
 import type { SigninsRepository, UserProfilesRepository } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
@@ -16,9 +15,11 @@ import { EmailService } from '@/core/EmailService.js';
 import { NotificationService } from '@/core/NotificationService.js';
 import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
 import { UserSessionsService } from '@/core/UserSessionsService.js';
+import { UserRiskScoreService } from '@/core/UserRiskScoreService.js';
+import { MultiAccountDetectionService } from '@/core/MultiAccountDetectionService.js';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { detectDeviceType } from '@/misc/device-type.js';
-import { generateDeviceId } from '@/misc/token.js';
+import { RiskEventLogService } from '@/core/RiskEventLogService.js';
 
 @Injectable()
 export class SigninService {
@@ -36,6 +37,9 @@ export class SigninService {
 		private idService: IdService,
 		private globalEventService: GlobalEventService,
 		private userSessionsService: UserSessionsService,
+		private userRiskScoreService: UserRiskScoreService,
+		private multiAccountDetectionService: MultiAccountDetectionService,
+		private riskEventLogService: RiskEventLogService,
 	) {
 	}
 
@@ -74,6 +78,35 @@ export class SigninService {
 			// @ts-expect-error: The incoming IP must be a string.
 			this.globalEventService.publishMainStream(user.id, 'signin', await this.signinEntityService.pack(record));
 
+			const riskScorePromise = this.userRiskScoreService.calculateUserRiskScore(user.id).catch((err: Error) => {
+				console.error(`Failed to calculate risk score for user ${user.id}:`, err);
+				return null;
+			});
+
+			// Track the signin request for multi-account detection
+			const trackingPromise = this.multiAccountDetectionService.trackRequest(user.id, request, 'signin').catch((err: Error) => {
+				console.error(`Failed to track request for user ${user.id}:`, err);
+			});
+
+			const [riskScore] = await Promise.all([riskScorePromise, trackingPromise]);
+
+			if (riskScore) {
+				// Log all signin events to database for monitoring
+				await this.riskEventLogService.logRiskEvent({
+					userId: user.id,
+					eventType: 'user_login',
+					riskScore: riskScore.totalScore,
+					riskLevel: riskScore.riskLevel,
+					details: {
+						ip: request.ip,
+						userAgent: request.headers['user-agent'] || '',
+						dimensions: riskScore.dimensions,
+					},
+					timestamp: new Date(),
+				});
+			}
+
+
 			const profile = await this.userProfilesRepository.findOneByOrFail({ userId: user.id });
 			if (profile.email && profile.emailVerified) {
 				const result = await this.emailTemplatesService.sendEmailWithTemplates(profile.email, 'newLogin');
@@ -90,6 +123,6 @@ export class SigninService {
 			finished: true,
 			id: user.id,
 			i: sessionToken,
-		} satisfies Misskey.entities.SigninFlowResponse;
+		};
 	}
 }

@@ -47,6 +47,8 @@ async function addAccount(host: string, user: Misskey.entities.MeDetailed, token
 	if (!prefer.s.accounts.some(x => x[0] === host && x[1].id === user.id)) {
 		prefer.commit('accounts', [...prefer.s.accounts, [host, { id: user.id, username: user.username }]]);
 	}
+	
+	console.log(`Account ${user.username} token updated and synchronized`);
 }
 
 export async function removeAccount(host: string, id: AccountWithToken['id']) {
@@ -200,7 +202,28 @@ export async function login(token: AccountWithToken['token'], redirect?: string)
 export async function switchAccount(host: string, id: string) {
 	const token = store.s.accountTokens[host + '/' + id];
 	if (token) {
-		login(token);
+		try {
+			await login(token);
+		} catch (error) {
+			// If token is invalid, try to refresh or prompt for signin
+			console.warn('Failed to switch account with stored token, prompting signin:', error);
+			
+			// Remove invalid token
+			const tokens = JSON.parse(JSON.stringify(store.s.accountTokens));
+			delete tokens[host + '/' + id];
+			store.set('accountTokens', tokens);
+			
+			// Show signin dialog
+			const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSigninDialog.vue')), {}, {
+				done: async (res: Misskey.entities.SigninFlowResponse & { finished: true }) => {
+					store.set('accountTokens', { ...store.s.accountTokens, [host + '/' + res.id]: res.i });
+					login(res.i);
+				},
+				closed: () => {
+					dispose();
+				},
+			});
+		}
 	} else {
 		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSigninDialog.vue')), {}, {
 			done: async (res: Misskey.entities.SigninFlowResponse & { finished: true }) => {
