@@ -329,6 +329,9 @@ importers:
       juice:
         specifier: 11.0.1
         version: 11.0.1
+      keyword-extractor:
+        specifier: 0.0.28
+        version: 0.0.28
       meilisearch:
         specifier: 0.52.0
         version: 0.52.0
@@ -706,9 +709,6 @@ importers:
       bufferutil:
         specifier: 4.0.9
         version: 4.0.9
-      keyword-extractor:
-        specifier: 0.0.28
-        version: 0.0.28
       slacc-android-arm-eabi:
         specifier: 0.0.10
         version: 0.0.10
@@ -20509,8 +20509,7 @@ snapshots:
     dependencies:
       json-buffer: 3.0.1
 
-  keyword-extractor@0.0.28:
-    optional: true
+  keyword-extractor@0.0.28: {}
 
   kind-of@6.0.3: {}
 
