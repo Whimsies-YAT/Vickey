@@ -116,7 +116,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			const paginatedUsers = highRiskUsers.slice(ps.offset, ps.offset + ps.limit);
 
 			return await Promise.all(paginatedUsers.map(async (item) => ({
-				user: await this.userEntityService.pack(item.user, me, {schema: 'UserDetailed'}),
+				user: await this.userEntityService.pack(item.user, me, { schema: 'UserDetailed' }),
 				totalScore: item.score.totalScore,
 				riskLevel: item.score.riskLevel,
 				calculatedAt: new Date().toISOString(),
