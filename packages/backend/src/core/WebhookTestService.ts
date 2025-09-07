@@ -67,6 +67,8 @@ function generateDummyUser(override?: Partial<MiUser>): MiUser {
 		token: null,
 		approved: true,
 		signupReason: null,
+		riskScore: null,
+		riskScoreUpdatedAt: null,
 		...override,
 	};
 }

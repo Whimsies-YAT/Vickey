@@ -3,19 +3,20 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import {Inject, Injectable} from '@nestjs/common';
-import type {UsersRepository} from '@/models/_.js';
-import {Endpoint} from '@/server/api/endpoint-base.js';
-import {DI} from '@/di-symbols.js';
-import {UserRiskScoreService} from '@/core/UserRiskScoreService.js';
-import {UserEntityService} from '@/core/entities/UserEntityService.js';
-import {IsNull} from "typeorm";
+import { Inject, Injectable } from '@nestjs/common';
+import type { UsersRepository } from '@/models/_.js';
+import { Endpoint } from '@/server/api/endpoint-base.js';
+import { DI } from '@/di-symbols.js';
+import { UserRiskScoreService } from '@/core/UserRiskScoreService.js';
+import { UserEntityService } from '@/core/entities/UserEntityService.js';
+import { IsNull } from "typeorm";
 
 export const meta = {
 	tags: ['admin', 'users'],
 
 	requireCredential: true,
 	requireAdmin: true,
+	secure: true,
 	kind: 'read:admin:risk-scores',
 
 	res: {

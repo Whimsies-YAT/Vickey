@@ -237,7 +237,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 					const median = values[Math.floor(values.length * 0.5)];
 					const q75 = values[Math.floor(values.length * 0.75)];
 					const mean = values.reduce((a, b) => a + b, 0) / values.length;
-					
+
 					this.baselines.set(key, median);
 					this.baselines.set(`${key}_q25`, q25);
 					this.baselines.set(`${key}_q75`, q75);
@@ -249,7 +249,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 				.filter(u => u.riskScore && u.riskScore > 0)
 				.map(u => u.riskScore!)
 				.sort((a, b) => a - b);
-			
+
 			if (riskScores.length > 0) {
 				const scoreMedian = riskScores[Math.floor(riskScores.length * 0.5)];
 				const scoreMean = riskScores.reduce((a, b) => a + b, 0) / riskScores.length;
@@ -275,7 +275,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 		this.baselines.set('followingCount', 120);
 		this.baselines.set('riskScore_median', 72);
 		this.baselines.set('riskScore_mean', 70);
-		this.baselines.set('scoreDistribution', Array.from({length: 100}, (_, i) => 50 + i * 0.5) as any);
+		this.baselines.set('scoreDistribution', Array.from({ length: 100 }, (_, i) => 50 + i * 0.5) as any);
 		this.lastBaselineUpdate = new Date();
 	}
 
@@ -1141,7 +1141,6 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 
 	@bindThis
 	private async applyScoreAdjustmentDynamics(baseScore: number, adjustmentFactor: number): Promise<number> {
-
 		const adjustment = adjustmentFactor - 1;
 
 		const k = 0.1;

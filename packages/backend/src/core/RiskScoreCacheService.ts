@@ -98,7 +98,6 @@ export class RiskScoreCacheService {
 					}
 				}
 			}
-
 		} catch (error) {
 			console.error('Failed to initialize RiskScoreCacheService:', error);
 		}

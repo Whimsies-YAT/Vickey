@@ -333,6 +333,7 @@ _smartTimeline:
   controlsContentVariety: "Controls content variety (0-100%)"
   preferenceForNewerContent: "Preference for newer content (0-100%)"
   minimumContentQuality: "Minimum content quality (0-100%)"
+  closeNetwork: "Close Network"
 _timelines:
   smart: "Smart"
 _timelineDescription:

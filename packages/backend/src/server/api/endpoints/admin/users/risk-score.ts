@@ -16,6 +16,7 @@ export const meta = {
 
 	requireCredential: true,
 	requireModerator: true,
+	secure: true,
 	kind: 'read:admin:risk-score',
 
 	errors: {

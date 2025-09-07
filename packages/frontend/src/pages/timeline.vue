@@ -16,8 +16,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 			:key="'smart' + withRenotes + withReplies + onlyFiles + withSensitive"
 			:class="$style.tl"
 			context="timeline"
-			:show-scores="false"
-			:show-algorithm-info="false"
+			:showScores="false"
+			:showAlgorithmInfo="false"
 		/>
 		<MkStreamingNotesTimeline
 			v-else

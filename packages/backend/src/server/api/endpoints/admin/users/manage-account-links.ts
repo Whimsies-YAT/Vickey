@@ -15,6 +15,7 @@ export const meta = {
 
 	requireCredential: true,
 	requireAdmin: true,
+	secure: true,
 	kind: 'write:admin:risk-scores',
 
 	errors: {
@@ -127,7 +128,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 						success: true,
 					};
 				}
-
 
 				case 'list': {
 					if (!ps.userId) {

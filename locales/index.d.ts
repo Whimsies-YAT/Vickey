@@ -2576,6 +2576,10 @@ export interface Locale extends ILocale {
          * Minimum content quality (0-100%)
          */
         "minimumContentQuality": string;
+        /**
+         * Close Network
+         */
+        "closeNetwork": string;
     };
     "_timelines": {
         /**

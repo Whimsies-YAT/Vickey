@@ -185,9 +185,9 @@ export class ApiCallService implements OnApplicationShutdown {
 
 			if (auth.user) {
 				this.logIp(request, auth.user);
-				// 跟踪API请求
+				const userId = auth.user.id;
 				setImmediate(() => {
-					this.multiAccountDetectionService.trackRequest(auth.user.id, request, endpoint.name).catch(err => {
+					this.multiAccountDetectionService.trackRequest(userId, request, endpoint.name).catch(err => {
 						this.logger.warn(`Failed to track request: ${err}`);
 					});
 				});
@@ -252,9 +252,9 @@ export class ApiCallService implements OnApplicationShutdown {
 
 			if (auth.user) {
 				this.logIp(request, auth.user);
-				// 跟踪API请求
+				const userId = auth.user.id;
 				setImmediate(() => {
-					this.multiAccountDetectionService.trackRequest(auth.user.id, request, endpoint.name).catch(err => {
+					this.multiAccountDetectionService.trackRequest(userId, request, endpoint.name).catch(err => {
 						this.logger.warn(`Failed to track request: ${err}`);
 					});
 				});

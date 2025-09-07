@@ -195,7 +195,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		@Inject(DI.config)
 		private config: Config,
 
-
 		private webAuthnService: WebAuthnService,
 		private userAuthService: UserAuthService,
 	) {

@@ -24,7 +24,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<MkInput v-model="user2Id" style="flex: 1;" type="text" :spellcheck="false">
 								<template #label>{{ i18n.ts._accountLink.user2 }}</template>
 							</MkInput>
-							<MkButton primary @click="createLink" :disabled="!user1Id || !user2Id">
+							<MkButton primary :disabled="!user1Id || !user2Id" @click="createLink">
 								{{ i18n.ts.create }}
 							</MkButton>
 						</div>
@@ -39,11 +39,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<MkTextarea v-model="userIdsText" style="height: 120px;">
 								<template #label>{{ i18n.ts._accountLink.userIds }}</template>
 							</MkTextarea>
-							<div class="group-preview" v-if="parsedUserIds.length > 0">
+							<div v-if="parsedUserIds.length > 0" class="group-preview">
 								<div class="label">{{ i18n.ts._accountLink.usersToLink }} {{ parsedUserIds.length }}</div>
 								<div class="user-list">{{ parsedUserIds.join(', ') }}</div>
 							</div>
-							<MkButton primary @click="createGroup" :disabled="parsedUserIds.length < 2">
+							<MkButton primary :disabled="parsedUserIds.length < 2" @click="createGroup">
 								{{ i18n.tsx._accountLink.createGroup({ length: parsedUserIds.length }) }}
 							</MkButton>
 						</div>
@@ -60,13 +60,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<template #label>{{ i18n.ts.userId }}</template>
 							</MkInput>
 							<MkButton @click="searchLinks">{{ i18n.ts.search }}</MkButton>
-							<MkButton @click="viewNetwork" :disabled="!searchUserId">{{ i18n.ts._accountLink.network }}</MkButton>
+							<MkButton :disabled="!searchUserId" @click="viewNetwork">{{ i18n.ts._accountLink.network }}</MkButton>
 						</div>
 
 						<div v-if="showNetwork && network" class="network-display">
 							<div class="network-header">
 								<h3>{{ i18n.tsx._accountLink.networkFor({ user: searchUserId }) }}</h3>
-								<MkButton @click="showNetwork = false" size="sm">Close Network</MkButton>
+								<MkButton size="sm" @click="showNetwork = false">{{ i18n.ts._smartTimeline.closeNetwork }}</MkButton>
 							</div>
 							<div class="network-stats">
 								<div class="stat-item">
@@ -98,7 +98,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 									<div class="group-list">
 										<div v-for="group in network.groups" :key="group.name" class="group-item">
 											<div class="group-name">{{ group.name }}</div>
-											<div class="group-description" v-if="group.metadata?.description">{{ group.metadata.description }}</div>
+											<div v-if="group.metadata?.description" class="group-description">{{ group.metadata.description }}</div>
 											<div class="group-stats">
 												{{ i18n.tsx._accountLink.usersNum({ length: group.userIds.length }) }},
 												{{ i18n.tsx._accountLink.linksNum({ linkCount: group.metadata?.linkCount }) }},

@@ -141,13 +141,13 @@ const showScoreIndicator = computed(() => props.showScoreIndicator && $i);
 
 function prepend(note: Misskey.entities.Note) {
 	if (!note || notes.value.some(n => n.id === note.id)) return;
-	
+
 	queuedNotes.value.unshift(note);
-	
+
 	if (queuedNotes.value.length > 32) {
 		queuedNotes.value = queuedNotes.value.slice(0, 32);
 	}
-	
+
 	recordInteraction(note.id, 'stream_receive', {
 		source: 'websocket_stream',
 		algorithm: props.algorithm,
@@ -157,7 +157,7 @@ function prepend(note: Misskey.entities.Note) {
 
 function connectToStream() {
 	if (!stream || !$i || connection) return;
-	
+
 	try {
 		connection = stream.useChannel('smartTimeline', {
 			algorithm: props.algorithm,
@@ -168,7 +168,7 @@ function connectToStream() {
 			withReplies: false,
 			withFiles: false,
 		});
-		
+
 		connection.on('note', prepend);
 		console.log('Smart timeline WebSocket connected');
 	} catch (error) {
@@ -414,14 +414,14 @@ let refreshInterval: number | null = null;
 
 onMounted(() => {
 	init();
-	
+
 	if (store.s.realtimeMode) {
 		connectToStream();
 	}
 
 	if (props.autoRefresh && !store.s.realtimeMode) {
 		refreshInterval = window.setInterval(() => {
-			if (document.visibilityState === 'visible') {
+			if (window.document.visibilityState === 'visible') {
 				reloadTimeline();
 			}
 		}, 5 * 60 * 1000); // 5 minutes
@@ -430,9 +430,9 @@ onMounted(() => {
 
 onUnmounted(() => {
 	disconnectFromStream();
-	
+
 	if (refreshInterval) {
-		clearInterval(refreshInterval);
+		window.clearInterval(refreshInterval);
 	}
 
 	if (noteObserver.value) {
@@ -445,7 +445,7 @@ onUnmounted(() => {
 
 watch([() => props.algorithm, () => props.diversityLevel, () => props.freshnessWeight, () => props.qualityThreshold], () => {
 	init();
-	
+
 	if (store.s.realtimeMode) {
 		disconnectFromStream();
 		connectToStream();

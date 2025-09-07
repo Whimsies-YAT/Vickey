@@ -106,7 +106,6 @@ export class SigninService {
 				});
 			}
 
-
 			const profile = await this.userProfilesRepository.findOneByOrFail({ userId: user.id });
 			if (profile.email && profile.emailVerified) {
 				const result = await this.emailTemplatesService.sendEmailWithTemplates(profile.email, 'newLogin');

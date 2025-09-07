@@ -97,9 +97,9 @@ import {
 	MiEmbeddingBatchQueue,
 } from './_.js';
 import type { Provider } from '@nestjs/common';
-import type { DataSource } from 'typeorm';
+import type { DataSource, EntityTarget } from 'typeorm';
 
-function createRepositoryProvider(token: symbol, entity: Function): Provider {
+function createRepositoryProvider(token: symbol, entity: EntityTarget<any>): Provider {
 	return {
 		provide: token,
 		useFactory: (db: DataSource) => db.getRepository(entity as any).extend(miRepository),

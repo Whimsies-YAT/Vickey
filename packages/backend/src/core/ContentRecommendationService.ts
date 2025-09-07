@@ -18,6 +18,7 @@ import type {
 	ContentRecommendationLogRepository
 } from '@/models/_.js';
 import type { MiUser, MiNote } from '@/models/_.js';
+import type { Packed } from '@/misc/json-schema.js';
 import { IdService } from '@/core/IdService.js';
 import { QueryService } from '@/core/QueryService.js';
 import { RecommendationAlgorithms } from '@/core/RecommendationAlgorithms.js';
@@ -400,12 +401,6 @@ export class ContentRecommendationService {
 		return Math.min(1, Math.max(0, score + explorationBonus));
 	}
 
-
-
-
-
-
-
 	@bindThis
 	private async calculateLanguageMatch(note: MiNote, profile: UserProfile): Promise<number> {
 		const detectedLang = await this.recommendationAlgorithms.detectLanguage(note.text);
@@ -473,7 +468,7 @@ export class ContentRecommendationService {
 	}
 
 	@bindThis
-	private async calculateSocialProof(note: MiNote, _user: MiUser): Promise<number> {
+	private async calculateSocialProof(note: MiNote | Packed<'Note'>, _user: MiUser): Promise<number> {
 		const cacheKey = `social:proof:${note.id}`;
 		const cached = await this.redisClient.get(cacheKey);
 		if (cached) {
@@ -707,8 +702,6 @@ export class ContentRecommendationService {
 
 		return result;
 	}
-
-
 
 	@bindThis
 	private async logRecommendations(
@@ -1506,4 +1499,49 @@ export class ContentRecommendationService {
 		return Math.min(1, alignmentScore);
 	}
 
+	@bindThis
+	public async getUserRecommendationProfile(userId: string) {
+		return await this.buildUserProfile({ id: userId } as MiUser);
+	}
+
+	@bindThis
+	public async buildUserProfile(user: MiUser) {
+		return await this.getUserProfile(user.id);
+	}
+
+	@bindThis
+	public async calculateUserAlignment(note: MiNote, profile: any): Promise<number> {
+		return await this.calculateCommunityAlignment(note, profile);
+	}
+
+	@bindThis
+	public calculateFreshnessScore(note: MiNote, freshnessWeight: number): number {
+		const recency = this.calculateRecency(note);
+		return recency * freshnessWeight;
+	}
+
+	@bindThis
+	public async calculateSmartScore(
+		note: MiNote,
+		profile: any,
+		user: MiUser,
+		options: {
+			algorithm: string;
+			diversityLevel: string;
+			freshnessWeight: number;
+			qualityThreshold: number;
+		}
+	): Promise<number> {
+		const alignmentScore = await this.calculateUserAlignment(note, profile);
+		const freshnessScore = this.calculateFreshnessScore(note, options.freshnessWeight);
+		const socialScore = await this.calculateSocialProof(note, user);
+		
+		let finalScore = alignmentScore * 0.4 + freshnessScore * options.freshnessWeight + socialScore * 0.3;
+		
+		if (options.algorithm === 'discovery') {
+			finalScore += 0.2;
+		}
+		
+		return Math.min(1, finalScore);
+	}
 }

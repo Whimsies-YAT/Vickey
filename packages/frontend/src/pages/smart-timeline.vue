@@ -34,8 +34,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 			<MkSmartTimeline
 				ref="smartTimelineRef"
-				:algorithm="preferences.algorithm as 'smart' | 'hybrid' | 'social' | 'discovery'"
-				:diversityLevel="preferences.diversityLevel as 'low' | 'medium' | 'high'"
+				:algorithm="preferences.algorithm"
+				:diversityLevel="preferences.diversityLevel"
 				:freshnessWeight="preferences.freshnessWeight"
 				:qualityThreshold="preferences.qualityThreshold"
 				:showModeIndicator="true"
@@ -237,7 +237,7 @@ async function loadPreferences() {
 	try {
 		const loadPromise = misskeyApi('i/timeline-preferences', {});
 		const timeoutPromise = new Promise((_, reject) =>
-			setTimeout(() => reject(new Error('Request timeout')), 8000)
+			window.setTimeout(() => reject(new Error('Request timeout')), 8000)
 		);
 
 		const result = await Promise.race([loadPromise, timeoutPromise]);
@@ -269,7 +269,7 @@ async function savePreferences() {
 	try {
 		const savePromise = misskeyApi('i/update-timeline-preferences', preferences.value);
 		const timeoutPromise = new Promise((_, reject) =>
-			setTimeout(() => reject(new Error('Request timeout')), 8000)
+			window.setTimeout(() => reject(new Error('Request timeout')), 8000)
 		);
 
 		await Promise.race([savePromise, timeoutPromise]);
@@ -297,7 +297,7 @@ async function refreshTimeline() {
 		// Refresh cache with timeout
 		const refreshPromise = misskeyApi('notes/timeline-refresh', {});
 		const timeoutPromise = new Promise((_, reject) =>
-			setTimeout(() => reject(new Error('Request timeout')), 10000)
+			window.setTimeout(() => reject(new Error('Request timeout')), 10000)
 		);
 
 		await Promise.race([refreshPromise, timeoutPromise]);

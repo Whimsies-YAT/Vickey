@@ -398,7 +398,7 @@ export class SmartTimelineService implements OnApplicationShutdown {
 			.leftJoin('note_reaction', 'reaction', 'reaction.noteId = note.id')
 			.where('note.visibility = :visibility', { visibility: 'public' })
 			.andWhere('user.isSuspended = false')
-			.andWhere('user.isDeleted = false')
+			.andWhere('user.isDeleted = false');
 
 		if (excludeUserIds.length > 0) {
 			query.andWhere('note.userId NOT IN (:...excludeUserIds)', { excludeUserIds });
@@ -1017,7 +1017,7 @@ export class SmartTimelineService implements OnApplicationShutdown {
 			if (!profile) return false;
 
 			const score = await this.contentRecommendationService.calculateSmartScore(
-				note,
+				note as any,
 				profile,
 				user,
 				{

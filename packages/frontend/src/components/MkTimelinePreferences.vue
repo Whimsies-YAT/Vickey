@@ -352,7 +352,7 @@ onMounted(() => {
 let saveTimeout: number | null = null;
 watch(preferences, () => {
 	if (saveTimeout) {
-		clearTimeout(saveTimeout);
+		window.clearTimeout(saveTimeout);
 	}
 	saveTimeout = window.setTimeout(() => {
 		savePreferences();

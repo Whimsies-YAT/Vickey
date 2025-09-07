@@ -17,7 +17,7 @@ class SmartTimelineChannel extends Channel {
 	public static shouldShare = false;
 	public static requireCredential = true as const;
 	public static kind = 'read:account';
-	
+
 	private algorithm: string;
 	private diversityLevel: string;
 	private freshnessWeight: number;
@@ -78,7 +78,7 @@ class SmartTimelineChannel extends Channel {
 						return;
 					}
 				}
-				
+
 				if (reply.visibility === 'followers' && !Object.hasOwn(this.following, reply.userId) && reply.userId !== this.user.id) {
 					return;
 				}

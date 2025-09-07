@@ -113,7 +113,7 @@ export async function masterMain() {
 	);
 
 	// Wait for Argon2id autotune to complete before starting services
-	if (autotunePromise) {
+	if (autotunePromise !== null) {
 		await autotunePromise;
 	}
 
@@ -243,7 +243,7 @@ async function performArgon2Autotune() {
 
 	// Start with baseline parameters
 	let bestConfig = {
-		memoryCost: 4096,     // 4MB
+		memoryCost: 4096,
 		timeCost: 3,
 		parallelism: Math.min(2, availableCpus),
 	};
@@ -252,8 +252,8 @@ async function performArgon2Autotune() {
 	argonLogger.info(`Initial benchmark: ${bestTime.toFixed(1)}ms`);
 
 	// Binary search for memory cost
-	let memoryMin = 1024;      // 1MB minimum
-	let memoryMax = 65536;     // 64MB maximum
+	let memoryMin = 1024;
+	let memoryMax = 65536;
 
 	while (memoryMax - memoryMin > 512) {
 		const memoryMid = Math.floor((memoryMin + memoryMax) / 2);
@@ -316,7 +316,7 @@ async function performArgon2Autotune() {
 
 	// Update global config
 	globalArgon2Config = bestConfig;
-	
+
 	// Update the global config object so other parts of the app can access it
 	updateGlobalConfig({ argon2Config: bestConfig });
 

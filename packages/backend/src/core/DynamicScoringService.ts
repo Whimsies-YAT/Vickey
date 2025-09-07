@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import {Inject, Injectable} from '@nestjs/common';
-import {DI} from '@/di-symbols.js';
-import {bindThis} from '@/decorators.js';
+import { Inject, Injectable } from '@nestjs/common';
+import { DI } from '@/di-symbols.js';
+import { bindThis } from '@/decorators.js';
 import * as Redis from 'ioredis';
-import type {UsersRepository} from '@/models/_.js';
-import {IsNull, MoreThan} from "typeorm";
-import {IdService} from '@/core/IdService.js';
-import {RedisKVCache} from '@/misc/cache.js';
+import type { UsersRepository } from '@/models/_.js';
+import { IsNull, MoreThan } from "typeorm";
+import { IdService } from '@/core/IdService.js';
+import { RedisKVCache } from '@/misc/cache.js';
 
 export interface DynamicScoreContext {
 	userPopulation: {
@@ -123,7 +123,6 @@ export class DynamicScoringService {
 			}
 
 			await this.updateTrendAnalysis();
-
 		} catch (error) {
 			console.error('Failed to initialize DynamicScoringService:', error);
 		}
@@ -593,12 +592,12 @@ export class DynamicScoringService {
 	}
 
 	private erf(x: number): number {
-		const a1 =  0.254829592;
+		const a1 = 0.254829592;
 		const a2 = -0.284496736;
-		const a3 =  1.421413741;
+		const a3 = 1.421413741;
 		const a4 = -1.453152027;
-		const a5 =  1.061405429;
-		const p  =  0.3275911;
+		const a5 = 1.061405429;
+		const p = 0.3275911;
 
 		const sign = x < 0 ? -1 : 1;
 		x = Math.abs(x);
@@ -654,15 +653,17 @@ export class DynamicScoringService {
 			for (const user of sampleUsers) {
 				let value = 0;
 				switch (dimension) {
-					case 'accountAge':
+					case 'accountAge': {
 						const createdAt = this.idService.parse(user.id).date;
 						value = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
 						break;
-					case 'postingFrequency':
+					}
+					case 'postingFrequency': {
 						const accountCreated = this.idService.parse(user.id).date;
 						const accountAgeDays = Math.max(1, (Date.now() - accountCreated.getTime()) / (1000 * 60 * 60 * 24));
 						value = user.notesCount / accountAgeDays;
 						break;
+					}
 					case 'followRatio':
 						value = user.followersCount > 0 ? user.followingCount / user.followersCount : 0;
 						break;

@@ -11,18 +11,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkError v-else-if="error" @retry="init()"/>
 
 		<div v-else-if="notes.length === 0" key="_empty_">
-			<MkResult type="empty" text="No notes"/>
+			<MkResult type="empty" :text="i18n.ts.noNotes"/>
 		</div>
 
 		<div v-else ref="rootEl">
-			<!-- Settings Button integrated into algorithm info -->
 			<div v-if="localShowAlgorithmInfo" :class="$style.algorithmInfo">
 				<div :class="$style.algorithmHeader">
 					<div :class="$style.algorithmDetails">
-						<span :class="$style.algorithmLabel">Algorithm:</span>
+						<span :class="$style.algorithmLabel">{{ i18n.ts._smartTimeline.algorithm }} </span>
 						<span :class="$style.algorithmValue">{{ algorithm }}</span>
 					</div>
-					<button class="_button" :class="$style.settingsButton" @click="openSettings" title="Smart Timeline Settings">
+					<button class="_button" :class="$style.settingsButton" :title=i18n.ts._smartTimeline.smartTimelineSettings @click="openSettings">
 						<i class="ti ti-settings"></i>
 					</button>
 				</div>
@@ -37,11 +36,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</div>
 			</div>
 
-			<!-- Settings button for when algorithm info is hidden -->
 			<div v-else :class="$style.compactSettingsContainer">
-				<button class="_button" :class="$style.compactSettingsButton" @click="openSettings" title="Smart Timeline Settings">
+				<button class="_button" :class="$style.compactSettingsButton" :title=i18n.ts._smartTimeline.smartTimelineSettings @click="openSettings">
 					<i class="ti ti-settings"></i>
-					Settings
+					{{ i18n.ts.settings }}
 				</button>
 			</div>
 
@@ -49,10 +47,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div :class="$style.newBg1"></div>
 				<div :class="$style.newBg2"></div>
 				<button class="_button" :class="$style.newButton" @click="releaseQueue()">
-					<i class="ti ti-thumb-up"></i> New recommendations available
+					<i class="ti ti-thumb-up"></i> {{ i18n.ts._smartTimeline.newRecommendationsAvailable }}
 				</button>
 			</div>
-
 
 			<component
 				:is="prefer.s.animation ? TransitionGroup : 'div'"
@@ -67,7 +64,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<template v-for="note in notes" :key="note.id">
 					<div v-if="localShowScores && scores[note.id]" :class="$style.scoreIndicator">
 						<div :class="$style.scoreInfo">
-							<span :class="$style.scoreLabel">Relevance Score</span>
+							<span :class="$style.scoreLabel">{{ i18n.ts._smartTimeline.relevanceScore }}</span>
 							<span :class="$style.scoreValue">{{ Math.round(scores[note.id] * 100) }}</span>
 						</div>
 						<div :class="$style.scoreBar">
@@ -97,7 +94,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkLoading mini/>
 				</template>
 				<template v-else>
-					Load More
+					{{ i18n.ts.loadMore }}
 				</template>
 			</button>
 		</div>
@@ -156,7 +153,6 @@ const fetchingMore = ref(false);
 const hasMore = ref(true);
 const offset = ref(0);
 
-// Settings state - synced with server preferences
 const localContext = ref(props.context);
 const localIncludeFollowing = ref(props.includeFollowing);
 const localDiversityFactor = ref(props.diversityFactor);
@@ -164,42 +160,6 @@ const localRecencyWeight = ref(props.recencyWeight);
 const localQualityThreshold = ref(props.qualityThreshold);
 const localShowScores = ref(props.showScores);
 const localShowAlgorithmInfo = ref(props.showAlgorithmInfo);
-
-// Load preferences from server on mount
-async function loadPreferences() {
-	if (!$i) return;
-	
-	try {
-		const result = await misskeyApi('i/timeline-preferences', {});
-		// Map server preferences to local state
-		if (result.diversityFactor !== undefined) localDiversityFactor.value = result.diversityFactor;
-		if (result.recencyWeight !== undefined) localRecencyWeight.value = result.recencyWeight;
-		if (result.qualityThreshold !== undefined) localQualityThreshold.value = result.qualityThreshold;
-		if (result.showScores !== undefined) localShowScores.value = result.showScores;
-		if (result.showAlgorithmInfo !== undefined) localShowAlgorithmInfo.value = result.showAlgorithmInfo;
-	} catch (err) {
-		console.warn('Failed to load timeline preferences:', err);
-	}
-}
-
-// Save preferences to server
-async function savePreferences() {
-	if (!$i) return;
-	
-	try {
-		await misskeyApi('i/update-timeline-preferences', {
-			context: localContext.value,
-			includeFollowing: localIncludeFollowing.value,
-			diversityFactor: localDiversityFactor.value,
-			recencyWeight: localRecencyWeight.value,
-			qualityThreshold: localQualityThreshold.value,
-			showScores: localShowScores.value,
-			showAlgorithmInfo: localShowAlgorithmInfo.value,
-		});
-	} catch (err) {
-		console.warn('Failed to save timeline preferences:', err);
-	}
-}
 
 async function init() {
 	loading.value = true;
@@ -223,7 +183,6 @@ async function init() {
 		hasMore.value = result.hasMore;
 		offset.value = result.notes.length;
 
-		// Record interaction for each note view
 		for (const note of result.notes) {
 			await recordInteraction(note.id, 'view');
 		}
@@ -256,7 +215,6 @@ async function fetchMore() {
 		hasMore.value = result.hasMore;
 		offset.value += result.notes.length;
 
-		// Record interaction for each note view
 		for (const note of result.notes) {
 			await recordInteraction(note.id, 'view');
 		}
@@ -288,7 +246,6 @@ async function recordInteraction(noteId: string, type: string, context?: any) {
 			...context,
 		});
 	} catch (err) {
-		// Silently fail interaction recording
 		console.warn('Failed to record interaction:', err);
 	}
 }
@@ -303,36 +260,34 @@ function onNoteClick(note: Misskey.entities.Note) {
 
 function getFactorName(factor: string): string {
 	const factorNames: Record<string, string> = {
-		contentRelevance: 'Content Relevance',
-		socialFactors: 'Social Factors',
-		recency: 'Recency',
-		quality: 'Quality',
-		diversity: 'Diversity',
-		exploration: 'Exploration',
+		contentRelevance: i18n.ts._smartTimeline.contentRelevance,
+		socialFactors: i18n.ts._smartTimeline.socialFactors,
+		recency: i18n.ts._smartTimeline.recency,
+		quality: i18n.ts._smartTimeline.quality,
+		diversity: i18n.ts._smartTimeline.diversity,
+		exploration: i18n.ts._smartTimeline.exploration,
 	};
 	return factorNames[factor] || factor;
 }
 
-// Auto refresh every 10 minutes
 let refreshInterval: number | null = null;
 
 onMounted(() => {
 	init();
 
 	refreshInterval = window.setInterval(() => {
-		if (document.visibilityState === 'visible') {
+		if (window.document.visibilityState === 'visible') {
 			reloadTimeline();
 		}
-	}, 10 * 60 * 1000); // 10 minutes
+	}, 10 * 60 * 1000);
 });
 
 onUnmounted(() => {
 	if (refreshInterval) {
-		clearInterval(refreshInterval);
+		window.clearInterval(refreshInterval);
 	}
 });
 
-// Watch for prop changes and reload
 watch([
 	() => props.context,
 	() => props.includeFollowing,
@@ -343,7 +298,6 @@ watch([
 	init();
 });
 
-// Watch for local setting changes and reload
 watch([
 	localContext,
 	localIncludeFollowing,
@@ -358,67 +312,67 @@ function openSettings(ev: MouseEvent) {
 	os.popupMenu([
 		{
 			type: 'parent' as const,
-			text: 'Context',
+			text: i18n.ts._smartTimeline.context,
 			icon: 'ti ti-category',
 			children: [
-				{ text: 'Timeline', active: localContext.value === 'timeline', action: () => { localContext.value = 'timeline'; } },
-				{ text: 'Explore', active: localContext.value === 'explore', action: () => { localContext.value = 'explore'; } },
-				{ text: 'Related', active: localContext.value === 'related', action: () => { localContext.value = 'related'; } },
-				{ text: 'Trending', active: localContext.value === 'trending', action: () => { localContext.value = 'trending'; } },
+				{ text: i18n.ts._smartTimeline.timeline, active: localContext.value === 'timeline', action: () => { localContext.value = 'timeline'; } },
+				{ text: i18n.ts.explore, active: localContext.value === 'explore', action: () => { localContext.value = 'explore'; } },
+				{ text: i18n.ts._smartTimeline.related, active: localContext.value === 'related', action: () => { localContext.value = 'related'; } },
+				{ text: i18n.ts._smartTimeline.trending, active: localContext.value === 'trending', action: () => { localContext.value = 'trending'; } },
 			],
 		},
 		{
 			type: 'switch' as const,
-			text: 'Include Following',
+			text: i18n.ts._smartTimeline.includeFollowing,
 			icon: 'ti ti-users',
 			ref: localIncludeFollowing,
 		},
 		{
 			type: 'switch' as const,
-			text: 'Show Algorithm Info',
+			text: i18n.ts._smartTimeline.showAlgorithmInfo,
 			icon: 'ti ti-chart-line',
 			ref: localShowAlgorithmInfo,
 		},
 		{
 			type: 'switch' as const,
-			text: 'Show Scores',
+			text: i18n.ts._smartTimeline.showScores,
 			icon: 'ti ti-chart-bar',
 			ref: localShowScores,
 		},
 		{ type: 'divider' },
 		{
 			type: 'parent' as const,
-			text: 'Algorithm Parameters',
+			text: i18n.ts._smartTimeline.algorithmParameters,
 			icon: 'ti ti-adjustments',
 			children: [
 				{
-					text: `Diversity: ${Math.round(localDiversityFactor.value * 100)}%`,
+					text: `${i18n.ts._smartTimeline.diversity}: ${Math.round(localDiversityFactor.value * 100)}%`,
 					action: async () => {
 						const { result: value } = await os.inputNumber({
-							title: 'Diversity Factor',
-							text: 'Controls content variety (0-100%)',
+							title: i18n.ts._smartTimeline.diversityFactor,
+							text: i18n.ts._smartTimeline.controlsContentVariety,
 							default: Math.round(localDiversityFactor.value * 100),
 						});
 						if (value != null) localDiversityFactor.value = Math.max(0, Math.min(1, value / 100));
 					},
 				},
 				{
-					text: `Recency Weight: ${Math.round(localRecencyWeight.value * 100)}%`,
+					text: `${i18n.ts._smartTimeline.recencyWeight}: ${Math.round(localRecencyWeight.value * 100)}%`,
 					action: async () => {
 						const { result: value } = await os.inputNumber({
-							title: 'Recency Weight',
-							text: 'Preference for newer content (0-100%)',
+							title: i18n.ts._smartTimeline.recencyWeight,
+							text: i18n.ts._smartTimeline.preferenceForNewerContent,
 							default: Math.round(localRecencyWeight.value * 100),
 						});
 						if (value != null) localRecencyWeight.value = Math.max(0, Math.min(1, value / 100));
 					},
 				},
 				{
-					text: `Quality Threshold: ${Math.round(localQualityThreshold.value * 100)}%`,
+					text: `${i18n.ts._smartTimeline.qualityThreshold}: ${Math.round(localQualityThreshold.value * 100)}%`,
 					action: async () => {
 						const { result: value } = await os.inputNumber({
-							title: 'Quality Threshold',
-							text: 'Minimum content quality (0-100%)',
+							title: i18n.ts._smartTimeline.qualityThreshold,
+							text: i18n.ts._smartTimeline.minimumContentQuality,
 							default: Math.round(localQualityThreshold.value * 100),
 						});
 						if (value != null) localQualityThreshold.value = Math.max(0, Math.min(1, value / 100));
@@ -428,7 +382,7 @@ function openSettings(ev: MouseEvent) {
 		},
 		{ type: 'divider' },
 		{
-			text: 'Reset to Defaults',
+			text: i18n.ts.reset,
 			icon: 'ti ti-refresh',
 			action: () => {
 				localContext.value = props.context;

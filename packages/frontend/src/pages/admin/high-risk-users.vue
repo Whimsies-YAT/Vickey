@@ -57,7 +57,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 
 						<div class="actions">
-							<MkButton @click="viewRiskDetails" size="sm">
+							<MkButton size="sm" @click="viewRiskDetails">
 								{{ i18n.ts.details }}
 							</MkButton>
 						</div>

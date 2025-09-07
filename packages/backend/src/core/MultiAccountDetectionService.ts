@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import {Inject, Injectable} from '@nestjs/common';
-import {DI} from '@/di-symbols.js';
-import type {NotesRepository, SigninsRepository, UserIpsRepository, UserSessionsRepository, FollowingsRepository, NoteReactionsRepository, UsersRepository} from '@/models/_.js';
-import {bindThis} from '@/decorators.js';
+import { Inject, Injectable } from '@nestjs/common';
+import { DI } from '@/di-symbols.js';
+import type { NotesRepository, SigninsRepository, UserIpsRepository, UserSessionsRepository, FollowingsRepository, NoteReactionsRepository, UsersRepository } from '@/models/_.js';
+import { bindThis } from '@/decorators.js';
 import * as Redis from 'ioredis';
 import * as crypto from 'crypto';
-import type {FastifyRequest} from 'fastify';
-import {IdService} from '@/core/IdService.js';
+import type { FastifyRequest } from 'fastify';
+import { IdService } from '@/core/IdService.js';
 import { In } from 'typeorm';
 
 export interface AccountLink {
@@ -328,7 +328,6 @@ export class MultiAccountDetectionService {
 
 	@bindThis
 	private async analyzeSocialGraphCorrelation(userId1: string, userId2: string): Promise<number> {
-
 		let suspicionScore = 0;
 		const evidence = [];
 
@@ -886,7 +885,6 @@ export class MultiAccountDetectionService {
 		const deviceFingerprint = this.generateDeviceFingerprintFromRequest(request);
 		const timestamp = new Date();
 
-
 		const requestData = {
 			userId,
 			ip,
@@ -1141,7 +1139,6 @@ export class MultiAccountDetectionService {
 
 	@bindThis
 	private calculateBayesianConfidence(methods: string[], evidence: Record<string, any>): number {
-
 		const priorProbability = 0.05;
 
 		const methodReliability = {

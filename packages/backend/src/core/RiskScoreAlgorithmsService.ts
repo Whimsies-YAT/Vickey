@@ -34,7 +34,6 @@ export interface GraphMetrics {
 
 @Injectable()
 export class RiskScoreAlgorithmsService {
-
 	@bindThis
 	public isolationForest(
 		data: number[][],
