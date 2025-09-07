@@ -669,6 +669,15 @@ export type paths = {
          */
         post: operations['admin___queue___stats'];
     };
+    '/admin/recommendation-stats': {
+        /**
+         * admin/recommendation-stats
+         * @description No description provided.
+         *
+         *     **Credential required**: *Yes* / **Permission**: *read:admin:meta*
+         */
+        post: operations['admin___recommendation-stats'];
+    };
     '/admin/relays/add': {
         /**
          * admin/relays/add
@@ -11119,6 +11128,109 @@ export interface operations {
                         inbox: components['schemas']['QueueCount'];
                         db: components['schemas']['QueueCount'];
                         objectStorage: components['schemas']['QueueCount'];
+                    };
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'admin___recommendation-stats': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** @default 7 */
+                    days?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        totalRecommendations: number;
+                        totalInteractions: number;
+                        totalProfiles: number;
+                        engagementRate: number;
+                        viewRate: number;
+                        algorithmPerformance: {
+                            [key: string]: {
+                                recommendations?: number;
+                                engagements?: number;
+                                engagementRate?: number;
+                            };
+                        };
+                        contextPerformance: {
+                            [key: string]: {
+                                recommendations?: number;
+                                engagements?: number;
+                                engagementRate?: number;
+                            };
+                        };
+                        recentActivity: {
+                            last24h: {
+                                recommendations: number;
+                                interactions: number;
+                                uniqueUsers: number;
+                            };
+                            last7d: {
+                                recommendations: number;
+                                interactions: number;
+                                uniqueUsers: number;
+                            };
+                        };
+                        topInteractionTypes: {
+                            type: string;
+                            count: number;
+                            percentage: number;
+                        }[];
                     };
                 };
             };
@@ -28948,6 +29060,13 @@ export interface operations {
                         mode: 'auto' | 'chronological' | 'smart' | 'mixed';
                         smartRatio: number;
                         adaptiveMode: boolean;
+                        /** @enum {string} */
+                        algorithm: 'smart' | 'hybrid' | 'social' | 'discovery';
+                        /** @enum {string} */
+                        diversityLevel: 'low' | 'medium' | 'high';
+                        freshnessWeight: number;
+                        qualityThreshold: number;
+                        showScoreIndicator: boolean;
                         analytics: {
                             currentMode: {
                                 type: string;
@@ -29424,6 +29543,13 @@ export interface operations {
                     mode?: 'auto' | 'chronological' | 'smart' | 'mixed';
                     smartRatio?: number;
                     adaptiveMode?: boolean;
+                    /** @enum {string} */
+                    algorithm?: 'smart' | 'hybrid' | 'social' | 'discovery';
+                    /** @enum {string} */
+                    diversityLevel?: 'low' | 'medium' | 'high';
+                    freshnessWeight?: number;
+                    qualityThreshold?: number;
+                    showScoreIndicator?: boolean;
                 };
             };
         };
@@ -29440,6 +29566,11 @@ export interface operations {
                             mode: string;
                             smartRatio: number;
                             adaptiveMode: boolean;
+                            algorithm: string;
+                            diversityLevel: string;
+                            freshnessWeight: number;
+                            qualityThreshold: number;
+                            showScoreIndicator: boolean;
                         };
                     };
                 };
@@ -32965,6 +33096,8 @@ export interface operations {
                     limit?: number;
                     sinceId?: string;
                     untilId?: string;
+                    /** @default 0 */
+                    offset?: number;
                     /** @default true */
                     includeMyRenotes?: boolean;
                     /** @default true */

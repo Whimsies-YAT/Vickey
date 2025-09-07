@@ -18,6 +18,7 @@ import type {
 	UserRecommendationProfileRepository
 } from '@/models/_.js';
 import type { MiUser, MiNote } from '@/models/_.js';
+import type { Packed } from '@/misc/json-schema.js';
 import { ContentRecommendationService } from '@/core/ContentRecommendationService.js';
 import { LocalAIContentAnalysisService } from '@/core/LocalAIContentAnalysisService.js';
 import { IdService } from '@/core/IdService.js';
@@ -997,6 +998,40 @@ export class SmartTimelineService implements OnApplicationShutdown {
 			}
 		} catch (error) {
 			console.error('SmartTimelineService: Failed to batch update user interests:', error);
+		}
+	}
+
+	@bindThis
+	public async shouldIncludeInRealTimeStream(
+		user: MiUser,
+		note: Packed<'Note'>,
+		options: {
+			algorithm: string;
+			diversityLevel: string;
+			freshnessWeight: number;
+			qualityThreshold: number;
+		}
+	): Promise<boolean> {
+		try {
+			const profile = await this.contentRecommendationService.getUserRecommendationProfile(user.id);
+			if (!profile) return false;
+
+			const score = await this.contentRecommendationService.calculateSmartScore(
+				note,
+				profile,
+				user,
+				{
+					algorithm: options.algorithm,
+					diversityLevel: options.diversityLevel,
+					freshnessWeight: options.freshnessWeight,
+					qualityThreshold: options.qualityThreshold,
+				}
+			);
+
+			return score >= options.qualityThreshold;
+		} catch (error) {
+			console.error('SmartTimelineService: Error checking real-time stream inclusion:', error);
+			return false;
 		}
 	}
 }

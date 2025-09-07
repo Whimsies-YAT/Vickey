@@ -333,6 +333,12 @@ type AdminQueueShowJobResponse = operations['admin___queue___show-job']['respons
 type AdminQueueStatsResponse = operations['admin___queue___stats']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type AdminRecommendationStatsRequest = operations['admin___recommendation-stats']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminRecommendationStatsResponse = operations['admin___recommendation-stats']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type AdminRelaysAddRequest = operations['admin___relays___add']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -1653,6 +1659,8 @@ declare namespace entities {
         AdminQueueShowJobLogsRequest,
         AdminQueueShowJobLogsResponse,
         AdminQueueStatsResponse,
+        AdminRecommendationStatsRequest,
+        AdminRecommendationStatsResponse,
         AdminRelaysAddRequest,
         AdminRelaysAddResponse,
         AdminRelaysListResponse,

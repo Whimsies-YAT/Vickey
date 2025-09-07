@@ -6,7 +6,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
-import type { 
+import type {
 	ContentRecommendationLogRepository,
 	UserInteractionHistoryRepository,
 	UserRecommendationProfileRepository
@@ -18,6 +18,7 @@ export const meta = {
 
 	requireCredential: true,
 	requireModerator: true,
+	kind: 'read:admin:meta',
 
 	res: {
 		type: 'object',
@@ -110,7 +111,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 			const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-			// Basic counts
 			const [totalRecommendations, totalInteractions, totalProfiles] = await Promise.all([
 				this.contentRecommendationLogRepository.count({
 					where: { createdAt: MoreThan(daysAgo) },
@@ -121,16 +121,15 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				this.userRecommendationProfileRepository.count(),
 			]);
 
-			// Engagement metrics
 			const [totalEngagements, totalViews] = await Promise.all([
 				this.contentRecommendationLogRepository.count({
-					where: { 
+					where: {
 						createdAt: MoreThan(daysAgo),
 						engaged: true,
 					},
 				}),
 				this.contentRecommendationLogRepository.count({
-					where: { 
+					where: {
 						createdAt: MoreThan(daysAgo),
 						viewed: true,
 					},
@@ -140,7 +139,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			const engagementRate = totalRecommendations > 0 ? totalEngagements / totalRecommendations : 0;
 			const viewRate = totalRecommendations > 0 ? totalViews / totalRecommendations : 0;
 
-			// Algorithm performance
 			const algorithmStats = await this.contentRecommendationLogRepository
 				.createQueryBuilder('log')
 				.select('log.algorithm')
@@ -161,7 +159,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				};
 			}
 
-			// Context performance
 			const contextStats = await this.contentRecommendationLogRepository
 				.createQueryBuilder('log')
 				.select('log.context')
@@ -182,7 +179,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				};
 			}
 
-			// Recent activity
 			const [
 				recommendations24h,
 				interactions24h,
@@ -217,7 +213,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					.then(result => parseInt(result.count)),
 			]);
 
-			// Top interaction types
 			const interactionTypeStats = await this.userInteractionHistoryRepository
 				.createQueryBuilder('interaction')
 				.select('interaction.interactionType', 'type')

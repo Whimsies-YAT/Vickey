@@ -48,27 +48,27 @@ export const paramDef = {
 		withFiles: { type: 'boolean', default: false },
 		withReplies: { type: 'boolean', default: false },
 		excludeNsfw: { type: 'boolean', default: false },
-		algorithm: { 
-			type: 'string', 
-			enum: ['smart', 'hybrid', 'social', 'discovery'], 
-			default: 'smart' 
+		algorithm: {
+			type: 'string',
+			enum: ['smart', 'hybrid', 'social', 'discovery'],
+			default: 'smart'
 		},
-		diversityLevel: { 
-			type: 'string', 
-			enum: ['low', 'medium', 'high'], 
-			default: 'medium' 
+		diversityLevel: {
+			type: 'string',
+			enum: ['low', 'medium', 'high'],
+			default: 'medium'
 		},
-		freshnessWeight: { 
-			type: 'number', 
-			minimum: 0, 
-			maximum: 1, 
-			default: 0.3 
+		freshnessWeight: {
+			type: 'number',
+			minimum: 0,
+			maximum: 1,
+			default: 0.3
 		},
-		qualityThreshold: { 
-			type: 'number', 
-			minimum: 0, 
-			maximum: 1, 
-			default: 0.4 
+		qualityThreshold: {
+			type: 'number',
+			minimum: 0,
+			maximum: 1,
+			default: 0.4
 		},
 	},
 	required: [],
@@ -83,20 +83,22 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			try {
-				// Record timeline view interaction
-				await this.contentRecommendationService.recordInteraction(
-					me.id,
-					'smart_timeline',
-					'category',
-					'view',
-					{
-						algorithm: ps.algorithm,
-						diversityLevel: ps.diversityLevel,
-						source: 'smart_timeline',
-					}
-				);
+				const isInitialLoad = !ps.sinceId && !ps.untilId && ps.offset === 0;
+				
+				if (isInitialLoad) {
+					await this.contentRecommendationService.recordInteraction(
+						me.id,
+						'smart_timeline',
+						'category',
+						'view',
+						{
+							algorithm: ps.algorithm,
+							diversityLevel: ps.diversityLevel,
+							source: 'smart_timeline_initial',
+						}
+					);
+				}
 
-				// Generate smart timeline
 				const notes = await this.smartTimelineService.generateSmartTimeline(me, {
 					limit: ps.limit,
 					sinceId: ps.sinceId,
@@ -114,10 +116,29 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					qualityThreshold: ps.qualityThreshold,
 				});
 
-				// Pack notes for API response
-				return await this.noteEntityService.packMany(notes, me);
+				const packedNotes = await this.noteEntityService.packMany(notes, me);
+
+				if (isInitialLoad && packedNotes.length > 0) {
+					await this.smartTimelineService.logUserInteraction(
+						me.id,
+						'smart_timeline_batch',
+						'category',
+						'view',
+						{
+							weight: 0.1,
+							context: {
+								count: packedNotes.length,
+								algorithm: ps.algorithm,
+								source: 'timeline_endpoint'
+							},
+							implicit: true,
+						}
+					);
+				}
+
+				return packedNotes;
 			} catch (error) {
-				console.error('Smart timeline error:', error);
+				console.error('Smart timeline endpoint error:', error);
 				throw new ApiError(meta.errors.timelineUnavailable);
 			}
 		});

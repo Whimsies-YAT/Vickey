@@ -91,6 +91,8 @@ import { misskeyApi } from '@/utility/misskey-api.js';
 import { prefer } from '@/preferences.js';
 import { $i } from '@/i.js';
 import { i18n } from "../../../frontend-embed/src/i18n";
+import { useStream } from '@/stream.js';
+import { store } from '@/store.js';
 
 interface SmartTimelineOptions {
 	algorithm?: 'smart' | 'hybrid' | 'social' | 'discovery';
@@ -131,12 +133,61 @@ const offset = ref(0);
 const noteViewTimes = ref<Record<string, number>>({});
 const noteObserver = ref<IntersectionObserver | null>(null);
 
+const stream = store.s.realtimeMode ? useStream() : null;
+let connection: Misskey.IChannelConnection<Misskey.Channels['smartTimeline']> | null = null;
+
 const showModeIndicator = computed(() => props.showModeIndicator && $i);
 const showScoreIndicator = computed(() => props.showScoreIndicator && $i);
+
+function prepend(note: Misskey.entities.Note) {
+	if (!note || notes.value.some(n => n.id === note.id)) return;
+	
+	queuedNotes.value.unshift(note);
+	
+	if (queuedNotes.value.length > 32) {
+		queuedNotes.value = queuedNotes.value.slice(0, 32);
+	}
+	
+	recordInteraction(note.id, 'stream_receive', {
+		source: 'websocket_stream',
+		algorithm: props.algorithm,
+		timestamp: Date.now()
+	}).catch(() => {});
+}
+
+function connectToStream() {
+	if (!stream || !$i || connection) return;
+	
+	try {
+		connection = stream.useChannel('smartTimeline', {
+			algorithm: props.algorithm,
+			diversityLevel: props.diversityLevel,
+			freshnessWeight: props.freshnessWeight,
+			qualityThreshold: props.qualityThreshold,
+			withRenotes: true,
+			withReplies: false,
+			withFiles: false,
+		});
+		
+		connection.on('note', prepend);
+		console.log('Smart timeline WebSocket connected');
+	} catch (error) {
+		console.error('Failed to connect to smart timeline stream:', error);
+	}
+}
+
+function disconnectFromStream() {
+	if (connection) {
+		connection.dispose();
+		connection = null;
+		console.log('Smart timeline WebSocket disconnected');
+	}
+}
 
 async function init() {
 	loading.value = true;
 	error.value = false;
+	const isInitialLoad = offset.value === 0;
 	offset.value = 0;
 
 	try {
@@ -153,10 +204,6 @@ async function init() {
 		currentMode.value = { type: 'smart', smartRatio: 1.0, reason: i18n.ts._smartTimeline.smartAlgorithmActive };
 		hasMore.value = result.length >= 20;
 		offset.value = result.length;
-
-		for (const note of result) {
-			await recordInteraction(note.id, 'view');
-		}
 
 		setupIntersectionObserver();
 	} catch (err) {
@@ -241,9 +288,7 @@ async function fetchMore() {
 		hasMore.value = result.length >= 20;
 		offset.value += result.length;
 
-		for (const note of result) {
-			await recordInteraction(note.id, 'view');
-		}
+		setupIntersectionObserver();
 	} catch (err) {
 		console.error('Failed to load more notes:', err);
 	} finally {
@@ -369,8 +414,12 @@ let refreshInterval: number | null = null;
 
 onMounted(() => {
 	init();
+	
+	if (store.s.realtimeMode) {
+		connectToStream();
+	}
 
-	if (props.autoRefresh) {
+	if (props.autoRefresh && !store.s.realtimeMode) {
 		refreshInterval = window.setInterval(() => {
 			if (document.visibilityState === 'visible') {
 				reloadTimeline();
@@ -380,6 +429,8 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+	disconnectFromStream();
+	
 	if (refreshInterval) {
 		clearInterval(refreshInterval);
 	}
@@ -394,6 +445,11 @@ onUnmounted(() => {
 
 watch([() => props.algorithm, () => props.diversityLevel, () => props.freshnessWeight, () => props.qualityThreshold], () => {
 	init();
+	
+	if (store.s.realtimeMode) {
+		disconnectFromStream();
+		connectToStream();
+	}
 });
 
 defineExpose({

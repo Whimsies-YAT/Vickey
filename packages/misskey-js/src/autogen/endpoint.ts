@@ -98,6 +98,8 @@ import type {
 	AdminQueueShowJobLogsRequest,
 	AdminQueueShowJobLogsResponse,
 	AdminQueueStatsResponse,
+	AdminRecommendationStatsRequest,
+	AdminRecommendationStatsResponse,
 	AdminRelaysAddRequest,
 	AdminRelaysAddResponse,
 	AdminRelaysListResponse,
@@ -776,6 +778,7 @@ export type Endpoints = {
 	'admin/queue/show-job': { req: AdminQueueShowJobRequest; res: AdminQueueShowJobResponse };
 	'admin/queue/show-job-logs': { req: AdminQueueShowJobLogsRequest; res: AdminQueueShowJobLogsResponse };
 	'admin/queue/stats': { req: EmptyRequest; res: AdminQueueStatsResponse };
+	'admin/recommendation-stats': { req: AdminRecommendationStatsRequest; res: AdminRecommendationStatsResponse };
 	'admin/relays/add': { req: AdminRelaysAddRequest; res: AdminRelaysAddResponse };
 	'admin/relays/list': { req: EmptyRequest; res: AdminRelaysListResponse };
 	'admin/relays/remove': { req: AdminRelaysRemoveRequest; res: EmptyResponse };
