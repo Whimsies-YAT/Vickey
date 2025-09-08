@@ -1138,7 +1138,7 @@ export class SmartTimelineService implements OnApplicationShutdown {
 
 			this.queryService.generateVisibilityQuery(query, user);
 
-			let notes = await query
+			const notes = await query
 				.orderBy('engagementScore', 'DESC')
 				.addOrderBy('note.id', 'DESC')
 				.limit(limit * 2)
@@ -1202,13 +1202,12 @@ export class SmartTimelineService implements OnApplicationShutdown {
 
 			this.queryService.generateVisibilityQuery(query, user);
 
-			let notes = await query
+			 const notes = await query
 				.orderBy('engagementScore', 'DESC')
 				.addOrderBy('note.id', 'DESC')
 				.limit(limit * 2)
 				.getMany();
 
-			// Cache the results
 			const noteIds = notes.map(note => note.id);
 			await this.redisClient.setex(cacheKey, 300, JSON.stringify(noteIds));
 
