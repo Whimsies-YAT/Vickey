@@ -48,6 +48,7 @@ export const paramDef = {
 		withFiles: { type: 'boolean', default: false },
 		withReplies: { type: 'boolean', default: false },
 		excludeNsfw: { type: 'boolean', default: false },
+		enableCrossTimelineData: { type: 'boolean', default: true },
 		algorithm: {
 			type: 'string',
 			enum: ['smart', 'hybrid', 'social', 'discovery'],
@@ -110,6 +111,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					withFiles: ps.withFiles,
 					withReplies: ps.withReplies,
 					excludeNsfw: ps.excludeNsfw,
+					enableCrossTimelineData: ps.enableCrossTimelineData,
 					algorithm: ps.algorithm,
 					diversityLevel: ps.diversityLevel,
 					freshnessWeight: ps.freshnessWeight,

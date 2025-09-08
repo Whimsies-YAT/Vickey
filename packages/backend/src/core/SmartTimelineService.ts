@@ -42,6 +42,7 @@ export interface SmartTimelineOptions {
 	diversityLevel?: 'low' | 'medium' | 'high';
 	freshnessWeight?: number;
 	qualityThreshold?: number;
+	enableCrossTimelineData?: boolean;
 }
 
 export interface TimelineSegment {
@@ -313,11 +314,24 @@ export class SmartTimelineService implements OnApplicationShutdown {
 			qualityThreshold: 0.5,
 		});
 
+		let notes = result.notes;
+
+		if (options.enableCrossTimelineData !== false) {
+			const crossTimelineNotes = await this.getCrossTimelineData(user, segment.maxItems);
+			const combinedNotes = [...notes, ...crossTimelineNotes];
+			const seenIds = new Set<string>();
+			notes = combinedNotes.filter(note => {
+				if (seenIds.has(note.id)) return false;
+				seenIds.add(note.id);
+				return true;
+			});
+		}
+
 		if (this.localAIContentAnalysisService.isFeatureEnabled()) {
 			try {
 				const enhancedNotes = await this.localAIContentAnalysisService.getUserSimilarContent(
 					user.id,
-					result.notes,
+					notes,
 					segment.maxItems
 				);
 				return enhancedNotes;
@@ -326,7 +340,7 @@ export class SmartTimelineService implements OnApplicationShutdown {
 			}
 		}
 
-		return result.notes.slice(0, segment.maxItems);
+		return notes.slice(0, segment.maxItems);
 	}
 
 	@bindThis
@@ -998,6 +1012,210 @@ export class SmartTimelineService implements OnApplicationShutdown {
 			}
 		} catch (error) {
 			console.error('SmartTimelineService: Failed to batch update user interests:', error);
+		}
+	}
+
+	@bindThis
+	private async getCrossTimelineData(user: MiUser, maxItems: number): Promise<MiNote[]> {
+		try {
+			const cacheKey = `cross_timeline_data:${user.id}`;
+			const cached = await this.redisClient.get(cacheKey);
+			if (cached) {
+				try {
+					const noteIds = JSON.parse(cached);
+					if (Array.isArray(noteIds)) {
+						const notes = await this.notesRepository.findBy({ id: In(noteIds) });
+						return this.sortNotesByIds(notes, noteIds).slice(0, maxItems);
+					}
+				} catch (error) {
+					await this.redisClient.del(cacheKey);
+				}
+			}
+
+			const [homeTimelineNotes, globalTimelineNotes, localTimelineNotes] = await Promise.all([
+				this.getHomeTimelineData(user, Math.ceil(maxItems * 0.5)),
+				this.getGlobalTimelineData(user, Math.ceil(maxItems * 0.3)),
+				this.getLocalTimelineData(user, Math.ceil(maxItems * 0.2)),
+			]);
+
+			const allNotes = [...homeTimelineNotes, ...globalTimelineNotes, ...localTimelineNotes];
+			const seenIds = new Set<string>();
+			const uniqueNotes = allNotes.filter(note => {
+				if (seenIds.has(note.id)) return false;
+				seenIds.add(note.id);
+				return true;
+			});
+
+			const noteIds = uniqueNotes.map(note => note.id);
+			await this.redisClient.setex(cacheKey, 300, JSON.stringify(noteIds));
+
+			return uniqueNotes.slice(0, maxItems);
+		} catch (error) {
+			console.error('SmartTimelineService: Error getting cross-timeline data:', error);
+			return [];
+		}
+	}
+
+	@bindThis
+	private async getHomeTimelineData(user: MiUser, limit: number): Promise<MiNote[]> {
+		try {
+			const followingIds = await this.getFollowingIds(user.id);
+			if (followingIds.length === 0) return [];
+
+			const query = this.notesRepository.createQueryBuilder('note')
+				.leftJoinAndSelect('note.user', 'user')
+				.leftJoinAndSelect('note.reply', 'reply')
+				.leftJoinAndSelect('note.renote', 'renote')
+				.leftJoinAndSelect('reply.user', 'replyUser')
+				.leftJoinAndSelect('renote.user', 'renoteUser')
+				.leftJoin('note_reaction', 'reaction', 'reaction.noteId = note.id')
+				.leftJoin('note', 'renote_agg', 'renote_agg.renoteId = note.id')
+				.leftJoin('note', 'reply_agg', 'reply_agg.replyId = note.id')
+				.where('note.userId IN (:...followingIds)', { followingIds })
+				.andWhere('note.visibility = :visibility', { visibility: 'public' })
+				.andWhere('user.isSuspended = false')
+				.andWhere('user.isDeleted = false')
+				.groupBy('note.id, user.id, reply.id, renote.id, replyUser.id, renoteUser.id')
+				.addSelect('COUNT(DISTINCT reaction.id) as reactionCount')
+				.addSelect('COUNT(DISTINCT renote_agg.id) as renoteCount')
+				.addSelect('COUNT(DISTINCT reply_agg.id) as replyCount');
+
+			this.queryService.generateVisibilityQuery(query, user);
+			this.queryService.generateBaseNoteFilteringQuery(query, user);
+
+			return await query
+				.orderBy('note.id', 'DESC')
+				.limit(limit)
+				.getMany();
+		} catch (error) {
+			console.error('SmartTimelineService: Error getting home timeline data:', error);
+			return [];
+		}
+	}
+
+	@bindThis
+	private async getGlobalTimelineData(user: MiUser, limit: number): Promise<MiNote[]> {
+		try {
+			const cacheKey = `global_timeline_data:${user.id}:${limit}`;
+			const cached = await this.redisClient.get(cacheKey);
+			if (cached) {
+				try {
+					const noteIds = JSON.parse(cached);
+					if (Array.isArray(noteIds)) {
+						const notes = await this.notesRepository.findBy({ id: In(noteIds) });
+						return this.sortNotesByIds(notes, noteIds).slice(0, limit);
+					}
+				} catch (error) {
+					await this.redisClient.del(cacheKey);
+				}
+			}
+
+			const [mutedUserIds, blockedUserIds] = await Promise.all([
+				this.getMutedUserIds(user.id),
+				this.getBlockedUserIds(user.id),
+			]);
+
+			const excludeUserIds = [...mutedUserIds, ...blockedUserIds, user.id];
+			const timeThreshold = Date.now() - 12 * 60 * 60 * 1000;
+			const sinceId = this.idService.gen(new Date(timeThreshold).getTime());
+
+			const query = this.notesRepository.createQueryBuilder('note')
+				.leftJoinAndSelect('note.user', 'user')
+				.leftJoin('note_reaction', 'reaction', 'reaction.noteId = note.id')
+				.leftJoin('note', 'renote_agg', 'renote_agg.renoteId = note.id')
+				.leftJoin('note', 'reply_agg', 'reply_agg.replyId = note.id')
+				.where('note.id > :sinceId', { sinceId })
+				.andWhere('note.visibility = :visibility', { visibility: 'public' })
+				.andWhere('user.isSuspended = false')
+				.andWhere('user.isDeleted = false')
+				.groupBy('note.id, user.id')
+				.having('COUNT(DISTINCT reaction.id) + COUNT(DISTINCT renote_agg.id) + COUNT(DISTINCT reply_agg.id) > 1')
+				.addSelect('COUNT(DISTINCT reaction.id) + COUNT(DISTINCT renote_agg.id) + COUNT(DISTINCT reply_agg.id) as engagementScore');
+
+			if (excludeUserIds.length > 0 && excludeUserIds.length < 1000) {
+				query.andWhere('note.userId NOT IN (:...excludeUserIds)', { excludeUserIds });
+			}
+
+			this.queryService.generateVisibilityQuery(query, user);
+
+			let notes = await query
+				.orderBy('engagementScore', 'DESC')
+				.addOrderBy('note.id', 'DESC')
+				.limit(limit * 2)
+				.getMany();
+
+			const noteIds = notes.map(note => note.id);
+			await this.redisClient.setex(cacheKey, 300, JSON.stringify(noteIds));
+
+			return notes.slice(0, limit);
+		} catch (error) {
+			console.error('SmartTimelineService: Error getting global timeline data:', error);
+			return [];
+		}
+	}
+
+	@bindThis
+	private async getLocalTimelineData(user: MiUser, limit: number): Promise<MiNote[]> {
+		try {
+			const cacheKey = `local_timeline_data:${user.id}:${limit}`;
+			const cached = await this.redisClient.get(cacheKey);
+			if (cached) {
+				try {
+					const noteIds = JSON.parse(cached);
+					if (Array.isArray(noteIds)) {
+						const notes = await this.notesRepository.findBy({ id: In(noteIds) });
+						return this.sortNotesByIds(notes, noteIds).slice(0, limit);
+					}
+				} catch (error) {
+					await this.redisClient.del(cacheKey);
+				}
+			}
+
+			const [mutedUserIds, blockedUserIds] = await Promise.all([
+				this.getMutedUserIds(user.id),
+				this.getBlockedUserIds(user.id),
+			]);
+
+			const excludeUserIds = [...mutedUserIds, ...blockedUserIds, user.id];
+			const timeThreshold = Date.now() - 6 * 60 * 60 * 1000;
+			const sinceId = this.idService.gen(new Date(timeThreshold).getTime());
+
+			const query = this.notesRepository.createQueryBuilder('note')
+				.leftJoinAndSelect('note.user', 'user')
+				.leftJoin('note_reaction', 'reaction', 'reaction.noteId = note.id')
+				.leftJoin('note', 'renote_agg', 'renote_agg.renoteId = note.id')
+				.leftJoin('note', 'reply_agg', 'reply_agg.replyId = note.id')
+				.where('note.id > :sinceId', { sinceId })
+				.andWhere('note.visibility = :visibility', { visibility: 'public' })
+				.andWhere('note.localOnly = false OR note.localOnly IS NULL')
+				.andWhere('note.uri IS NULL')
+				.andWhere('user.host IS NULL')
+				.andWhere('user.isSuspended = false')
+				.andWhere('user.isDeleted = false')
+				.groupBy('note.id, user.id')
+				.having('COUNT(DISTINCT reaction.id) + COUNT(DISTINCT renote_agg.id) + COUNT(DISTINCT reply_agg.id) >= 0')
+				.addSelect('COUNT(DISTINCT reaction.id) + COUNT(DISTINCT renote_agg.id) + COUNT(DISTINCT reply_agg.id) as engagementScore');
+
+			if (excludeUserIds.length > 0 && excludeUserIds.length < 1000) {
+				query.andWhere('note.userId NOT IN (:...excludeUserIds)', { excludeUserIds });
+			}
+
+			this.queryService.generateVisibilityQuery(query, user);
+
+			let notes = await query
+				.orderBy('engagementScore', 'DESC')
+				.addOrderBy('note.id', 'DESC')
+				.limit(limit * 2)
+				.getMany();
+
+			// Cache the results
+			const noteIds = notes.map(note => note.id);
+			await this.redisClient.setex(cacheKey, 300, JSON.stringify(noteIds));
+
+			return notes.slice(0, limit);
+		} catch (error) {
+			console.error('SmartTimelineService: Error getting local timeline data:', error);
+			return [];
 		}
 	}
 

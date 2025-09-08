@@ -299,7 +299,6 @@ export class LocalAIContentAnalysisService implements OnModuleInit, OnApplicatio
 			console.log(`Using persistent model cache: ${modelCacheDir}`);
 
 			const modelOptions = [
-				'Xenova/distiluse-base-multilingual-cased',
 				'Xenova/all-MiniLM-L6-v2',
 				'Xenova/all-MiniLM-L12-v2'
 			];

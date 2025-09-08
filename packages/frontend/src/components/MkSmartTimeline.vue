@@ -197,6 +197,7 @@ async function init() {
 			diversityLevel: props.diversityLevel,
 			freshnessWeight: props.freshnessWeight,
 			qualityThreshold: props.qualityThreshold,
+			enableCrossTimelineData: prefer.s.enableCrossTimelineData ?? true,
 		});
 
 		notes.value = result;
@@ -282,6 +283,7 @@ async function fetchMore() {
 			diversityLevel: props.diversityLevel,
 			freshnessWeight: props.freshnessWeight,
 			qualityThreshold: props.qualityThreshold,
+			enableCrossTimelineData: prefer.s.enableCrossTimelineData ?? true,
 		});
 
 		notes.value.push(...result);

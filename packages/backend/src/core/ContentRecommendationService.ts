@@ -442,7 +442,8 @@ export class ContentRecommendationService {
 		const cacheKey = `author:relevance:${user.id}:${note.userId}`;
 		const cached = await this.redisClient.get(cacheKey);
 		if (cached) {
-			return parseFloat(cached);
+			const parsed = parseFloat(cached);
+			return Number.isNaN(parsed) ? 0.5 : parsed;
 		}
 
 		let relevanceScore = 0.5;
@@ -472,7 +473,8 @@ export class ContentRecommendationService {
 		const cacheKey = `social:proof:${note.id}`;
 		const cached = await this.redisClient.get(cacheKey);
 		if (cached) {
-			return parseFloat(cached);
+			const parsed = parseFloat(cached);
+			return Number.isNaN(parsed) ? 0.5 : parsed;
 		}
 
 		const [reactionCount, renoteCount, replyCount] = await Promise.all([
@@ -519,7 +521,8 @@ export class ContentRecommendationService {
 		const cacheKey = `trending:${note.id}`;
 		const cached = await this.redisClient.get(cacheKey);
 		if (cached) {
-			return parseFloat(cached);
+			const parsed = parseFloat(cached);
+			return Number.isNaN(parsed) ? 0.5 : parsed;
 		}
 
 		const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
@@ -559,7 +562,8 @@ export class ContentRecommendationService {
 		const cacheKey = `author:quality:${author.id}`;
 		const cached = await this.redisClient.get(cacheKey);
 		if (cached) {
-			return parseFloat(cached);
+			const parsed = parseFloat(cached);
+			return Number.isNaN(parsed) ? 0.5 : parsed;
 		}
 
 		const followerRatio = author.followersCount / Math.max(1, author.followingCount);
@@ -923,7 +927,8 @@ export class ContentRecommendationService {
 		const cacheKey = `enhanced:relevance:${user.id}:${note.id}`;
 		const cached = await this.redisClient.get(cacheKey);
 		if (cached) {
-			return parseFloat(cached);
+			const parsed = parseFloat(cached);
+			return Number.isNaN(parsed) ? 0.5 : parsed;
 		}
 
 		const text = note.text.toLowerCase();
@@ -939,8 +944,10 @@ export class ContentRecommendationService {
 		}
 
 		const textLength = note.text.length;
-		const preferredLength = profile.temporalPatterns?.timeOfDayActivity ?
-			Object.values(profile.temporalPatterns.timeOfDayActivity).reduce((a, b) => a + b, 0) / Object.keys(profile.temporalPatterns.timeOfDayActivity).length * 300 :
+		const timeOfDayActivity = profile.temporalPatterns?.timeOfDayActivity || {};
+		const activityValues = Object.values(timeOfDayActivity);
+		const preferredLength = activityValues.length > 0 ?
+			activityValues.reduce((a, b) => a + b, 0) / activityValues.length * 300 :
 			200;
 		const lengthScore = 1 - Math.abs(textLength - preferredLength) / Math.max(textLength, preferredLength);
 		relevanceScore += lengthScore * 0.15;
@@ -953,8 +960,9 @@ export class ContentRecommendationService {
 		totalWeight += 0.1;
 
 		const finalScore = totalWeight > 0 ? Math.min(1, relevanceScore / totalWeight) : 0.5;
-		await this.redisClient.setex(cacheKey, 1800, finalScore.toString());
-		return finalScore;
+		const safeScore = Number.isNaN(finalScore) ? 0.5 : finalScore;
+		await this.redisClient.setex(cacheKey, 1800, safeScore.toString());
+		return safeScore;
 	}
 
 	@bindThis
@@ -999,7 +1007,8 @@ export class ContentRecommendationService {
 		const cacheKey = `federated:social:${note.id}`;
 		const cached = await this.redisClient.get(cacheKey);
 		if (cached) {
-			return parseFloat(cached);
+			const parsed = parseFloat(cached);
+			return Number.isNaN(parsed) ? 0.5 : parsed;
 		}
 
 		const [localReactions, localRenotes, localReplies] = await Promise.all([
@@ -1040,7 +1049,8 @@ export class ContentRecommendationService {
 		const cacheKey = `novelty:${user.id}:${note.userHost}`;
 		const cached = await this.redisClient.get(cacheKey);
 		if (cached) {
-			return parseFloat(cached);
+			const parsed = parseFloat(cached);
+			return Number.isNaN(parsed) ? 0.5 : parsed;
 		}
 
 		const recentInteractions = await this.userInteractionHistoryRepository.count({
@@ -1068,7 +1078,8 @@ export class ContentRecommendationService {
 		const cacheKey = `community:resonance:${user.id}:${note.id}`;
 		const cached = await this.redisClient.get(cacheKey);
 		if (cached) {
-			return parseFloat(cached);
+			const parsed = parseFloat(cached);
+			return Number.isNaN(parsed) ? 0.5 : parsed;
 		}
 
 		const followingIds = await this.getFollowingIds(user.id);
@@ -1123,7 +1134,8 @@ export class ContentRecommendationService {
 		const cacheKey = `virality:${note.id}`;
 		const cached = await this.redisClient.get(cacheKey);
 		if (cached) {
-			return parseFloat(cached);
+			const parsed = parseFloat(cached);
+			return Number.isNaN(parsed) ? 0.5 : parsed;
 		}
 
 		const recentWindow = new Date(Date.now() - 2 * 60 * 60 * 1000);
@@ -1162,7 +1174,8 @@ export class ContentRecommendationService {
 		const cacheKey = `author:reputation:${author.id}`;
 		const cached = await this.redisClient.get(cacheKey);
 		if (cached) {
-			return parseFloat(cached);
+			const parsed = parseFloat(cached);
+			return Number.isNaN(parsed) ? 0.5 : parsed;
 		}
 
 		const accountAge = Date.now() - this.idService.parse(author.id).date.getTime();
@@ -1222,7 +1235,8 @@ export class ContentRecommendationService {
 		const cacheKey = `collab:filter:${user.id}:${note.id}`;
 		const cached = await this.redisClient.get(cacheKey);
 		if (cached) {
-			return parseFloat(cached);
+			const parsed = parseFloat(cached);
+			return Number.isNaN(parsed) ? 0.5 : parsed;
 		}
 
 		const userInteractions = await this.userInteractionHistoryRepository.find({
