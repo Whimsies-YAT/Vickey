@@ -96,6 +96,7 @@ import { HybridTimelineService } from './HybridTimelineService.js';
 import { LocalAIContentAnalysisService } from './LocalAIContentAnalysisService.js';
 import { FileInfoService } from './FileInfoService.js';
 import { SearchService } from './SearchService.js';
+import { OfflineGeocodingService } from './OfflineGeocodingService.js';
 import { ClipService } from './ClipService.js';
 import { FeaturedService } from './FeaturedService.js';
 import { FanoutTimelineService } from './FanoutTimelineService.js';
@@ -201,7 +202,7 @@ const serviceClasses = [
 	VideoProcessingService, UserWebhookService, SystemWebhookService, WebhookTestService,
 	UtilityService, ContentRecommendationService, RecommendationAlgorithms, SmartTimelineService,
 	HybridTimelineService, LocalAIContentAnalysisService, FileInfoService, FlashService,
-	SearchService, ClipService, FeaturedService, FanoutTimelineService, FanoutTimelineEndpointService,
+	SearchService, OfflineGeocodingService, ClipService, FeaturedService, FanoutTimelineService, FanoutTimelineEndpointService,
 	ChannelFollowingService, ChatService, RegistryApiService, ReversiService, UserSessionsService,
 	PageService, ChartLoggerService, FederationChart, NotesChart, UsersChart, ActiveUsersChart,
 	InstanceChart, PerUserNotesChart, PerUserPvChart, DriveChart, PerUserReactionsChart,

@@ -525,7 +525,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 				const firstFeature = geoJsonData.features[0];
 				if (firstFeature.geometry && firstFeature.geometry.type === 'Point' && firstFeature.geometry.coordinates) {
 					const [lon, lat] = firstFeature.geometry.coordinates;
-					insert.location = `POINT(${lon} ${lat})`;
+					insert.location = () => `ST_SetSRID(ST_Point(${lon}, ${lat}), 4326)`;
 				}
 			}
 		}

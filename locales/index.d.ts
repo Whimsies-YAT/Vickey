@@ -2625,6 +2625,166 @@ export interface Locale extends ILocale {
          */
         "global": string;
     };
+    "_settings": {
+        /**
+         * Enable cross-timeline data
+         */
+        "enableCrossTimelineData": string;
+        /**
+         * Allow processing with data from multiple timelines.
+         */
+        "enableCrossTimelineData_description": string;
+        /**
+         * ドライブの管理と設定、使用量の確認、ファイルをアップロードする際の設定を行えます。
+         */
+        "driveBanner": string;
+        /**
+         * プラグインを利用するとクライアントの機能を拡張することができます。プラグインのインストール、個別の設定と管理が行えます。
+         */
+        "pluginBanner": string;
+        /**
+         * サーバーからの受信する通知の種類と範囲や、プッシュ通知の設定が行えます。
+         */
+        "notificationsBanner": string;
+        /**
+         * API
+         */
+        "api": string;
+        /**
+         * Webhook
+         */
+        "webhook": string;
+        /**
+         * サービス連携
+         */
+        "serviceConnection": string;
+        /**
+         * 外部のアプリ・サービスと連携するためのアクセストークンやWebhookの管理と設定が行えます。
+         */
+        "serviceConnectionBanner": string;
+        /**
+         * アカウントのデータ
+         */
+        "accountData": string;
+        /**
+         * アカウントデータのアーカイブをエクスポート/インポートして管理できます。
+         */
+        "accountDataBanner": string;
+        /**
+         * 非表示にするコンテンツの設定や、特定のユーザーからのアクションを制限する設定と管理を行えます。
+         */
+        "muteAndBlockBanner": string;
+        /**
+         * クライアントの視覚や動作に関するパーソナライズを行い、より最適に使用できるように設定できます。
+         */
+        "accessibilityBanner": string;
+        /**
+         * コンテンツの公開範囲、見つけやすさ、フォローの承認制などアカウントのプライバシーに関する設定を行えます。
+         */
+        "privacyBanner": string;
+        /**
+         * パスワード、ログイン方法、認証アプリ、パスキーなどアカウントのセキュリティに関する設定を行えます。
+         */
+        "securityBanner": string;
+        /**
+         * 好みに応じた、クライアントの全体的な動作の設定が行えます。
+         */
+        "preferencesBanner": string;
+        /**
+         * 好みに応じた、クライアントの見た目・表示方法に関する設定が行えます。
+         */
+        "appearanceBanner": string;
+        /**
+         * クライアントで再生するサウンドの設定が行えます。
+         */
+        "soundsBanner": string;
+        /**
+         * タイムラインとノート
+         */
+        "timelineAndNote": string;
+        /**
+         * 全てのテキスト要素を選択可能にする
+         */
+        "makeEveryTextElementsSelectable": string;
+        /**
+         * 有効にすると、一部のシチュエーションでのユーザビリティが低下する場合があります。
+         */
+        "makeEveryTextElementsSelectable_description": string;
+        /**
+         * アイコンをスクロールに追従させる
+         */
+        "useStickyIcons": string;
+        /**
+         * 高品質な画像のプレースホルダを表示
+         */
+        "enableHighQualityImagePlaceholders": string;
+        /**
+         * UIのアニメーション
+         */
+        "uiAnimations": string;
+        /**
+         * ナビゲーションバーに副ボタンを表示
+         */
+        "showNavbarSubButtons": string;
+        /**
+         * オンのとき
+         */
+        "ifOn": string;
+        /**
+         * オフのとき
+         */
+        "ifOff": string;
+        /**
+         * デバイス間でインストールしたテーマを同期
+         */
+        "enableSyncThemesBetweenDevices": string;
+        /**
+         * ひっぱって更新
+         */
+        "enablePullToRefresh": string;
+        /**
+         * マウスでは、ホイールを押し込みながらドラッグします。
+         */
+        "enablePullToRefresh_description": string;
+        /**
+         * サーバーと接続を確立し、リアルタイムでコンテンツを更新します。通信量とバッテリーの消費が多くなる場合があります。
+         */
+        "realtimeMode_description": string;
+        /**
+         * コンテンツの取得頻度
+         */
+        "contentsUpdateFrequency": string;
+        /**
+         * 高いほどリアルタイムにコンテンツが更新されますが、パフォーマンスが低下し、通信量とバッテリーの消費が多くなります。
+         */
+        "contentsUpdateFrequency_description": string;
+        /**
+         * リアルタイムモードがオンのときは、この設定に関わらずリアルタイムでコンテンツが更新されます。
+         */
+        "contentsUpdateFrequency_description2": string;
+        /**
+         * URLプレビューを表示する
+         */
+        "showUrlPreview": string;
+        /**
+         * 利用できるリアクションを先頭に表示
+         */
+        "showAvailableReactionsFirstInNote": string;
+        /**
+         * ページのタブバーを下部に表示
+         */
+        "showPageTabBarBottom": string;
+        "_chat": {
+            /**
+             * 送信者の名前を表示
+             */
+            "showSenderName": string;
+            /**
+             * Enterで送信
+             */
+            "sendOnEnter": string;
+        };
+    };
     /**
      * ノートでつながるネットワーク
      */
@@ -8361,158 +8521,6 @@ export interface Locale extends ILocale {
          * リアクションで使用するパレット
          */
         "paletteForReaction": string;
-    };
-    "_settings": {
-        /**
-         * ドライブの管理と設定、使用量の確認、ファイルをアップロードする際の設定を行えます。
-         */
-        "driveBanner": string;
-        /**
-         * プラグインを利用するとクライアントの機能を拡張することができます。プラグインのインストール、個別の設定と管理が行えます。
-         */
-        "pluginBanner": string;
-        /**
-         * サーバーからの受信する通知の種類と範囲や、プッシュ通知の設定が行えます。
-         */
-        "notificationsBanner": string;
-        /**
-         * API
-         */
-        "api": string;
-        /**
-         * Webhook
-         */
-        "webhook": string;
-        /**
-         * サービス連携
-         */
-        "serviceConnection": string;
-        /**
-         * 外部のアプリ・サービスと連携するためのアクセストークンやWebhookの管理と設定が行えます。
-         */
-        "serviceConnectionBanner": string;
-        /**
-         * アカウントのデータ
-         */
-        "accountData": string;
-        /**
-         * アカウントデータのアーカイブをエクスポート/インポートして管理できます。
-         */
-        "accountDataBanner": string;
-        /**
-         * 非表示にするコンテンツの設定や、特定のユーザーからのアクションを制限する設定と管理を行えます。
-         */
-        "muteAndBlockBanner": string;
-        /**
-         * クライアントの視覚や動作に関するパーソナライズを行い、より最適に使用できるように設定できます。
-         */
-        "accessibilityBanner": string;
-        /**
-         * コンテンツの公開範囲、見つけやすさ、フォローの承認制などアカウントのプライバシーに関する設定を行えます。
-         */
-        "privacyBanner": string;
-        /**
-         * パスワード、ログイン方法、認証アプリ、パスキーなどアカウントのセキュリティに関する設定を行えます。
-         */
-        "securityBanner": string;
-        /**
-         * 好みに応じた、クライアントの全体的な動作の設定が行えます。
-         */
-        "preferencesBanner": string;
-        /**
-         * 好みに応じた、クライアントの見た目・表示方法に関する設定が行えます。
-         */
-        "appearanceBanner": string;
-        /**
-         * クライアントで再生するサウンドの設定が行えます。
-         */
-        "soundsBanner": string;
-        /**
-         * タイムラインとノート
-         */
-        "timelineAndNote": string;
-        /**
-         * 全てのテキスト要素を選択可能にする
-         */
-        "makeEveryTextElementsSelectable": string;
-        /**
-         * 有効にすると、一部のシチュエーションでのユーザビリティが低下する場合があります。
-         */
-        "makeEveryTextElementsSelectable_description": string;
-        /**
-         * アイコンをスクロールに追従させる
-         */
-        "useStickyIcons": string;
-        /**
-         * 高品質な画像のプレースホルダを表示
-         */
-        "enableHighQualityImagePlaceholders": string;
-        /**
-         * UIのアニメーション
-         */
-        "uiAnimations": string;
-        /**
-         * ナビゲーションバーに副ボタンを表示
-         */
-        "showNavbarSubButtons": string;
-        /**
-         * オンのとき
-         */
-        "ifOn": string;
-        /**
-         * オフのとき
-         */
-        "ifOff": string;
-        /**
-         * デバイス間でインストールしたテーマを同期
-         */
-        "enableSyncThemesBetweenDevices": string;
-        /**
-         * ひっぱって更新
-         */
-        "enablePullToRefresh": string;
-        /**
-         * マウスでは、ホイールを押し込みながらドラッグします。
-         */
-        "enablePullToRefresh_description": string;
-        /**
-         * サーバーと接続を確立し、リアルタイムでコンテンツを更新します。通信量とバッテリーの消費が多くなる場合があります。
-         */
-        "realtimeMode_description": string;
-        /**
-         * コンテンツの取得頻度
-         */
-        "contentsUpdateFrequency": string;
-        /**
-         * 高いほどリアルタイムにコンテンツが更新されますが、パフォーマンスが低下し、通信量とバッテリーの消費が多くなります。
-         */
-        "contentsUpdateFrequency_description": string;
-        /**
-         * リアルタイムモードがオンのときは、この設定に関わらずリアルタイムでコンテンツが更新されます。
-         */
-        "contentsUpdateFrequency_description2": string;
-        /**
-         * URLプレビューを表示する
-         */
-        "showUrlPreview": string;
-        /**
-         * 利用できるリアクションを先頭に表示
-         */
-        "showAvailableReactionsFirstInNote": string;
-        /**
-         * ページのタブバーを下部に表示
-         */
-        "showPageTabBarBottom": string;
-        "_chat": {
-            /**
-             * 送信者の名前を表示
-             */
-            "showSenderName": string;
-            /**
-             * Enterで送信
-             */
-            "sendOnEnter": string;
-        };
     };
     "_preferencesProfile": {
         /**

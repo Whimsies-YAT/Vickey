@@ -132,6 +132,12 @@ type Source = {
 	hmacKey: string;
 
 	enableLocalAIContentAnalysis?: boolean;
+
+	offlineGeocoding: {
+		downloadFullGeoNames: boolean;
+		includeAlternateNames: boolean;
+		downloadOSM: boolean;
+	}
 };
 
 export type Config = {
@@ -246,6 +252,11 @@ export type Config = {
 	pidFile: string;
 	nativeTokenExpiry: number;
 	enableLocalAIContentAnalysis: boolean;
+	offlineGeocoding: {
+		downloadFullGeoNames: boolean;
+		includeAlternateNames: boolean;
+		downloadOSM: boolean;
+	}
 };
 
 export type FulltextSearchProvider = 'sqlLike' | 'sqlPgroonga' | 'meilisearch' | 'searchengine' | 'SearchEngine' | 'searchEngine';
@@ -413,6 +424,7 @@ export function loadConfig(): Config {
 		hmacKey: config.hmacKey ?? "ThisIsNOTSecureEnoughChangeItPoweredByVickey",
 		nativeTokenExpiry,
 		enableLocalAIContentAnalysis: config.enableLocalAIContentAnalysis ?? false,
+		offlineGeocoding: config.offlineGeocoding,
 	};
 
 	globalConfig = configObject;
