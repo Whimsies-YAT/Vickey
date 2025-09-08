@@ -338,3 +338,6 @@ _timelines:
   smart: "Smart"
 _timelineDescription:
   smart: "Switch between Smart, Latest, or Mixed timelines. Personalize your feed by balancing freshness, quality, and variety to match your taste."
+_settings:
+  enableCrossTimelineData: "Enable cross-timeline data"
+  enableCrossTimelineData_description: "Allow processing with data from multiple timelines."
