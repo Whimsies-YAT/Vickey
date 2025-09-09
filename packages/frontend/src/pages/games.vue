@@ -17,6 +17,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<img src="/client-assets/reversi/logo.png" style="display: block; max-width: 100%; max-height: 200px; margin: auto;"/>
 				</MkA>
 			</div>
+			<div class="_panel" :class="$style.link">
+				<MkA to="/conway-game-of-life">
+					<div style="display: flex; align-items: center; justify-content: center; height: 200px; background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); color: #4ade80; font-size: 24px; font-weight: bold; border-radius: 8px;">
+						<div style="text-align: center;">
+							<div style="font-size: 48px; margin-bottom: 8px;">⚫⚪</div>
+							<div>{{ i18n.ts._conway.title }}</div>
+							<div style="font-size: 14px; font-weight: normal; margin-top: 4px; opacity: 0.8;">{{ i18n.ts._conway.description }}</div>
+						</div>
+					</div>
+				</MkA>
+			</div>
 		</div>
 	</div>
 </PageWithHeader>

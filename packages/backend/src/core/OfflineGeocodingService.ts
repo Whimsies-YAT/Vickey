@@ -68,7 +68,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 	private geoData: GeoDataEntry[] = [];
 	private spatialIndex: Map<string, GeoDataEntry[]> = new Map();
 	private hierarchicalIndex = new Map<string, Map<string, Map<string, Map<string, GeoDataEntry[]>>>>();
-	private cache = new Map<string, {result: GeocodingResult, timestamp: number}>();
+	private cache = new Map<string, { result: GeocodingResult, timestamp: number }>();
 	private precomputedResults = new Map<string, GeocodingResult>();
 	private isInitialized = false;
 	private readonly GRID_SIZE = 0.01;
@@ -145,6 +145,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 	constructor(
 		@Inject(DI.config)
 		private config: Config,
+
 		loggerService: LoggerService,
 		private httpRequestService: HttpRequestService,
 		private downloadService: DownloadService,
@@ -404,17 +405,14 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 					clearTimeout(timeoutId);
 
 					const duration = Date.now() - startTime;
-					this.logger.info(`Network request successful: ${requestId} (${duration}ms, attempt ${attempt + 1})`);
+					this.logger.info(`Network request successful: ${ requestId } (${ duration }ms, attempt ${ attempt + 1 })`);
 
 					this.networkRetryStats.delete(requestId);
-
 					return response as T;
-
 				} catch (fetchError) {
 					clearTimeout(timeoutId);
 					throw fetchError;
 				}
-
 			} catch (error: any) {
 				lastError = error;
 				const retryCount = this.networkRetryStats.get(requestId) || 0;
@@ -453,8 +451,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 		if (error.status === 408) return true;
 
 		return !(error.status >= 400 && error.status < 500);
-
-
 	}
 
 	@bindThis
@@ -772,7 +768,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 	}
 
 	@bindThis
-	public async precomputeHotSpots(hotSpots: Array<{lat: number, lon: number, frequency: number}>): Promise<void> {
+	public async precomputeHotSpots(hotSpots: Array<{ lat: number, lon: number, frequency: number }>): Promise<void> {
 		console.log('Precomputing hot spot regions...');
 		const PRECOMPUTE_GRID_SIZE = 0.001;
 
@@ -927,10 +923,10 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 	}
 
 	@bindThis
-	public async batchReverseGeocode(coordinates: Array<{lat: number, lon: number, id?: string}>): Promise<Array<{id?: string, result: GeocodingResult}>> {
+	public async batchReverseGeocode(coordinates: Array<{ lat: number, lon: number, id?: string }>): Promise<Array<{ id?: string, result: GeocodingResult }>> {
 		await this.initialize();
 
-		const results: Array<{id?: string, result: GeocodingResult}> = [];
+		const results: Array<{ id?: string, result: GeocodingResult }> = [];
 		const batches = [];
 
 		for (let i = 0; i < coordinates.length; i += this.CONCURRENT_SEARCH_LIMIT) {
@@ -1003,7 +999,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 	@bindThis
 	private searchByNameInMemory(name: string, limit: number): GeocodingResult[] {
 		const searchTerm = name.toLowerCase();
-		const matches: Array<{entry: GeoDataEntry, score: number}> = [];
+		const matches: Array<{ entry: GeoDataEntry, score: number }> = [];
 
 		for (const entry of this.geoData) {
 			let score = 0;
@@ -1188,7 +1184,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 		this.workerPool = [];
 	}
 
-
 	@bindThis
 	private generateDataHash(data: any): string {
 		return createHash('sha256').update(JSON.stringify(data)).digest('hex').slice(0, 16);
@@ -1245,12 +1240,11 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 
 			const mainData = await this.processLargeGeoNamesFile(allCountriesPath);
 			results.push(...mainData);
-			this.logger.info(`Main data processed: ${mainData.length} records`);
+			this.logger.info(`Main data processed: ${ mainData.length } records`);
 
 			if ((this.config as any).offlineGeocoding?.includeAlternateNames !== false) {
 				await this.processAlternateNames(alternateNamesPath, results);
 			}
-
 		} catch (error) {
 			this.logger.error('Processing full GeoNames data failed:', error as any);
 			return this.downloadAndProcessGeoNamesCities();
@@ -1281,7 +1275,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 				results.push(...geoData);
 
 				this.logger.info(`${dataset.name} processed: ${geoData.length} records`);
-
 			} catch (error) {
 				this.logger.error(`Processing ${dataset.name} failed:`, error as any);
 			}
@@ -1315,7 +1308,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 				} catch (parseError) {
 				}
 			}
-
 		} catch (error) {
 			this.logger.error('Failed to parse GeoNames ZIP file:', error as any);
 		}
@@ -1325,7 +1317,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 
 	@bindThis
 	private parseGeoNamesLine(parts: string[], minPopulation: number): GeoDataEntry | null {
-
 		const population = parseInt(parts[14]) || 0;
 		if (population < minPopulation) return null;
 
@@ -1518,7 +1509,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 
 				stream.on('error', reject);
 			});
-
 		} catch (error) {
 			this.logger.error('Failed to process large GeoNames file:', error as any);
 			return [];
@@ -1567,7 +1557,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 			}
 
 			this.logger.info(`Multilingual names processing completed: ${processedCount} entries`);
-
 		} catch (error) {
 			this.logger.warn('Failed to process multilingual names:', error as any);
 		}
@@ -1612,7 +1601,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 
 			this.currentDataVersion = newVersion;
 			this.logger.info(`Data synchronization completed, version: ${newVersion}, total entries: ${optimizedData.length}`);
-
 		} catch (error) {
 			this.logger.error('Data synchronization failed:', error as any);
 			throw error;
@@ -1788,7 +1776,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 			await this.createBinaryIndex(shards.length);
 
 			this.logger.info(`Binary format conversion completed: ${shards.length} shards`);
-
 		} catch (error) {
 			this.logger.error('Binary format conversion failed:', error as any);
 		}
@@ -1807,7 +1794,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 
 	@bindThis
 	private async writeBinaryShard(shard: GeoDataEntry[], filePath: string): Promise<void> {
-
 		const buffer = Buffer.alloc(this.calculateShardSize(shard));
 		let offset = 0;
 
@@ -1927,7 +1913,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 
 			this.logger.info(`Binary data loaded: ${allData.length} entries`);
 			return true;
-
 		} catch (error) {
 			this.logger.warn('Failed to load binary format:', error as any);
 			return false;
@@ -2031,7 +2016,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 
 			this.lastUpdateSequence = latestSequence;
 			await this.saveUpdateSequence();
-
 		} catch (error) {
 			this.logger.error('Incremental update failed:', (error as Error));
 			throw error;
@@ -2059,7 +2043,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 
 			this.logger.warn('Unable to parse sequence number from response');
 			return this.lastUpdateSequence;
-
 		} catch (error) {
 			this.logger.error(`Failed to retrieve sequence:`, (error as Error));
 			return this.lastUpdateSequence;
@@ -2082,7 +2065,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 				updatedEntries.push(...changes);
 
 				await new Promise(resolve => setTimeout(resolve, 100));
-
 			} catch (error) {
 				this.logger.warn(`Failed to process sequence ${seq}:`, (error as Error));
 			}
@@ -2108,7 +2090,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 			const xmlContent = decompressedData.toString('utf-8');
 
 			return this.parseOSCXML(xmlContent);
-
 		} catch (error) {
 			this.logger.warn('Failed to download changeset:', error as any);
 			return [];
@@ -2142,7 +2123,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 						results.push(geoEntry);
 					}
 				}
-
 			} catch (parseError) {
 			}
 		}
@@ -2295,5 +2275,4 @@ export class OfflineGeocodingService implements OnApplicationShutdown {
 		const sequenceFile = path.join(this.dataPath, 'last_sequence.txt');
 		await fs.writeFile(sequenceFile, this.lastUpdateSequence.toString(), 'utf-8');
 	}
-
 }

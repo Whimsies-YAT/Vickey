@@ -15,7 +15,7 @@ services:
 
   db:
     restart: always
-    image: postgis/postgis:17-3.5-alpine
+    image: ghcr.io/whimsies-yat/postgresql:17
     ports:
       - "5432:5432"
     env_file:

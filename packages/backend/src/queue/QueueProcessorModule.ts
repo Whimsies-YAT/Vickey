@@ -51,6 +51,7 @@ import { CheckIP2LReleaseProcessorService } from './processors/CheckIP2LReleaseP
 import { UserSessionsProcessorService } from './processors/UserSessionsProcessorService.js';
 import { UserSessionsCleanupProcessorService } from './processors/UserSessionsCleanupProcessorService.js';
 import { RiskScoreUpdateProcessorService } from './processors/RiskScoreUpdateProcessorService.js';
+import { GeocodingProcessorService } from './processors/GeocodingProcessorService.js';
 
 @Module({
 	imports: [
@@ -104,6 +105,7 @@ import { RiskScoreUpdateProcessorService } from './processors/RiskScoreUpdatePro
 		UserSessionsProcessorService,
 		UserSessionsCleanupProcessorService,
 		RiskScoreUpdateProcessorService,
+		GeocodingProcessorService,
 	],
 	exports: [
 		QueueProcessorService,

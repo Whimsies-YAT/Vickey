@@ -383,3 +383,6 @@ tokenSalt: ThisIsNOTSecureEnoughChangeItPoweredByVickey
 # AFTER THE FIRST SET AND INSTANCE RESTART, IF YOU DO NOT FULLY UNDERSTAND THE IMPACT, DO NOT CHANGE IT!
 hmacKey: ThisIsNOTSecureEnoughChangeItPoweredByVickey
 
+# Enable or disable local AI content analysis. When enabled, the system will analyze notes content locally. This may increase system load.
+# enableLocalAIContentAnalysis: false
+

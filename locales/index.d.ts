@@ -269,6 +269,10 @@ export interface Locale extends ILocale {
      * Analytics
      */
     "analytics": string;
+    /**
+     * Pause
+     */
+    "pause": string;
     "_oauthAppVK": {
         /**
          * OAuth Application
@@ -2094,6 +2098,74 @@ export interface Locale extends ILocale {
          * Output
          */
         "output": string;
+        /**
+         * Brainfuck Interpreter
+         */
+        "brainfuckInterpreter": string;
+        /**
+         * Examples
+         */
+        "examples": string;
+        /**
+         * Select an example
+         */
+        "selectExample": string;
+        /**
+         * Brainfuck Code
+         */
+        "brainfuckCode": string;
+        /**
+         * Provide input data for the Brainfuck program.
+         */
+        "brainfuckCodeCaption": string;
+        /**
+         * Run
+         */
+        "run": string;
+        /**
+         * Step
+         */
+        "step": string;
+        /**
+         * Validate
+         */
+        "validate": string;
+        /**
+         * Error
+         */
+        "error": string;
+        /**
+         * Execution Statistics
+         */
+        "executionStats": string;
+        /**
+         * Memory View
+         */
+        "memoryView": string;
+        /**
+         * Failed to load WASM Brainfuck interpreter.
+         */
+        "loadFailed": string;
+        /**
+         * Please enter some Brainfuck code
+         */
+        "emptyCode": string;
+        /**
+         * Program execution finished
+         */
+        "finished": string;
+        /**
+         * Code syntax is valid!
+         */
+        "validSyntax": string;
+        /**
+         * Syntax errors:
+         */
+        "invalidSyntax": string;
+        /**
+         * Validation failed: WASM module not available
+         */
+        "wasmNotAvailable": string;
     };
     "_geoShare": {
         /**
@@ -2784,6 +2856,184 @@ export interface Locale extends ILocale {
              */
             "sendOnEnter": string;
         };
+    };
+    "_conway": {
+        /**
+         * Conway's Game of Life
+         */
+        "title": string;
+        /**
+         * Experience the fascinating world of cellular automata
+         */
+        "description": string;
+        /**
+         * Grid Size
+         */
+        "gridSize": string;
+        /**
+         * XLarge
+         */
+        "xLarge": string;
+        /**
+         * Starting Pattern
+         */
+        "startingPattern": string;
+        /**
+         * Random
+         */
+        "random": string;
+        /**
+         * Glider
+         */
+        "glider": string;
+        /**
+         * Blinker
+         */
+        "blinker": string;
+        /**
+         * Toad
+         */
+        "toad": string;
+        /**
+         * Beacon
+         */
+        "beacon": string;
+        /**
+         * Pulsar
+         */
+        "pulsar": string;
+        /**
+         * Pentadecathlon
+         */
+        "pentadecathlon": string;
+        /**
+         * Empty (Draw your own)
+         */
+        "empty": string;
+        /**
+         * Slow (1 step/sec)
+         */
+        "slow": string;
+        /**
+         * Normal (5 steps/sec)
+         */
+        "normal": string;
+        /**
+         * Fast (10 steps/sec)
+         */
+        "fast": string;
+        /**
+         * Ultra (20 steps/sec)
+         */
+        "ultra": string;
+        /**
+         * How to Play
+         */
+        "howToPlay": string;
+        /**
+         * Conway's Game of Life is a cellular automaton created by John Conway
+         */
+        "rules1": string;
+        /**
+         * Each cell can be either alive (dark) or dead (light)
+         */
+        "rules2": string;
+        /**
+         * The game evolves according to these simple rules:
+         */
+        "rules3": string;
+        /**
+         * 1. Any live cell with 2 or 3 live neighbors survives
+         */
+        "rules4": string;
+        /**
+         * 2. Any dead cell with exactly 3 live neighbors becomes alive
+         */
+        "rules5": string;
+        /**
+         * 3. All other live cells die, all other dead cells stay dead
+         */
+        "rules6": string;
+        /**
+         * Click on cells to toggle them alive/dead when paused
+         */
+        "rules7": string;
+        /**
+         * Watch beautiful patterns emerge and evolve!
+         */
+        "rules8": string;
+        /**
+         * Famous Patterns
+         */
+        "famousPatterns": string;
+        /**
+         * Still lifes: Block, Beehive, Loaf
+         */
+        "patterns1": string;
+        /**
+         * Oscillators: Blinker, Toad, Beacon, Pulsar
+         */
+        "patterns2": string;
+        /**
+         * Spaceships: Glider, Lightweight spaceship
+         */
+        "patterns3": string;
+        /**
+         * Complex: Gosper glider gun, Pentadecathlon
+         */
+        "patterns4": string;
+        /**
+         * Step
+         */
+        "step": string;
+        /**
+         * Pattern:
+         */
+        "patternText": string;
+        /**
+         * Block
+         */
+        "block": string;
+        /**
+         * Blinker (Oscillator)
+         */
+        "blinkerAlt": string;
+        /**
+         * Beehive
+         */
+        "beehive": string;
+        /**
+         * Place
+         */
+        "place": string;
+        /**
+         * Generation:
+         */
+        "generationText": string;
+        /**
+         * Live Cells:
+         */
+        "liveCellsText": string;
+        /**
+         * FPS:
+         */
+        "fpsText": string;
+        /**
+         * Speed: {targetFps} FPS
+         */
+        "speedControl": ParameterizedString<"targetFps">;
+        /**
+         * Click on the grid to place the {selectedPattern} pattern
+         */
+        "placingPattern": ParameterizedString<"selectedPattern">;
+        /**
+         * Back
+         */
+        "back": string;
+        /**
+         * Clear
+         */
+        "clear": string;
     };
     /**
      * ノートでつながるネットワーク
