@@ -85,10 +85,13 @@ export function build() {
 
 	// 空文字列が入ることがあり、フォールバックが動作しなくなるのでプロパティごと消す
 	const removeEmpty = (obj) => {
+		if (!obj || typeof obj !== 'object') {
+			return obj;
+		}
 		for (const [k, v] of Object.entries(obj)) {
 			if (v === '') {
 				delete obj[k];
-			} else if (typeof v === 'object') {
+			} else if (typeof v === 'object' && v !== null) {
 				removeEmpty(v);
 			}
 		}
