@@ -8,13 +8,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div :class="$style.header">
 		<div :class="$style.controls">
 			<div :class="$style.mainControls">
-				<MkButton v-if="!isPlaying" @click="play" primary>
+				<MkButton v-if="!isPlaying" primary @click="play">
 					<i class="ti ti-player-play"></i> {{ i18n.ts.start }}
 				</MkButton>
 				<MkButton v-else @click="pause">
 					<i class="ti ti-player-pause"></i> {{ i18n.ts.pause }}
 				</MkButton>
-				<MkButton @click="step" :disabled="isPlaying">
+				<MkButton :disabled="isPlaying" @click="step">
 					<i class="ti ti-player-step-forward"></i> {{ i18n.ts._conway.step }}
 				</MkButton>
 				<MkButton @click="clear">
@@ -63,9 +63,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<input
 				id="speed-slider"
 				type="range"
+				v-model="targetFps"
 				min="1"
 				max="60"
-				v-model="targetFps"
 				:class="$style.slider"
 			/>
 		</div>

@@ -28,10 +28,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</MkInput>
 
 						<div style="display: flex; gap: 8px; flex-wrap: wrap;">
-							<MkButton rounded primary @click="runBrainfuck" :disabled="brainfuckRunning">
+							<MkButton rounded primary :disabled="brainfuckRunning" @click="runBrainfuck">
 								<i class="ti ti-player-play"></i>{{ i18n.ts._devTools.run }}
 							</MkButton>
-							<MkButton rounded @click="stepBrainfuck" :disabled="brainfuckRunning">
+							<MkButton rounded :disabled="brainfuckRunning" @click="stepBrainfuck">
 								<i class="ti ti-player-step-forward"></i>{{ i18n.ts._devTools.step }}
 							</MkButton>
 							<MkButton rounded @click="resetBrainfuck">
@@ -109,16 +109,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script setup>
-import {computed, ref, watch} from 'vue';
-import {i18n} from "@/i18n.js";
+import { computed, ref, watch } from 'vue';
+import { i18n } from "@/i18n.js";
 import MkButton from "@/components/MkButton.vue";
 import MkInput from "@/components/MkInput.vue";
 import MkSelect from "@/components/MkSelect.vue";
 import MkTextarea from "@/components/MkTextarea.vue";
-import {transform} from '@/utility/convert-id.js';
+import { transform } from '@/utility/convert-id.js';
 import * as os from '@/os.js';
 import MkFolder from "@/components/MkFolder.vue";
-import {definePage} from "@/page.js";
+import { definePage } from "@/page.js";
 
 const allTICOptions = ref([
 	{ value: 'aid', text: 'aid' },
