@@ -70,16 +70,28 @@ export function build() {
 	// https://github.com/misskey-dev/misskey/pull/14057#issuecomment-2192833785
 	const metaUrl = import.meta.url;
 	const misskeyLocales = languages.reduce((a, c) => (a[c] = yaml.load(clean(tryReadFile(new URL(`${c}.yml`, metaUrl), 'utf-8'))) || {}, a), {});
-	const vkLocales = languages.reduce((a, c) => (a[c] = yaml.load(clean(tryReadFile(new URL(`../vickey-locales/${c}.yml`, metaUrl), 'utf-8'))) || {}, a), {});
+	const vkLocales = languages.reduce((a, c) => {
+		const content = clean(tryReadFile(new URL(`../vickey-locales/${c}.yml`, metaUrl), 'utf-8'));
+		if (content) {
+			a[c] = yaml.load(content) || {};
+		} else {
+			const enContent = clean(tryReadFile(new URL(`../vickey-locales/en-US.yml`, metaUrl), 'utf-8'));
+			a[c] = enContent ? (yaml.load(enContent) || {}) : {};
+		}
+		return a;
+	}, {});
 	// const locales = merge(misskeyLocales, vkLocales);
 	const locales = merge(vkLocales, misskeyLocales);
 
 	// 空文字列が入ることがあり、フォールバックが動作しなくなるのでプロパティごと消す
 	const removeEmpty = (obj) => {
+		if (!obj || typeof obj !== 'object') {
+			return obj;
+		}
 		for (const [k, v] of Object.entries(obj)) {
 			if (v === '') {
 				delete obj[k];
-			} else if (typeof v === 'object') {
+			} else if (typeof v === 'object' && v !== null) {
 				removeEmpty(v);
 			}
 		}
