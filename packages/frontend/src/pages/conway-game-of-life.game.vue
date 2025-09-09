@@ -62,8 +62,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<label for="speed-slider">{{ i18n.tsx._conway.speedControl({ targetFps }) }}</label>
 			<input
 				id="speed-slider"
-				type="range"
 				v-model="targetFps"
+				type="range"
 				min="1"
 				max="60"
 				:class="$style.slider"
