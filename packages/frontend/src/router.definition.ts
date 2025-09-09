@@ -29,6 +29,10 @@ export const ROUTE_DEF = [{
 	path: '/timeline',
 	component: PageTimeline,
 }, {
+	path: '/smart-timeline',
+	component: page(() => import('@/pages/smart-timeline.vue')),
+	loginRequired: true,
+}, {
 	path: '/@:username/pages/:pageName(*)',
 	component: page(() => import('@/pages/page.vue')),
 }, {
@@ -525,6 +529,18 @@ export const ROUTE_DEF = [{
 		name: 'system-webhook',
 		component: page(() => import('@/pages/admin/system-webhook.vue')),
 	}, {
+		path: '/user-risk-score',
+		name: 'user-risk-score',
+		component: page(() => import('@/pages/admin/user-risk-score.vue')),
+	}, {
+		path: '/account-links',
+		name: 'account-links',
+		component: page(() => import('@/pages/admin/account-links.vue')),
+	}, {
+		path: '/high-risk-users',
+		name: 'high-risk-users',
+		component: page(() => import('@/pages/admin/high-risk-users.vue')),
+	}, {
 		path: '/approvals',
 		name: 'approvals',
 		component: page(() => import('@/pages/admin/approvals.vue')),
@@ -611,6 +627,10 @@ export const ROUTE_DEF = [{
 }, {
 	path: '/reversi/g/:gameId',
 	component: page(() => import('@/pages/reversi/game.vue')),
+	loginRequired: false,
+}, {
+	path: '/conway-game-of-life',
+	component: page(() => import('@/pages/conway-game-of-life.vue')),
 	loginRequired: false,
 }, {
 	path: '/debug',

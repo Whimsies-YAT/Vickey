@@ -136,8 +136,17 @@ async function regenerateToken() {
 		});
 
 		if (result && typeof result === 'object' && 'token' in result && $i) {
-			$i.token = result.token;
+			// Update all token references immediately
+			const newToken = result.token;
+			$i.token = newToken;
 			miLocalStorage.setItem('account', JSON.stringify($i));
+			// Update token in multi-user storage to ensure account switching works
+			const { store } = await import('@/store.js');
+			const { host } = await import('@@/js/config.js');
+			store.set('accountTokens', { ...store.s.accountTokens, [host + '/' + $i.id]: newToken });
+			// Update account info in store to ensure consistency
+			store.set('accountInfos', { ...store.s.accountInfos, [host + '/' + $i.id]: $i });
+			console.log('Token regenerated and synchronized across all storage locations');
 		}
 
 		os.success();

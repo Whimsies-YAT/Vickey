@@ -4,8 +4,11 @@
  */
 
 import bcrypt from 'bcryptjs';
+import * as argon2 from '@node-rs/argon2';
+import { getPasswordHashType } from '@/misc/password-hash-type.js';
 import { Inject, Injectable } from '@nestjs/common';
 import type { UsersRepository, UserProfilesRepository } from '@/models/_.js';
+import type { Config } from '@/config.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DeleteAccountService } from '@/core/DeleteAccountService.js';
 import { DI } from '@/di-symbols.js';
@@ -35,6 +38,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.userProfilesRepository)
 		private userProfilesRepository: UserProfilesRepository,
 
+		@Inject(DI.config)
+		private config: Config,
+
 		private userAuthService: UserAuthService,
 		private deleteAccountService: DeleteAccountService,
 	) {
@@ -59,7 +65,28 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				return;
 			}
 
-			const passwordMatched = await bcrypt.compare(ps.password, profile.password!);
+			// Verify password with both formats and upgrade bcrypt
+			const hashType = getPasswordHashType(profile.password!);
+			const verifyFunctions = {
+				'argon2id': () => argon2.verify(profile.password!, ps.password),
+				'bcrypt': async () => {
+					const isValid = await bcrypt.compare(ps.password, profile.password!);
+					if (isValid) {
+						// Upgrade bcrypt to Argon2id
+						const newHash = await argon2.hash(ps.password, this.config.argon2Config || {
+							memoryCost: 4096,
+							timeCost: 3,
+							parallelism: 1,
+							outputLen: 32,
+						});
+						await this.userProfilesRepository.update(me.id, { password: newHash });
+					}
+					return isValid;
+				},
+				'unknown': () => Promise.resolve(false)
+			};
+			
+			const passwordMatched = await verifyFunctions[hashType]();
 			if (!passwordMatched) {
 				throw new Error('incorrect password');
 			}

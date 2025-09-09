@@ -82,3 +82,19 @@ vite.config.local-dev.ts.timestamp-*
 
 # VSCode addon
 .favorites.json
+
+# Rust
+/rust-workspace/target/
+/rust-workspace/**/target/
+/rust-workspace/**/*.rs.bk
+/rust-workspace/*/Cargo.lock
+# Keep the main workspace Cargo.lock
+!/rust-workspace/Cargo.lock
+/rust-workspace/**/pkg/
+# Keep Cargo.toml and source files, but ignore build artifacts
+**/*.rlib
+**/*.rmeta
+**/*.so
+**/*.dylib
+**/*.dll
+**/deps/

@@ -292,6 +292,9 @@ export const PREF_DEF = definePreferences({
 	showClipButtonInNoteFooter: {
 		default: false,
 	},
+	enableCrossTimelineData: {
+		default: true,
+	},
 	reactionsDisplaySize: {
 		default: 'medium' as 'small' | 'medium' | 'large',
 	},

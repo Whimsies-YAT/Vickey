@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.4
 
-ARG NODE_VERSION=22.15.0-bookworm
+ARG NODE_VERSION=22.19.0
 
 # build assets & compile TypeScript
 
@@ -12,7 +12,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 	; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache \
 	&& apt-get update \
 	&& apt-get install -yqq --no-install-recommends \
-	build-essential
+	build-essential curl pkg-config libssl-dev \
+	&& curl https://sh.rustup.rs -sSf | sh -s -- -y \
+	&& . "$HOME/.cargo/env"
+
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 WORKDIR /misskey
 
@@ -49,7 +53,11 @@ FROM --platform=$TARGETPLATFORM node:${NODE_VERSION} AS target-builder
 
 RUN apt-get update \
 	&& apt-get install -yqq --no-install-recommends \
-	build-essential
+	build-essential curl pkg-config libssl-dev \
+	&& curl https://sh.rustup.rs -sSf | sh -s -- -y \
+	&& . "$HOME/.cargo/env"
+
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 WORKDIR /misskey
 
@@ -68,7 +76,7 @@ RUN node -e "console.log(JSON.parse(require('node:fs').readFileSync('./package.j
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store,sharing=locked \
 	pnpm i --frozen-lockfile --aggregate-output
 
-FROM --platform=$TARGETPLATFORM node:${NODE_VERSION}-slim AS runner
+FROM --platform=$TARGETPLATFORM node:${NODE_VERSION}-trixie AS runner
 
 ARG UID="991"
 ARG GID="991"

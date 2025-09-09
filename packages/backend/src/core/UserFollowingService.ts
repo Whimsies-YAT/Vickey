@@ -5,7 +5,7 @@
 
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { Brackets, IsNull } from 'typeorm';
+import { Brackets, IsNull, MoreThan } from 'typeorm';
 import type { MiLocalUser, MiPartialLocalUser, MiPartialRemoteUser, MiRemoteUser, MiUser } from '@/models/User.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { QueueService } from '@/core/QueueService.js';
@@ -27,6 +27,7 @@ import { CacheService } from '@/core/CacheService.js';
 import type { Config } from '@/config.js';
 import { AccountMoveService } from '@/core/AccountMoveService.js';
 import { UtilityService } from '@/core/UtilityService.js';
+import { UserRiskScoreService } from '@/core/UserRiskScoreService.js';
 import type { ThinUser } from '@/queue/types.js';
 import Logger from '../logger.js';
 
@@ -86,6 +87,7 @@ export class UserFollowingService implements OnModuleInit {
 		private accountMoveService: AccountMoveService,
 		private perUserFollowingChart: PerUserFollowingChart,
 		private instanceChart: InstanceChart,
+		private userRiskScoreService: UserRiskScoreService,
 	) {
 	}
 
@@ -157,6 +159,65 @@ export class UserFollowingService implements OnModuleInit {
 			if (this.userEntityService.isLocalUser(follower)) {
 				// ローカル → リモート/ローカル: 例外
 				throw new IdentifiableError('ec3f65c0-a9d1-47d9-8791-b2e7b9dcdced', 'already following');
+			}
+		}
+
+		// Risk score check (local users only)
+		if (this.userEntityService.isLocalUser(follower)) {
+			try {
+				const cachedScore = await this.userRiskScoreService.getCachedScore(follower.id);
+
+				if (cachedScore) {
+					// Follow restrictions for high-risk users
+					// if (cachedScore.riskLevel === 'poor') {
+					// 	// Poor score users: strict follow rate limit
+					// 	// Get recent follows by checking ID timestamps (last hour)
+					// 	const oneHourAgo = this.idService.gen(Date.now() - 60 * 60 * 1000);
+					// 	const recentFollowCount = await this.followingsRepository.count({
+					// 		where: {
+					// 			followerId: follower.id,
+					// 			id: MoreThan(oneHourAgo),
+					// 		},
+					// 	});
+					//
+					// 	if (recentFollowCount >= 10) {
+					// 		throw new IdentifiableError('d4e3b8f9-follow-rate-limit', 'Follow rate limit exceeded for high-risk user');
+					// 	}
+					//
+					// 	// Log high-risk user follow behavior
+					// 	logger.warn(`Poor risk user ${follower.id} following ${followee.id}. Score: ${cachedScore.totalScore}`);
+					// } else if (cachedScore.riskLevel === 'fair') {
+					// 	// Fair score users: moderate restrictions
+					// 	const oneHourAgo = this.idService.gen(Date.now() - 60 * 60 * 1000);
+					// 	const recentFollowCount = await this.followingsRepository.count({
+					// 		where: {
+					// 			followerId: follower.id,
+					// 			id: MoreThan(oneHourAgo),
+					// 		},
+					// 	});
+					//
+					// 	if (recentFollowCount >= 50) {
+					// 		throw new IdentifiableError('d4e3b8f9-follow-rate-limit-high', 'Follow rate limit exceeded');
+					// 	}
+					// }
+				} else {
+					// If no cached risk score, calculate asynchronously
+					setImmediate(async () => {
+						try {
+							await this.userRiskScoreService.calculateUserRiskScore(follower.id);
+						} catch (e) {
+							const err = e as IdentifiableError;
+							logger.error(`Failed to calculate risk score for user ${follower.id}:`, err);
+						}
+					});
+				}
+			} catch (e) {
+				// Risk score check failure should not block normal user follows
+				if (e instanceof IdentifiableError) {
+					throw e; // Re-throw rate limit errors
+				}
+				const error = e as IdentifiableError;
+				logger.error(`Risk score check failed for user ${follower.id}:`, error);
 			}
 		}
 

@@ -22,6 +22,7 @@ import { type UserWebhookPayload } from './UserWebhookService.js';
 import type {
 	DbJobData,
 	DeliverJobData,
+	GeocodingJobData,
 	RelationshipJobData,
 	SystemWebhookDeliverJobData,
 	ThinUser,
@@ -31,6 +32,7 @@ import type {
 	DbQueue,
 	DeliverQueue,
 	EndedPollNotificationQueue,
+	GeocodingQueue,
 	InboxQueue,
 	ObjectStorageQueue,
 	RelationshipQueue,
@@ -82,6 +84,9 @@ const REPEATABLE_SYSTEM_JOB_DEF = [{
 	name: 'cleanRemoteNotes',
 	// 毎日午前4時に起動(最も人の少ない時間帯)
 	pattern: '0 4 * * *',
+}, {
+	name: 'riskScoreUpdate',
+	pattern: '0 */6 * * *',
 }];
 
 @Injectable()
@@ -99,6 +104,7 @@ export class QueueService {
 		@Inject('queue:objectStorage') public objectStorageQueue: ObjectStorageQueue,
 		@Inject('queue:userWebhookDeliver') public userWebhookDeliverQueue: UserWebhookDeliverQueue,
 		@Inject('queue:systemWebhookDeliver') public systemWebhookDeliverQueue: SystemWebhookDeliverQueue,
+		@Inject('queue:geocoding') public geocodingQueue: GeocodingQueue,
 	) {
 		for (const def of REPEATABLE_SYSTEM_JOB_DEF) {
 			this.systemQueue.upsertJobScheduler(def.name, {
@@ -160,6 +166,59 @@ export class QueueService {
 		}, {
 			name: 'clearExpiredSessions',
 		});
+
+		if (this.config.offlineGeocoding && this.geocodingQueue) {
+			this.geocodingQueue.upsertJobScheduler('syncOfflineGeoData', {
+				pattern: '0 2 1 * *',
+			}, {
+				name: 'syncOfflineGeoData',
+				data: { jobType: 'syncOfflineGeoData' },
+				opts: {
+					removeOnComplete: {
+						age: 3600 * 24 * 30,
+						count: 3,
+					},
+					removeOnFail: {
+						age: 3600 * 24 * 30,
+						count: 5,
+					},
+				},
+			});
+
+			this.geocodingQueue.upsertJobScheduler('performIncrementalUpdate', {
+				pattern: '*/30 * * * *',
+			}, {
+				name: 'performIncrementalUpdate',
+				data: { jobType: 'performIncrementalUpdate' },
+				opts: {
+					removeOnComplete: {
+						age: 3600 * 24,
+						count: 10,
+					},
+					removeOnFail: {
+						age: 3600 * 24,
+						count: 20,
+					},
+				},
+			});
+
+			this.geocodingQueue.upsertJobScheduler('precomputeHotSpots', {
+				pattern: '0 3 * * 1',
+			}, {
+				name: 'precomputeHotSpots',
+				data: { jobType: 'precomputeHotSpots', hotSpots: [] },
+				opts: {
+					removeOnComplete: {
+						age: 3600 * 24 * 7,
+						count: 5,
+					},
+					removeOnFail: {
+						age: 3600 * 24 * 7,
+						count: 10,
+					},
+				},
+			});
+		}
 	}
 
 	@bindThis
@@ -768,6 +827,25 @@ export class QueueService {
 	}
 
 	@bindThis
+	public createPrecomputeHotSpotsJob(hotSpots: Array<{ lat: number, lon: number, frequency: number }>) {
+		if (!this.geocodingQueue) return null;
+		
+		return this.geocodingQueue.add('precomputeHotSpots', {
+			jobType: 'precomputeHotSpots',
+			hotSpots,
+		}, {
+			removeOnComplete: {
+				age: 3600 * 24 * 7,
+				count: 30,
+			},
+			removeOnFail: {
+				age: 3600 * 24 * 7,
+				count: 100,
+			},
+		});
+	}
+
+	@bindThis
 	private getQueue(type: typeof QUEUE_TYPES[number]): Bull.Queue {
 		switch (type) {
 			case 'system': return this.systemQueue;
@@ -811,8 +889,8 @@ export class QueueService {
 	@bindThis
 	public async queueRetryJob(queueType: typeof QUEUE_TYPES[number], jobId: string) {
 		const queue = this.getQueue(queueType);
-		const job: Bull.Job | null = await queue.getJob(jobId);
-		if (job) {
+		const job = await queue.getJob(jobId);
+		if (job != null) {
 			if (job.finishedOn != null) {
 				await job.retry();
 			} else {
@@ -824,8 +902,8 @@ export class QueueService {
 	@bindThis
 	public async queueRemoveJob(queueType: typeof QUEUE_TYPES[number], jobId: string) {
 		const queue = this.getQueue(queueType);
-		const job: Bull.Job | null = await queue.getJob(jobId);
-		if (job) {
+		const job = await queue.getJob(jobId);
+		if (job != null) {
 			await job.remove();
 		}
 	}
@@ -858,8 +936,8 @@ export class QueueService {
 	@bindThis
 	public async queueGetJob(queueType: typeof QUEUE_TYPES[number], jobId: string) {
 		const queue = this.getQueue(queueType);
-		const job: Bull.Job | null = await queue.getJob(jobId);
-		if (job) {
+		const job = await queue.getJob(jobId);
+		if (job != null) {
 			return this.packJobData(job);
 		} else {
 			throw new Error(`Job not found: ${jobId}`);

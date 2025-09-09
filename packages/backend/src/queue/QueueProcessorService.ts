@@ -53,6 +53,8 @@ import { CleanExpiredPendingsProcessorService } from './processors/CleanExpiredP
 import { CheckIP2LReleaseProcessorService } from './processors/CheckIP2LReleaseProcessorService.js';
 import { UserSessionsProcessorService } from './processors/UserSessionsProcessorService.js';
 import { UserSessionsCleanupProcessorService } from './processors/UserSessionsCleanupProcessorService.js';
+import { RiskScoreUpdateProcessorService } from './processors/RiskScoreUpdateProcessorService.js';
+import { GeocodingProcessorService } from './processors/GeocodingProcessorService.js';
 import { QUEUE, baseWorkerOptions } from './const.js';
 
 // ref. https://github.com/misskey-dev/misskey/pull/7635#issue-971097019
@@ -93,6 +95,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 	private relationshipQueueWorker: Bull.Worker;
 	private objectStorageQueueWorker: Bull.Worker;
 	private endedPollNotificationQueueWorker: Bull.Worker;
+	private geocodingQueueWorker: Bull.Worker | null = null;
 
 	constructor(
 		@Inject(DI.config)
@@ -141,6 +144,8 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		private cleanRemoteNotesProcessorService: CleanRemoteNotesProcessorService,
 		private userSessionsProcessorService: UserSessionsProcessorService,
 		private userSessionsCleanupProcessorService: UserSessionsCleanupProcessorService,
+		private riskScoreUpdateProcessorService: RiskScoreUpdateProcessorService,
+		private geocodingProcessorService: GeocodingProcessorService,
 	) {
 		this.logger = this.queueLoggerService.logger;
 
@@ -189,6 +194,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 					case 'cleanRemoteNotes': return this.cleanRemoteNotesProcessorService.process(job);
 					case 'syncUserSessions': return this.userSessionsProcessorService.process();
 					case 'clearExpiredSessions': return this.userSessionsCleanupProcessorService.process();
+					case 'riskScoreUpdate': return this.riskScoreUpdateProcessorService.process(job);
 					default: throw new Error(`unrecognized job type ${job.name} for system`);
 				}
 			};
@@ -544,11 +550,44 @@ export class QueueProcessorService implements OnApplicationShutdown {
 			});
 		}
 		//#endregion
+
+		//#region geocoding
+		if (this.config.offlineGeocoding) {
+			this.geocodingQueueWorker = new Bull.Worker(QUEUE.GEOCODING, (job) => {
+				if (this.config.sentryForBackend) {
+					return Sentry.startSpan({ name: 'Queue: Geocoding: ' + job.name }, () => this.geocodingProcessorService.process(job));
+				} else {
+					return this.geocodingProcessorService.process(job);
+				}
+			}, {
+				...baseWorkerOptions(this.config, QUEUE.GEOCODING),
+				autorun: false,
+				concurrency: 2,
+			});
+
+			const logger = this.logger.createSubLogger('geocoding');
+
+			this.geocodingQueueWorker
+				.on('active', (job) => logger.debug(`active id=${job.id} jobType=${job.data.jobType}`))
+				.on('completed', (job, result) => logger.debug(`completed(${result}) id=${job.id} jobType=${job.data.jobType}`))
+				.on('failed', (job, err) => {
+					logger.error(`failed(${err.name}: ${err.message}) id=${job?.id ?? '?'} jobType=${job?.data?.jobType ?? '?'}`, { job: renderJob(job), e: renderError(err) });
+					if (config.sentryForBackend) {
+						Sentry.captureMessage(`Queue: Geocoding: ${job?.data?.jobType ?? '?'}: ${err.name}: ${err.message}`, {
+							level: 'error',
+							extra: { job, err },
+						});
+					}
+				})
+				.on('error', (err: Error) => logger.error(`error ${err.name}: ${err.message}`, { e: renderError(err) }))
+				.on('stalled', (jobId) => logger.warn(`stalled id=${jobId}`));
+		}
+		//#endregion
 	}
 
 	@bindThis
 	public async start(): Promise<void> {
-		await Promise.all([
+		const promises = [
 			this.systemQueueWorker.run(),
 			this.dbQueueWorker.run(),
 			this.deliverQueueWorker.run(),
@@ -558,12 +597,18 @@ export class QueueProcessorService implements OnApplicationShutdown {
 			this.relationshipQueueWorker.run(),
 			this.objectStorageQueueWorker.run(),
 			this.endedPollNotificationQueueWorker.run(),
-		]);
+		];
+
+		if (this.geocodingQueueWorker) {
+			promises.push(this.geocodingQueueWorker.run());
+		}
+
+		await Promise.all(promises);
 	}
 
 	@bindThis
 	public async stop(): Promise<void> {
-		await Promise.all([
+		const promises = [
 			this.systemQueueWorker.close(),
 			this.dbQueueWorker.close(),
 			this.deliverQueueWorker.close(),
@@ -573,7 +618,13 @@ export class QueueProcessorService implements OnApplicationShutdown {
 			this.relationshipQueueWorker.close(),
 			this.objectStorageQueueWorker.close(),
 			this.endedPollNotificationQueueWorker.close(),
-		]);
+		];
+
+		if (this.geocodingQueueWorker) {
+			promises.push(this.geocodingQueueWorker.close());
+		}
+
+		await Promise.all(promises);
 	}
 
 	@bindThis

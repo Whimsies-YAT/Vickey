@@ -1,0 +1,29 @@
+[package]
+name = "wasm-game-of-life"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = { workspace = true, features = ["serde-serialize"] }
+js-sys = { workspace = true }
+web-sys = { workspace = true, features = [
+  "console",
+  "ImageData",
+  "Window",
+  "CanvasRenderingContext2d",
+  "HtmlCanvasElement",
+] }
+rand = { version = "0.8", features = ["small_rng"] }
+getrandom = { version = "0.2", features = ["js"] }
+
+# Optional dependencies for better debugging
+console_error_panic_hook = { version = "0.1.7", optional = true }
+wee_alloc = { version = "0.4.5", optional = true }
+
+[features]
+default = []
+console_error_panic_hook = ["dep:console_error_panic_hook"]
+wee_alloc = ["dep:wee_alloc"]
