@@ -235,6 +235,25 @@ export class MiUser {
 	})
 	public emojis: string[];
 
+	@Column('float', {
+		nullable: true,
+		comment: 'Risk score for local users (0-100). Null for remote users.',
+	})
+	public riskScore: number | null;
+
+	@Column('varchar', {
+		length: 32,
+		nullable: true,
+		comment: 'Risk level: poor, fair, good, veryGood, excellent',
+	})
+	public riskLevel: 'poor' | 'fair' | 'good' | 'veryGood' | 'excellent' | null;
+
+	@Column('timestamp with time zone', {
+		nullable: true,
+		comment: 'Last time the risk score was calculated',
+	})
+	public riskScoreUpdatedAt: Date | null;
+
 	// チャットを許可する相手
 	// everyone: 誰からでも
 	// followers: フォロワーのみ

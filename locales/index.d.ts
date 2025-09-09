@@ -173,6 +173,106 @@ export interface Locale extends ILocale {
      * Are you sure you want to remove the passkeys?
      */
     "removeKeysConfirm": string;
+    /**
+     * External Link
+     */
+    "externalLink": string;
+    /**
+     * You are about to visit an external website:
+     *
+     * <b>{url}</b>
+     *
+     * Are you sure you want to continue?
+     */
+    "externalLinkWarning": ParameterizedString<"url">;
+    /**
+     * Refresh
+     */
+    "refresh": string;
+    /**
+     * User Id
+     */
+    "userId": string;
+    /**
+     * Account Links Management
+     */
+    "accountLinksManagement": string;
+    /**
+     * User Risk Score
+     */
+    "userRiskScore": string;
+    /**
+     * High Risk Users
+     */
+    "highRiskUsers": string;
+    /**
+     * Total Score
+     */
+    "totalScore": string;
+    /**
+     * Risk Score
+     */
+    "riskScore": string;
+    /**
+     * Risk Level
+     */
+    "riskLevel": string;
+    /**
+     * Calculated At
+     */
+    "calculatedAt": string;
+    /**
+     * Score Details
+     */
+    "scoreDetails": string;
+    /**
+     * Profile Score
+     */
+    "profileScore": string;
+    /**
+     * Activity Score
+     */
+    "activityScore": string;
+    /**
+     * Relationship Score
+     */
+    "relationshipScore": string;
+    /**
+     * Content Score
+     */
+    "contentScore": string;
+    /**
+     * Engagement Score
+     */
+    "engagementScore": string;
+    /**
+     * Multi Account Score
+     */
+    "multiAccountScore": string;
+    /**
+     * User ID is required
+     */
+    "requireUserId": string;
+    /**
+     * Failed to fetch risk score
+     */
+    "failedToFetchRiskScore": string;
+    /**
+     * Smart
+     */
+    "smartTimeline": string;
+    /**
+     * Limit
+     */
+    "limit": string;
+    /**
+     * Analytics
+     */
+    "analytics": string;
+    /**
+     * Pause
+     */
+    "pause": string;
     "_oauthAppVK": {
         /**
          * OAuth Application
@@ -776,6 +876,14 @@ export interface Locale extends ILocale {
          * View automated results of reports
          */
         "read:admin:abuse-report:auto-processed": string;
+        /**
+         * View risk management
+         */
+        "read:admin:risk-scores": string;
+        /**
+         * risk management
+         */
+        "write:admin:risk-scores": string;
         /**
          * アカウントの情報を見る
          */
@@ -1990,6 +2098,74 @@ export interface Locale extends ILocale {
          * Output
          */
         "output": string;
+        /**
+         * Brainfuck Interpreter
+         */
+        "brainfuckInterpreter": string;
+        /**
+         * Examples
+         */
+        "examples": string;
+        /**
+         * Select an example
+         */
+        "selectExample": string;
+        /**
+         * Brainfuck Code
+         */
+        "brainfuckCode": string;
+        /**
+         * Provide input data for the Brainfuck program.
+         */
+        "brainfuckCodeCaption": string;
+        /**
+         * Run
+         */
+        "run": string;
+        /**
+         * Step
+         */
+        "step": string;
+        /**
+         * Validate
+         */
+        "validate": string;
+        /**
+         * Error
+         */
+        "error": string;
+        /**
+         * Execution Statistics
+         */
+        "executionStats": string;
+        /**
+         * Memory View
+         */
+        "memoryView": string;
+        /**
+         * Failed to load WASM Brainfuck interpreter.
+         */
+        "loadFailed": string;
+        /**
+         * Please enter some Brainfuck code
+         */
+        "emptyCode": string;
+        /**
+         * Program execution finished
+         */
+        "finished": string;
+        /**
+         * Code syntax is valid!
+         */
+        "validSyntax": string;
+        /**
+         * Syntax errors:
+         */
+        "invalidSyntax": string;
+        /**
+         * Validation failed: WASM module not available
+         */
+        "wasmNotAvailable": string;
     };
     "_geoShare": {
         /**
@@ -2012,6 +2188,852 @@ export interface Locale extends ILocale {
          * Location
          */
         "location": string;
+    };
+    "_riskLevel": {
+        /**
+         * Poor
+         */
+        "poor": string;
+        /**
+         * Fair
+         */
+        "fair": string;
+        /**
+         * Good
+         */
+        "good": string;
+        /**
+         * Very Good
+         */
+        "veryGood": string;
+        /**
+         * Excellent
+         */
+        "excellent": string;
+    };
+    "_highRisk": {
+        /**
+         * Found {length} high-risk user(s)
+         */
+        "foundUsers": ParameterizedString<"length">;
+        /**
+         * Showing first {limit} results. Increase limit to see more.
+         */
+        "showResults": ParameterizedString<"limit">;
+        /**
+         * No high-risk users found.
+         */
+        "notFound": string;
+        /**
+         * Failed to load high-risk users
+         */
+        "failedToLoad": string;
+    };
+    "_accountLink": {
+        /**
+         * Create Account Link
+         */
+        "createAccountLink": string;
+        /**
+         * Link Mode
+         */
+        "mode": string;
+        /**
+         * Two Accounts
+         */
+        "pair": string;
+        /**
+         * Multiple Accounts (Group)
+         */
+        "group": string;
+        /**
+         * User 1 ID
+         */
+        "user1": string;
+        /**
+         * User 2 ID
+         */
+        "user2": string;
+        /**
+         * Group Name (Optional)
+         */
+        "groupName": string;
+        /**
+         * Group Description (Optional)
+         */
+        "groupDesc": string;
+        /**
+         * User IDs (One per line or comma separated)
+         */
+        "userIds": string;
+        /**
+         * Users to link:
+         */
+        "usersToLink": string;
+        /**
+         * Create Group ({length} accounts)
+         */
+        "createGroup": ParameterizedString<"length">;
+        /**
+         * List Account Links
+         */
+        "listAccountLinks": string;
+        /**
+         * Network
+         */
+        "network": string;
+        /**
+         * Account Network for {user}
+         */
+        "networkFor": ParameterizedString<"user">;
+        /**
+         * Close Network
+         */
+        "closeNetwork": string;
+        /**
+         * Nodes
+         */
+        "nodes": string;
+        /**
+         * Links
+         */
+        "links": string;
+        /**
+         * Groups
+         */
+        "groups": string;
+        /**
+         * Connected Accounts
+         */
+        "connected": string;
+        /**
+         * {length} users
+         */
+        "usersNum": ParameterizedString<"length">;
+        /**
+         * {linkCount} links
+         */
+        "linksNum": ParameterizedString<"linkCount">;
+        /**
+         * {confidence}% confidence
+         */
+        "confidenceNum": ParameterizedString<"confidence">;
+        /**
+         * Link ID:
+         */
+        "linkId": string;
+        /**
+         * Primary User:
+         */
+        "primUser": string;
+        /**
+         * Linked User:
+         */
+        "linkedUser": string;
+        /**
+         * Confidence:
+         */
+        "confidence": string;
+        /**
+         * Methods:
+         */
+        "methods": string;
+        /**
+         * Manual:
+         */
+        "manual": string;
+        /**
+         * Created:
+         */
+        "created": string;
+        /**
+         * Group:
+         */
+        "groupTxt": string;
+        /**
+         * No account links found for this user.
+         */
+        "noLinks": string;
+        /**
+         * Both User IDs are required
+         */
+        "userIdsRequired": string;
+        /**
+         * Account link created successfully
+         */
+        "createdSucc": string;
+        /**
+         * Failed to create account link
+         */
+        "createFailed": string;
+        /**
+         * Failed to search account links
+         */
+        "searchFailed": string;
+        /**
+         * At least 2 user IDs are required for a group
+         */
+        "atLeast2": string;
+        /**
+         * Account group "{name}" created successfully!
+         */
+        "groupCreated1": ParameterizedString<"name">;
+        /**
+         * {userCount} users, {linkCount} links created.
+         */
+        "groupCreated2": ParameterizedString<"userCount" | "linkCount">;
+        /**
+         * Failed to create account group
+         */
+        "createGroupFailed": string;
+        /**
+         * Account link removed successfully
+         */
+        "removedSucc": string;
+        /**
+         * Failed to remove account link
+         */
+        "removeFailed": string;
+        /**
+         * Failed to load account network
+         */
+        "loadNetworkFailed": string;
+    };
+    "_smartTimeline": {
+        /**
+         * {smartRatio}% Smart
+         */
+        "smartRatio": ParameterizedString<"smartRatio">;
+        /**
+         * New recommendations available
+         */
+        "newRecommendationsAvailable": string;
+        /**
+         * Smart algorithm active
+         */
+        "smartAlgorithmActive": string;
+        /**
+         * Smart Mode
+         */
+        "smartMode": string;
+        /**
+         * Mixed Mode
+         */
+        "mixedMode": string;
+        /**
+         * Chronological Mode
+         */
+        "chronologicalMode": string;
+        /**
+         * Auto Mode
+         */
+        "autoMode": string;
+        /**
+         * Algorithm
+         */
+        "algorithm": string;
+        /**
+         * Smart
+         */
+        "smart": string;
+        /**
+         * Hybrid
+         */
+        "hybrid": string;
+        /**
+         * Social
+         */
+        "social": string;
+        /**
+         * Discovery
+         */
+        "discovery": string;
+        /**
+         * Diversity Level
+         */
+        "diversityLevel": string;
+        /**
+         * Freshness Weight
+         */
+        "freshnessWeight": string;
+        /**
+         * Quality Threshold
+         */
+        "qualityThreshold": string;
+        /**
+         * Show Score Indicator
+         */
+        "showScoreIndicator": string;
+        /**
+         * Settings saved successfully
+         */
+        "settingsSavedSucc": string;
+        /**
+         * Failed to save settings. Please try again.
+         */
+        "settingsSaveFailed": string;
+        /**
+         * Timeline Preferences
+         */
+        "timelinePref": string;
+        /**
+         * Timeline Mode
+         */
+        "timelineMode": string;
+        /**
+         * Algorithm Settings
+         */
+        "algorithmSettings": string;
+        /**
+         * Display Settings
+         */
+        "displaySettings": string;
+        /**
+         * Show Relevance Scores
+         */
+        "showRelevanceScores": string;
+        /**
+         * Adaptive Mode
+         */
+        "adaptiveMode": string;
+        /**
+         * Current Mode
+         */
+        "currentMode": string;
+        /**
+         * Cache Hit Rate
+         */
+        "cacheHitRate": string;
+        /**
+         * Diversity
+         */
+        "diversity": string;
+        /**
+         * Current Status
+         */
+        "currentStatus": string;
+        /**
+         * Automatically chooses the best timeline mode based on your usage patterns
+         */
+        "autoModeDesc": string;
+        /**
+         * Content ranked by relevance and engagement, not time
+         */
+        "smartModeDesc": string;
+        /**
+         * Combines chronological and smart content
+         */
+        "mixedModeDesc": string;
+        /**
+         * Traditional time-based ordering
+         */
+        "chronologicalModeDesc": string;
+        /**
+         * An intelligent timeline that shows content based on relevance and your interests, not just chronological order.
+         */
+        "timelineDesc": string;
+        /**
+         * Discover new content based on your interests and activity patterns.
+         */
+        "recommendedDesc": string;
+        /**
+         * How much to prioritize recent content (0 = ignore time, 1 = only recent)
+         */
+        "freshnessWeightDesc": string;
+        /**
+         * Minimum quality score for content to appear (0 = show all, 1 = only highest quality)
+         */
+        "qualityThresholdDesc": string;
+        /**
+         * Display numerical relevance scores for each post
+         */
+        "showScoreIndicatorDesc": string;
+        /**
+         * Automatically adjust timeline based on your behavior
+         */
+        "adaptiveModeDesc": string;
+        /**
+         * Load Time
+         */
+        "loadTime": string;
+        /**
+         * Settings saved locally (server timeout)
+         */
+        "saveTimeOut": string;
+        /**
+         * Timeline cache refreshed
+         */
+        "cacheRefreshed": string;
+        /**
+         * Timeline refreshed locally
+         */
+        "refreshedLocally": string;
+        /**
+         * Smart Timeline Settings
+         */
+        "smartTimelineSettings": string;
+        /**
+         * Relevance Score
+         */
+        "relevanceScore": string;
+        /**
+         * Content Relevance
+         */
+        "contentRelevance": string;
+        /**
+         * Social Factors
+         */
+        "socialFactors": string;
+        /**
+         * Recency
+         */
+        "recency": string;
+        /**
+         * Quality
+         */
+        "quality": string;
+        /**
+         * Exploration
+         */
+        "exploration": string;
+        /**
+         * Context
+         */
+        "context": string;
+        /**
+         * Timeline
+         */
+        "timeline": string;
+        /**
+         * Related
+         */
+        "related": string;
+        /**
+         * Trending
+         */
+        "trending": string;
+        /**
+         * Include Following
+         */
+        "includeFollowing": string;
+        /**
+         * Show Algorithm Info
+         */
+        "showAlgorithmInfo": string;
+        /**
+         * Show Scores
+         */
+        "showScores": string;
+        /**
+         * Algorithm Parameters
+         */
+        "algorithmParameters": string;
+        /**
+         * Diversity Factor
+         */
+        "diversityFactor": string;
+        /**
+         * Recency Weight
+         */
+        "recencyWeight": string;
+        /**
+         * Controls content variety (0-100%)
+         */
+        "controlsContentVariety": string;
+        /**
+         * Preference for newer content (0-100%)
+         */
+        "preferenceForNewerContent": string;
+        /**
+         * Minimum content quality (0-100%)
+         */
+        "minimumContentQuality": string;
+        /**
+         * Close Network
+         */
+        "closeNetwork": string;
+    };
+    "_timelines": {
+        /**
+         * Smart
+         */
+        "smart": string;
+        /**
+         * ホーム
+         */
+        "home": string;
+        /**
+         * ローカル
+         */
+        "local": string;
+        /**
+         * ソーシャル
+         */
+        "social": string;
+        /**
+         * グローバル
+         */
+        "global": string;
+    };
+    "_timelineDescription": {
+        /**
+         * Switch between Smart, Latest, or Mixed timelines. Personalize your feed by balancing freshness, quality, and variety to match your taste.
+         */
+        "smart": string;
+        /**
+         * ホームタイムラインでは、あなたがフォローしているアカウントの投稿を見られます。
+         */
+        "home": string;
+        /**
+         * ローカルタイムラインでは、このサーバーにいるユーザー全員の投稿を見られます。
+         */
+        "local": string;
+        /**
+         * ソーシャルタイムラインには、ホームタイムラインとローカルタイムラインの投稿が両方表示されます。
+         */
+        "social": string;
+        /**
+         * グローバルタイムラインでは、接続している他のすべてのサーバーからの投稿を見られます。
+         */
+        "global": string;
+    };
+    "_settings": {
+        /**
+         * Enable cross-timeline data
+         */
+        "enableCrossTimelineData": string;
+        /**
+         * Allow processing with data from multiple timelines.
+         */
+        "enableCrossTimelineData_description": string;
+        /**
+         * ドライブの管理と設定、使用量の確認、ファイルをアップロードする際の設定を行えます。
+         */
+        "driveBanner": string;
+        /**
+         * プラグインを利用するとクライアントの機能を拡張することができます。プラグインのインストール、個別の設定と管理が行えます。
+         */
+        "pluginBanner": string;
+        /**
+         * サーバーからの受信する通知の種類と範囲や、プッシュ通知の設定が行えます。
+         */
+        "notificationsBanner": string;
+        /**
+         * API
+         */
+        "api": string;
+        /**
+         * Webhook
+         */
+        "webhook": string;
+        /**
+         * サービス連携
+         */
+        "serviceConnection": string;
+        /**
+         * 外部のアプリ・サービスと連携するためのアクセストークンやWebhookの管理と設定が行えます。
+         */
+        "serviceConnectionBanner": string;
+        /**
+         * アカウントのデータ
+         */
+        "accountData": string;
+        /**
+         * アカウントデータのアーカイブをエクスポート/インポートして管理できます。
+         */
+        "accountDataBanner": string;
+        /**
+         * 非表示にするコンテンツの設定や、特定のユーザーからのアクションを制限する設定と管理を行えます。
+         */
+        "muteAndBlockBanner": string;
+        /**
+         * クライアントの視覚や動作に関するパーソナライズを行い、より最適に使用できるように設定できます。
+         */
+        "accessibilityBanner": string;
+        /**
+         * コンテンツの公開範囲、見つけやすさ、フォローの承認制などアカウントのプライバシーに関する設定を行えます。
+         */
+        "privacyBanner": string;
+        /**
+         * パスワード、ログイン方法、認証アプリ、パスキーなどアカウントのセキュリティに関する設定を行えます。
+         */
+        "securityBanner": string;
+        /**
+         * 好みに応じた、クライアントの全体的な動作の設定が行えます。
+         */
+        "preferencesBanner": string;
+        /**
+         * 好みに応じた、クライアントの見た目・表示方法に関する設定が行えます。
+         */
+        "appearanceBanner": string;
+        /**
+         * クライアントで再生するサウンドの設定が行えます。
+         */
+        "soundsBanner": string;
+        /**
+         * タイムラインとノート
+         */
+        "timelineAndNote": string;
+        /**
+         * 全てのテキスト要素を選択可能にする
+         */
+        "makeEveryTextElementsSelectable": string;
+        /**
+         * 有効にすると、一部のシチュエーションでのユーザビリティが低下する場合があります。
+         */
+        "makeEveryTextElementsSelectable_description": string;
+        /**
+         * アイコンをスクロールに追従させる
+         */
+        "useStickyIcons": string;
+        /**
+         * 高品質な画像のプレースホルダを表示
+         */
+        "enableHighQualityImagePlaceholders": string;
+        /**
+         * UIのアニメーション
+         */
+        "uiAnimations": string;
+        /**
+         * ナビゲーションバーに副ボタンを表示
+         */
+        "showNavbarSubButtons": string;
+        /**
+         * オンのとき
+         */
+        "ifOn": string;
+        /**
+         * オフのとき
+         */
+        "ifOff": string;
+        /**
+         * デバイス間でインストールしたテーマを同期
+         */
+        "enableSyncThemesBetweenDevices": string;
+        /**
+         * ひっぱって更新
+         */
+        "enablePullToRefresh": string;
+        /**
+         * マウスでは、ホイールを押し込みながらドラッグします。
+         */
+        "enablePullToRefresh_description": string;
+        /**
+         * サーバーと接続を確立し、リアルタイムでコンテンツを更新します。通信量とバッテリーの消費が多くなる場合があります。
+         */
+        "realtimeMode_description": string;
+        /**
+         * コンテンツの取得頻度
+         */
+        "contentsUpdateFrequency": string;
+        /**
+         * 高いほどリアルタイムにコンテンツが更新されますが、パフォーマンスが低下し、通信量とバッテリーの消費が多くなります。
+         */
+        "contentsUpdateFrequency_description": string;
+        /**
+         * リアルタイムモードがオンのときは、この設定に関わらずリアルタイムでコンテンツが更新されます。
+         */
+        "contentsUpdateFrequency_description2": string;
+        /**
+         * URLプレビューを表示する
+         */
+        "showUrlPreview": string;
+        /**
+         * 利用できるリアクションを先頭に表示
+         */
+        "showAvailableReactionsFirstInNote": string;
+        /**
+         * ページのタブバーを下部に表示
+         */
+        "showPageTabBarBottom": string;
+        "_chat": {
+            /**
+             * 送信者の名前を表示
+             */
+            "showSenderName": string;
+            /**
+             * Enterで送信
+             */
+            "sendOnEnter": string;
+        };
+    };
+    "_conway": {
+        /**
+         * Conway's Game of Life
+         */
+        "title": string;
+        /**
+         * Experience the fascinating world of cellular automata
+         */
+        "description": string;
+        /**
+         * Grid Size
+         */
+        "gridSize": string;
+        /**
+         * XLarge
+         */
+        "xLarge": string;
+        /**
+         * Starting Pattern
+         */
+        "startingPattern": string;
+        /**
+         * Random
+         */
+        "random": string;
+        /**
+         * Glider
+         */
+        "glider": string;
+        /**
+         * Blinker
+         */
+        "blinker": string;
+        /**
+         * Toad
+         */
+        "toad": string;
+        /**
+         * Beacon
+         */
+        "beacon": string;
+        /**
+         * Pulsar
+         */
+        "pulsar": string;
+        /**
+         * Pentadecathlon
+         */
+        "pentadecathlon": string;
+        /**
+         * Empty (Draw your own)
+         */
+        "empty": string;
+        /**
+         * Slow (1 step/sec)
+         */
+        "slow": string;
+        /**
+         * Normal (5 steps/sec)
+         */
+        "normal": string;
+        /**
+         * Fast (10 steps/sec)
+         */
+        "fast": string;
+        /**
+         * Ultra (20 steps/sec)
+         */
+        "ultra": string;
+        /**
+         * How to Play
+         */
+        "howToPlay": string;
+        /**
+         * Conway's Game of Life is a cellular automaton created by John Conway
+         */
+        "rules1": string;
+        /**
+         * Each cell can be either alive (dark) or dead (light)
+         */
+        "rules2": string;
+        /**
+         * The game evolves according to these simple rules:
+         */
+        "rules3": string;
+        /**
+         * 1. Any live cell with 2 or 3 live neighbors survives
+         */
+        "rules4": string;
+        /**
+         * 2. Any dead cell with exactly 3 live neighbors becomes alive
+         */
+        "rules5": string;
+        /**
+         * 3. All other live cells die, all other dead cells stay dead
+         */
+        "rules6": string;
+        /**
+         * Click on cells to toggle them alive/dead when paused
+         */
+        "rules7": string;
+        /**
+         * Watch beautiful patterns emerge and evolve!
+         */
+        "rules8": string;
+        /**
+         * Famous Patterns
+         */
+        "famousPatterns": string;
+        /**
+         * Still lifes: Block, Beehive, Loaf
+         */
+        "patterns1": string;
+        /**
+         * Oscillators: Blinker, Toad, Beacon, Pulsar
+         */
+        "patterns2": string;
+        /**
+         * Spaceships: Glider, Lightweight spaceship
+         */
+        "patterns3": string;
+        /**
+         * Complex: Gosper glider gun, Pentadecathlon
+         */
+        "patterns4": string;
+        /**
+         * Step
+         */
+        "step": string;
+        /**
+         * Pattern:
+         */
+        "patternText": string;
+        /**
+         * Block
+         */
+        "block": string;
+        /**
+         * Blinker (Oscillator)
+         */
+        "blinkerAlt": string;
+        /**
+         * Beehive
+         */
+        "beehive": string;
+        /**
+         * Place
+         */
+        "place": string;
+        /**
+         * Generation:
+         */
+        "generationText": string;
+        /**
+         * Live Cells:
+         */
+        "liveCellsText": string;
+        /**
+         * FPS:
+         */
+        "fpsText": string;
+        /**
+         * Speed: {targetFps} FPS
+         */
+        "speedControl": ParameterizedString<"targetFps">;
+        /**
+         * Click on the grid to place the {selectedPattern} pattern
+         */
+        "placingPattern": ParameterizedString<"selectedPattern">;
+        /**
+         * Back
+         */
+        "back": string;
+        /**
+         * Clear
+         */
+        "clear": string;
     };
     /**
      * ノートでつながるネットワーク
@@ -7750,158 +8772,6 @@ export interface Locale extends ILocale {
          */
         "paletteForReaction": string;
     };
-    "_settings": {
-        /**
-         * ドライブの管理と設定、使用量の確認、ファイルをアップロードする際の設定を行えます。
-         */
-        "driveBanner": string;
-        /**
-         * プラグインを利用するとクライアントの機能を拡張することができます。プラグインのインストール、個別の設定と管理が行えます。
-         */
-        "pluginBanner": string;
-        /**
-         * サーバーからの受信する通知の種類と範囲や、プッシュ通知の設定が行えます。
-         */
-        "notificationsBanner": string;
-        /**
-         * API
-         */
-        "api": string;
-        /**
-         * Webhook
-         */
-        "webhook": string;
-        /**
-         * サービス連携
-         */
-        "serviceConnection": string;
-        /**
-         * 外部のアプリ・サービスと連携するためのアクセストークンやWebhookの管理と設定が行えます。
-         */
-        "serviceConnectionBanner": string;
-        /**
-         * アカウントのデータ
-         */
-        "accountData": string;
-        /**
-         * アカウントデータのアーカイブをエクスポート/インポートして管理できます。
-         */
-        "accountDataBanner": string;
-        /**
-         * 非表示にするコンテンツの設定や、特定のユーザーからのアクションを制限する設定と管理を行えます。
-         */
-        "muteAndBlockBanner": string;
-        /**
-         * クライアントの視覚や動作に関するパーソナライズを行い、より最適に使用できるように設定できます。
-         */
-        "accessibilityBanner": string;
-        /**
-         * コンテンツの公開範囲、見つけやすさ、フォローの承認制などアカウントのプライバシーに関する設定を行えます。
-         */
-        "privacyBanner": string;
-        /**
-         * パスワード、ログイン方法、認証アプリ、パスキーなどアカウントのセキュリティに関する設定を行えます。
-         */
-        "securityBanner": string;
-        /**
-         * 好みに応じた、クライアントの全体的な動作の設定が行えます。
-         */
-        "preferencesBanner": string;
-        /**
-         * 好みに応じた、クライアントの見た目・表示方法に関する設定が行えます。
-         */
-        "appearanceBanner": string;
-        /**
-         * クライアントで再生するサウンドの設定が行えます。
-         */
-        "soundsBanner": string;
-        /**
-         * タイムラインとノート
-         */
-        "timelineAndNote": string;
-        /**
-         * 全てのテキスト要素を選択可能にする
-         */
-        "makeEveryTextElementsSelectable": string;
-        /**
-         * 有効にすると、一部のシチュエーションでのユーザビリティが低下する場合があります。
-         */
-        "makeEveryTextElementsSelectable_description": string;
-        /**
-         * アイコンをスクロールに追従させる
-         */
-        "useStickyIcons": string;
-        /**
-         * 高品質な画像のプレースホルダを表示
-         */
-        "enableHighQualityImagePlaceholders": string;
-        /**
-         * UIのアニメーション
-         */
-        "uiAnimations": string;
-        /**
-         * ナビゲーションバーに副ボタンを表示
-         */
-        "showNavbarSubButtons": string;
-        /**
-         * オンのとき
-         */
-        "ifOn": string;
-        /**
-         * オフのとき
-         */
-        "ifOff": string;
-        /**
-         * デバイス間でインストールしたテーマを同期
-         */
-        "enableSyncThemesBetweenDevices": string;
-        /**
-         * ひっぱって更新
-         */
-        "enablePullToRefresh": string;
-        /**
-         * マウスでは、ホイールを押し込みながらドラッグします。
-         */
-        "enablePullToRefresh_description": string;
-        /**
-         * サーバーと接続を確立し、リアルタイムでコンテンツを更新します。通信量とバッテリーの消費が多くなる場合があります。
-         */
-        "realtimeMode_description": string;
-        /**
-         * コンテンツの取得頻度
-         */
-        "contentsUpdateFrequency": string;
-        /**
-         * 高いほどリアルタイムにコンテンツが更新されますが、パフォーマンスが低下し、通信量とバッテリーの消費が多くなります。
-         */
-        "contentsUpdateFrequency_description": string;
-        /**
-         * リアルタイムモードがオンのときは、この設定に関わらずリアルタイムでコンテンツが更新されます。
-         */
-        "contentsUpdateFrequency_description2": string;
-        /**
-         * URLプレビューを表示する
-         */
-        "showUrlPreview": string;
-        /**
-         * 利用できるリアクションを先頭に表示
-         */
-        "showAvailableReactionsFirstInNote": string;
-        /**
-         * ページのタブバーを下部に表示
-         */
-        "showPageTabBarBottom": string;
-        "_chat": {
-            /**
-             * 送信者の名前を表示
-             */
-            "showSenderName": string;
-            /**
-             * Enterで送信
-             */
-            "sendOnEnter": string;
-        };
-    };
     "_preferencesProfile": {
         /**
          * プロファイル名
@@ -8456,24 +9326,6 @@ export interface Locale extends ILocale {
              */
             "description": ParameterizedString<"link">;
         };
-    };
-    "_timelineDescription": {
-        /**
-         * ホームタイムラインでは、あなたがフォローしているアカウントの投稿を見られます。
-         */
-        "home": string;
-        /**
-         * ローカルタイムラインでは、このサーバーにいるユーザー全員の投稿を見られます。
-         */
-        "local": string;
-        /**
-         * ソーシャルタイムラインには、ホームタイムラインとローカルタイムラインの投稿が両方表示されます。
-         */
-        "social": string;
-        /**
-         * グローバルタイムラインでは、接続している他のすべてのサーバーからの投稿を見られます。
-         */
-        "global": string;
     };
     "_serverRules": {
         /**
@@ -11020,24 +11872,6 @@ export interface Locale extends ILocale {
          * ファイル数の累積
          */
         "filesTotal": string;
-    };
-    "_timelines": {
-        /**
-         * ホーム
-         */
-        "home": string;
-        /**
-         * ローカル
-         */
-        "local": string;
-        /**
-         * ソーシャル
-         */
-        "social": string;
-        /**
-         * グローバル
-         */
-        "global": string;
     };
     "_play": {
         /**

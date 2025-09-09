@@ -48,6 +48,12 @@ export const navbarItemDef = reactive({
 		icon: 'ti ti-hash',
 		to: '/explore',
 	},
+	smartTimeline: {
+		title: i18n.ts.smartTimeline,
+		icon: 'ti ti-sparkles',
+		show: computed(() => $i != null),
+		to: '/smart-timeline',
+	},
 	announcements: {
 		title: i18n.ts.announcements,
 		icon: 'ti ti-speakerphone',

@@ -4,6 +4,8 @@
  */
 
 import bcrypt from 'bcryptjs';
+import * as argon2 from '@node-rs/argon2';
+import { getPasswordHashType } from '@/misc/password-hash-type.js';
 import * as OTPAuth from 'otpauth';
 import * as QRCode from 'qrcode';
 import { Inject, Injectable } from '@nestjs/common';
@@ -77,7 +79,26 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				}
 			}
 
-			const passwordMatched = await bcrypt.compare(ps.password, profile.password ?? '');
+			const hashType = getPasswordHashType(profile.password ?? '');
+			const verifyFunctions = {
+				'argon2id': () => argon2.verify(profile.password ?? '', ps.password),
+				'bcrypt': async () => {
+					const isValid = await bcrypt.compare(ps.password, profile.password ?? '');
+					if (isValid) {
+						// Upgrade bcrypt to Argon2id
+						const newHash = await argon2.hash(ps.password, this.config.argon2Config || {
+							memoryCost: 4096,
+							timeCost: 3,
+							parallelism: 1,
+							outputLen: 32,
+						});
+						await this.userProfilesRepository.update(me.id, { password: newHash });
+					}
+					return isValid;
+				},
+				'unknown': () => Promise.resolve(false)
+			};
+			const passwordMatched = await verifyFunctions[hashType]();
 			if (!passwordMatched) {
 				throw new ApiError(meta.errors.incorrectPassword);
 			}

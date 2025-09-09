@@ -159,9 +159,80 @@ export class IP2LocationService {
 							}
 						}
 					}
-					if (key === "fraudScore" && data[key] === "-") {
-						data[key] = "0";
+					if (key === "fraudScore") {
+						if (data[key] === "-" || data[key] === undefined) {
+							let baseFraudScore = 0;
+
+							if (data.isProxy === 1) {
+								const proxyType = data.proxyType?.toUpperCase() || '';
+								switch (proxyType) {
+									case 'TOR':
+										baseFraudScore = 85;
+										break;
+									case 'VPN':
+										baseFraudScore = 25;
+										break;
+									case 'PUB':
+									case 'WEB':
+										baseFraudScore = 45;
+										break;
+									case 'DCH':
+									case 'DCF':
+										baseFraudScore = 20;
+										break;
+									case 'RES':
+										baseFraudScore = 15;
+										break;
+									default:
+										baseFraudScore = 30;
+								}
+							}
+
+							if (data.threat && data.threat !== '-') {
+								const threats = data.threat.toLowerCase();
+								if (threats.includes('malware') || threats.includes('botnet')) {
+									baseFraudScore = Math.max(baseFraudScore, 80);
+								} else if (threats.includes('spam') || threats.includes('phishing')) {
+									baseFraudScore = Math.max(baseFraudScore, 60);
+								} else if (threats.includes('scanner') || threats.includes('attacker')) {
+									baseFraudScore = Math.max(baseFraudScore, 40);
+								}
+							}
+
+							const provider = (data.provider || '').toLowerCase();
+							const isp = (data.isp || '').toLowerCase();
+							const combinedProvider = provider + ' ' + isp;
+
+							const cloudProviders = [
+								'amazon', 'aws', 'google', 'gcp', 'microsoft', 'azure',
+								'cloudflare', 'digitalocean', 'vultr', 'linode', 'ovh',
+								'hetzner', 'contabo', 'scaleway', 'alibaba', 'tencent',
+								'oracle', 'ibm', 'rackspace', 'godaddy', 'namecheap'
+							];
+
+							if (cloudProviders.some(cp => combinedProvider.includes(cp))) {
+								baseFraudScore = Math.max(baseFraudScore, 25);
+							}
+
+							data[key] = baseFraudScore.toString();
+						} else {
+							const originalScore = parseInt(data[key]) || 0;
+							if (data.isProxy === 1 && data.proxyType === 'TOR' && originalScore < 80) {
+								data[key] = '85';
+							}
+						}
 					}
+				}
+
+				const fraudScore = parseInt(data.fraudScore) || 0;
+				const hasProxy = data.isProxy === 1;
+				const hasThreat = data.threat && data.threat !== '-';
+				const isDataCenter = data.usageType === 'DCH' || data.usageType === 'DCF';
+
+				if (hasProxy && hasThreat && fraudScore < 90) {
+					data.fraudScore = Math.min(95, fraudScore + 10).toString();
+				} else if ((hasProxy && isDataCenter) || (hasThreat && isDataCenter)) {
+					data.fraudScore = Math.min(90, fraudScore + 5).toString();
 				}
 			}
 			return data;
@@ -384,14 +455,26 @@ export class IP2LocationService {
 
 	private async getIPDetails(ip: string): Promise<Record<string, any>> {
 		const ip2location = new IP2Location();
-		await ip2location.openAsync(Path.join(CONFIG.path, CONFIG.fileName));
-		return ip2location.getAllAsync(ip);
+		try {
+			await ip2location.openAsync(Path.join(CONFIG.path, CONFIG.fileName));
+			return await ip2location.getAllAsync(ip);
+		} finally {
+			if (ip2location && typeof ip2location.close === 'function') {
+				ip2location.close();
+			}
+		}
 	}
 
 	private async getIPProxyDetails(ip: string): Promise<Record<string, any>> {
 		const ip2proxy = new IP2Proxy();
-		await ip2proxy.openAsync(Path.join(CONFIG.path, CONFIG.proxyFileName));
-		return ip2proxy.getAllAsync(ip);
+		try {
+			await ip2proxy.openAsync(Path.join(CONFIG.path, CONFIG.proxyFileName));
+			return await ip2proxy.getAllAsync(ip);
+		} finally {
+			if (ip2proxy && typeof ip2proxy.close === 'function') {
+				ip2proxy.close();
+			}
+		}
 	}
 
 	public isIPv4(ip: string): boolean {

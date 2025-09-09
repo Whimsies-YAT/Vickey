@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import * as Redis from 'ioredis';
-import { Brackets } from 'typeorm';
+import { Brackets, MoreThan } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { QueueService } from '@/core/QueueService.js';
@@ -28,6 +28,7 @@ import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { emojiRegex } from '@/misc/emoji-regex.js';
 import { NotificationService } from '@/core/NotificationService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
+import { UserRiskScoreService } from '@/core/UserRiskScoreService.js';
 
 const MAX_ROOM_MEMBERS = 50;
 const MAX_REACTIONS_PER_MESSAGE = 100;
@@ -91,6 +92,7 @@ export class ChatService {
 		private userFollowingService: UserFollowingService,
 		private customEmojiService: CustomEmojiService,
 		private moderationLogService: ModerationLogService,
+		private userRiskScoreService: UserRiskScoreService,
 	) {
 	}
 
@@ -181,6 +183,59 @@ export class ChatService {
 		const blocked = await this.userBlockingService.checkBlocked(toUser.id, fromUser.id);
 		if (blocked) {
 			throw new Error('blocked');
+		}
+
+		if (fromUser.host === null) {
+			try {
+				const cachedScore = await this.userRiskScoreService.getCachedScore(fromUser.id);
+
+				if (cachedScore) {
+					// Chat restrictions for high-risk users
+					// if (cachedScore.riskLevel === 'poor') {
+					// 	// Poor score users: strict message rate limit
+					// 	const oneMinuteAgo = this.idService.gen(Date.now() - 60 * 1000);
+					// 	const recentMessageCount = await this.chatMessagesRepository.count({
+					// 		where: {
+					// 			fromUserId: fromUser.id,
+					// 			id: MoreThan(oneMinuteAgo),
+					// 		},
+					// 	});
+					//
+					// 	if (recentMessageCount >= 5) {
+					// 		throw new Error('Message rate limit exceeded for high-risk user');
+					// 	}
+					//
+					// 	// Log high-risk user chat behavior (not exposed to users)
+					// 	console.warn(`Poor risk user ${fromUser.id} sending message to ${toUser.id}. Score: ${cachedScore.totalScore}`);
+					// } else if (cachedScore.riskLevel === 'fair') {
+					// 	// Fair score users: moderate restrictions
+					// 	const oneMinuteAgo = this.idService.gen(Date.now() - 60 * 1000);
+					// 	const recentMessageCount = await this.chatMessagesRepository.count({
+					// 		where: {
+					// 			fromUserId: fromUser.id,
+					// 			id: MoreThan(oneMinuteAgo),
+					// 		},
+					// 	});
+					//
+					// 	if (recentMessageCount >= 20) {
+					// 		throw new Error('Message rate limit exceeded');
+					// 	}
+					// }
+				} else {
+					setImmediate(async () => {
+						try {
+							await this.userRiskScoreService.calculateUserRiskScore(fromUser.id);
+						} catch (err) {
+							console.error(`Failed to calculate risk score for user ${fromUser.id}:`, err);
+						}
+					});
+				}
+			} catch (error) {
+				if (error instanceof Error && error.message.includes('rate limit')) {
+					throw error;
+				}
+				console.error(`Risk score check failed for user ${fromUser.id}:`, error);
+			}
 		}
 
 		const message = {

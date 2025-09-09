@@ -132,6 +132,11 @@ export type UserWebhookDeliverJobData<T extends WebhookEventTypes = WebhookEvent
 	eventId: string;
 };
 
+export type GeocodingJobData = {
+	jobType: 'syncOfflineGeoData' | 'precomputeHotSpots' | 'performIncrementalUpdate';
+	hotSpots?: Array<{ lat: number, lon: number, frequency: number }>;
+};
+
 export type ThinUser = {
 	id: MiUser['id'];
 };

@@ -205,7 +205,22 @@ const menuDef = computed<SuperMenuDef[]>(() => [{
 		text: i18n.ts.moderationLogs,
 		to: '/admin/modlog',
 		active: currentPage.value?.route.name === 'modlog',
-	}] : []),
+	}] : []), {
+		icon: 'ti ti-shield-check',
+		text: i18n.ts.userRiskScore,
+		to: '/admin/user-risk-score',
+		active: currentPage.value?.route.name === 'user-risk-score',
+	}, {
+		icon: 'ti ti-link',
+		text: i18n.ts.accountLinksManagement,
+		to: '/admin/account-links',
+		active: currentPage.value?.route.name === 'account-links',
+	}, {
+		icon: 'ti ti-shield-exclamation',
+		text: i18n.ts.highRiskUsers,
+		to: '/admin/high-risk-users',
+		active: currentPage.value?.route.name === 'high-risk-users',
+	},
 	],
 }, ...(isAdmin.value ? [{
 	title: i18n.ts.settings,

@@ -12,6 +12,7 @@ import { allSettled } from '@/misc/promise-tracker.js';
 import {
 	DeliverJobData,
 	EndedPollNotificationJobData,
+	GeocodingJobData,
 	InboxJobData,
 	RelationshipJobData,
 	UserWebhookDeliverJobData,
@@ -22,6 +23,7 @@ import type { Provider } from '@nestjs/common';
 export type SystemQueue = Bull.Queue<Record<string, unknown>>;
 export type EndedPollNotificationQueue = Bull.Queue<EndedPollNotificationJobData>;
 export type DeliverQueue = Bull.Queue<DeliverJobData>;
+export type GeocodingQueue = Bull.Queue<GeocodingJobData> | null;
 export type InboxQueue = Bull.Queue<InboxJobData>;
 export type DbQueue = Bull.Queue;
 export type RelationshipQueue = Bull.Queue<RelationshipJobData>;
@@ -83,6 +85,15 @@ const $systemWebhookDeliver: Provider = {
 	inject: [DI.config],
 };
 
+const $geocoding: Provider = {
+	provide: 'queue:geocoding',
+	useFactory: (config: Config) => {
+		if (!config.offlineGeocoding) return null;
+		return new Bull.Queue(QUEUE.GEOCODING, baseQueueOptions(config, QUEUE.GEOCODING));
+	},
+	inject: [DI.config],
+};
+
 @Module({
 	imports: [
 	],
@@ -96,6 +107,7 @@ const $systemWebhookDeliver: Provider = {
 		$objectStorage,
 		$userWebhookDeliver,
 		$systemWebhookDeliver,
+		$geocoding,
 	],
 	exports: [
 		$system,
@@ -107,6 +119,7 @@ const $systemWebhookDeliver: Provider = {
 		$objectStorage,
 		$userWebhookDeliver,
 		$systemWebhookDeliver,
+		$geocoding,
 	],
 })
 export class QueueModule implements OnApplicationShutdown {
@@ -120,6 +133,7 @@ export class QueueModule implements OnApplicationShutdown {
 		@Inject('queue:objectStorage') public objectStorageQueue: ObjectStorageQueue,
 		@Inject('queue:userWebhookDeliver') public userWebhookDeliverQueue: UserWebhookDeliverQueue,
 		@Inject('queue:systemWebhookDeliver') public systemWebhookDeliverQueue: SystemWebhookDeliverQueue,
+		@Inject('queue:geocoding') public geocodingQueue: GeocodingQueue,
 	) {}
 
 	public async dispose(): Promise<void> {
@@ -136,6 +150,7 @@ export class QueueModule implements OnApplicationShutdown {
 			this.objectStorageQueue.close(),
 			this.userWebhookDeliverQueue.close(),
 			this.systemWebhookDeliverQueue.close(),
+			this.geocodingQueue?.close(),
 		]);
 	}
 

@@ -90,6 +90,15 @@ import { MiReversiGame } from '@/models/ReversiGame.js';
 import { MiChatApproval } from '@/models/ChatApproval.js';
 import { MiSystemAccount } from '@/models/SystemAccount.js';
 import { MiUserSessions } from '@/models/UserSessions.js';
+import { MiUserRiskScoreHistory } from '@/models/UserRiskScoreHistory.js';
+import { MiRiskEventLog } from '@/models/RiskEventLog.js';
+import { MiUserMultiAccountLink } from '@/models/UserMultiAccountLink.js';
+import { MiUserRecommendationProfile } from '@/models/UserRecommendationProfile.js';
+import { MiContentRecommendationLog } from '@/models/ContentRecommendationLog.js';
+import { MiUserInteractionHistory } from '@/models/UserInteractionHistory.js';
+import { MiContentEmbedding } from '@/models/ContentEmbedding.js';
+import { MiUserInterestEmbedding } from '@/models/UserInterestEmbedding.js';
+import { MiEmbeddingBatchQueue } from '@/models/EmbeddingBatchQueue.js';
 
 pg.types.setTypeParser(20, Number);
 
@@ -265,6 +274,15 @@ export const entities = [
 	MiBubbleGameRecord,
 	MiReversiGame,
 	MiUserSessions,
+	MiUserRiskScoreHistory,
+	MiRiskEventLog,
+	MiUserMultiAccountLink,
+	MiUserRecommendationProfile,
+	MiContentRecommendationLog,
+	MiUserInteractionHistory,
+	MiContentEmbedding,
+	MiUserInterestEmbedding,
+	MiEmbeddingBatchQueue,
 	...charts,
 ];
 

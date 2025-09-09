@@ -8,7 +8,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { OnApplicationShutdown } from '@nestjs/common';
 import { DataSource, IsNull } from 'typeorm';
 import * as Redis from 'ioredis';
-import bcrypt from 'bcryptjs';
+import * as argon2 from '@node-rs/argon2';
 import { MiLocalUser, MiUser } from '@/models/User.js';
 import { MiSystemAccount, MiUsedUsername, MiUserKeypair, MiUserProfile, type UsersRepository, type SystemAccountsRepository } from '@/models/_.js';
 import type { MiMeta, UserProfilesRepository } from '@/models/_.js';
@@ -117,9 +117,13 @@ export class SystemAccountService implements OnApplicationShutdown {
 	}): Promise<MiLocalUser> {
 		const password = randomUUID();
 
-		// Generate hash of password
-		const salt = await bcrypt.genSalt(this.config.bcryptCost);
-		const hash = await bcrypt.hash(password, salt);
+		// Generate hash of password using Argon2id
+		const hash = await argon2.hash(password, this.config.argon2Config || {
+			memoryCost: 4096,
+			timeCost: 3,
+			parallelism: 1,
+			outputLen: 32,
+		});
 
 		const secret = null;
 

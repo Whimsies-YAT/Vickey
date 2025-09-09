@@ -4,9 +4,12 @@
  */
 
 import bcrypt from 'bcryptjs';
+import * as argon2 from '@node-rs/argon2';
+import { getPasswordHashType } from '@/misc/password-hash-type.js';
 import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import type { UsersRepository, UserProfilesRepository, SigninsRepository } from '@/models/_.js';
+import type { Config } from '@/config.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { UserSessionsService } from '@/core/UserSessionsService.js';
 import { DI } from '@/di-symbols.js';
@@ -33,6 +36,9 @@ export const paramDef = {
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
 	constructor(
+		@Inject(DI.config)
+		private config: Config,
+
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
 
@@ -125,8 +131,29 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				}
 				forceCurrentOnly = true;
 			} else if (ps.password) {
+				const password = ps.password as string;
 				const profile = await this.userProfilesRepository.findOneByOrFail({ userId: me.id });
-				const same = await bcrypt.compare(ps.password, profile.password!);
+
+				const hashType = getPasswordHashType(profile.password!);
+				const verifyFunctions = {
+					'argon2id': () => argon2.verify(profile.password!, password),
+					'bcrypt': async () => {
+						const isValid = await bcrypt.compare(password, profile.password!);
+						if (isValid) {
+							// Upgrade bcrypt to Argon2id
+							const newHash = await argon2.hash(password, this.config.argon2Config || {
+								memoryCost: 4096,
+								timeCost: 3,
+								parallelism: 1,
+								outputLen: 32,
+							});
+							await this.userProfilesRepository.update(me.id, { password: newHash });
+						}
+						return isValid;
+					},
+					'unknown': () => Promise.resolve(false)
+				};
+				const same = await verifyFunctions[hashType]();
 				if (!same) {
 					throw new Error('incorrect password');
 				}

@@ -333,6 +333,12 @@ type AdminQueueShowJobResponse = operations['admin___queue___show-job']['respons
 type AdminQueueStatsResponse = operations['admin___queue___stats']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type AdminRecommendationStatsRequest = operations['admin___recommendation-stats']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminRecommendationStatsResponse = operations['admin___recommendation-stats']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type AdminRelaysAddRequest = operations['admin___relays___add']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -487,6 +493,33 @@ type AdminUpdateProxyAccountResponse = operations['admin___update-proxy-account'
 
 // @public (undocumented)
 type AdminUpdateUserNoteRequest = operations['admin___update-user-note']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminUsersGetRiskScoreRequest = operations['admin___users___get-risk-score']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminUsersGetRiskScoreResponse = operations['admin___users___get-risk-score']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AdminUsersListHighRiskUsersRequest = operations['admin___users___list-high-risk-users']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminUsersListHighRiskUsersResponse = operations['admin___users___list-high-risk-users']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AdminUsersListRiskEventsRequest = operations['admin___users___list-risk-events']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminUsersListRiskEventsResponse = operations['admin___users___list-risk-events']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AdminUsersManageAccountLinksRequest = operations['admin___users___manage-account-links']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminUsersRiskScoreRequest = operations['admin___users___risk-score']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminUsersRiskScoreResponse = operations['admin___users___risk-score']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type Announcement = components['schemas']['Announcement'];
@@ -1497,6 +1530,10 @@ export type Endpoints = Overwrite<Endpoints_2, {
         }>;
         res: AdminRolesCreateResponse;
     };
+    'clear-browser-cache': {
+        req: EmptyRequest;
+        res: EmptyResponse;
+    };
 }>;
 
 // @public (undocumented)
@@ -1626,6 +1663,8 @@ declare namespace entities {
         AdminQueueShowJobLogsRequest,
         AdminQueueShowJobLogsResponse,
         AdminQueueStatsResponse,
+        AdminRecommendationStatsRequest,
+        AdminRecommendationStatsResponse,
         AdminRelaysAddRequest,
         AdminRelaysAddResponse,
         AdminRelaysListResponse,
@@ -1678,6 +1717,15 @@ declare namespace entities {
         AdminUpdateProxyAccountRequest,
         AdminUpdateProxyAccountResponse,
         AdminUpdateUserNoteRequest,
+        AdminUsersGetRiskScoreRequest,
+        AdminUsersGetRiskScoreResponse,
+        AdminUsersListHighRiskUsersRequest,
+        AdminUsersListHighRiskUsersResponse,
+        AdminUsersListRiskEventsRequest,
+        AdminUsersListRiskEventsResponse,
+        AdminUsersManageAccountLinksRequest,
+        AdminUsersRiskScoreRequest,
+        AdminUsersRiskScoreResponse,
         AnnouncementsRequest,
         AnnouncementsResponse,
         AnnouncementsShowRequest,
@@ -2001,12 +2049,15 @@ declare namespace entities {
         IRevokeTokenRequest,
         ISigninHistoryRequest,
         ISigninHistoryResponse,
+        ITimelinePreferencesResponse,
         IUnpinRequest,
         IUnpinResponse,
         IUpdateRequest,
         IUpdateResponse,
         IUpdateEmailRequest,
         IUpdateEmailResponse,
+        IUpdateTimelinePreferencesRequest,
+        IUpdateTimelinePreferencesResponse,
         IWebhooksCreateRequest,
         IWebhooksCreateResponse,
         IWebhooksDeleteRequest,
@@ -2057,6 +2108,8 @@ declare namespace entities {
         NotesGlobalTimelineResponse,
         NotesHybridTimelineRequest,
         NotesHybridTimelineResponse,
+        NotesInteractionRequest,
+        NotesInteractionResponse,
         NotesLocalTimelineRequest,
         NotesLocalTimelineResponse,
         NotesMentionsRequest,
@@ -2068,6 +2121,8 @@ declare namespace entities {
         NotesReactionsResponse,
         NotesReactionsCreateRequest,
         NotesReactionsDeleteRequest,
+        NotesRecommendedRequest,
+        NotesRecommendedResponse,
         NotesRenotesRequest,
         NotesRenotesResponse,
         NotesRepliesRequest,
@@ -2080,12 +2135,16 @@ declare namespace entities {
         NotesShowResponse,
         NotesShowPartialBulkRequest,
         NotesShowPartialBulkResponse,
+        NotesSmartTimelineRequest,
+        NotesSmartTimelineResponse,
         NotesStateRequest,
         NotesStateResponse,
         NotesThreadMutingCreateRequest,
         NotesThreadMutingDeleteRequest,
         NotesTimelineRequest,
         NotesTimelineResponse,
+        NotesTimelineRefreshResponse,
+        NotesTimelineStatsResponse,
         NotesTranslateRequest,
         NotesTranslateResponse,
         NotesTtsRequest,
@@ -2816,6 +2875,9 @@ export interface IStream extends EventEmitter<StreamEvents> {
 }
 
 // @public (undocumented)
+type ITimelinePreferencesResponse = operations['i___timeline-preferences']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type IUnpinRequest = operations['i___unpin']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -2832,6 +2894,12 @@ type IUpdateRequest = operations['i___update']['requestBody']['content']['applic
 
 // @public (undocumented)
 type IUpdateResponse = operations['i___update']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type IUpdateTimelinePreferencesRequest = operations['i___update-timeline-preferences']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type IUpdateTimelinePreferencesResponse = operations['i___update-timeline-preferences']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type IWebhooksCreateRequest = operations['i___webhooks___create']['requestBody']['content']['application/json'];
@@ -3179,6 +3247,12 @@ type NotesHybridTimelineRequest = operations['notes___hybrid-timeline']['request
 type NotesHybridTimelineResponse = operations['notes___hybrid-timeline']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type NotesInteractionRequest = operations['notes___interaction']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type NotesInteractionResponse = operations['notes___interaction']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type NotesLocalTimelineRequest = operations['notes___local-timeline']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -3210,6 +3284,12 @@ type NotesReactionsRequest = operations['notes___reactions']['requestBody']['con
 
 // @public (undocumented)
 type NotesReactionsResponse = operations['notes___reactions']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type NotesRecommendedRequest = operations['notes___recommended']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type NotesRecommendedResponse = operations['notes___recommended']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type NotesRenotesRequest = operations['notes___renotes']['requestBody']['content']['application/json'];
@@ -3254,6 +3334,12 @@ type NotesShowRequest = operations['notes___show']['requestBody']['content']['ap
 type NotesShowResponse = operations['notes___show']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type NotesSmartTimelineRequest = operations['notes___smart-timeline']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type NotesSmartTimelineResponse = operations['notes___smart-timeline']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type NotesStateRequest = operations['notes___state']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -3266,10 +3352,16 @@ type NotesThreadMutingCreateRequest = operations['notes___thread-muting___create
 type NotesThreadMutingDeleteRequest = operations['notes___thread-muting___delete']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type NotesTimelineRefreshResponse = operations['notes___timeline-refresh']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type NotesTimelineRequest = operations['notes___timeline']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type NotesTimelineResponse = operations['notes___timeline']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type NotesTimelineStatsResponse = operations['notes___timeline-stats']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type NotesTranslateRequest = operations['notes___translate']['requestBody']['content']['application/json'];
@@ -3302,7 +3394,7 @@ type Notification_2 = components['schemas']['Notification'];
 type NotificationsCreateRequest = operations['notifications___create']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-export const notificationTypes: readonly ["note", "follow", "mention", "reply", "renote", "quote", "reaction", "pollVote", "pollEnded", "receiveFollowRequest", "followRequestAccepted", "groupInvited", "app", "roleAssigned", "chatRoomInvitationReceived", "achievementEarned"];
+export const notificationTypes: readonly ["note", "follow", "mention", "reply", "renote", "quote", "reaction", "pollEnded", "receiveFollowRequest", "followRequestAccepted", "groupInvited", "app", "roleAssigned", "chatRoomInvitationReceived", "achievementEarned", "exportCompleted", "test", "login", "createToken"];
 
 // @public (undocumented)
 export function nyaize(text: string): string;
@@ -3533,6 +3625,9 @@ type RoleLite = components['schemas']['RoleLite'];
 
 // @public (undocumented)
 type RolePolicies = components['schemas']['RolePolicies'];
+
+// @public (undocumented)
+export const rolePolicies: readonly ["gtlAvailable", "ltlAvailable", "canPublicNote", "mentionLimit", "canInvite", "inviteLimit", "inviteLimitCycle", "inviteExpirationTime", "canManageCustomEmojis", "canManageAvatarDecorations", "canSearchNotes", "canSearchUsers", "canUseTranslator", "canHideAds", "driveCapacityMb", "maxFileSizeMb", "alwaysMarkNsfw", "canUpdateBioMedia", "pinLimit", "antennaLimit", "wordMuteLimit", "webhookLimit", "clipLimit", "noteEachClipsLimit", "userListLimit", "userEachUserListsLimit", "rateLimitFactor", "avatarDecorationLimit", "canImportAntennas", "canImportBlocking", "canImportFollowing", "canImportMuting", "canImportUserLists", "chatAvailability", "uploadableFileTypes", "noteDraftLimit", "watermarkAvailable"];
 
 // @public (undocumented)
 type RolesListResponse = operations['roles___list']['responses']['200']['content']['application/json'];

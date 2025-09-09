@@ -46,10 +46,14 @@ export async function checkAndRegenerateToken(): Promise<boolean> {
 		});
 
 		if (result && typeof result === 'object' && 'token' in result) {
-			$i.token = result.token;
+			// Update all token references immediately
+			const newToken = result.token;
+			$i.token = newToken;
 			miLocalStorage.setItem('account', JSON.stringify($i));
 			// Update token in multi-user storage
-			store.set('accountTokens', { ...store.s.accountTokens, [host + '/' + $i.id]: result.token });
+			store.set('accountTokens', { ...store.s.accountTokens, [host + '/' + $i.id]: newToken });
+			// Update account info in store to ensure consistency
+			store.set('accountInfos', { ...store.s.accountInfos, [host + '/' + $i.id]: $i });
 		}
 
 		console.log('Token successfully regenerated');
@@ -79,10 +83,14 @@ export async function silentTokenRefresh(): Promise<boolean> {
 		const result = await misskeyApi('i/regenerate-token');
 
 		if (result && typeof result === 'object' && 'token' in result) {
-			$i.token = result.token;
+			// Update all token references immediately
+			const newToken = result.token;
+			$i.token = newToken;
 			miLocalStorage.setItem('account', JSON.stringify($i));
 			// Update token in multi-user storage
-			store.set('accountTokens', { ...store.s.accountTokens, [host + '/' + $i.id]: result.token });
+			store.set('accountTokens', { ...store.s.accountTokens, [host + '/' + $i.id]: newToken });
+			// Update account info in store to ensure consistency
+			store.set('accountInfos', { ...store.s.accountInfos, [host + '/' + $i.id]: $i });
 		}
 
 		return true;

@@ -5,7 +5,7 @@
 
 import { setImmediate } from 'node:timers/promises';
 import * as mfm from 'mfm-js';
-import { In, DataSource, IsNull, LessThan } from 'typeorm';
+import { In, DataSource, IsNull, LessThan, MoreThan } from 'typeorm';
 import * as Redis from 'ioredis';
 import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
 import { extractMentions } from '@/misc/extract-mentions.js';
@@ -56,6 +56,7 @@ import { trackPromise } from '@/misc/promise-tracker.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { CollapsedQueue } from '@/misc/collapsed-queue.js';
 import { CacheService } from '@/core/CacheService.js';
+import { UserRiskScoreService } from '@/core/UserRiskScoreService.js';
 
 type NotificationType = 'reply' | 'renote' | 'quote' | 'mention';
 
@@ -218,6 +219,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 		private utilityService: UtilityService,
 		private userBlockingService: UserBlockingService,
 		private cacheService: CacheService,
+		private userRiskScoreService: UserRiskScoreService,
 	) {
 		this.updateNotesCountQueue = new CollapsedQueue(process.env.NODE_ENV !== 'test' ? 60 * 1000 * 5 : 0, this.collapseNotesCount, this.performUpdateNotesCount);
 	}
@@ -391,6 +393,78 @@ export class NoteCreateService implements OnApplicationShutdown {
 			throw new IdentifiableError('9f466dab-c856-48cd-9e65-ff90ff750580', 'Note contains too many mentions');
 		}
 
+		if (user.host === null) {
+			try {
+				const cachedScore = await this.userRiskScoreService.getCachedScore(user.id);
+
+				if (!cachedScore) {
+					// No cached score, calculate immediately
+					// Use Promise.resolve().then() instead of setImmediate to maintain context
+					Promise.resolve().then(async () => {
+						try {
+							await this.userRiskScoreService.calculateUserRiskScore(user.id);
+						} catch (err) {
+							console.error(`Failed to calculate risk score for user ${user.id}:`, err);
+						}
+					});
+				} else {
+					// Has cached score, but recalculate if it's old or default
+					const isOldScore = new Date().getTime() - new Date(cachedScore.calculatedAt).getTime() > 24 * 60 * 60 * 1000; // 24 hours
+					const isDefaultScore = cachedScore.details.concerns.includes('Insufficient data for accurate risk assessment');
+
+					if (isOldScore || isDefaultScore) {
+						Promise.resolve().then(async () => {
+							try {
+								await this.userRiskScoreService.calculateUserRiskScore(user.id);
+							} catch (err) {
+								console.error(`Failed to recalculate risk score for user ${user.id}:`, err);
+							}
+						});
+					}
+					// if (cachedScore.riskLevel === 'poor') {
+					// 	// Use ID to check recent notes (last minute)
+					// 	const oneMinuteAgo = this.idService.gen(Date.now() - 60 * 1000);
+					// 	const recentNotesCount = await this.notesRepository.count({
+					// 		where: {
+					// 			userId: user.id,
+					// 			id: MoreThan(oneMinuteAgo),
+					// 		},
+					// 	});
+					//
+					// 	if (recentNotesCount >= 3) {
+					// 		throw new IdentifiableError('d4e3b8f9-1234-5678-90ab-cdef12345678', 'Rate limit exceeded for high-risk user');
+					// 	}
+					//
+					// 	// Limit public visibility
+					// 	if (data.visibility === 'public') {
+					// 		data.visibility = 'home';
+					// 	}
+					//
+					// 	// Log high-risk user behavior
+					// 	console.warn(`Poor risk user ${user.id} creating note. Score: ${cachedScore.totalScore}`);
+					// } else if (cachedScore.riskLevel === 'fair') {
+					// 	// Fair score users: minor restrictions
+					// 	const oneMinuteAgo = this.idService.gen(Date.now() - 60 * 1000);
+					// 	const recentNotesCount = await this.notesRepository.count({
+					// 		where: {
+					// 			userId: user.id,
+					// 			id: MoreThan(oneMinuteAgo),
+					// 		},
+					// 	});
+					//
+					// 	if (recentNotesCount >= 10) {
+					// 		throw new IdentifiableError('d4e3b8f9-1234-5678-90ab-cdef12345679', 'Rate limit exceeded');
+					// 	}
+					// }
+				}
+			} catch (error) {
+				if (error instanceof IdentifiableError) {
+					throw error;
+				}
+				console.error(`Risk score check failed for user ${user.id}:`, error);
+			}
+		}
+
 		const note = await this.insertNote(user, data, tags, emojis, mentionedUsers);
 
 		setImmediate('post created', { signal: this.#shutdownController.signal }).then(
@@ -451,7 +525,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 				const firstFeature = geoJsonData.features[0];
 				if (firstFeature.geometry && firstFeature.geometry.type === 'Point' && firstFeature.geometry.coordinates) {
 					const [lon, lat] = firstFeature.geometry.coordinates;
-					insert.location = `POINT(${lon} ${lat})`;
+					(insert as any).location = () => `ST_SetSRID(ST_Point(${lon}, ${lat}), 4326)`;
 				}
 			}
 		}

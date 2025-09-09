@@ -105,6 +105,11 @@ export function getConfig(): UserConfig {
 			},
 			headers: { // なんか効かない
 				'X-Frame-Options': 'DENY',
+				'Cross-Origin-Opener-Policy': 'same-origin',
+				'Cross-Origin-Embedder-Policy': 'require-corp',
+			},
+			fs: {
+				allow: ['..', '../../rust-workspace'],
 			},
 		},
 
