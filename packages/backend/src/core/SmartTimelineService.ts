@@ -150,9 +150,9 @@ export class SmartTimelineService implements OnApplicationShutdown {
 
 		if (allNotes.length < minContentThreshold) {
 			const historicalNotes = await this.getHistoricalDataWithDecayedWeights(
-				user, 
-				limit - allNotes.length + 10, 
-				historicalDataWeight, 
+				user,
+				limit - allNotes.length + 10,
+				historicalDataWeight,
 				maxHistoricalDays,
 				options
 			);
@@ -274,53 +274,58 @@ export class SmartTimelineService implements OnApplicationShutdown {
 			return await this.getLocalTimelineData(user, segment.maxItems);
 		}
 
-		const query = this.notesRepository.createQueryBuilder('note')
-			.leftJoinAndSelect('note.user', 'user')
-			.leftJoinAndSelect('note.reply', 'reply')
-			.leftJoinAndSelect('note.renote', 'renote')
-			.leftJoinAndSelect('reply.user', 'replyUser')
-			.leftJoinAndSelect('renote.user', 'renoteUser')
-			.where('note.userId IN (:...followingIds)', { followingIds })
-			.andWhere('note.visibility = :visibility', { visibility: 'public' })
-			.andWhere('user.isSuspended = false')
-			.andWhere('user.isDeleted = false');
-
-		if (segment.timeWindow) {
-		}
-
-		this.queryService.generateVisibilityQuery(query, user);
-		this.queryService.generateBaseNoteFilteringQuery(query, user);
-
-		if (!options.includeMyRenotes) {
-			query.andWhere('NOT (note.userId = :userId AND note.renoteId IS NOT NULL)', { userId: user.id });
-		}
-
-		if (!options.withReplies) {
-			query.andWhere('note.replyId IS NULL');
-		}
-
-		if (options.withFiles) {
-			query.andWhere('note.fileIds != :emptyArray', { emptyArray: '{}' });
-		}
-
-		let notes = await query
-			.orderBy('note.id', 'DESC')
-			.limit(segment.maxItems * 2)
-			.getMany();
-
+		let sinceId: string | undefined;
 		if (segment.timeWindow) {
 			const timeThreshold = Date.now() - segment.timeWindow * 60 * 60 * 1000;
-			notes = notes.filter(note => {
-				try {
-					const noteTime = this.idService.parse(note.id).date.getTime();
-					return noteTime > timeThreshold;
-				} catch {
-					return false;
-				}
-			}).slice(0, segment.maxItems);
+			sinceId = this.idService.gen(new Date(timeThreshold).getTime());
 		}
 
-		return notes;
+		const batchSize = 100;
+		const allNotes: MiNote[] = [];
+
+		for (let i = 0; i < followingIds.length; i += batchSize) {
+			const batchIds = followingIds.slice(i, i + batchSize);
+
+			const query = this.notesRepository.createQueryBuilder('note')
+				.leftJoinAndSelect('note.user', 'user')
+				.leftJoinAndSelect('note.reply', 'reply')
+				.leftJoinAndSelect('note.renote', 'renote')
+				.leftJoinAndSelect('reply.user', 'replyUser')
+				.leftJoinAndSelect('renote.user', 'renoteUser')
+				.where('note.userId IN (:...batchIds)', { batchIds })
+				.andWhere('note.visibility = :visibility', { visibility: 'public' })
+				.andWhere('user.isSuspended = false')
+				.andWhere('user.isDeleted = false');
+
+			if (sinceId) {
+				query.andWhere('note.id > :sinceId', { sinceId });
+			}
+
+			this.queryService.generateVisibilityQuery(query, user);
+			this.queryService.generateBaseNoteFilteringQuery(query, user);
+
+			if (!options.includeMyRenotes) {
+				query.andWhere('NOT (note.userId = :userId AND note.renoteId IS NOT NULL)', { userId: user.id });
+			}
+
+			if (!options.withReplies) {
+				query.andWhere('note.replyId IS NULL');
+			}
+
+			if (options.withFiles) {
+				query.andWhere('note.fileIds != :emptyArray', { emptyArray: '{}' });
+			}
+
+			const batchNotes = await query
+				.orderBy('note.id', 'DESC')
+				.limit(Math.ceil(segment.maxItems * 1.5 / (followingIds.length / batchSize)))
+				.getMany();
+
+			allNotes.push(...batchNotes);
+		}
+
+		const sortedNotes = allNotes.sort((a, b) => b.id.localeCompare(a.id));
+		return sortedNotes.slice(0, segment.maxItems);
 	}
 
 	@bindThis
@@ -381,42 +386,56 @@ export class SmartTimelineService implements OnApplicationShutdown {
 		segment: TimelineSegment,
 		options: SmartTimelineOptions
 	): Promise<MiNote[]> {
+		const trendingCacheKey = `trending_notes:${segment.timeWindow || 6}:${segment.maxItems}`;
+		const cachedTrending = await this.redisClient.get(trendingCacheKey);
+		if (cachedTrending) {
+			try {
+				const noteIds = JSON.parse(cachedTrending);
+				if (Array.isArray(noteIds) && noteIds.length > 0) {
+					const notes = await this.notesRepository.findBy({ id: In(noteIds) });
+					const sortedNotes = this.sortNotesByIds(notes, noteIds);
+					return sortedNotes.slice(0, segment.maxItems);
+				}
+			} catch (error) {
+				await this.redisClient.del(trendingCacheKey);
+			}
+		}
+
 		const timeWindow = segment.timeWindow || 6;
 		const timeThreshold = new Date(Date.now() - timeWindow * 60 * 60 * 1000);
+		const sinceId = this.idService.gen(timeThreshold.getTime());
 
-		const query = this.notesRepository.createQueryBuilder('note')
+		const candidateNotes = await this.notesRepository.createQueryBuilder('note')
 			.leftJoinAndSelect('note.user', 'user')
-			.leftJoin('note.reply', 'reply')
-			.leftJoin('note.renote', 'renote')
-			.leftJoin('reply.user', 'replyUser')
-			.leftJoin('renote.user', 'renoteUser')
-			.leftJoin('note_reaction', 'reaction', 'reaction.noteId = note.id')
-			.leftJoin('note', 'renote_agg', 'renote_agg.renoteId = note.id')
-			.leftJoin('note', 'reply_agg', 'reply_agg.replyId = note.id')
-			.where('1=1')
+			.where('note.id > :sinceId', { sinceId })
 			.andWhere('note.visibility = :visibility', { visibility: 'public' })
 			.andWhere('user.isSuspended = false')
 			.andWhere('user.isDeleted = false')
-			.groupBy('note.id, user.id')
-			.having('COUNT(DISTINCT reaction.id) + COUNT(DISTINCT renote_agg.id) + COUNT(DISTINCT reply_agg.id) > :minEngagement', { minEngagement: 2 });
-
-		this.queryService.generateVisibilityQuery(query, user);
-		this.queryService.generateBaseNoteFilteringQuery(query, user);
-
-		let notes = await query
-			.orderBy('COUNT(DISTINCT reaction.id) + COUNT(DISTINCT renote_agg.id) + COUNT(DISTINCT reply_agg.id)', 'DESC')
-			.addOrderBy('note.id', 'DESC')
-			.limit(segment.maxItems * 2)
+			.orderBy('note.id', 'DESC')
+			.limit(segment.maxItems * 10)
 			.getMany();
 
-		notes = notes.filter(note => {
-			try {
-				const noteTime = this.idService.parse(note.id).date.getTime();
-				return noteTime > timeThreshold.getTime();
-			} catch {
-				return false;
-			}
-		}).slice(0, segment.maxItems);
+		if (candidateNotes.length === 0) {
+			await this.redisClient.setex(trendingCacheKey, 60, JSON.stringify([]));
+			return [];
+		}
+
+		const scoredNotes = await Promise.all(
+			candidateNotes.map(async (note) => {
+				const engagementScore = await this.calculateEngagementScore(note);
+				return { note, score: engagementScore };
+			})
+		);
+
+		const validScoredNotes = scoredNotes
+			.filter(({ score }) => score > 0.1)
+			.sort((a, b) => b.score - a.score)
+			.slice(0, segment.maxItems);
+
+		const notes = validScoredNotes.map(({ note }) => note);
+
+		const trendingNoteIds = notes.map(note => note.id);
+		await this.redisClient.setex(trendingCacheKey, 60, JSON.stringify(trendingNoteIds));
 
 		return notes;
 	}
@@ -435,42 +454,46 @@ export class SmartTimelineService implements OnApplicationShutdown {
 
 		const excludeUserIds = [...followingIds, ...mutedUserIds, ...blockedUserIds, user.id];
 
+		const timeThreshold = Date.now() - 7 * 24 * 60 * 60 * 1000;
+		const sinceId = this.idService.gen(new Date(timeThreshold).getTime());
+
 		const query = this.notesRepository.createQueryBuilder('note')
 			.leftJoinAndSelect('note.user', 'user')
-			.leftJoin('note.reply', 'reply')
-			.leftJoin('note.renote', 'renote')
-			.leftJoin('reply.user', 'replyUser')
-			.leftJoin('renote.user', 'renoteUser')
-			.leftJoin('note_reaction', 'reaction', 'reaction.noteId = note.id')
-			.where('note.visibility = :visibility', { visibility: 'public' })
+			.where('note.id > :sinceId', { sinceId })
+			.andWhere('note.visibility = :visibility', { visibility: 'public' })
 			.andWhere('user.isSuspended = false')
 			.andWhere('user.isDeleted = false');
 
-		if (excludeUserIds.length > 0) {
+		if (excludeUserIds.length > 0 && excludeUserIds.length < 1000) {
 			query.andWhere('note.userId NOT IN (:...excludeUserIds)', { excludeUserIds });
 		}
 
 		this.queryService.generateVisibilityQuery(query, user);
 		this.queryService.generateBaseNoteFilteringQuery(query, user);
 
-		let notes = await query
-			.groupBy('note.id, user.id')
-			.having('COUNT(DISTINCT reaction.id) > :minReactions', { minReactions: 1 })
-			.orderBy('RANDOM()')
-			.limit(segment.maxItems * 2)
+		const candidateNotes = await query
+			.orderBy('note.id', 'DESC')
+			.limit(segment.maxItems * 20)
 			.getMany();
 
-		const timeThreshold = Date.now() - 7 * 24 * 60 * 60 * 1000;
-		notes = notes.filter(note => {
-			try {
-				const noteTime = this.idService.parse(note.id).date.getTime();
-				return noteTime > timeThreshold;
-			} catch {
-				return false;
-			}
-		}).slice(0, segment.maxItems);
+		if (candidateNotes.length === 0) {
+			return [];
+		}
 
-		return notes;
+		const scoredNotes = await Promise.all(
+			candidateNotes.map(async (note) => {
+				const engagementScore = await this.calculateEngagementScore(note);
+				return { note, score: engagementScore };
+			})
+		);
+
+		const validNotes = scoredNotes
+			.filter(({ score }) => score > 0.05)
+			.map(({ note }) => note);
+
+		const shuffledNotes = validNotes.sort(() => Math.random() - 0.5);
+
+		return shuffledNotes.slice(0, segment.maxItems);
 	}
 
 	@bindThis
@@ -528,7 +551,7 @@ export class SmartTimelineService implements OnApplicationShutdown {
 		const noteAge = Date.now() - this.idService.parse(note.id).date.getTime();
 		const ageHours = noteAge / (1000 * 60 * 60);
 		const ageDays = ageHours / 24;
-		
+
 		const freshnessScore = Math.exp(-ageHours / 24);
 		score += freshnessScore * options.freshnessWeight;
 
@@ -1098,54 +1121,64 @@ export class SmartTimelineService implements OnApplicationShutdown {
 		const historicalStartId = this.idService.gen(new Date(historicalStartTime).getTime());
 		const recentId = this.idService.gen(new Date(recentTime).getTime());
 
-		const query = this.notesRepository.createQueryBuilder('note')
+		const candidateQuery = this.notesRepository.createQueryBuilder('note')
 			.leftJoinAndSelect('note.user', 'user')
-			.leftJoinAndSelect('note.reply', 'reply')
-			.leftJoinAndSelect('note.renote', 'renote')
-			.leftJoinAndSelect('reply.user', 'replyUser')
-			.leftJoinAndSelect('renote.user', 'renoteUser')
-			.leftJoin('note_reaction', 'reaction', 'reaction.noteId = note.id')
-			.leftJoin('note', 'renote_agg', 'renote_agg.renoteId = note.id')
-			.leftJoin('note', 'reply_agg', 'reply_agg.replyId = note.id')
 			.where('note.id BETWEEN :historicalStartId AND :recentId', {
 				historicalStartId: historicalStartId,
 				recentId: recentId
 			})
 			.andWhere('note.visibility = :visibility', { visibility: 'public' })
 			.andWhere('user.isSuspended = false')
-			.andWhere('user.isDeleted = false')
-			.groupBy('note.id, user.id, reply.id, renote.id, replyUser.id, renoteUser.id')
-			.having('COUNT(DISTINCT reaction.id) + COUNT(DISTINCT renote_agg.id) + COUNT(DISTINCT reply_agg.id) >= :minEngagement', { minEngagement: 1 })
-			.addSelect('COUNT(DISTINCT reaction.id) + COUNT(DISTINCT renote_agg.id) + COUNT(DISTINCT reply_agg.id) as engagementScore');
+			.andWhere('user.isDeleted = false');
 
-		if (followingIds.length > 0) {
-			query.andWhere('(note.userId IN (:...followingIds) OR note.visibility = :publicVisibility)', {
+		if (followingIds.length > 0 && followingIds.length < 1000) {
+			candidateQuery.andWhere('(note.userId IN (:...followingIds) OR note.visibility = :publicVisibility)', {
 				followingIds,
 				publicVisibility: 'public'
 			});
 		}
 
 		const excludeUserIds = [...mutedUserIds, ...blockedUserIds];
-		if (excludeUserIds.length > 0) {
-			query.andWhere('note.userId NOT IN (:...excludeUserIds)', { excludeUserIds });
+		if (excludeUserIds.length > 0 && excludeUserIds.length < 1000) {
+			candidateQuery.andWhere('note.userId NOT IN (:...excludeUserIds)', { excludeUserIds });
 		}
 
-		this.queryService.generateVisibilityQuery(query, user);
-		this.queryService.generateBaseNoteFilteringQuery(query, user);
+		this.queryService.generateVisibilityQuery(candidateQuery, user);
+		this.queryService.generateBaseNoteFilteringQuery(candidateQuery, user);
 
 		if (options.withFiles) {
-			query.andWhere('note.fileIds != :emptyArray', { emptyArray: '{}' });
+			candidateQuery.andWhere('note.fileIds != :emptyArray', { emptyArray: '{}' });
 		}
 
 		if (!options.withReplies) {
-			query.andWhere('note.replyId IS NULL');
+			candidateQuery.andWhere('note.replyId IS NULL');
 		}
 
-		const historicalNotes = await query
-			.orderBy('engagementScore', 'DESC')
-			.addOrderBy('note.id', 'DESC')
-			.limit(limit * 2)
+		const candidateNotes = await candidateQuery
+			.orderBy('note.id', 'DESC')
+			.limit(limit * 10)
 			.getMany();
+
+		if (candidateNotes.length === 0) {
+			const noteIds: string[] = [];
+			await this.redisClient.setex(cacheKey, this.HISTORICAL_CACHE_TTL, JSON.stringify(noteIds));
+			return [];
+		}
+
+		const scoredNotes = await Promise.all(
+			candidateNotes.map(async (note) => {
+				const engagementScore = await this.calculateEngagementScore(note);
+				return { note, score: engagementScore };
+			})
+		);
+
+		const validScoredNotes = scoredNotes
+			.filter(({ score }) => score > 0.05)
+			.sort((a, b) => b.score - a.score);
+
+		const historicalNotes = validScoredNotes
+			.slice(0, limit * 2)
+			.map(({ note }) => note);
 
 		const enhancedNotes = await this.enhanceHistoricalNotesWithUserData(user, historicalNotes, historicalDataWeight);
 
@@ -1198,7 +1231,7 @@ export class SmartTimelineService implements OnApplicationShutdown {
 			}
 
 			if (note.tags && note.tags.length > 0) {
-				const tagInteractions = userInteractions.filter(i => 
+				const tagInteractions = userInteractions.filter(i =>
 					i.targetType === 'hashtag' && note.tags!.includes(i.targetId)
 				);
 				if (tagInteractions.length > 0) {
@@ -1263,31 +1296,36 @@ export class SmartTimelineService implements OnApplicationShutdown {
 			const followingIds = await this.getFollowingIds(user.id);
 			if (followingIds.length === 0) return [];
 
-			const query = this.notesRepository.createQueryBuilder('note')
-				.leftJoinAndSelect('note.user', 'user')
-				.leftJoinAndSelect('note.reply', 'reply')
-				.leftJoinAndSelect('note.renote', 'renote')
-				.leftJoinAndSelect('reply.user', 'replyUser')
-				.leftJoinAndSelect('renote.user', 'renoteUser')
-				.leftJoin('note_reaction', 'reaction', 'reaction.noteId = note.id')
-				.leftJoin('note', 'renote_agg', 'renote_agg.renoteId = note.id')
-				.leftJoin('note', 'reply_agg', 'reply_agg.replyId = note.id')
-				.where('note.userId IN (:...followingIds)', { followingIds })
-				.andWhere('note.visibility = :visibility', { visibility: 'public' })
-				.andWhere('user.isSuspended = false')
-				.andWhere('user.isDeleted = false')
-				.groupBy('note.id, user.id, reply.id, renote.id, replyUser.id, renoteUser.id')
-				.addSelect('COUNT(DISTINCT reaction.id) as reactionCount')
-				.addSelect('COUNT(DISTINCT renote_agg.id) as renoteCount')
-				.addSelect('COUNT(DISTINCT reply_agg.id) as replyCount');
+			const batchSize = 100;
+			const allNotes: MiNote[] = [];
 
-			this.queryService.generateVisibilityQuery(query, user);
-			this.queryService.generateBaseNoteFilteringQuery(query, user);
+			for (let i = 0; i < followingIds.length; i += batchSize) {
+				const batchIds = followingIds.slice(i, i + batchSize);
 
-			return await query
-				.orderBy('note.id', 'DESC')
-				.limit(limit)
-				.getMany();
+				const query = this.notesRepository.createQueryBuilder('note')
+					.leftJoinAndSelect('note.user', 'user')
+					.leftJoinAndSelect('note.reply', 'reply')
+					.leftJoinAndSelect('note.renote', 'renote')
+					.leftJoinAndSelect('reply.user', 'replyUser')
+					.leftJoinAndSelect('renote.user', 'renoteUser')
+					.where('note.userId IN (:...batchIds)', { batchIds })
+					.andWhere('note.visibility = :visibility', { visibility: 'public' })
+					.andWhere('user.isSuspended = false')
+					.andWhere('user.isDeleted = false');
+
+				this.queryService.generateVisibilityQuery(query, user);
+				this.queryService.generateBaseNoteFilteringQuery(query, user);
+
+				const batchNotes = await query
+					.orderBy('note.id', 'DESC')
+					.limit(Math.ceil(limit * 1.5 / (followingIds.length / batchSize)))
+					.getMany();
+
+				allNotes.push(...batchNotes);
+			}
+
+			const sortedNotes = allNotes.sort((a, b) => b.id.localeCompare(a.id));
+			return sortedNotes.slice(0, limit);
 		} catch (error) {
 			console.error('SmartTimelineService: Error getting home timeline data:', error);
 			return [];
@@ -1320,30 +1358,42 @@ export class SmartTimelineService implements OnApplicationShutdown {
 			const timeThreshold = Date.now() - 12 * 60 * 60 * 1000;
 			const sinceId = this.idService.gen(new Date(timeThreshold).getTime());
 
-			const query = this.notesRepository.createQueryBuilder('note')
+			const candidateNotes = await this.notesRepository.createQueryBuilder('note')
 				.leftJoinAndSelect('note.user', 'user')
-				.leftJoin('note_reaction', 'reaction', 'reaction.noteId = note.id')
-				.leftJoin('note', 'renote_agg', 'renote_agg.renoteId = note.id')
-				.leftJoin('note', 'reply_agg', 'reply_agg.replyId = note.id')
 				.where('note.id > :sinceId', { sinceId })
 				.andWhere('note.visibility = :visibility', { visibility: 'public' })
 				.andWhere('user.isSuspended = false')
 				.andWhere('user.isDeleted = false')
-				.groupBy('note.id, user.id')
-				.having('COUNT(DISTINCT reaction.id) + COUNT(DISTINCT renote_agg.id) + COUNT(DISTINCT reply_agg.id) > 1')
-				.addSelect('COUNT(DISTINCT reaction.id) + COUNT(DISTINCT renote_agg.id) + COUNT(DISTINCT reply_agg.id) as engagementScore');
+				.andWhere(excludeUserIds.length > 0 && excludeUserIds.length < 1000 
+					? 'note.userId NOT IN (:...excludeUserIds)' : '1=1', 
+					excludeUserIds.length > 0 && excludeUserIds.length < 1000 ? { excludeUserIds } : {})
+				.orderBy('note.id', 'DESC')
+				.limit(limit * 10)
+				.getMany();
 
-			if (excludeUserIds.length > 0 && excludeUserIds.length < 1000) {
-				query.andWhere('note.userId NOT IN (:...excludeUserIds)', { excludeUserIds });
+			this.queryService.generateVisibilityQuery(
+				this.notesRepository.createQueryBuilder('note').leftJoinAndSelect('note.user', 'user'), 
+				user
+			);
+
+			if (candidateNotes.length === 0) {
+				await this.redisClient.setex(cacheKey, 300, JSON.stringify([]));
+				return [];
 			}
 
-			this.queryService.generateVisibilityQuery(query, user);
+			const scoredNotes = await Promise.all(
+				candidateNotes.map(async (note) => {
+					const engagementScore = await this.calculateEngagementScore(note);
+					return { note, score: engagementScore };
+				})
+			);
 
-			const notes = await query
-				.orderBy('engagementScore', 'DESC')
-				.addOrderBy('note.id', 'DESC')
-				.limit(limit * 2)
-				.getMany();
+			const validScoredNotes = scoredNotes
+				.filter(({ score }) => score > 0.1)
+				.sort((a, b) => b.score - a.score)
+				.slice(0, limit);
+
+			const notes = validScoredNotes.map(({ note }) => note);
 
 			const noteIds = notes.map(note => note.id);
 			await this.redisClient.setex(cacheKey, 300, JSON.stringify(noteIds));
@@ -1381,11 +1431,8 @@ export class SmartTimelineService implements OnApplicationShutdown {
 			const timeThreshold = Date.now() - 6 * 60 * 60 * 1000;
 			const sinceId = this.idService.gen(new Date(timeThreshold).getTime());
 
-			const query = this.notesRepository.createQueryBuilder('note')
+			const candidateNotes = await this.notesRepository.createQueryBuilder('note')
 				.leftJoinAndSelect('note.user', 'user')
-				.leftJoin('note_reaction', 'reaction', 'reaction.noteId = note.id')
-				.leftJoin('note', 'renote_agg', 'renote_agg.renoteId = note.id')
-				.leftJoin('note', 'reply_agg', 'reply_agg.replyId = note.id')
 				.where('note.id > :sinceId', { sinceId })
 				.andWhere('note.visibility = :visibility', { visibility: 'public' })
 				.andWhere('note.localOnly = false OR note.localOnly IS NULL')
@@ -1393,21 +1440,36 @@ export class SmartTimelineService implements OnApplicationShutdown {
 				.andWhere('user.host IS NULL')
 				.andWhere('user.isSuspended = false')
 				.andWhere('user.isDeleted = false')
-				.groupBy('note.id, user.id')
-				.having('COUNT(DISTINCT reaction.id) + COUNT(DISTINCT renote_agg.id) + COUNT(DISTINCT reply_agg.id) >= 0')
-				.addSelect('COUNT(DISTINCT reaction.id) + COUNT(DISTINCT renote_agg.id) + COUNT(DISTINCT reply_agg.id) as engagementScore');
+				.andWhere(excludeUserIds.length > 0 && excludeUserIds.length < 1000 
+					? 'note.userId NOT IN (:...excludeUserIds)' : '1=1', 
+					excludeUserIds.length > 0 && excludeUserIds.length < 1000 ? { excludeUserIds } : {})
+				.orderBy('note.id', 'DESC')
+				.limit(limit * 10)
+				.getMany();
 
-			if (excludeUserIds.length > 0 && excludeUserIds.length < 1000) {
-				query.andWhere('note.userId NOT IN (:...excludeUserIds)', { excludeUserIds });
+			this.queryService.generateVisibilityQuery(
+				this.notesRepository.createQueryBuilder('note').leftJoinAndSelect('note.user', 'user'), 
+				user
+			);
+
+			if (candidateNotes.length === 0) {
+				await this.redisClient.setex(cacheKey, 300, JSON.stringify([]));
+				return [];
 			}
 
-			this.queryService.generateVisibilityQuery(query, user);
+			const scoredNotes = await Promise.all(
+				candidateNotes.map(async (note) => {
+					const engagementScore = await this.calculateEngagementScore(note);
+					return { note, score: engagementScore };
+				})
+			);
 
-			 const notes = await query
-				.orderBy('engagementScore', 'DESC')
-				.addOrderBy('note.id', 'DESC')
-				.limit(limit * 2)
-				.getMany();
+			const validScoredNotes = scoredNotes
+				.filter(({ score }) => score >= 0)
+				.sort((a, b) => b.score - a.score)
+				.slice(0, limit);
+
+			const notes = validScoredNotes.map(({ note }) => note);
 
 			const noteIds = notes.map(note => note.id);
 			await this.redisClient.setex(cacheKey, 300, JSON.stringify(noteIds));
