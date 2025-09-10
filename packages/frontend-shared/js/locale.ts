@@ -79,7 +79,7 @@ async function loadLocaleWithRetry(maxRetries = 3): Promise<Locale | null> {
 				return null;
 			}
 
-			await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, attempt)));
+			await new Promise(resolve => window.setTimeout(resolve, 100 * Math.pow(2, attempt)));
 		}
 	}
 

@@ -98,7 +98,7 @@ import { useStream } from '@/stream.js';
 import { store } from '@/store.js';
 import { useDocumentVisibility } from '@@/js/use-document-visibility.js';
 
-type SmartTimelineResponse = 
+type SmartTimelineResponse =
 	| Misskey.entities.Note[]
 	| { notes: Misskey.entities.Note[]; scores: Record<string, number> };
 
@@ -464,7 +464,7 @@ watch(visibility, () => {
 onMounted(() => {
 	init();
 
-	scrollContainer = document.getElementById('misskey_app') || document.documentElement;
+	scrollContainer = window.document.getElementById('misskey_app') || window.document.documentElement;
 
 	if (store.s.realtimeMode) {
 		connectToStream();
