@@ -227,7 +227,7 @@ export class ContentRecommendationService {
 		const cached = await this.redisClient.get(cacheKey);
 		if (cached) {
 			const noteIds = JSON.parse(cached);
-			return await this.notesRepository.findBy({ id: In(noteIds) });
+			return await this.getNotesWithMinimalJoins(noteIds);
 		}
 
 		const [followingIds, mutedUserIds, blockedUserIds] = await Promise.all([
@@ -236,23 +236,24 @@ export class ContentRecommendationService {
 			this.getBlockedUserIds(user.id),
 		]);
 
+		const timeThreshold = Date.now() - 7 * 24 * 60 * 60 * 1000;
+		const sinceId = this.idService.gen(new Date(timeThreshold).getTime());
+
 		const query = this.notesRepository.createQueryBuilder('note')
 			.leftJoinAndSelect('note.user', 'user')
 			.leftJoinAndSelect('note.reply', 'reply')
 			.leftJoinAndSelect('note.renote', 'renote')
 			.leftJoinAndSelect('reply.user', 'replyUser')
 			.leftJoinAndSelect('renote.user', 'renoteUser')
-			.where('note.visibility = :visibility', { visibility: 'public' })
+			.where('note.id > :sinceId', { sinceId })
+			.andWhere('note.visibility = :visibility', { visibility: 'public' })
 			.andWhere('user.isSuspended = false')
 			.andWhere('user.isDeleted = false');
 
-		this.queryService.generateVisibilityQuery(query, user);
-		this.queryService.generateBaseNoteFilteringQuery(query, user);
-
-		if (mutedUserIds.length > 0) {
+		if (mutedUserIds.length > 0 && mutedUserIds.length < 1000) {
 			query.andWhere('note.userId NOT IN (:...mutedUserIds)', { mutedUserIds });
 		}
-		if (blockedUserIds.length > 0) {
+		if (blockedUserIds.length > 0 && blockedUserIds.length < 1000) {
 			query.andWhere('note.userId NOT IN (:...blockedUserIds)', { blockedUserIds });
 		}
 
@@ -263,18 +264,19 @@ export class ContentRecommendationService {
 			query.andWhere('note.userId NOT IN (:...excludeUserIds)', { excludeUserIds: options.excludeUserIds });
 		}
 
-		const timeThreshold = Date.now() - 7 * 24 * 60 * 60 * 1000;
-
-		if (options.includeFollowing && followingIds.length > 0) {
+		if (options.includeFollowing && followingIds.length > 0 && followingIds.length < 1000) {
 			query.andWhere('(note.userId IN (:...followingIds) OR note.visibility = :publicVisibility)', {
 				followingIds,
 				publicVisibility: 'public'
 			});
 		}
 
+		this.queryService.generateVisibilityQuery(query, user);
+		this.queryService.generateBaseNoteFilteringQuery(query, user);
+
 		const allCandidates = await query
 			.orderBy('note.id', 'DESC')
-			.limit(2000)
+			.limit(1000)
 			.getMany();
 
 		const candidates = allCandidates.filter(note => {
@@ -1556,5 +1558,33 @@ export class ContentRecommendationService {
 		}
 		
 		return Math.min(1, finalScore);
+	}
+
+	@bindThis
+	private async getNotesWithMinimalJoins(noteIds: string[]): Promise<MiNote[]> {
+		if (noteIds.length === 0) return [];
+
+		const batchSize = 200;
+		const allNotes: MiNote[] = [];
+
+		for (let i = 0; i < noteIds.length; i += batchSize) {
+			const batch = noteIds.slice(i, i + batchSize);
+			
+			const notes = await this.notesRepository.createQueryBuilder('note')
+				.leftJoinAndSelect('note.user', 'user')
+				.leftJoinAndSelect('note.reply', 'reply', 'reply.visibility = :publicVisibility', { publicVisibility: 'public' })
+				.leftJoinAndSelect('note.renote', 'renote', 'renote.visibility = :publicVisibility', { publicVisibility: 'public' })
+				.leftJoinAndSelect('reply.user', 'replyUser', 'replyUser.isSuspended = false AND replyUser.isDeleted = false')
+				.leftJoinAndSelect('renote.user', 'renoteUser', 'renoteUser.isSuspended = false AND renoteUser.isDeleted = false')
+				.where('note.id IN (:...batch)', { batch })
+				.andWhere('user.isSuspended = false')
+				.andWhere('user.isDeleted = false')
+				.getMany();
+				
+			allNotes.push(...notes);
+		}
+
+		const noteMap = new Map(allNotes.map(note => [note.id, note]));
+		return noteIds.map(id => noteMap.get(id)).filter(Boolean) as MiNote[];
 	}
 }
