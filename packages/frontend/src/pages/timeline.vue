@@ -10,14 +10,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 			{{ i18n.ts._timelineDescription[src] }}
 		</MkTip>
 		<MkPostForm v-if="prefer.r.showFixedPostForm.value" :class="$style.postForm" class="_panel" fixed style="margin-bottom: var(--MI-margin);"/>
-		<MkRecommendedTimeline
+		<MkSmartTimeline
 			v-if="src === 'smart'"
 			ref="tlComponent"
 			:key="'smart' + withRenotes + withReplies + onlyFiles + withSensitive"
 			:class="$style.tl"
-			context="timeline"
-			:showScores="false"
-			:showAlgorithmInfo="false"
+			:algorithm="'smart'"
+			:diversityLevel="'medium'"
+			:freshnessWeight="0.3"
+			:qualityThreshold="0.4"
+			:showModeIndicator="true"
+			:showScoreIndicator="false"
+			:autoRefresh="true"
 		/>
 		<MkStreamingNotesTimeline
 			v-else
@@ -42,7 +46,7 @@ import type { Tab } from '@/components/global/MkPageHeader.tabs.vue';
 import type { MenuItem } from '@/types/menu.js';
 import type { BasicTimelineType } from '@/timelines.js';
 import MkStreamingNotesTimeline from '@/components/MkStreamingNotesTimeline.vue';
-import MkRecommendedTimeline from '@/components/MkRecommendedTimeline.vue';
+import MkSmartTimeline from '@/components/MkSmartTimeline.vue';
 import MkPostForm from '@/components/MkPostForm.vue';
 import * as os from '@/os.js';
 import { store } from '@/store.js';
