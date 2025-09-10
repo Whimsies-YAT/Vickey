@@ -114,7 +114,7 @@ export class SmartTimelineService implements OnApplicationShutdown {
 	public async generateSmartTimeline(
 		user: MiUser,
 		options: SmartTimelineOptions = {}
-	): Promise<MiNote[]> {
+	): Promise<{ notes: MiNote[]; scores: Record<string, number> }> {
 		const {
 			limit = 20,
 			algorithm = 'smart',
@@ -133,7 +133,8 @@ export class SmartTimelineService implements OnApplicationShutdown {
 				const noteIds = JSON.parse(cached);
 				if (Array.isArray(noteIds)) {
 					const notes = await this.notesRepository.findBy({ id: In(noteIds) });
-					return this.sortNotesByIds(notes, noteIds);
+					const sortedNotes = this.sortNotesByIds(notes, noteIds);
+					return { notes: sortedNotes, scores: {} };
 				}
 			} catch (error) {
 				await this.redisClient.del(cacheKey);
@@ -159,7 +160,7 @@ export class SmartTimelineService implements OnApplicationShutdown {
 			allNotes.push(...historicalNotes);
 		}
 
-		const scoredNotes = await this.scoreTimelineNotes(user, allNotes, {
+		const { notes: scoredNotes, scores } = await this.scoreTimelineNotes(user, allNotes, {
 			freshnessWeight,
 			qualityThreshold,
 			diversityLevel,
@@ -169,10 +170,17 @@ export class SmartTimelineService implements OnApplicationShutdown {
 		const finalNotes = this.applyFinalFiltering(scoredNotes, options)
 			.slice(0, limit);
 
+		const finalScores: Record<string, number> = {};
+		finalNotes.forEach(note => {
+			if (scores[note.id] !== undefined) {
+				finalScores[note.id] = scores[note.id];
+			}
+		});
+
 		const noteIds = finalNotes.map(note => note.id);
 		await this.redisClient.setex(cacheKey, this.CACHE_TTL, JSON.stringify(noteIds));
 
-		return finalNotes;
+		return { notes: finalNotes, scores: finalScores };
 	}
 
 	@bindThis
@@ -527,7 +535,7 @@ export class SmartTimelineService implements OnApplicationShutdown {
 			diversityLevel: string;
 			historicalDataWeight?: number;
 		}
-	): Promise<MiNote[]> {
+	): Promise<{ notes: MiNote[]; scores: Record<string, number> }> {
 		const scoredNotes = await Promise.all(notes.map(async (note) => {
 			const score = await this.calculateTimelineScore(user, note, options);
 			return { note, score };
@@ -537,7 +545,15 @@ export class SmartTimelineService implements OnApplicationShutdown {
 
 		const diversifiedNotes = this.applyDiversityFiltering(scoredNotes, options.diversityLevel);
 
-		return diversifiedNotes.map(item => item.note);
+		const scores: Record<string, number> = {};
+		diversifiedNotes.forEach(item => {
+			scores[item.note.id] = item.score;
+		});
+
+		return {
+			notes: diversifiedNotes.map(item => item.note),
+			scores
+		};
 	}
 
 	@bindThis
@@ -1372,15 +1388,15 @@ export class SmartTimelineService implements OnApplicationShutdown {
 				.andWhere('note.visibility = :visibility', { visibility: 'public' })
 				.andWhere('user.isSuspended = false')
 				.andWhere('user.isDeleted = false')
-				.andWhere(excludeUserIds.length > 0 && excludeUserIds.length < 1000 
-					? 'note.userId NOT IN (:...excludeUserIds)' : '1=1', 
+				.andWhere(excludeUserIds.length > 0 && excludeUserIds.length < 1000
+					? 'note.userId NOT IN (:...excludeUserIds)' : '1=1',
 					excludeUserIds.length > 0 && excludeUserIds.length < 1000 ? { excludeUserIds } : {})
 				.orderBy('note.id', 'DESC')
 				.limit(limit * 10)
 				.getMany();
 
 			this.queryService.generateVisibilityQuery(
-				this.notesRepository.createQueryBuilder('note').leftJoinAndSelect('note.user', 'user'), 
+				this.notesRepository.createQueryBuilder('note').leftJoinAndSelect('note.user', 'user'),
 				user
 			);
 
@@ -1448,15 +1464,15 @@ export class SmartTimelineService implements OnApplicationShutdown {
 				.andWhere('user.host IS NULL')
 				.andWhere('user.isSuspended = false')
 				.andWhere('user.isDeleted = false')
-				.andWhere(excludeUserIds.length > 0 && excludeUserIds.length < 1000 
-					? 'note.userId NOT IN (:...excludeUserIds)' : '1=1', 
+				.andWhere(excludeUserIds.length > 0 && excludeUserIds.length < 1000
+					? 'note.userId NOT IN (:...excludeUserIds)' : '1=1',
 					excludeUserIds.length > 0 && excludeUserIds.length < 1000 ? { excludeUserIds } : {})
 				.orderBy('note.id', 'DESC')
 				.limit(limit * 10)
 				.getMany();
 
 			this.queryService.generateVisibilityQuery(
-				this.notesRepository.createQueryBuilder('note').leftJoinAndSelect('note.user', 'user'), 
+				this.notesRepository.createQueryBuilder('note').leftJoinAndSelect('note.user', 'user'),
 				user
 			);
 

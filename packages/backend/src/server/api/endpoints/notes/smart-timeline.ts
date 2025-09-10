@@ -8,6 +8,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { SmartTimelineService } from '@/core/SmartTimelineService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { ContentRecommendationService } from '@/core/ContentRecommendationService.js';
+import { HybridTimelineService } from '@/core/HybridTimelineService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -17,13 +18,34 @@ export const meta = {
 	kind: 'read:account',
 
 	res: {
-		type: 'array',
-		optional: false, nullable: false,
-		items: {
-			type: 'object',
-			optional: false, nullable: false,
-			ref: 'Note',
-		},
+		type: 'object',
+		oneOf: [
+			{
+				type: 'array',
+				items: {
+					type: 'object',
+					ref: 'Note',
+				},
+			},
+			{
+				type: 'object',
+				properties: {
+					notes: {
+						type: 'array',
+						items: {
+							type: 'object',
+							ref: 'Note',
+						},
+					},
+					scores: {
+						type: 'object',
+						additionalProperties: {
+							type: 'number',
+						},
+					},
+				},
+			},
+		],
 	},
 
 	errors: {
@@ -81,6 +103,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private smartTimelineService: SmartTimelineService,
 		private noteEntityService: NoteEntityService,
 		private contentRecommendationService: ContentRecommendationService,
+		private hybridTimelineService: HybridTimelineService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			try {
@@ -100,7 +123,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					);
 				}
 
-				const notes = await this.smartTimelineService.generateSmartTimeline(me, {
+				const { notes, scores } = await this.smartTimelineService.generateSmartTimeline(me, {
 					limit: ps.limit,
 					sinceId: ps.sinceId,
 					untilId: ps.untilId,
@@ -138,7 +161,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					);
 				}
 
-				return packedNotes;
+				const preferences = await this.hybridTimelineService.getUserTimelinePreference(me.id);
+				const showScores = preferences.showScoreIndicator ?? false;
+				
+				if (showScores) {
+					return { notes: packedNotes, scores };
+				} else {
+					return packedNotes;
+				}
 			} catch (error) {
 				console.error('Smart timeline endpoint error:', error);
 				throw new ApiError(meta.errors.timelineUnavailable);

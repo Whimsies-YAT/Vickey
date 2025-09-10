@@ -1245,6 +1245,7 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
+     * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
      * **Credential required**: *Yes* / **Permission**: *read:admin:risk-scores*
      */
     request<E extends 'admin/users/get-risk-score', P extends Endpoints[E]['req']>(
@@ -1256,6 +1257,7 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
+     * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
      * **Credential required**: *Yes* / **Permission**: *read:admin:risk-scores*
      */
     request<E extends 'admin/users/list-high-risk-users', P extends Endpoints[E]['req']>(
@@ -1267,6 +1269,7 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
+     * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
      * **Credential required**: *Yes* / **Permission**: *read:admin:user-risk-scores*
      */
     request<E extends 'admin/users/list-risk-events', P extends Endpoints[E]['req']>(
@@ -1278,6 +1281,7 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
+     * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
      * **Credential required**: *Yes* / **Permission**: *write:admin:risk-scores*
      */
     request<E extends 'admin/users/manage-account-links', P extends Endpoints[E]['req']>(
@@ -1289,6 +1293,7 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
+     * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
      * **Credential required**: *Yes* / **Permission**: *read:admin:risk-score*
      */
     request<E extends 'admin/users/risk-score', P extends Endpoints[E]['req']>(

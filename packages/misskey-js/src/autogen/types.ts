@@ -1024,6 +1024,7 @@ export type paths = {
          * admin/users/get-risk-score
          * @description No description provided.
          *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
          *     **Credential required**: *Yes* / **Permission**: *read:admin:risk-scores*
          */
         post: operations['admin___users___get-risk-score'];
@@ -1033,6 +1034,7 @@ export type paths = {
          * admin/users/list-high-risk-users
          * @description No description provided.
          *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
          *     **Credential required**: *Yes* / **Permission**: *read:admin:risk-scores*
          */
         post: operations['admin___users___list-high-risk-users'];
@@ -1042,6 +1044,7 @@ export type paths = {
          * admin/users/list-risk-events
          * @description No description provided.
          *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
          *     **Credential required**: *Yes* / **Permission**: *read:admin:user-risk-scores*
          */
         post: operations['admin___users___list-risk-events'];
@@ -1051,6 +1054,7 @@ export type paths = {
          * admin/users/manage-account-links
          * @description No description provided.
          *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
          *     **Credential required**: *Yes* / **Permission**: *write:admin:risk-scores*
          */
         post: operations['admin___users___manage-account-links'];
@@ -1060,6 +1064,7 @@ export type paths = {
          * admin/users/risk-score
          * @description No description provided.
          *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
          *     **Credential required**: *Yes* / **Permission**: *read:admin:risk-score*
          */
         post: operations['admin___users___risk-score'];
@@ -33110,6 +33115,8 @@ export interface operations {
                     withReplies?: boolean;
                     /** @default false */
                     excludeNsfw?: boolean;
+                    /** @default true */
+                    enableCrossTimelineData?: boolean;
                     /**
                      * @default smart
                      * @enum {string}
@@ -33134,7 +33141,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    'application/json': components['schemas']['Note'][];
+                    'application/json': components['schemas']['Note'][] | {
+                        notes: components['schemas']['Note'][];
+                        scores: {
+                            [key: string]: number;
+                        };
+                    };
                 };
             };
             /** @description Client error */

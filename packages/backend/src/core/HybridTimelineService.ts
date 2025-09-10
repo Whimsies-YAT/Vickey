@@ -68,8 +68,10 @@ export class HybridTimelineService {
 		switch (timelineMode.type) {
 			case 'chronological':
 				return await this.generateChronologicalTimeline(user, options);
-			case 'smart':
-				return await this.smartTimelineService.generateSmartTimeline(user, options);
+			case 'smart': {
+				const { notes } = await this.smartTimelineService.generateSmartTimeline(user, options);
+				return notes;
+			}
 			case 'mixed':
 				return await this.generateMixedTimeline(user, options, timelineMode.smartRatio);
 			default:
@@ -179,16 +181,18 @@ export class HybridTimelineService {
 		const smartLimit = Math.floor(totalLimit * smartRatio);
 		const chronologicalLimit = totalLimit - smartLimit;
 
-		const [smartNotes, chronologicalNotes] = await Promise.all([
+		const [smartResult, chronologicalNotes] = await Promise.all([
 			smartLimit > 0 ? this.smartTimelineService.generateSmartTimeline(user, {
 				...options,
 				limit: Math.min(smartLimit * 2, 40),
-			}) : Promise.resolve([]),
+			}) : Promise.resolve({ notes: [], scores: {} }),
 			chronologicalLimit > 0 ? this.generateChronologicalTimeline(user, {
 				...options,
 				limit: Math.min(chronologicalLimit * 2, 40),
 			}) : Promise.resolve([]),
 		]);
+
+		const smartNotes = smartResult.notes;
 
 		const mergedNotes = this.mergeTimelines(smartNotes, chronologicalNotes, smartRatio);
 
