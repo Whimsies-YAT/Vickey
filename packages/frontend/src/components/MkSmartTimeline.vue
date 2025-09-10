@@ -183,22 +183,9 @@ function prepend(note: Misskey.entities.Note) {
 }
 
 function connectToStream() {
-	if (!stream || !$i || connection) {
-		console.log('Smart timeline connection skipped:', { stream: !!stream, $i: !!$i, connection: !!connection });
-		return;
-	}
+	if (!stream || !$i || connection) return;
 
 	try {
-		console.log('Connecting to smart timeline with params:', {
-			algorithm: props.algorithm,
-			diversityLevel: props.diversityLevel,
-			freshnessWeight: props.freshnessWeight,
-			qualityThreshold: props.qualityThreshold,
-			withRenotes: true,
-			withReplies: false,
-			withFiles: false,
-		});
-		
 		connection = stream.useChannel('smartTimeline', {
 			algorithm: props.algorithm,
 			diversityLevel: props.diversityLevel,
@@ -209,11 +196,7 @@ function connectToStream() {
 			withFiles: false,
 		});
 
-		connection.on('note', (note) => {
-			console.log('Smart timeline received note:', note.id);
-			prepend(note);
-		});
-		console.log('Smart timeline WebSocket connected successfully');
+		connection.on('note', prepend);
 	} catch (error) {
 		console.error('Failed to connect to smart timeline stream:', error);
 	}
@@ -223,7 +206,6 @@ function disconnectFromStream() {
 	if (connection) {
 		connection.dispose();
 		connection = null;
-		console.log('Smart timeline WebSocket disconnected');
 	}
 }
 
