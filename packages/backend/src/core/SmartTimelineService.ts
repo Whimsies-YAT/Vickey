@@ -43,6 +43,9 @@ export interface SmartTimelineOptions {
 	freshnessWeight?: number;
 	qualityThreshold?: number;
 	enableCrossTimelineData?: boolean;
+	historicalDataWeight?: number;
+	maxHistoricalDays?: number;
+	minContentThreshold?: number;
 }
 
 export interface TimelineSegment {
@@ -57,6 +60,9 @@ export class SmartTimelineService implements OnApplicationShutdown {
 	private readonly CACHE_TTL = 60 * 10;
 	private readonly MAX_TIMELINE_LENGTH = 200;
 	private readonly SEGMENT_CACHE_TTL = 60 * 5;
+	private readonly HISTORICAL_CACHE_TTL = 60 * 30;
+	private readonly MIN_CONTENT_THRESHOLD = 5;
+	private readonly MAX_HISTORICAL_DAYS = 30;
 
 	constructor(
 		@Inject(DI.redis)
@@ -115,6 +121,9 @@ export class SmartTimelineService implements OnApplicationShutdown {
 			diversityLevel = 'medium',
 			freshnessWeight = 0.3,
 			qualityThreshold = 0.4,
+			historicalDataWeight = 0.6,
+			maxHistoricalDays = this.MAX_HISTORICAL_DAYS,
+			minContentThreshold = this.MIN_CONTENT_THRESHOLD,
 		} = options;
 
 		const cacheKey = this.buildTimelineCacheKey(user.id, algorithm, diversityLevel, limit, options.offset || 0);
@@ -139,10 +148,22 @@ export class SmartTimelineService implements OnApplicationShutdown {
 
 		const allNotes = this.mergeSegmentResults(segmentResults, segments);
 
+		if (allNotes.length < minContentThreshold) {
+			const historicalNotes = await this.getHistoricalDataWithDecayedWeights(
+				user, 
+				limit - allNotes.length + 10, 
+				historicalDataWeight, 
+				maxHistoricalDays,
+				options
+			);
+			allNotes.push(...historicalNotes);
+		}
+
 		const scoredNotes = await this.scoreTimelineNotes(user, allNotes, {
 			freshnessWeight,
 			qualityThreshold,
 			diversityLevel,
+			historicalDataWeight,
 		});
 
 		const finalNotes = this.applyFinalFiltering(scoredNotes, options)
@@ -249,7 +270,9 @@ export class SmartTimelineService implements OnApplicationShutdown {
 		options: SmartTimelineOptions
 	): Promise<MiNote[]> {
 		const followingIds = await this.getFollowingIds(user.id);
-		if (followingIds.length === 0) return [];
+		if (followingIds.length === 0) {
+			return await this.getLocalTimelineData(user, segment.maxItems);
+		}
 
 		const query = this.notesRepository.createQueryBuilder('note')
 			.leftJoinAndSelect('note.user', 'user')
@@ -316,7 +339,16 @@ export class SmartTimelineService implements OnApplicationShutdown {
 
 		let notes = result.notes;
 
-		if (options.enableCrossTimelineData !== false) {
+		if (notes.length < segment.maxItems / 2) {
+			const crossTimelineNotes = await this.getCrossTimelineData(user, segment.maxItems);
+			const combinedNotes = [...notes, ...crossTimelineNotes];
+			const seenIds = new Set<string>();
+			notes = combinedNotes.filter(note => {
+				if (seenIds.has(note.id)) return false;
+				seenIds.add(note.id);
+				return true;
+			});
+		} else if (options.enableCrossTimelineData !== false) {
 			const crossTimelineNotes = await this.getCrossTimelineData(user, segment.maxItems);
 			const combinedNotes = [...notes, ...crossTimelineNotes];
 			const seenIds = new Set<string>();
@@ -466,6 +498,7 @@ export class SmartTimelineService implements OnApplicationShutdown {
 			freshnessWeight: number;
 			qualityThreshold: number;
 			diversityLevel: string;
+			historicalDataWeight?: number;
 		}
 	): Promise<MiNote[]> {
 		const scoredNotes = await Promise.all(notes.map(async (note) => {
@@ -487,12 +520,15 @@ export class SmartTimelineService implements OnApplicationShutdown {
 		options: {
 			freshnessWeight: number;
 			qualityThreshold: number;
+			historicalDataWeight?: number;
 		}
 	): Promise<number> {
 		let score = 0;
 
 		const noteAge = Date.now() - this.idService.parse(note.id).date.getTime();
 		const ageHours = noteAge / (1000 * 60 * 60);
+		const ageDays = ageHours / 24;
+		
 		const freshnessScore = Math.exp(-ageHours / 24);
 		score += freshnessScore * options.freshnessWeight;
 
@@ -507,6 +543,11 @@ export class SmartTimelineService implements OnApplicationShutdown {
 
 		const aiContentScore = await this.calculateAIContentScore(note);
 		score += aiContentScore * 0.15;
+
+		if (ageDays > 1 && options.historicalDataWeight) {
+			const historicalDecayFactor = this.calculateHistoricalDecayFactor(ageDays);
+			score *= options.historicalDataWeight * historicalDecayFactor;
+		}
 
 		return Math.min(1, score);
 	}
@@ -1013,6 +1054,166 @@ export class SmartTimelineService implements OnApplicationShutdown {
 		} catch (error) {
 			console.error('SmartTimelineService: Failed to batch update user interests:', error);
 		}
+	}
+
+	@bindThis
+	private calculateHistoricalDecayFactor(ageDays: number): number {
+		if (ageDays <= 1) return 1.0;
+		if (ageDays <= 7) return 0.8 - (ageDays - 1) * 0.1;
+		if (ageDays <= 14) return 0.6 - (ageDays - 7) * 0.05;
+		if (ageDays <= 30) return 0.4 - (ageDays - 14) * 0.02;
+		return 0.2;
+	}
+
+	@bindThis
+	private async getHistoricalDataWithDecayedWeights(
+		user: MiUser,
+		limit: number,
+		historicalDataWeight: number,
+		maxHistoricalDays: number,
+		options: SmartTimelineOptions
+	): Promise<MiNote[]> {
+		const cacheKey = `historical_data:${user.id}:${limit}:${historicalDataWeight}`;
+		const cached = await this.redisClient.get(cacheKey);
+		if (cached) {
+			try {
+				const noteIds = JSON.parse(cached);
+				if (Array.isArray(noteIds)) {
+					const notes = await this.notesRepository.findBy({ id: In(noteIds) });
+					return this.sortNotesByIds(notes, noteIds);
+				}
+			} catch (error) {
+				await this.redisClient.del(cacheKey);
+			}
+		}
+
+		const [followingIds, mutedUserIds, blockedUserIds] = await Promise.all([
+			this.getFollowingIds(user.id),
+			this.getMutedUserIds(user.id),
+			this.getBlockedUserIds(user.id),
+		]);
+
+		const historicalStartTime = Date.now() - maxHistoricalDays * 24 * 60 * 60 * 1000;
+		const recentTime = Date.now() - 24 * 60 * 60 * 1000;
+		const historicalStartId = this.idService.gen(new Date(historicalStartTime).getTime());
+		const recentId = this.idService.gen(new Date(recentTime).getTime());
+
+		const query = this.notesRepository.createQueryBuilder('note')
+			.leftJoinAndSelect('note.user', 'user')
+			.leftJoinAndSelect('note.reply', 'reply')
+			.leftJoinAndSelect('note.renote', 'renote')
+			.leftJoinAndSelect('reply.user', 'replyUser')
+			.leftJoinAndSelect('renote.user', 'renoteUser')
+			.leftJoin('note_reaction', 'reaction', 'reaction.noteId = note.id')
+			.leftJoin('note', 'renote_agg', 'renote_agg.renoteId = note.id')
+			.leftJoin('note', 'reply_agg', 'reply_agg.replyId = note.id')
+			.where('note.id BETWEEN :historicalStartId AND :recentId', {
+				historicalStartId: historicalStartId,
+				recentId: recentId
+			})
+			.andWhere('note.visibility = :visibility', { visibility: 'public' })
+			.andWhere('user.isSuspended = false')
+			.andWhere('user.isDeleted = false')
+			.groupBy('note.id, user.id, reply.id, renote.id, replyUser.id, renoteUser.id')
+			.having('COUNT(DISTINCT reaction.id) + COUNT(DISTINCT renote_agg.id) + COUNT(DISTINCT reply_agg.id) >= :minEngagement', { minEngagement: 1 })
+			.addSelect('COUNT(DISTINCT reaction.id) + COUNT(DISTINCT renote_agg.id) + COUNT(DISTINCT reply_agg.id) as engagementScore');
+
+		if (followingIds.length > 0) {
+			query.andWhere('(note.userId IN (:...followingIds) OR note.visibility = :publicVisibility)', {
+				followingIds,
+				publicVisibility: 'public'
+			});
+		}
+
+		const excludeUserIds = [...mutedUserIds, ...blockedUserIds];
+		if (excludeUserIds.length > 0) {
+			query.andWhere('note.userId NOT IN (:...excludeUserIds)', { excludeUserIds });
+		}
+
+		this.queryService.generateVisibilityQuery(query, user);
+		this.queryService.generateBaseNoteFilteringQuery(query, user);
+
+		if (options.withFiles) {
+			query.andWhere('note.fileIds != :emptyArray', { emptyArray: '{}' });
+		}
+
+		if (!options.withReplies) {
+			query.andWhere('note.replyId IS NULL');
+		}
+
+		const historicalNotes = await query
+			.orderBy('engagementScore', 'DESC')
+			.addOrderBy('note.id', 'DESC')
+			.limit(limit * 2)
+			.getMany();
+
+		const enhancedNotes = await this.enhanceHistoricalNotesWithUserData(user, historicalNotes, historicalDataWeight);
+
+		const finalNotes = enhancedNotes.slice(0, limit);
+		const noteIds = finalNotes.map(note => note.id);
+		await this.redisClient.setex(cacheKey, this.HISTORICAL_CACHE_TTL, JSON.stringify(noteIds));
+
+		return finalNotes;
+	}
+
+	@bindThis
+	private async enhanceHistoricalNotesWithUserData(
+		user: MiUser,
+		notes: MiNote[],
+		historicalDataWeight: number
+	): Promise<MiNote[]> {
+		const userInteractions = await this.userInteractionHistoryRepository.find({
+			where: {
+				userId: user.id,
+				createdAt: MoreThan(new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)),
+				interactionType: In(['like', 'renote', 'reply', 'view'])
+			},
+			order: { createdAt: 'DESC' },
+			take: 200
+		});
+
+		const interactionMap = new Map<string, any[]>();
+		for (const interaction of userInteractions) {
+			if (!interactionMap.has(interaction.targetId)) {
+				interactionMap.set(interaction.targetId, []);
+			}
+			interactionMap.get(interaction.targetId)!.push(interaction);
+		}
+
+		const scoredNotes = notes.map(note => {
+			const noteAge = Date.now() - this.idService.parse(note.id).date.getTime();
+			const ageDays = noteAge / (1000 * 60 * 60 * 24);
+			const decayFactor = this.calculateHistoricalDecayFactor(ageDays);
+
+			let relevanceScore = 0.5;
+
+			const authorInteractions = interactionMap.get(note.userId) || [];
+			if (authorInteractions.length > 0) {
+				const interactionWeight = authorInteractions.reduce((sum, interaction) => {
+					const interactionAge = Date.now() - interaction.createdAt.getTime();
+					const interactionDecay = Math.exp(-interactionAge / (7 * 24 * 60 * 60 * 1000));
+					return sum + (interaction.weight || 1) * interactionDecay;
+				}, 0);
+				relevanceScore += Math.min(0.4, interactionWeight / 5);
+			}
+
+			if (note.tags && note.tags.length > 0) {
+				const tagInteractions = userInteractions.filter(i => 
+					i.targetType === 'hashtag' && note.tags!.includes(i.targetId)
+				);
+				if (tagInteractions.length > 0) {
+					relevanceScore += Math.min(0.3, tagInteractions.length * 0.1);
+				}
+			}
+
+			const finalScore = relevanceScore * decayFactor * historicalDataWeight;
+
+			return { note, score: finalScore };
+		});
+
+		scoredNotes.sort((a, b) => b.score - a.score);
+
+		return scoredNotes.map(item => item.note);
 	}
 
 	@bindThis

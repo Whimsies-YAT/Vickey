@@ -243,7 +243,6 @@ export class ContentRecommendationService {
 			.leftJoinAndSelect('reply.user', 'replyUser')
 			.leftJoinAndSelect('renote.user', 'renoteUser')
 			.where('note.visibility = :visibility', { visibility: 'public' })
-			.andWhere('note.userHost IS NULL')
 			.andWhere('user.isSuspended = false')
 			.andWhere('user.isDeleted = false');
 
