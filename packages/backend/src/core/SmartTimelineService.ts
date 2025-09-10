@@ -459,6 +459,10 @@ export class SmartTimelineService implements OnApplicationShutdown {
 
 		const query = this.notesRepository.createQueryBuilder('note')
 			.leftJoinAndSelect('note.user', 'user')
+			.leftJoinAndSelect('note.reply', 'reply')
+			.leftJoinAndSelect('note.renote', 'renote')
+			.leftJoinAndSelect('reply.user', 'replyUser')
+			.leftJoinAndSelect('renote.user', 'renoteUser')
 			.where('note.id > :sinceId', { sinceId })
 			.andWhere('note.visibility = :visibility', { visibility: 'public' })
 			.andWhere('user.isSuspended = false')
@@ -1123,6 +1127,10 @@ export class SmartTimelineService implements OnApplicationShutdown {
 
 		const candidateQuery = this.notesRepository.createQueryBuilder('note')
 			.leftJoinAndSelect('note.user', 'user')
+			.leftJoinAndSelect('note.reply', 'reply')
+			.leftJoinAndSelect('note.renote', 'renote')
+			.leftJoinAndSelect('reply.user', 'replyUser')
+			.leftJoinAndSelect('renote.user', 'renoteUser')
 			.where('note.id BETWEEN :historicalStartId AND :recentId', {
 				historicalStartId: historicalStartId,
 				recentId: recentId
