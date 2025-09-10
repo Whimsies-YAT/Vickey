@@ -148,7 +148,7 @@ function prepend(note: Misskey.entities.Note) {
 		queuedNotes.value = queuedNotes.value.slice(0, 32);
 	}
 
-	recordInteraction(note.id, 'stream_receive', {
+	recordInteraction(note.id, 'view', {
 		source: 'websocket_stream',
 		algorithm: props.algorithm,
 		timestamp: Date.now()
@@ -254,16 +254,11 @@ async function recordDwellTime(noteId: string, dwellTime: number, maxVisibility:
 
 	try {
 		await misskeyApi('notes/interaction', {
-			noteId,
-			interactionType: 'dwell',
+			targetId: noteId,
+			interactionType: 'view',
 			targetType: 'note',
-			context: {
-				dwellTime: Math.round(dwellTime / 1000),
-				maxVisibility: Math.round(maxVisibility * 100),
-				algorithm: props.algorithm,
-				source: 'smart-timeline-component'
-			},
-			implicit: true,
+			duration: Math.round(dwellTime / 1000),
+			source: 'smart-timeline-component',
 		});
 	} catch (err) {
 		console.debug('Failed to record dwell time:', err);
@@ -312,11 +307,10 @@ async function recordInteraction(noteId: string, type: string, context?: any) {
 
 	try {
 		await misskeyApi('notes/interaction', {
-			noteId,
+			targetId: noteId,
 			interactionType: type,
 			targetType: 'note',
-			context: context || {},
-			implicit: type === 'view',
+			source: context?.source || 'smart-timeline',
 		});
 	} catch (err) {
 		console.debug('Failed to record interaction:', err);
