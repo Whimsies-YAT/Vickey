@@ -645,6 +645,9 @@ export class DynamicScoringService {
 					host: IsNull(),
 					lastActiveDate: MoreThan(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)),
 				},
+				order: {
+					lastActiveDate: 'DESC',
+				},
 				take: 500,
 			});
 
