@@ -4,7 +4,8 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import FFmpeg from 'fluent-ffmpeg';
+import { spawn } from 'child_process';
+import * as path from 'path';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { FileInfoService } from '@/core/FileInfoService.js';
@@ -30,26 +31,190 @@ export class VideoProcessingService {
 		if (!await this.fileInfoService.checkFile(source)) throw new Error("The file is invalid!");
 
 		const [dir, cleanup] = await createTempDir();
+		const outputPath = path.join(dir, 'out.png');
 
 		try {
-			await new Promise((res, rej) => {
-				FFmpeg({
-					source,
-				})
-					.on('end', res)
-					.on('error', rej)
-					.screenshot({
-						folder: dir,
-						filename: 'out.png',	// must have .png extension
-						count: 1,
-						timestamps: ['5%'],
-					});
-			});
-
-			return await this.imageProcessingService.convertToWebp(`${dir}/out.png`, 498, 422);
+			await this.extractThumbnailWithFFmpeg(source, outputPath);
+			return await this.imageProcessingService.convertToWebp(outputPath, 498, 422);
 		} finally {
 			cleanup();
 		}
+	}
+
+	@bindThis
+	private async extractThumbnailWithFFmpeg(inputPath: string, outputPath: string): Promise<void> {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const duration = await this.getVideoDuration(inputPath);
+
+				const seekTimeInSeconds = Math.max(1, Math.floor(duration * 0.05));
+
+				const args = [
+					'-i', inputPath,
+					'-ss', seekTimeInSeconds.toString(),
+					'-vframes', '1',
+					'-f', 'image2',
+					'-y',
+					outputPath
+				];
+
+				const ffmpeg = spawn('ffmpeg', args, {
+					stdio: ['pipe', 'pipe', 'pipe'],
+					timeout: 30000,
+				});
+
+				let stderr = '';
+
+				ffmpeg.stderr.on('data', (data) => {
+					stderr += data.toString();
+				});
+
+				ffmpeg.on('close', (code) => {
+					if (code === 0) {
+						resolve();
+					} else {
+						reject(new Error(`FFmpeg failed with code ${code}. Error: ${stderr}`));
+					}
+				});
+
+				ffmpeg.on('error', (error) => {
+					reject(new Error(`Failed to spawn FFmpeg: ${error.message}`));
+				});
+
+				ffmpeg.on('exit', (code, signal) => {
+					if (signal === 'SIGTERM') {
+						reject(new Error('FFmpeg process timed out'));
+					}
+				});
+			} catch (error) {
+				reject(error);
+			}
+		});
+	}
+
+	@bindThis
+	private async getVideoDuration(inputPath: string): Promise<number> {
+		return new Promise((resolve, reject) => {
+			const args = [
+				'-i', inputPath,
+				'-f', 'null',
+				'-'
+			];
+
+			const ffmpeg = spawn('ffmpeg', args, {
+				stdio: ['pipe', 'pipe', 'pipe'],
+				timeout: 15000,
+			});
+
+			let stderr = '';
+
+			ffmpeg.stderr.on('data', (data) => {
+				stderr += data.toString();
+			});
+
+			ffmpeg.on('close', (code) => {
+				const durationMatch = stderr.match(/Duration: (\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)/);
+
+				if (!durationMatch) {
+					console.warn('Could not parse video duration, using default seek time');
+					resolve(10);
+					return;
+				}
+
+				const hours = parseInt(durationMatch[1], 10);
+				const minutes = parseInt(durationMatch[2], 10);
+				const seconds = parseFloat(durationMatch[3]);
+
+				const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+
+				if (totalSeconds <= 0) {
+					console.warn('Invalid video duration, using default seek time');
+					resolve(10);
+					return;
+				}
+
+				resolve(totalSeconds);
+			});
+
+			ffmpeg.on('error', (error) => {
+				console.warn(`Failed to get video duration: ${error.message}, using default`);
+				resolve(10);
+			});
+
+			ffmpeg.on('exit', (code, signal) => {
+				if (signal === 'SIGTERM') {
+					console.warn('Video duration check timed out, using default');
+					resolve(10);
+				}
+			});
+		});
+	}
+
+	@bindThis
+	public async generateVideoThumbnailAtPercentage(source: string, percentage: number = 5): Promise<IImage> {
+		if (!await this.fileInfoService.checkFile(source)) throw new Error("The file is invalid!");
+
+		const [dir, cleanup] = await createTempDir();
+		const outputPath = path.join(dir, 'out.png');
+
+		try {
+			await this.extractThumbnailAtPercentage(source, outputPath, percentage);
+			return await this.imageProcessingService.convertToWebp(outputPath, 498, 422);
+		} finally {
+			cleanup();
+		}
+	}
+
+	@bindThis
+	private async extractThumbnailAtPercentage(inputPath: string, outputPath: string, percentage: number): Promise<void> {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const duration = await this.getVideoDuration(inputPath);
+
+				const clampedPercentage = Math.max(1, Math.min(95, percentage));
+				const seekTimeInSeconds = Math.max(1, Math.floor(duration * clampedPercentage / 100));
+
+				const args = [
+					'-i', inputPath,
+					'-ss', seekTimeInSeconds.toString(),
+					'-vframes', '1',
+					'-f', 'image2',
+					'-y',
+					outputPath
+				];
+
+				const ffmpeg = spawn('ffmpeg', args, {
+					stdio: ['pipe', 'pipe', 'pipe'],
+					timeout: 30000,
+				});
+
+				let stderr = '';
+
+				ffmpeg.stderr.on('data', (data) => {
+					stderr += data.toString();
+				});
+
+				ffmpeg.on('close', (code) => {
+					if (code === 0) {
+						resolve();
+					} else {
+						reject(new Error(`FFmpeg failed with code ${code}. Error: ${stderr}`));
+					}
+				});
+
+				ffmpeg.on('error', (error) => {
+					reject(new Error(`Failed to spawn FFmpeg: ${error.message}`));
+				});
+
+				ffmpeg.on('exit', (code, signal) => {
+					if (signal === 'SIGTERM') {
+						reject(new Error('FFmpeg process timed out'));
+					}
+				});
+			} catch (error) {
+				reject(error);
+			}
+		});
 	}
 
 	@bindThis
@@ -65,4 +230,3 @@ export class VideoProcessingService {
 		);
 	}
 }
-

@@ -4605,6 +4605,7 @@ export type components = {
             imageUrl: string;
             memo: string;
             dayOfWeek: number;
+            isSensitive: boolean;
         };
         Announcement: {
             /**
@@ -5711,6 +5712,7 @@ export type components = {
                 /** Format: url */
                 imageUrl: string;
                 dayOfWeek: number;
+                isSensitive?: boolean;
             }[];
             /** @default 0 */
             notesPerOneAd: number;
@@ -6531,7 +6533,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    'application/json': components['schemas']['MeDetailed'];
+                    'application/json': components['schemas']['MeDetailed'] & {
+                        token: string;
+                    };
                 };
             };
             /** @description Client error */
@@ -6722,6 +6726,7 @@ export interface operations {
                     startsAt: number;
                     imageUrl: string;
                     dayOfWeek: number;
+                    isSensitive?: boolean;
                 };
             };
         };
@@ -6934,6 +6939,7 @@ export interface operations {
                     expiresAt?: number;
                     startsAt?: number;
                     dayOfWeek?: number;
+                    isSensitive?: boolean;
                 };
             };
         };
@@ -38189,7 +38195,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    'application/json': components['schemas']['UserList'];
+                    'application/json': components['schemas']['UserList'] & {
+                        likedCount?: number;
+                        isLiked?: boolean;
+                    };
                 };
             };
             /** @description Client error */
