@@ -25,8 +25,8 @@ jobs:
           cp ./compose_example.yml ./compose.yml
       - run: |
           docker compose up -d web
-          docker tag "$(docker compose images --format json web | jq -r '.[] | .ID')" misskey-web:latest
+          docker tag "$(docker compose images --format json web | jq -r '.[] | .ID')" vickey-web:latest
       - run: |
-          cmd="dockle --exit-code 1 misskey-web:latest ${image_name}"
+          cmd="dockle --exit-code 1 vickey-web:latest"
           echo "> ${cmd}"
           eval "${cmd}"
