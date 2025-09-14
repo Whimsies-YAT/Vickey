@@ -27,6 +27,8 @@ jobs:
           docker compose up -d web
           docker tag "$(docker compose images --format json web | jq -r '.[] | .ID')" vickey-web:latest
       - run: |
-          cmd="dockle --exit-code 1 vickey-web:latest"
+          IMAGE_ID=$(docker compose images --format json web | jq -r '.[0].ID')
+          echo "Image ID: ${IMAGE_ID}"
+          cmd="dockle --exit-code 1 ${IMAGE_ID}"
           echo "> ${cmd}"
           eval "${cmd}"
