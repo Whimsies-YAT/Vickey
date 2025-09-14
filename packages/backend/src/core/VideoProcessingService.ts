@@ -4,7 +4,8 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import FFmpeg from 'fluent-ffmpeg';
+import { spawn } from 'child_process';
+import * as path from 'path';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { FileInfoService } from '@/core/FileInfoService.js';
@@ -30,26 +31,57 @@ export class VideoProcessingService {
 		if (!await this.fileInfoService.checkFile(source)) throw new Error("The file is invalid!");
 
 		const [dir, cleanup] = await createTempDir();
+		const outputPath = path.join(dir, 'out.png');
 
 		try {
-			await new Promise((res, rej) => {
-				FFmpeg({
-					source,
-				})
-					.on('end', res)
-					.on('error', rej)
-					.screenshot({
-						folder: dir,
-						filename: 'out.png',	// must have .png extension
-						count: 1,
-						timestamps: ['5%'],
-					});
-			});
-
-			return await this.imageProcessingService.convertToWebp(`${dir}/out.png`, 498, 422);
+			await this.extractThumbnailWithFFmpeg(source, outputPath);
+			return await this.imageProcessingService.convertToWebp(outputPath, 498, 422);
 		} finally {
 			cleanup();
 		}
+	}
+
+	@bindThis
+	private async extractThumbnailWithFFmpeg(inputPath: string, outputPath: string): Promise<void> {
+		return new Promise((resolve, reject) => {
+			const args = [
+				'-i', inputPath,
+				'-ss', '5%',
+				'-vframes', '1',
+				'-f', 'image2',
+				'-y',
+				outputPath
+			];
+
+			const ffmpeg = spawn('ffmpeg', args, {
+				stdio: ['pipe', 'pipe', 'pipe'],
+				timeout: 30000,
+			});
+
+			let stderr = '';
+
+			ffmpeg.stderr.on('data', (data) => {
+				stderr += data.toString();
+			});
+
+			ffmpeg.on('close', (code) => {
+				if (code === 0) {
+					resolve();
+				} else {
+					reject(new Error(`FFmpeg failed with code ${code}. Error: ${stderr}`));
+				}
+			});
+
+			ffmpeg.on('error', (error) => {
+				reject(new Error(`Failed to spawn FFmpeg: ${error.message}`));
+			});
+
+			ffmpeg.on('exit', (code, signal) => {
+				if (signal === 'SIGTERM') {
+					reject(new Error('FFmpeg process timed out'));
+				}
+			});
+		});
 	}
 
 	@bindThis
@@ -65,4 +97,3 @@ export class VideoProcessingService {
 		);
 	}
 }
-
