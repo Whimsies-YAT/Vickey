@@ -4,82 +4,108 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<template v-if="player.url && playerEnabled">
-	<div
-		:class="$style.player"
-		:style="player.width ? `padding: ${(player.height || 0) / player.width * 100}% 0 0` : `padding: ${(player.height || 0)}px 0 0`"
-	>
-		<iframe
-			v-if="player.url.startsWith('http://') || player.url.startsWith('https://')"
-			sandbox="allow-popups allow-popups-to-escape-sandbox allow-scripts allow-storage-access-by-user-activation allow-same-origin"
-			scrolling="no"
-			:allow="player.allow == null ? 'autoplay;encrypted-media;fullscreen' : player.allow.filter(x => ['autoplay', 'clipboard-write', 'fullscreen', 'encrypted-media', 'picture-in-picture', 'web-share'].includes(x)).join(';')"
-			:class="$style.playerIframe"
-			:src="transformPlayerUrl(player.url)"
-			:style="{ border: 0 }"
-		></iframe>
-		<span v-else>invalid url</span>
-	</div>
-	<div :class="$style.action">
-		<MkButton :small="true" inline @click="playerEnabled = false">
-			<i class="ti ti-x"></i> {{ i18n.ts.disablePlayer }}
-		</MkButton>
-	</div>
-</template>
-<template v-else-if="tweetId && tweetExpanded">
-	<div ref="twitter">
-		<iframe
-			ref="tweet"
-			allow="fullscreen;web-share"
-			sandbox="allow-popups allow-popups-to-escape-sandbox allow-scripts allow-same-origin"
-			scrolling="no"
-			:style="{ position: 'relative', width: '100%', height: `${tweetHeight}px`, border: 0 }"
-			:src="`https://platform.twitter.com/embed/index.html?embedId=${embedId}&amp;hideCard=false&amp;hideThread=false&amp;lang=en&amp;theme=${store.s.darkMode ? 'dark' : 'light'}&amp;id=${tweetId}`"
-		></iframe>
-	</div>
-	<div :class="$style.action">
-		<MkButton :small="true" inline @click="tweetExpanded = false">
-			<i class="ti ti-x"></i> {{ i18n.ts.close }}
-		</MkButton>
-	</div>
-</template>
-<div v-else>
-	<component :is="inPreviewPopup ? 'div' : (self ? 'MkA' : 'a')" :class="[$style.link, { [$style.compact]: compact, [$style.inPopup]: inPreviewPopup }]" :[attr]="inPreviewPopup ? undefined : maybeRelativeUrl" rel="nofollow noopener" :target="inPreviewPopup ? undefined : target" :title="url" @click="handleClick">
-		<div v-if="thumbnail && !sensitive" :class="$style.thumbnail" :style="prefer.s.dataSaver.urlPreviewThumbnail ? '' : { backgroundImage: `url('${thumbnail}')` }">
+	<template v-if="player.url && playerEnabled">
+		<div
+			:class="$style.player"
+			:style="player.width ? `padding: ${(player.height || 0) / player.width * 100}% 0 0` : `padding: ${(player.height || 0)}px 0 0`"
+		>
+			<iframe
+				v-if="player.url.startsWith('http://') || player.url.startsWith('https://')"
+				sandbox="allow-popups allow-popups-to-escape-sandbox allow-scripts allow-storage-access-by-user-activation allow-same-origin"
+				scrolling="no"
+				:allow="player.allow == null ? 'autoplay;encrypted-media;fullscreen' : player.allow.filter(x => ['autoplay', 'clipboard-write', 'fullscreen', 'encrypted-media', 'picture-in-picture', 'web-share'].includes(x)).join(';')"
+				:class="$style.playerIframe"
+				:src="transformPlayerUrl(player.url)"
+				:style="{ border: 0 }"
+			></iframe>
+			<span v-else>invalid url</span>
 		</div>
-		<article :class="$style.body">
-			<header :class="$style.header">
-				<h1 v-if="unknownUrl" :class="$style.title">{{ url }}</h1>
-				<h1 v-else-if="fetching" :class="$style.title"><MkEllipsis/></h1>
-				<h1 v-else :class="$style.title" :title="title ?? undefined">{{ title }}</h1>
-			</header>
-			<p v-if="unknownUrl" :class="$style.text">{{ i18n.ts.failedToPreviewUrl }}</p>
-			<p v-else-if="fetching" :class="$style.text"><MkEllipsis/></p>
-			<p v-else-if="description" :class="$style.text" :title="description">{{ description.length > 85 ? description.slice(0, 85) + '…' : description }}</p>
-			<footer :class="$style.footer">
-				<img v-if="icon" :class="$style.siteIcon" :src="icon"/>
-				<p v-if="unknownUrl" :class="$style.siteName">{{ requestUrl.host }}</p>
-				<p v-else-if="fetching" :class="$style.siteName"><MkEllipsis/></p>
-				<p v-else :class="$style.siteName" :title="sitename ?? requestUrl.host">{{ sitename ?? requestUrl.host }}</p>
-			</footer>
-		</article>
-	</component>
-	<template v-if="showActions">
-		<div v-if="tweetId" :class="$style.action">
-			<MkButton :small="true" inline @click="tweetExpanded = true">
-				<i class="ti ti-brand-x"></i> {{ i18n.ts.expandTweet }}
-			</MkButton>
-		</div>
-		<div v-if="!playerEnabled && player.url" :class="$style.action">
-			<MkButton :small="true" inline @click="playerEnabled = true">
-				<i class="ti ti-player-play"></i> {{ i18n.ts.enablePlayer }}
-			</MkButton>
-			<MkButton v-if="!isMobile" :small="true" inline @click="openPlayer()">
-				<i class="ti ti-picture-in-picture"></i> {{ i18n.ts.openInWindow }}
+		<div :class="$style.action">
+			<MkButton :small="true" inline @click="playerEnabled = false">
+				<i class="ti ti-x"></i> {{ i18n.ts.disablePlayer }}
 			</MkButton>
 		</div>
 	</template>
-</div>
+	<template v-else-if="tweetId && tweetExpanded">
+		<div ref="twitter">
+			<iframe
+				ref="tweet"
+				allow="fullscreen;web-share"
+				sandbox="allow-popups allow-popups-to-escape-sandbox allow-scripts allow-same-origin"
+				scrolling="no"
+				:style="{ position: 'relative', width: '100%', height: `${tweetHeight}px`, border: 0 }"
+				:src="`https://platform.twitter.com/embed/index.html?embedId=${embedId}&amp;hideCard=false&amp;hideThread=false&amp;lang=en&amp;theme=${store.s.darkMode ? 'dark' : 'light'}&amp;id=${tweetId}`"
+			></iframe>
+		</div>
+		<div :class="$style.action">
+			<MkButton :small="true" inline @click="tweetExpanded = false">
+				<i class="ti ti-x"></i> {{ i18n.ts.close }}
+			</MkButton>
+		</div>
+	</template>
+	<template v-else-if="bilibiliId && bilibiliExpanded">
+		<div :class="$style.bilibiliPlayer">
+			<iframe
+				allow="autoplay;encrypted-media;fullscreen"
+				sandbox="allow-popups allow-popups-to-escape-sandbox allow-scripts allow-same-origin"
+				scrolling="no"
+				:style="{ position: 'relative', width: '100%', height: '360px', border: 0 }"
+				:src="getBilibiliEmbedUrl()"
+			></iframe>
+		</div>
+		<div :class="$style.action">
+			<MkButton :small="true" inline @click="bilibiliExpanded = false">
+				<i class="ti ti-x"></i> {{ i18n.ts.disablePlayer }}
+			</MkButton>
+		</div>
+	</template>
+	<div v-else>
+		<component :is="inPreviewPopup ? 'div' : (self ? 'MkA' : 'a')" :class="[$style.link, { [$style.compact]: compact, [$style.inPopup]: inPreviewPopup }]" :[attr]="inPreviewPopup ? undefined : maybeRelativeUrl" rel="nofollow noopener" :target="inPreviewPopup ? undefined : target" :title="url" @click="handleClick">
+			<div v-if="thumbnail && !sensitive" :class="$style.thumbnail" :style="prefer.s.dataSaver.urlPreviewThumbnail ? '' : { backgroundImage: `url('${thumbnail}')` }">
+			</div>
+			<article :class="$style.body">
+				<header :class="$style.header">
+					<h1 v-if="unknownUrl" :class="$style.title">{{ url }}</h1>
+					<h1 v-else-if="fetching" :class="$style.title"><MkEllipsis/></h1>
+					<h1 v-else :class="$style.title" :title="title ?? undefined">{{ title }}</h1>
+				</header>
+				<p v-if="unknownUrl" :class="$style.text">{{ i18n.ts.failedToPreviewUrl }}</p>
+				<p v-else-if="fetching" :class="$style.text"><MkEllipsis/></p>
+				<p v-else-if="description" :class="$style.text" :title="description">{{ description.length > 85 ? description.slice(0, 85) + '…' : description }}</p>
+				<footer :class="$style.footer">
+					<img v-if="icon" :class="$style.siteIcon" :src="icon"/>
+					<p v-if="unknownUrl" :class="$style.siteName">{{ requestUrl.host }}</p>
+					<p v-else-if="fetching" :class="$style.siteName"><MkEllipsis/></p>
+					<p v-else :class="$style.siteName" :title="sitename ?? requestUrl.host">{{ sitename ?? requestUrl.host }}</p>
+				</footer>
+			</article>
+		</component>
+		<template v-if="showActions">
+			<div v-if="tweetId" :class="$style.action">
+				<MkButton :small="true" inline @click="tweetExpanded = true">
+					<i class="ti ti-brand-x"></i> {{ i18n.ts.expandTweet }}
+				</MkButton>
+			</div>
+			<div v-if="bilibiliId" :class="$style.action">
+				<MkButton :small="true" inline @click="bilibiliExpanded = true">
+					<i class="ti ti-brand-bilibili"></i> {{ i18n.ts.enablePlayer }}
+				</MkButton>
+			</div>
+			<div v-if="!playerEnabled && player.url" :class="$style.action">
+				<MkButton :small="true" inline @click="playerEnabled = true">
+					<i class="ti ti-player-play"></i> {{ i18n.ts.enablePlayer }}
+				</MkButton>
+				<MkButton v-if="!isMobile" :small="true" inline @click="openPlayer()">
+					<i class="ti ti-picture-in-picture"></i> {{ i18n.ts.openInWindow }}
+				</MkButton>
+			</div>
+			<div v-if="bilibiliId && !isMobile" :class="$style.action">
+				<MkButton :small="true" inline @click="openBilibiliPlayer()">
+					<i class="ti ti-picture-in-picture"></i> {{ i18n.ts.openInWindow }}
+				</MkButton>
+			</div>
+		</template>
+	</div>
 </template>
 
 <script lang="ts" setup>
@@ -134,6 +160,8 @@ const player = ref({
 const playerEnabled = ref(false);
 const tweetId = ref<string | null>(null);
 const tweetExpanded = ref(props.detail);
+const bilibiliId = ref<string | null>(null);
+const bilibiliExpanded = ref(props.detail);
 const embedId = `embed${Math.random().toString().replace(/\D/, '')}`;
 const tweetHeight = ref(150);
 const unknownUrl = ref(false);
@@ -150,11 +178,65 @@ if (requestUrl.hostname === 'twitter.com' || requestUrl.hostname === 'mobile.twi
 	if (m) tweetId.value = m[1];
 }
 
+async function detectBilibiliId() {
+	let urlToCheck = props.url;
+
+	if (requestUrl.hostname === 'b23.tv') {
+		try {
+			const response = await fetch(props.url, {
+				method: 'HEAD',
+				redirect: 'follow'
+			});
+			urlToCheck = response.url;
+		} catch (e) {
+			console.warn('Failed to resolve b23.tv short link');
+			return;
+		}
+	}
+
+	const checkUrl = new URL(urlToCheck);
+
+	const bilibiliDomains = ['bilibili.com', 'www.bilibili.com', 'm.bilibili.com'];
+	if (!bilibiliDomains.some(domain => checkUrl.hostname === domain)) {
+		return;
+	}
+
+	const pathname = checkUrl.pathname;
+	const bvMatch = pathname.match(/\/video\/(BV[a-zA-Z0-9]+)/);
+	const avMatch = pathname.match(/\/video\/av(\d+)/);
+
+	if (bvMatch) {
+		bilibiliId.value = bvMatch[1];
+	} else if (avMatch) {
+		bilibiliId.value = `av${avMatch[1]}`;
+	}
+}
+
+if (requestUrl.hostname === 'b23.tv' ||
+	requestUrl.hostname === 'bilibili.com' ||
+	requestUrl.hostname === 'www.bilibili.com' ||
+	requestUrl.hostname === 'm.bilibili.com') {
+	detectBilibiliId();
+}
+
 if (requestUrl.hostname === 'music.youtube.com' && requestUrl.pathname.match('^/(?:watch|channel)')) {
 	requestUrl.hostname = 'www.youtube.com';
 }
 
 requestUrl.hash = '';
+
+function getBilibiliEmbedUrl(): string {
+	if (!bilibiliId.value) return '';
+
+	if (bilibiliId.value.startsWith('BV')) {
+		return `https://player.bilibili.com/player.html?bvid=${bilibiliId.value}&autoplay=0`;
+	} else if (bilibiliId.value.startsWith('av')) {
+		const aid = bilibiliId.value.replace('av', '');
+		return `https://player.bilibili.com/player.html?aid=${aid}&autoplay=0`;
+	}
+
+	return '';
+}
 
 window.fetch(`/url?url=${encodeURIComponent(requestUrl.href)}&lang=${versatileLang}`)
 	.then(res => {
@@ -205,6 +287,16 @@ function openPlayer(): void {
 	});
 }
 
+function openBilibiliPlayer(): void {
+	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkBilibiliPlayer.vue')), {
+		url: props.url,
+	}, {
+		closed: () => {
+			dispose();
+		},
+	});
+}
+
 async function handleClick(ev: MouseEvent) {
 	if (self) return;
 
@@ -235,6 +327,11 @@ onUnmounted(() => {
 
 <style lang="scss" module>
 .player {
+	position: relative;
+	width: 100%;
+}
+
+.bilibiliPlayer {
 	position: relative;
 	width: 100%;
 }
