@@ -21,9 +21,7 @@ getrandom = { version = "0.2", features = ["js"] }
 
 # Optional dependencies for better debugging
 console_error_panic_hook = { version = "0.1.7", optional = true }
-wee_alloc = { version = "0.4.5", optional = true }
 
 [features]
 default = []
 console_error_panic_hook = ["dep:console_error_panic_hook"]
-wee_alloc = ["dep:wee_alloc"]
