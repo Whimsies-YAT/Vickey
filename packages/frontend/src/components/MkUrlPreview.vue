@@ -266,6 +266,25 @@ window.fetch(`/url?url=${encodeURIComponent(requestUrl.href)}&lang=${versatileLa
 		sitename.value = info.sitename;
 		player.value = info.player;
 		sensitive.value = info.sensitive ?? false;
+
+		if (requestUrl.hostname === 'b23.tv' && info.url) {
+			try {
+				const resolvedUrl = new URL(info.url);
+				if (resolvedUrl.hostname.includes('bilibili.com')) {
+					const pathname = resolvedUrl.pathname;
+					const bvMatch = pathname.match(/\/video\/(BV[a-zA-Z0-9]+)/);
+					const avMatch = pathname.match(/\/video\/av(\d+)/);
+
+					if (bvMatch) {
+						bilibiliId.value = bvMatch[1];
+					} else if (avMatch) {
+						bilibiliId.value = `av${avMatch[1]}`;
+					}
+				}
+			} catch (e) {
+				console.warn('Failed to parse resolved b23.tv URL');
+			}
+		}
 	});
 
 function adjustTweetHeight(message: MessageEvent) {
