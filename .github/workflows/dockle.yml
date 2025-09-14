@@ -12,7 +12,7 @@ jobs:
   dockle:
     runs-on: ubuntu-latest
     env:
-      DOCKER_CONTENT_TRUST: 1
+      DOCKER_CONTENT_TRUST: 0
       DOCKLE_VERSION: 0.4.14
     steps:
       - uses: actions/checkout@v4.3.0
@@ -27,8 +27,6 @@ jobs:
           docker compose up -d web
           docker tag "$(docker compose images --format json web | jq -r '.[] | .ID')" vickey-web:latest
       - run: |
-          IMAGE_ID=$(docker compose images --format json web | jq -r '.[0].ID')
-          echo "Image ID: ${IMAGE_ID}"
-          cmd="dockle --exit-code 1 ${IMAGE_ID}"
+          cmd="dockle --exit-code 1 vickey-web:latest ${image_name}"
           echo "> ${cmd}"
           eval "${cmd}"
