@@ -11,7 +11,7 @@ import { MiEmailTemplates } from '@/models/EmailTemplates.js';
 import { bindThis } from '@/decorators.js';
 import { DI } from "@/di-symbols.js";
 import type { Config } from '@/config.js';
-import { decode } from 'he';
+import pkg from 'he';
 
 interface TemplateContext {
 	[key: string]: string | number | boolean | Date | Record<string, any>;
@@ -30,6 +30,8 @@ interface PresetVariables {
 	iconUrl: string;
 	emailSettingUrl: string;
 }
+
+const { decode } = pkg;
 
 @Injectable()
 export class EmailTemplatesService {
@@ -244,7 +246,7 @@ export class EmailTemplatesService {
 		while (depth < this.MAX_REPLACEMENT_DEPTH) {
 			const originalResult = result;
 
-			result = result.replace(/\$\{([^}]+)\}/g, (match, expression) => {
+			result = result.replace(/\$\{([^}]+)}/g, (match, expression) => {
 				const key = expression.trim();
 
 				if (!this.ALLOWED_VARIABLE_PATTERN.test(key)) {
