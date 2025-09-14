@@ -11,6 +11,7 @@ import { MiEmailTemplates } from '@/models/EmailTemplates.js';
 import { bindThis } from '@/decorators.js';
 import { DI } from "@/di-symbols.js";
 import type { Config } from '@/config.js';
+import { decode } from 'he';
 
 interface TemplateContext {
 	[key: string]: string | number | boolean | Date | Record<string, any>;
@@ -310,15 +311,24 @@ export class EmailTemplatesService {
 	}
 
 	private htmlToPlainText(html: string): string {
-		return html
+		const withNewlines = html
 			.replace(/<br\s*\/?>/gi, '\n')
-			.replace(/<[^>]*>/g, '')
-			.replace(/&nbsp;/g, ' ')
-			.replace(/&amp;/g, '&')
-			.replace(/&lt;/g, '<')
-			.replace(/&gt;/g, '>')
-			.replace(/&quot;/g, '"')
-			.replace(/&#39;/g, "'");
+			.replace(/<\/p>/gi, '\n')
+			.replace(/<p[^>]*>/gi, '')
+			.replace(/<\/div>/gi, '\n')
+			.replace(/<div[^>]*>/gi, '');
+
+		const sanitized = sanitizeHtml(withNewlines, {
+			allowedTags: [],
+			allowedAttributes: {}
+		});
+
+		const decoded = decode(sanitized);
+
+		return decoded
+			.replace(/\n\s*\n/g, '\n\n')
+			.replace(/[ \t]+/g, ' ')
+			.trim();
 	}
 
 	private isValidTemplateKey(key: string): boolean {
