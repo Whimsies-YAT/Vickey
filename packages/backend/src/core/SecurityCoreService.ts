@@ -16,7 +16,7 @@ export class SecurityCoreService {
 	public async checkZip(path: string): Promise<{ result: boolean; reason: string | null }> {
 		const isWindows = process.platform === 'win32';
 		const exeName = isWindows ? 'zip_safe.exe' : 'zip_safe';
-		const zipSafePath = process.cwd() + '/tools' + exeName;
+		const zipSafePath = process.cwd() + '/tools/' + exeName;
 		return new Promise((resolve, reject) => {
 			if (!existsSync(zipSafePath)) {
 				console.log(`Checker not found, ignored.`);
