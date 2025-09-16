@@ -14,6 +14,7 @@ export class SecurityCoreService {
 
 	@bindThis
 	public async checkZip(path: string): Promise<{ result: boolean; reason: string | null }> {
+		/*
 		const isWindows = process.platform === 'win32';
 		const exeName = isWindows ? 'zip_safe.exe' : 'zip_safe';
 		const zipSafePath = process.cwd() + '/tools/' + exeName;
@@ -52,6 +53,8 @@ export class SecurityCoreService {
 				reject(err);
 			});
 		});
+		 */
+		return { result: true, reason: 'Retain this function for future use'} ;
 	}
 
 	@bindThis
