@@ -292,6 +292,11 @@ const props = withDefaults(defineProps<{
 	initialTab: 'replies',
 });
 
+const emit = defineEmits<{
+	(ev: 'reaction', emoji: string): void;
+	(ev: 'removeReaction', emoji: string): void;
+}>();
+
 const inChannel = inject('inChannel', null);
 
 let note = deepClone(props.note);
@@ -546,6 +551,14 @@ function toggleReact() {
 		react();
 	} else {
 		undoReact(appearNote);
+	}
+}
+
+function emitUpdReaction(emoji: string, delta: number) {
+	if (delta < 0) {
+		emit('removeReaction', emoji);
+	} else if (delta > 0) {
+		emit('reaction', emoji);
 	}
 }
 

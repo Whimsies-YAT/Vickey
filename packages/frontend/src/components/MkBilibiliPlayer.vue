@@ -38,15 +38,15 @@ const fetching = ref(true);
 const title = ref<string | null>(null);
 const player = ref({
 	url: null as string | null,
-	width: null,
-	height: null,
+	width: null as number | null,
+	height: null as number | null,
 });
 
 const parseBilibiliUrl = async (inputUrl: string): Promise<{ bvid?: string; aid?: string } | null> => {
 	try {
 		if (inputUrl.includes('b23.tv')) {
 			try {
-				const response = await fetch(inputUrl, { method: 'HEAD', redirect: 'follow' });
+				const response = await window.fetch(inputUrl, { method: 'HEAD', redirect: 'follow' });
 				inputUrl = response.url;
 			} catch (e) {
 				console.warn('Failed to resolve short link');

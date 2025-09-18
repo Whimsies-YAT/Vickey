@@ -183,7 +183,7 @@ async function detectBilibiliId() {
 
 	if (requestUrl.hostname === 'b23.tv') {
 		try {
-			const response = await fetch(props.url, {
+			const response = await window.fetch(props.url, {
 				method: 'HEAD',
 				redirect: 'follow'
 			});

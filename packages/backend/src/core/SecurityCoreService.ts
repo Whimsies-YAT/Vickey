@@ -54,7 +54,7 @@ export class SecurityCoreService {
 			});
 		});
 		 */
-		return { result: true, reason: 'Retain this function for future use'} ;
+		return { result: true, reason: 'Retain this function for future use' };
 	}
 
 	@bindThis

@@ -592,7 +592,7 @@ export interface Locale extends ILocale {
              */
             "canImportUserLists": string;
             /**
-             * チャットを許可
+             * ダイレクトメッセージを許可
              */
             "chatAvailability": string;
             /**
@@ -925,11 +925,11 @@ export interface Locale extends ILocale {
          */
         "write:following": string;
         /**
-         * チャットを見る
+         * ダイレクトメッセージを見る
          */
         "read:messaging": string;
         /**
-         * チャットを操作する
+         * ダイレクトメッセージを操作する
          */
         "write:messaging": string;
         /**
@@ -1221,11 +1221,11 @@ export interface Locale extends ILocale {
          */
         "write:report-abuse": string;
         /**
-         * チャットを操作する
+         * ダイレクトメッセージを操作する
          */
         "write:chat": string;
         /**
-         * チャットを閲覧する
+         * ダイレクトメッセージを閲覧する
          */
         "read:chat": string;
     };
@@ -1453,7 +1453,7 @@ export interface Locale extends ILocale {
          */
         "deleteGalleryPost": string;
         /**
-         * チャットルームを削除
+         * ダイレクトメッセージのグループを削除
          */
         "deleteChatRoom": string;
         /**
@@ -4249,7 +4249,7 @@ export interface Locale extends ILocale {
      */
     "noMoreHistory": string;
     /**
-     * チャットを始める
+     * メッセージを送る
      */
     "startChat": string;
     /**
@@ -4953,7 +4953,7 @@ export interface Locale extends ILocale {
      */
     "markAsReadAllUnreadNotes": string;
     /**
-     * すべてのチャットを既読にする
+     * すべてのダイレクトメッセージを既読にする
      */
     "markAsReadAllTalkMessages": string;
     /**
@@ -8417,6 +8417,14 @@ export interface Locale extends ILocale {
      */
     "chat": string;
     /**
+     * ダイレクトメッセージ
+     */
+    "directMessage": string;
+    /**
+     * メッセージ
+     */
+    "directMessage_short": string;
+    /**
      * 旧設定情報を移行
      */
     "migrateOldSettings": string;
@@ -8555,6 +8563,10 @@ export interface Locale extends ILocale {
      * ベータ版の検証にご協力いただきありがとうございます！
      */
     "thankYouForTestingBeta": string;
+    /**
+     * ユーザー指定ノートを作成
+     */
+    "createUserSpecifiedNote": string;
     "_order": {
         /**
          * 新しい順
@@ -8567,6 +8579,10 @@ export interface Locale extends ILocale {
     };
     "_chat": {
         /**
+         * メッセージ
+         */
+        "messages": string;
+        /**
          * まだメッセージはありません
          */
         "noMessagesYet": string;
@@ -8575,36 +8591,36 @@ export interface Locale extends ILocale {
          */
         "newMessage": string;
         /**
-         * 個人チャット
+         * 個別
          */
         "individualChat": string;
         /**
-         * 特定ユーザーとの一対一のチャットができます。
+         * 特定ユーザーと個別にメッセージのやりとりができます。
          */
         "individualChat_description": string;
         /**
-         * ルームチャット
+         * グループ
          */
         "roomChat": string;
         /**
-         * 複数人でのチャットができます。
-         * また、個人チャットを許可していないユーザーとでも、相手が受け入れればチャットができます。
+         * 複数人でメッセージのやりとりができます。
+         * また、個別のメッセージを許可していないユーザーとでも、相手が受け入れればやりとりできます。
          */
         "roomChat_description": string;
         /**
-         * ルームを作成
+         * グループを作成
          */
         "createRoom": string;
         /**
-         * ユーザーを招待してチャットを始めましょう
+         * ユーザーを招待してメッセージを送信しましょう
          */
         "inviteUserToChat": string;
         /**
-         * 作成したルーム
+         * 作成したグループ
          */
         "yourRooms": string;
         /**
-         * 参加中のルーム
+         * 参加中のグループ
          */
         "joiningRooms": string;
         /**
@@ -8624,7 +8640,7 @@ export interface Locale extends ILocale {
          */
         "noHistory": string;
         /**
-         * ルームはありません
+         * グループはありません
          */
         "noRooms": string;
         /**
@@ -8644,7 +8660,7 @@ export interface Locale extends ILocale {
          */
         "ignore": string;
         /**
-         * ルームから退出
+         * グループから退出
          */
         "leave": string;
         /**
@@ -8668,35 +8684,35 @@ export interface Locale extends ILocale {
          */
         "newline": string;
         /**
-         * このルームをミュート
+         * このグループをミュート
          */
         "muteThisRoom": string;
         /**
-         * ルームを削除
+         * グループを削除
          */
         "deleteRoom": string;
         /**
-         * このサーバー、またはこのアカウントでチャットは有効化されていません。
+         * このサーバー、またはこのアカウントでダイレクトメッセージは有効化されていません。
          */
         "chatNotAvailableForThisAccountOrServer": string;
         /**
-         * このサーバー、またはこのアカウントでチャットは読み取り専用となっています。新たに書き込んだり、チャットルームを作成・参加したりすることはできません。
+         * このサーバー、またはこのアカウントでダイレクトメッセージは読み取り専用となっています。新たに書き込んだり、グループを作成・参加したりすることはできません。
          */
         "chatIsReadOnlyForThisAccountOrServer": string;
         /**
-         * 相手のアカウントでチャット機能が使えない状態になっています。
+         * 相手のアカウントでダイレクトメッセージが使えない状態になっています。
          */
         "chatNotAvailableInOtherAccount": string;
         /**
-         * このユーザーとのチャットを開始できません
+         * このユーザーとのダイレクトメッセージを開始できません
          */
         "cannotChatWithTheUser": string;
         /**
-         * チャットが使えない状態になっているか、相手がチャットを開放していません。
+         * ダイレクトメッセージが使えない状態になっているか、相手がダイレクトメッセージを開放していません。
          */
         "cannotChatWithTheUser_description": string;
         /**
-         * あなたはこのルームの参加者ではありませんが、招待が届いています。参加するには、招待を承認してください。
+         * あなたはこのグループの参加者ではありませんが、招待が届いています。参加するには、招待を承認してください。
          */
         "youAreNotAMemberOfThisRoomButInvited": string;
         /**
@@ -8704,31 +8720,31 @@ export interface Locale extends ILocale {
          */
         "doYouAcceptInvitation": string;
         /**
-         * チャットする
+         * ダイレクトメッセージ
          */
         "chatWithThisUser": string;
         /**
-         * このユーザーはフォロワーからのみチャットを受け付けています。
+         * このユーザーはフォロワーからのみメッセージを受け付けています。
          */
         "thisUserAllowsChatOnlyFromFollowers": string;
         /**
-         * このユーザーは、このユーザーがフォローしているユーザーからのみチャットを受け付けています。
+         * このユーザーは、このユーザーがフォローしているユーザーからのみメッセージを受け付けています。
          */
         "thisUserAllowsChatOnlyFromFollowing": string;
         /**
-         * このユーザーは相互フォローのユーザーからのみチャットを受け付けています。
+         * このユーザーは相互フォローのユーザーからのみメッセージを受け付けています。
          */
         "thisUserAllowsChatOnlyFromMutualFollowing": string;
         /**
-         * このユーザーは誰からもチャットを受け付けていません。
+         * このユーザーは誰からもメッセージを受け付けていません。
          */
         "thisUserNotAllowedChatAnyone": string;
         /**
-         * チャットを許可する相手
+         * メッセージを許可する相手
          */
         "chatAllowedUsers": string;
         /**
-         * 自分からチャットメッセージを送った相手とはこの設定に関わらずチャットが可能です。
+         * 自分からメッセージを送った相手とはこの設定に関わらずメッセージの送受信が可能です。
          */
         "chatAllowedUsers_note": string;
         "_chatAllowedUsers": {
@@ -10976,7 +10992,7 @@ export interface Locale extends ILocale {
              */
             "badge": string;
             /**
-             * チャットの背景
+             * メッセージの背景
              */
             "messageBg": string;
             /**
@@ -11003,7 +11019,7 @@ export interface Locale extends ILocale {
          */
         "reaction": string;
         /**
-         * チャットのメッセージ
+         * ダイレクトメッセージ
          */
         "chatMessage": string;
     };
@@ -11467,7 +11483,7 @@ export interface Locale extends ILocale {
          */
         "birthdayFollowings": string;
         /**
-         * チャット
+         * ダイレクトメッセージ
          */
         "chat": string;
     };
@@ -12189,7 +12205,7 @@ export interface Locale extends ILocale {
          */
         "roleAssigned": string;
         /**
-         * チャットルームへ招待されました
+         * ダイレクトメッセージのグループへ招待されました
          */
         "chatRoomInvitationReceived": string;
         /**
@@ -12302,7 +12318,7 @@ export interface Locale extends ILocale {
              */
             "roleAssigned": string;
             /**
-             * チャットルームへ招待された
+             * ダイレクトメッセージのグループへ招待された
              */
             "chatRoomInvitationReceived": string;
             /**
@@ -12484,7 +12500,7 @@ export interface Locale extends ILocale {
              */
             "roleTimeline": string;
             /**
-             * チャット
+             * ダイレクトメッセージ
              */
             "chat": string;
         };
@@ -13930,6 +13946,10 @@ export interface Locale extends ILocale {
              * ティアリング
              */
             "tearing": string;
+            /**
+             * 塗りつぶし(四角)
+             */
+            "fillSquare": string;
         };
         "_fxProps": {
             /**
@@ -13944,6 +13964,10 @@ export interface Locale extends ILocale {
              * サイズ
              */
             "size": string;
+            /**
+             * 位置
+             */
+            "offset": string;
             /**
              * 色
              */
