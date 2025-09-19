@@ -230,7 +230,7 @@ const renderWithImageData = () => {
 				const scaleX = canvas.width / width;
 				const scaleY = canvas.height / height;
 
-				const tempCanvas = document.createElement('canvas');
+				const tempCanvas = window.document.createElement('canvas');
 				tempCanvas.width = width;
 				tempCanvas.height = height;
 				const tempCtx = tempCanvas.getContext('2d');

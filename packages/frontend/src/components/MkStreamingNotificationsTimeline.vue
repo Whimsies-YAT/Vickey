@@ -167,7 +167,6 @@ function tryMergeNotification(newNotification) {
 	if (newNotification.type === 'reaction' &&
 		lastNotification.type === 'reaction' &&
 		newNotification.noteId === lastNotification.noteId) {
-
 		const groupedNotification = {
 			...lastNotification,
 			type: 'reaction:grouped',
@@ -191,7 +190,6 @@ function tryMergeNotification(newNotification) {
 	if (newNotification.type === 'reaction' &&
 		lastNotification.type === 'reaction:grouped' &&
 		newNotification.noteId === lastNotification.noteId) {
-
 		paginator.updateItem(lastNotification.id, (item) => {
 			const updated = { ...item };
 			updated.reactions = [...updated.reactions, {
@@ -207,7 +205,6 @@ function tryMergeNotification(newNotification) {
 	if (newNotification.type === 'renote' &&
 		lastNotification.type === 'renote' &&
 		newNotification.targetNoteId === lastNotification.targetNoteId) {
-
 		const groupedNotification = {
 			...lastNotification,
 			type: 'renote:grouped',
@@ -225,7 +222,6 @@ function tryMergeNotification(newNotification) {
 	if (newNotification.type === 'renote' &&
 		lastNotification.type === 'renote:grouped' &&
 		newNotification.targetNoteId === lastNotification.targetNoteId) {
-
 		paginator.updateItem(lastNotification.id, (item) => {
 			const updated = { ...item };
 			updated.users = [...updated.users, newNotification.user];

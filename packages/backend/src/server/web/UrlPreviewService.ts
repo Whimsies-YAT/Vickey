@@ -3,19 +3,19 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import {Inject, Injectable} from '@nestjs/common';
-import {summaly} from '@misskey-dev/summaly';
-import {SummalyResult} from '@misskey-dev/summaly/built/summary.js';
-import {DI} from '@/di-symbols.js';
-import type {Config} from '@/config.js';
-import {HttpRequestService} from '@/core/HttpRequestService.js';
+import { Inject, Injectable } from '@nestjs/common';
+import { summaly } from '@misskey-dev/summaly';
+import { SummalyResult } from '@misskey-dev/summaly/built/summary.js';
+import { DI } from '@/di-symbols.js';
+import type { Config } from '@/config.js';
+import { HttpRequestService } from '@/core/HttpRequestService.js';
 import type Logger from '@/logger.js';
-import {query} from '@/misc/prelude/url.js';
-import {LoggerService} from '@/core/LoggerService.js';
-import {bindThis} from '@/decorators.js';
-import {ApiError} from '@/server/api/error.js';
-import {MiMeta} from '@/models/Meta.js';
-import type {FastifyReply, FastifyRequest} from 'fastify';
+import { query } from '@/misc/prelude/url.js';
+import { LoggerService } from '@/core/LoggerService.js';
+import { bindThis } from '@/decorators.js';
+import { ApiError } from '@/server/api/error.js';
+import { MiMeta } from '@/models/Meta.js';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 
 @Injectable()
 export class UrlPreviewService {

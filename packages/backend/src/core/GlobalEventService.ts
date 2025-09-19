@@ -71,6 +71,14 @@ export interface MainEventTypes {
 	};
 	readAllNotifications: undefined;
 	notificationFlushed: undefined;
+	notificationDeleted: {
+		notificationId: string;
+		type: string;
+		notifierId?: string | null;
+		reaction?: string | null;
+		noteId?: string | null;
+		targetNoteId?: string | null;
+	};
 	unreadNotification: Packed<'Notification'>;
 	unreadAntenna: MiAntenna;
 	newChatMessage: Packed<'ChatMessage'>;
