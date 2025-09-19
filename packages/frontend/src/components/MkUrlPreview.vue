@@ -179,23 +179,7 @@ if (requestUrl.hostname === 'twitter.com' || requestUrl.hostname === 'mobile.twi
 }
 
 async function detectBilibiliId() {
-	let urlToCheck = props.url;
-
-	if (requestUrl.hostname === 'b23.tv') {
-		try {
-			const response = await window.fetch(props.url, {
-				method: 'HEAD',
-				redirect: 'follow'
-			});
-			urlToCheck = response.url;
-		} catch (e) {
-			console.warn('Failed to resolve b23.tv short link');
-			return;
-		}
-	}
-
-	const checkUrl = new URL(urlToCheck);
-
+	const checkUrl = new URL(props.url);
 	const bilibiliDomains = ['bilibili.com', 'www.bilibili.com', 'm.bilibili.com'];
 	if (!bilibiliDomains.some(domain => checkUrl.hostname === domain)) {
 		return;
@@ -212,8 +196,7 @@ async function detectBilibiliId() {
 	}
 }
 
-if (requestUrl.hostname === 'b23.tv' ||
-	requestUrl.hostname === 'bilibili.com' ||
+if (requestUrl.hostname === 'bilibili.com' ||
 	requestUrl.hostname === 'www.bilibili.com' ||
 	requestUrl.hostname === 'm.bilibili.com') {
 	detectBilibiliId();

@@ -266,6 +266,9 @@ importers:
       feed:
         specifier: 4.2.2
         version: 4.2.2
+      ffi-napi:
+        specifier: 4.0.3
+        version: 4.0.3
       file-type:
         specifier: 21.0.0
         version: 21.0.0
@@ -425,6 +428,9 @@ importers:
       redis-lock:
         specifier: 0.1.4
         version: 0.1.4
+      ref-napi:
+        specifier: 3.0.3
+        version: 3.0.3
       reflect-metadata:
         specifier: 0.2.2
         version: 0.2.2
@@ -534,6 +540,9 @@ importers:
       '@types/content-disposition':
         specifier: 0.5.9
         version: 0.5.9
+      '@types/ffi-napi':
+        specifier: 4.0.10
+        version: 4.0.10
       '@types/he':
         specifier: 1.2.3
         version: 1.2.3
@@ -594,6 +603,9 @@ importers:
       '@types/ratelimiter':
         specifier: 3.4.6
         version: 3.4.6
+      '@types/ref-napi':
+        specifier: 3.0.12
+        version: 3.0.12
       '@types/rename':
         specifier: 1.0.7
         version: 1.0.7
@@ -901,6 +913,12 @@ importers:
       punycode.js:
         specifier: 2.3.1
         version: 2.3.1
+      qr-code-styling:
+        specifier: 1.9.2
+        version: 1.9.2
+      qr-scanner:
+        specifier: 1.4.2
+        version: 1.4.2
       rollup:
         specifier: 4.50.1
         version: 4.50.1
@@ -4945,6 +4963,9 @@ packages:
   '@types/express@4.17.17':
     resolution: {integrity: sha512-Q4FmmuLGBG58btUnfS1c1r/NQdlp3DMfGDGig8WhfpA2YRUtEkxAjkZb0yvplJGYdF1fsQ81iMDcH24sSCNC/Q==}
 
+  '@types/ffi-napi@4.0.10':
+    resolution: {integrity: sha512-Q6TimLDxdg+Obp4W9tgzIhSA25THD6AmR8eM+ZB7bbU96xnkpd7PRXwG4az2rKpreuF90IPr/LlQtetmIfQL2g==}
+
   '@types/graceful-fs@4.1.6':
     resolution: {integrity: sha512-Sig0SNORX9fdW+bQuTEovKj3uHcUL6LQKbCrrqb1X7J6/ReAbhCXRAhc+SMejhLELFj2QcyuxmUooZ4bt5ReSw==}
 
@@ -5109,6 +5130,12 @@ packages:
 
   '@types/redis-info@3.0.3':
     resolution: {integrity: sha512-VIkNy6JbYI/RLdbPHdm9JQvv6RVld2uE2/6Hdid38Qdq+zvDli2FTpImI8pC5zwp8xS8qVqfzlfyAub8xZEd5g==}
+
+  '@types/ref-napi@3.0.12':
+    resolution: {integrity: sha512-UZPKghRaLlWx2lPAphpdtYe62TbGBaPeqUM6gF1vI6FPRIu/Tff/WMAzpJRFU3jJIiD8HiXpVt2RjcFHtA6YRg==}
+
+  '@types/ref-struct-di@1.1.12':
+    resolution: {integrity: sha512-R2RNkGIROGoJTbXYTXrsXybnsQD4iAy26ih/G6HCeCB9luWFQKkr537XGz0uGJ1kH8y8RMkdbQmD/wBulrOPHw==}
 
   '@types/rename@1.0.7':
     resolution: {integrity: sha512-E9qapfghUGfBMi3jNhsmCKPIp3f2zvNKpaX1BDGLGJNjzpgsZ/RTx7NaNksFjGoJ+r9NvWF1NSM5vVecnNjVmw==}
@@ -7324,6 +7351,10 @@ packages:
   fetch-event-stream@0.1.5:
     resolution: {integrity: sha512-V1PWovkspxQfssq/NnxoEyQo1DV+MRK/laPuPblIZmSjMN8P5u46OhlFQznSr9p/t0Sp8Uc6SbM3yCMfr0KU8g==}
 
+  ffi-napi@4.0.3:
+    resolution: {integrity: sha512-PMdLCIvDY9mS32RxZ0XGb95sonPRal8aqRhLbeEtWKZTe2A87qRFG9HjOhvG8EX2UmQw5XNRMIOT+1MYlWmdeg==}
+    engines: {node: '>=10'}
+
   fflate@0.8.2:
     resolution: {integrity: sha512-cPJU47OaAoCbg0pBvzsgpTPhmhqI5eJjh/JIu8tPj5q+T7iLvW/JAYUqmE7KOB4R1ZyEhzBaIQpQpardBF5z8A==}
 
@@ -7559,11 +7590,17 @@ packages:
     resolution: {integrity: sha512-w9UMqWwJxHNOvoNzSJ2oPF5wvYcvP7jUvYzhp67yEhTi17ZDBBC1z9pTdGuzjD+EFIqLSYRweZjqfiPzQ06Ebg==}
     engines: {node: '>= 0.4'}
 
+  get-symbol-from-current-process-h@1.0.2:
+    resolution: {integrity: sha512-syloC6fsCt62ELLrr1VKBM1ggOpMdetX9hTrdW77UQdcApPHLmf7CI7OKcN1c9kYuNxKcDe4iJ4FY9sX3aw2xw==}
+
   get-tsconfig@4.10.0:
     resolution: {integrity: sha512-kGzZ3LWWQcGIAmg6iWvXn0ei6WDtV26wzHRMwDSzmAbcXrTEXxHy6IehI6/4eT6VRKyMP1eF1VqwrVUmE/LR7A==}
 
   get-tsconfig@4.10.1:
     resolution: {integrity: sha512-auHyJ4AgMz7vgS8Hp3N6HXSmlMdUyhSUrfBF16w153rxtLIEOE+HGqaBppczZvnHLqQJfiHotCYpNhl0lUROFQ==}
+
+  get-uv-event-loop-napi-h@1.0.6:
+    resolution: {integrity: sha512-t5c9VNR84nRoF+eLiz6wFrEp1SE2Acg0wS+Ysa2zF0eROes+LzOfuTaVHxGy8AbS8rq7FHEJzjnCZo1BupwdJg==}
 
   getos@3.2.1:
     resolution: {integrity: sha512-U56CfOK17OKgTVqozZjUKNdkfEv6jk5WISBJ8SHoagjE6L69zOwl3Z+O8myjY9MEW3i2HPWQBt/LTbCgcC973Q==}
@@ -10112,6 +10149,16 @@ packages:
     resolution: {integrity: sha512-pMpnA0qRdFp32b1sJl1wOJNxZLQ2cbQx+k6tjNtZ8CpvVhNqEPRgivZ2WOUev2YMajecdH7ctUPDvEe87nariQ==}
     engines: {node: '>=6.0.0'}
 
+  qr-code-styling@1.9.2:
+    resolution: {integrity: sha512-RgJaZJ1/RrXJ6N0j7a+pdw3zMBmzZU4VN2dtAZf8ZggCfRB5stEQ3IoDNGaNhYY3nnZKYlYSLl5YkfWN5dPutg==}
+    engines: {node: '>=18.18.0'}
+
+  qr-scanner@1.4.2:
+    resolution: {integrity: sha512-kV1yQUe2FENvn59tMZW6mOVfpq9mGxGf8l6+EGaXUOd4RBOLg7tRC83OrirM5AtDvZRpdjdlXURsHreAOSPOUw==}
+
+  qrcode-generator@1.5.2:
+    resolution: {integrity: sha512-pItrW0Z9HnDBnFmgiNrY1uxRdri32Uh9EjNYLPVC2zZ3ZRIIEqBoDgm4DkvDwNNDHTK7FNkmr8zAa77BYc9xNw==}
+
   qrcode@1.5.4:
     resolution: {integrity: sha512-1ca71Zgiu6ORjHqFBDpnSMTR2ReToX4l1Au1VFLyVeBTFavzQnv5JxMFr3ukHVKpSrSA2MCk0lNJSykjUfz7Zg==}
     engines: {node: '>=10.13.0'}
@@ -10254,6 +10301,13 @@ packages:
   redis-parser@3.0.0:
     resolution: {integrity: sha512-DJnGAeenTdpMEH6uAJRK/uiyEIH9WVsUmoLwzudwGJUwZPp80PDBWPHXSAGNPwNvIXAbe7MSUB1zQFugFml66A==}
     engines: {node: '>=4'}
+
+  ref-napi@3.0.3:
+    resolution: {integrity: sha512-LiMq/XDGcgodTYOMppikEtJelWsKQERbLQsYm0IOOnzhwE9xYZC7x8txNnFC9wJNOkPferQI4vD4ZkC0mDyrOA==}
+    engines: {node: '>= 10.0'}
+
+  ref-struct-di@1.1.1:
+    resolution: {integrity: sha512-2Xyn/0Qgz89VT+++WP0sTosdm9oeowLP23wRJYhG4BFdMUrLj3jhwHZNEytYNYgtPKLNTP3KJX4HEgBvM1/Y2g==}
 
   reflect-metadata@0.2.2:
     resolution: {integrity: sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==}
@@ -16475,6 +16529,12 @@ snapshots:
       '@types/qs': 6.9.7
       '@types/serve-static': 1.15.1
 
+  '@types/ffi-napi@4.0.10':
+    dependencies:
+      '@types/node': 22.18.1
+      '@types/ref-napi': 3.0.12
+      '@types/ref-struct-di': 1.1.12
+
   '@types/graceful-fs@4.1.6':
     dependencies:
       '@types/node': 22.18.1
@@ -16648,6 +16708,14 @@ snapshots:
       '@types/node': 22.18.1
 
   '@types/redis-info@3.0.3': {}
+
+  '@types/ref-napi@3.0.12':
+    dependencies:
+      '@types/node': 22.18.1
+
+  '@types/ref-struct-di@1.1.12':
+    dependencies:
+      '@types/ref-napi': 3.0.12
 
   '@types/rename@1.0.7': {}
 
@@ -19415,6 +19483,17 @@ snapshots:
 
   fetch-event-stream@0.1.5: {}
 
+  ffi-napi@4.0.3:
+    dependencies:
+      debug: 4.4.1(supports-color@10.2.0)
+      get-uv-event-loop-napi-h: 1.0.6
+      node-addon-api: 3.2.1
+      node-gyp-build: 4.6.0
+      ref-napi: 3.0.3
+      ref-struct-di: 1.1.1
+    transitivePeerDependencies:
+      - supports-color
+
   fflate@0.8.2: {}
 
   figures@3.2.0:
@@ -19676,6 +19755,8 @@ snapshots:
       es-errors: 1.3.0
       get-intrinsic: 1.3.0
 
+  get-symbol-from-current-process-h@1.0.2: {}
+
   get-tsconfig@4.10.0:
     dependencies:
       resolve-pkg-maps: 1.0.0
@@ -19683,6 +19764,10 @@ snapshots:
   get-tsconfig@4.10.1:
     dependencies:
       resolve-pkg-maps: 1.0.0
+
+  get-uv-event-loop-napi-h@1.0.6:
+    dependencies:
+      get-symbol-from-current-process-h: 1.0.2
 
   getos@3.2.1:
     dependencies:
@@ -21715,8 +21800,7 @@ snapshots:
 
   node-abort-controller@3.1.1: {}
 
-  node-addon-api@3.2.1:
-    optional: true
+  node-addon-api@3.2.1: {}
 
   node-addon-api@6.1.0:
     optional: true
@@ -22661,6 +22745,16 @@ snapshots:
 
   pvutils@1.1.3: {}
 
+  qr-code-styling@1.9.2:
+    dependencies:
+      qrcode-generator: 1.5.2
+
+  qr-scanner@1.4.2:
+    dependencies:
+      '@types/offscreencanvas': 2019.7.0
+
+  qrcode-generator@1.5.2: {}
+
   qrcode@1.5.4:
     dependencies:
       dijkstrajs: 1.0.2
@@ -22828,6 +22922,21 @@ snapshots:
   redis-parser@3.0.0:
     dependencies:
       redis-errors: 1.2.0
+
+  ref-napi@3.0.3:
+    dependencies:
+      debug: 4.4.1(supports-color@10.2.0)
+      get-symbol-from-current-process-h: 1.0.2
+      node-addon-api: 3.2.1
+      node-gyp-build: 4.6.0
+    transitivePeerDependencies:
+      - supports-color
+
+  ref-struct-di@1.1.1:
+    dependencies:
+      debug: 3.2.7(supports-color@8.1.1)
+    transitivePeerDependencies:
+      - supports-color
 
   reflect-metadata@0.2.2: {}
 

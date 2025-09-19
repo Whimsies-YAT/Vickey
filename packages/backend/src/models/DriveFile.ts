@@ -43,6 +43,13 @@ export class MiDriveFile {
 	public md5: string;
 
 	@Column('varchar', {
+		length: 64,
+		nullable: true,
+		comment: 'The PDQ hash of the DriveFile for image similarity detection.',
+	})
+	public pdqHash: string | null;
+
+	@Column('varchar', {
 		length: 256,
 		comment: 'The file name of the DriveFile.',
 	})

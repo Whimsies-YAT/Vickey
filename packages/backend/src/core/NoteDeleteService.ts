@@ -22,6 +22,7 @@ import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
 import { SearchService } from '@/core/SearchService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
+import { NotificationService } from '@/core/NotificationService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
 
 @Injectable()
@@ -50,6 +51,7 @@ export class NoteDeleteService {
 		private apDeliverManagerService: ApDeliverManagerService,
 		private searchService: SearchService,
 		private moderationLogService: ModerationLogService,
+		private notificationService: NotificationService,
 		private notesChart: NotesChart,
 		private perUserNotesChart: PerUserNotesChart,
 		private instanceChart: InstanceChart,
@@ -110,6 +112,8 @@ export class NoteDeleteService {
 
 		this.searchService.unindexNote(note);
 
+		await this.cleanupNotificationsForNote(note);
+
 		await this.notesRepository.delete({
 			id: note.id,
 			userId: user.id,
@@ -124,6 +128,51 @@ export class NoteDeleteService {
 				noteUserHost: user.host,
 				note: note,
 			});
+		}
+	}
+
+	@bindThis
+	private async cleanupNotificationsForNote(note: MiNote) {
+		const potentialNotificationUsers: string[] = [];
+
+		if (note.userId) {
+			potentialNotificationUsers.push(note.userId);
+		}
+
+		if (note.mentionedRemoteUsers && note.mentionedRemoteUsers.length > 0) {
+			const mentionedUsers = JSON.parse(note.mentionedRemoteUsers) as IMentionedRemoteUsers;
+			const localMentioned = await this.usersRepository.find({
+				where: { uri: In(mentionedUsers.map(x => x.uri)) },
+				select: ['id']
+			});
+			potentialNotificationUsers.push(...localMentioned.map(u => u.id));
+		}
+
+		if (note.replyId) {
+			const repliedNote = await this.notesRepository.findOneBy({ id: note.replyId });
+			if (repliedNote) {
+				potentialNotificationUsers.push(repliedNote.userId);
+			}
+		}
+
+		if (note.renoteId) {
+			const renotedNote = await this.notesRepository.findOneBy({ id: note.renoteId });
+			if (renotedNote) {
+				potentialNotificationUsers.push(renotedNote.userId);
+			}
+		}
+
+		const uniqueUsers = [...new Set(potentialNotificationUsers.filter(Boolean))];
+
+		for (const userId of uniqueUsers) {
+			const notifications = await this.notificationService.getAllNotifications(userId);
+			for (const notification of notifications) {
+				if (notification.data &&
+					((notification.data.noteId === note.id) ||
+					 (notification.data.targetNoteId === note.id))) {
+					await this.notificationService.deleteNotification(userId, notification.redisId);
+				}
+			}
 		}
 	}
 

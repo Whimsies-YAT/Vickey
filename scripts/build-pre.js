@@ -6,9 +6,25 @@
 const fs = require('fs');
 const path = require('path');
 const { join, dirname} = require("path");
+const { execSync } = require('child_process');
 const packageJsonPath = __dirname + '/../package.json'
 
+function buildYumePdq() {
+	console.log('Building yume-pdq...');
+	try {
+		execSync('bash ./scripts/build-yume-pdq.sh', {
+			cwd: path.join(__dirname, '..'),
+			stdio: 'inherit'
+		});
+		console.log('yume-pdq build completed successfully');
+	} catch (error) {
+		console.warn('yume-pdq build failed, continuing without it:', error.message);
+	}
+}
+
 function build() {
+	buildYumePdq();
+
 	try {
 		const json = fs.readFileSync(packageJsonPath, 'utf-8')
 		const meta = JSON.parse(json);

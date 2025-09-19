@@ -249,6 +249,52 @@ impl Universe {
     pub fn cells(&self) -> *const u8 {
         self.cells.as_ptr()
     }
+
+    pub fn render_to_rgba(&self, max_pixels: Option<u32>) -> Vec<u8> {
+        let result = self.render_downsample(max_pixels, 1);
+        result.data
+    }
+
+    pub fn render_dimensions(&self, max_pixels: Option<u32>) -> Vec<u32> {
+        let max_pixels = max_pixels.unwrap_or(DEFAULT_MAX_RENDER_PIXELS as u32);
+        let scale = ((self.width as u64) * (self.height as u64) / max_pixels as u64).max(1) as u32;
+        let out_width = (self.width + scale - 1) / scale;
+        let out_height = (self.height + scale - 1) / scale;
+        vec![out_width, out_height, scale]
+    }
+
+    pub fn set_cells(&mut self, cells_coords: &[u32]) {
+        for chunk in cells_coords.chunks(3) {
+            if chunk.len() == 3 {
+                let row = chunk[0];
+                let col = chunk[1];
+                let state = chunk[2];
+                if row < self.height && col < self.width {
+                    let idx = self.get_index(row, col);
+                    self.cells[idx] = if state > 0 { 1 } else { 0 };
+                }
+            }
+        }
+    }
+
+    pub fn is_stable(&self) -> bool {
+        if self.history.len() < 2 {
+            return false;
+        }
+
+        let current_hash = self.history.back().unwrap();
+        for (i, &hash) in self.history.iter().enumerate() {
+            if i < self.history.len() - 1 && hash == *current_hash {
+                return true;
+            }
+        }
+        false
+    }
+
+    pub fn reset_generation(&mut self) {
+        self.generation = 0;
+        self.history.clear();
+    }
 }
 
 fn alive_color() -> u32 { 0x00FF00FF }

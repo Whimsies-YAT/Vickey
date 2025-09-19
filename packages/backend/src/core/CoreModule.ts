@@ -63,6 +63,7 @@ import { NoteDeleteService } from './NoteDeleteService.js';
 import { NotePiningService } from './NotePiningService.js';
 import { NoteDraftService } from './NoteDraftService.js';
 import { NotificationService } from './NotificationService.js';
+import { PdqService } from './PdqService.js';
 import { PollService } from './PollService.js';
 import { PushNotificationService } from './PushNotificationService.js';
 import { QueryService } from './QueryService.js';
@@ -193,7 +194,7 @@ const serviceClasses = [
 	RiskScoreAlgorithmsService, RiskScoreCacheService, RiskScoreRehabilitationService,
 	MultiAccountDetectionService, RiskEventLogService, SessionRiskAnalysisService,
 	MetaService, MfmService, MLReportService, ModerationLogService, NoteCreateService,
-	NoteDeleteService, NotePiningService, NoteDraftService, NotificationService, PollService,
+	NoteDeleteService, NotePiningService, NoteDraftService, NotificationService, PdqService, PollService,
 	SystemAccountService, PushNotificationService, QueryService, ReactionService,
 	ReactionsBufferingService, RelayService, RoleService, S3Service, SecurityCoreService,
 	SignupService, WebAuthnService, UserBlockingService, CacheService, UserService,

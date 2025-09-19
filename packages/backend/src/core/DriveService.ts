@@ -44,6 +44,7 @@ import { correctFilename } from '@/misc/correct-filename.js';
 import { isMimeImage } from '@/misc/is-mime-image.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { UtilityService } from '@/core/UtilityService.js';
+import { PdqService } from '@/core/PdqService.js';
 import { fileTypeFromFile as FileType } from "file-type";
 
 type AddFileArgs = {
@@ -133,6 +134,7 @@ export class DriveService {
 		private perUserDriveChart: PerUserDriveChart,
 		private instanceChart: InstanceChart,
 		private utilityService: UtilityService,
+		private pdqService: PdqService,
 	) {
 		const logger = new Logger('drive', 'blue');
 		this.registerLogger = logger.createSubLogger('register', 'yellow');
@@ -492,6 +494,15 @@ export class DriveService {
 		});
 		this.registerLogger.info(`${JSON.stringify(info)}`);
 
+		let pdqHashPromise: Promise<string | null> = Promise.resolve(null);
+		if (isMimeImage(info.type.mime, 'sharp-convertible-image')) {
+			// this.registerLogger.info('Starting PDQ hash generation in parallel');
+			pdqHashPromise = this.pdqService.generatePdqHashFromFile(path).catch(error => {
+				// this.registerLogger.warn(`PDQ hash generation failed: ${error}`);
+				return null;
+			});
+		}
+
 		// 現状 false positive が多すぎて実用に耐えない
 		//if (info.porn && this.meta.disallowUploadWhenPredictedAsPorn) {
 		//	throw new IdentifiableError('282f77bf-5816-4f72-9264-aa14d8261a21', 'Detected as porn.');
@@ -635,6 +646,12 @@ export class DriveService {
 
 		if (uri !== null) {
 			file.uri = uri;
+		}
+
+		const pdqHash = await pdqHashPromise;
+		file.pdqHash = pdqHash;
+		if (pdqHash) {
+			this.registerLogger.info(`PDQ hash generated: ${pdqHash}`);
 		}
 
 		if (isLink) {
