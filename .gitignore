@@ -48,6 +48,8 @@ built
 built-test
 js-built
 /data
+/external/
+/packages/backend/lib
 /.cache-loader
 /db
 /meili_data

@@ -137,13 +137,21 @@ onMounted(() => {
 });
 
 watch([model, () => props.items], () => {
+	if (!props.items || !Array.isArray(props.items)) {
+		console.warn('MkSelect: props.items is not an array:', props.items);
+		currentValueText.value = '';
+		return;
+	}
+
 	let found: ItemOption | null = null;
 	for (const item of props.items) {
 		if (item.type === 'group') {
-			for (const option of item.items) {
-				if (option.value === model.value) {
-					found = option;
-					break;
+			if (item.items && Array.isArray(item.items)) {
+				for (const option of item.items) {
+					if (option.value === model.value) {
+						found = option;
+						break;
+					}
 				}
 			}
 		} else {
@@ -155,6 +163,8 @@ watch([model, () => props.items], () => {
 	}
 	if (found) {
 		currentValueText.value = found.label;
+	} else {
+		currentValueText.value = '';
 	}
 }, { immediate: true, deep: true });
 
@@ -166,6 +176,12 @@ function show() {
 
 	const menu: MenuItem[] = [];
 
+	if (!props.items || !Array.isArray(props.items)) {
+		console.warn('MkSelect: Cannot show menu, props.items is not an array:', props.items);
+		opening.value = false;
+		return;
+	}
+
 	for (const item of props.items) {
 		if (item.type === 'group') {
 			if (item.label != null) {
@@ -174,14 +190,16 @@ function show() {
 					text: item.label,
 				});
 			}
-			for (const option of item.items) {
-				menu.push({
-					text: option.label,
-					active: computed(() => model.value === option.value),
-					action: () => {
-						model.value = option.value as ModelTChecked;
-					},
-				});
+			if (item.items && Array.isArray(item.items)) {
+				for (const option of item.items) {
+					menu.push({
+						text: option.label,
+						active: computed(() => model.value === option.value),
+						action: () => {
+							model.value = option.value as ModelTChecked;
+						},
+					});
+				}
 			}
 		} else {
 			menu.push({

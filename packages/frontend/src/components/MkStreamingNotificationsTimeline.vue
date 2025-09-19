@@ -146,12 +146,165 @@ function onNotification(notification) {
 	}
 
 	if (!isMuted) {
+		if (prefer.s.useGroupedNotifications && tryMergeNotification(notification)) {
+			return;
+		}
+
 		if (isTop() && !isPausingUpdate) {
 			paginator.prepend(notification);
 		} else {
 			paginator.enqueue(notification);
 		}
 	}
+}
+
+function tryMergeNotification(newNotification) {
+	const items = paginator.items.value;
+	if (items.length === 0) return false;
+
+	const lastNotification = items[0];
+
+	if (newNotification.type === 'reaction' &&
+		lastNotification.type === 'reaction' &&
+		newNotification.noteId === lastNotification.noteId) {
+
+		const groupedNotification = {
+			...lastNotification,
+			type: 'reaction:grouped',
+			id: newNotification.id,
+			reactions: [
+				{
+					user: lastNotification.user,
+					reaction: lastNotification.reaction,
+				},
+				{
+					user: newNotification.user,
+					reaction: newNotification.reaction,
+				}
+			]
+		};
+
+		paginator.updateItem(lastNotification.id, (item) => ({ ...item, ...groupedNotification }));
+		return true;
+	}
+
+	if (newNotification.type === 'reaction' &&
+		lastNotification.type === 'reaction:grouped' &&
+		newNotification.noteId === lastNotification.noteId) {
+
+		paginator.updateItem(lastNotification.id, (item) => {
+			const updated = { ...item };
+			updated.reactions = [...updated.reactions, {
+				user: newNotification.user,
+				reaction: newNotification.reaction,
+			}];
+			updated.id = newNotification.id;
+			return updated;
+		});
+		return true;
+	}
+
+	if (newNotification.type === 'renote' &&
+		lastNotification.type === 'renote' &&
+		newNotification.targetNoteId === lastNotification.targetNoteId) {
+
+		const groupedNotification = {
+			...lastNotification,
+			type: 'renote:grouped',
+			id: newNotification.id,
+			users: [
+				lastNotification.user,
+				newNotification.user
+			]
+		};
+
+		paginator.updateItem(lastNotification.id, (item) => ({ ...item, ...groupedNotification }));
+		return true;
+	}
+
+	if (newNotification.type === 'renote' &&
+		lastNotification.type === 'renote:grouped' &&
+		newNotification.targetNoteId === lastNotification.targetNoteId) {
+
+		paginator.updateItem(lastNotification.id, (item) => {
+			const updated = { ...item };
+			updated.users = [...updated.users, newNotification.user];
+			updated.id = newNotification.id;
+			return updated;
+		});
+		return true;
+	}
+
+	return false;
+}
+
+function handleNotificationDeleted(data) {
+	const deletedId = data.notificationId;
+	const items = paginator.items.value;
+
+	for (let i = 0; i < items.length; i++) {
+		const notification = items[i];
+
+		if (notification.type === 'reaction:grouped' && notification.reactions) {
+			const reactionIndex = notification.reactions.findIndex(r =>
+				r.user.id === data.notifierId && r.reaction === data.reaction
+			);
+
+			if (reactionIndex !== -1) {
+				const originalLength = notification.reactions.length;
+
+				if (originalLength === 1) {
+					paginator.removeItem(notification.id);
+				} else if (originalLength === 2) {
+					const remainingReaction = notification.reactions.find((_, idx) => idx !== reactionIndex);
+					if (remainingReaction) {
+						paginator.updateItem(notification.id, (item) => ({
+							...item,
+							type: 'reaction',
+							user: remainingReaction.user,
+							reaction: remainingReaction.reaction,
+						}));
+					}
+				} else {
+					paginator.updateItem(notification.id, (item) => ({
+						...item,
+						reactions: item.reactions.filter((_, idx) => idx !== reactionIndex),
+					}));
+				}
+				return;
+			}
+		}
+
+		if (notification.type === 'renote:grouped' && notification.users) {
+			const userIndex = notification.users.findIndex(user => user.id === data.notifierId);
+
+			if (userIndex !== -1) {
+				const originalLength = notification.users.length;
+
+				if (originalLength === 1) {
+					paginator.removeItem(notification.id);
+				} else if (originalLength === 2) {
+					const remainingUser = notification.users.find((_, idx) => idx !== userIndex);
+					if (remainingUser) {
+						paginator.updateItem(notification.id, (item) => ({
+							...item,
+							type: 'renote',
+							user: remainingUser,
+							notifierId: remainingUser.id,
+						}));
+					}
+				} else {
+					paginator.updateItem(notification.id, (item) => ({
+						...item,
+						users: item.users.filter((_, idx) => idx !== userIndex),
+					}));
+				}
+				return;
+			}
+		}
+	}
+
+	paginator.removeItem(deletedId);
 }
 
 function reload() {
@@ -173,6 +326,13 @@ onMounted(() => {
 		connection = useStream().useChannel('main');
 		connection.on('notification', onNotification);
 		connection.on('notificationFlushed', reload);
+		connection.on('notificationDeleted', (data) => {
+			if (prefer.s.useGroupedNotifications) {
+				handleNotificationDeleted(data);
+			} else {
+				paginator.removeItem(data.notificationId);
+			}
+		});
 	}
 });
 

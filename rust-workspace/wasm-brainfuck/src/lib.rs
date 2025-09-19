@@ -34,6 +34,7 @@ pub struct ExecutionResult {
     pub steps_executed: usize,
     pub error: Option<BrainfuckError>,
     pub finished: bool,
+    pub waiting_for_input: bool,
 }
 
 #[wasm_bindgen]
@@ -80,6 +81,27 @@ impl BrainfuckInterpreter {
     #[wasm_bindgen]
     pub fn set_input(&mut self, input: &str) {
         self.input = input.bytes().collect();
+    }
+
+    #[wasm_bindgen]
+    pub fn add_input(&mut self, input: &str) {
+        for byte in input.bytes() {
+            self.input.push_back(byte);
+        }
+    }
+
+    #[wasm_bindgen]
+    pub fn is_waiting_for_input(&self) -> bool {
+        if self.finished || self.error.is_some() {
+            return false;
+        }
+
+        if self.instruction_pointer >= self.program.len() {
+            return false;
+        }
+
+        let instruction = self.program[self.instruction_pointer];
+        instruction == b',' && self.input.is_empty()
     }
 
     #[wasm_bindgen]
@@ -149,7 +171,8 @@ impl BrainfuckInterpreter {
                 if let Some(input_byte) = self.input.pop_front() {
                     self.memory[self.pointer] = input_byte;
                 } else {
-                    self.memory[self.pointer] = 0;
+                    self.steps_executed -= 1;
+                    return false;
                 }
             }
             b'[' => {
@@ -228,6 +251,7 @@ impl BrainfuckInterpreter {
             steps_executed: self.steps_executed,
             error: self.error.clone(),
             finished: self.finished,
+            waiting_for_input: self.is_waiting_for_input(),
         };
 
         serde_wasm_bindgen::to_value(&result).unwrap_or(JsValue::NULL)

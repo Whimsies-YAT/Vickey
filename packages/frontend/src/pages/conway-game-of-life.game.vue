@@ -28,15 +28,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div :class="$style.patternControls">
 				<div :class="$style.controlGroup">
 					<label>Pattern:</label>
-					<MkSelect v-model="selectedPattern">
-						<option value="glider">{{ i18n.ts._conway.glider }}</option>
-						<option value="block">{{ i18n.ts._conway.block }}</option>
-						<option value="beehive">{{ i18n.ts._conway.beehive }}</option>
-						<option value="blinker">{{ i18n.ts._conway.blinkerAlt }}</option>
-						<option value="toad">{{ i18n.ts._conway.toad }}</option>
-						<option value="beacon">{{ i18n.ts._conway.beacon }}</option>
-						<option value="pulsar">{{ i18n.ts._conway.pulsar }}</option>
-						<option value="pentadecathlon">{{ i18n.ts._conway.pentadecathlon }}</option>
+					<MkSelect v-model="selectedPattern" :items="patternOptions">
 					</MkSelect>
 					<MkButton @click="placePattern">{{ i18n.ts._conway.place }}</MkButton>
 				</div>
@@ -119,6 +111,19 @@ const currentFps = ref(0);
 const targetFps = ref(10);
 const selectedPattern = ref('glider');
 const placingPattern = ref(false);
+const isStable = ref(false);
+const stableDetection = ref(true);
+
+const patternOptions = [
+	{ value: 'glider', label: i18n.ts._conway.glider },
+	{ value: 'block', label: i18n.ts._conway.block },
+	{ value: 'beehive', label: i18n.ts._conway.beehive },
+	{ value: 'blinker', label: i18n.ts._conway.blinkerAlt },
+	{ value: 'toad', label: i18n.ts._conway.toad },
+	{ value: 'beacon', label: i18n.ts._conway.beacon },
+	{ value: 'pulsar', label: i18n.ts._conway.pulsar },
+	{ value: 'pentadecathlon', label: i18n.ts._conway.pentadecathlon },
+];
 
 let wasmModule: any = null;
 let universe: any = null;
@@ -135,6 +140,10 @@ const GRID_COLOR = '#2a2a2a';
 const DEAD_COLOR = '#1a1a1a';
 const ALIVE_COLOR = '#4ade80';
 const HOVER_COLOR = '#6b7280';
+
+const useImageDataRendering = ref(true);
+const renderScale = ref(1);
+let imageData: ImageData | null = null;
 
 const speedToFps = {
 	slow: 1,
@@ -198,15 +207,65 @@ const drawCells = (ctx: CanvasRenderingContext2D) => {
 	}
 };
 
-const render = () => {
+const renderWithImageData = () => {
 	const canvas = canvasRef.value;
 	if (!canvas || !universe) return;
 
 	const ctx = canvas.getContext('2d');
 	if (!ctx) return;
 
+	try {
+		if (universe.render_to_rgba && props.gridSize >= 64) {
+			const maxPixels = canvasWidth * canvasHeight;
+			const rgbaData = universe.render_to_rgba(maxPixels);
+			const dims = universe.render_dimensions(maxPixels);
+
+			if (rgbaData && dims && dims.length >= 2) {
+				const [width, height] = dims;
+				const imageData = new ImageData(new Uint8ClampedArray(rgbaData), width, height);
+
+				ctx.fillStyle = DEAD_COLOR;
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+				const scaleX = canvas.width / width;
+				const scaleY = canvas.height / height;
+
+				const tempCanvas = document.createElement('canvas');
+				tempCanvas.width = width;
+				tempCanvas.height = height;
+				const tempCtx = tempCanvas.getContext('2d');
+
+				if (tempCtx) {
+					tempCtx.putImageData(imageData, 0, 0);
+					ctx.imageSmoothingEnabled = false;
+					ctx.drawImage(tempCanvas, 0, 0, width, height, 0, 0, canvas.width, canvas.height);
+				}
+
+				drawGrid(ctx);
+				return;
+			}
+		}
+	} catch (error) {
+		console.warn('High-performance rendering failed, falling back to legacy method:', error);
+	}
+
 	drawCells(ctx);
 	drawGrid(ctx);
+};
+
+const render = () => {
+	if (useImageDataRendering.value) {
+		renderWithImageData();
+	} else {
+		const canvas = canvasRef.value;
+		if (!canvas || !universe) return;
+
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
+
+		drawCells(ctx);
+		drawGrid(ctx);
+	}
 };
 
 const gameLoop = (currentTime: number) => {
@@ -237,6 +296,16 @@ const updateStats = () => {
 	if (universe) {
 		generation.value = universe.generation();
 		liveCells.value = universe.live_cell_count();
+
+		if (stableDetection.value && universe.is_stable) {
+			const stable = universe.is_stable();
+			if (stable !== isStable.value) {
+				isStable.value = stable;
+				if (stable && isPlaying.value) {
+					console.log('Game reached stable state at generation', generation.value);
+				}
+			}
+		}
 	}
 };
 

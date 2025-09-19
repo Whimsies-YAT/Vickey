@@ -2099,6 +2099,30 @@ export interface Locale extends ILocale {
          */
         "output": string;
         /**
+         * Result
+         */
+        "result": string;
+        /**
+         * LISP Interpreter
+         */
+        "lispInterpreter": string;
+        /**
+         * LISP Code
+         */
+        "lispCode": string;
+        /**
+         * Enter your LISP expressions here. Supports functions, variables, lists, and more.
+         */
+        "lispCodeCaption": string;
+        /**
+         * Steps executed: {steps}
+         */
+        "lispExecutionStats": ParameterizedString<"steps">;
+        /**
+         * Environment View
+         */
+        "environmentView": string;
+        /**
          * Brainfuck Interpreter
          */
         "brainfuckInterpreter": string;
@@ -2166,6 +2190,14 @@ export interface Locale extends ILocale {
          * Validation failed: WASM module not available
          */
         "wasmNotAvailable": string;
+        /**
+         * Submit
+         */
+        "submitInput": string;
+        /**
+         * Provide input data for the Brainfuck program. You can also input during runtime when prompted.
+         */
+        "brainfuckInputCaption": string;
     };
     "_geoShare": {
         /**

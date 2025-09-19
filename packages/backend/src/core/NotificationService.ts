@@ -225,7 +225,32 @@ export class NotificationService implements OnApplicationShutdown {
 	}
 
 	public async deleteNotification(notifieeId: MiUser['id'], redisNotificationId: string): Promise<void> {
+		const records = await this.redisClient.xrange(`notificationTimeline:${notifieeId}`, redisNotificationId, redisNotificationId);
+		let notificationData: any = { notificationId: redisNotificationId };
+
+		if (records.length > 0) {
+			const [, fields] = records[0];
+			for (let i = 0; i < fields.length; i += 2) {
+				if (fields[i] === 'data') {
+					try {
+						const notification = JSON.parse(fields[i + 1]);
+						notificationData = {
+							notificationId: notification.id,
+							type: notification.type,
+							notifierId: notification.notifierId,
+							reaction: notification.reaction,
+							noteId: notification.noteId,
+							targetNoteId: notification.targetNoteId,
+						};
+					} catch (error) {
+					}
+					break;
+				}
+			}
+		}
+
 		await this.redisClient.xdel(`notificationTimeline:${notifieeId}`, redisNotificationId);
+		this.globalEventService.publishMainStream(notifieeId, 'notificationDeleted', notificationData);
 	}
 
 	@bindThis

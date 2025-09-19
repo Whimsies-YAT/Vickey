@@ -1,7 +1,8 @@
 [workspace]
 members = [
     "wasm-game-of-life",
-    "wasm-brainfuck"
+    "wasm-brainfuck",
+    "wasm-lisp"
 ]
 resolver = "2"
 
