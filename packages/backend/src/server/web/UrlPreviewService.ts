@@ -3,19 +3,19 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Inject, Injectable } from '@nestjs/common';
-import { summaly } from '@misskey-dev/summaly';
-import { SummalyResult } from '@misskey-dev/summaly/built/summary.js';
-import { DI } from '@/di-symbols.js';
-import type { Config } from '@/config.js';
-import { HttpRequestService } from '@/core/HttpRequestService.js';
+import {Inject, Injectable} from '@nestjs/common';
+import {summaly} from '@misskey-dev/summaly';
+import {SummalyResult} from '@misskey-dev/summaly/built/summary.js';
+import {DI} from '@/di-symbols.js';
+import type {Config} from '@/config.js';
+import {HttpRequestService} from '@/core/HttpRequestService.js';
 import type Logger from '@/logger.js';
-import { query } from '@/misc/prelude/url.js';
-import { LoggerService } from '@/core/LoggerService.js';
-import { bindThis } from '@/decorators.js';
-import { ApiError } from '@/server/api/error.js';
-import { MiMeta } from '@/models/Meta.js';
-import type { FastifyRequest, FastifyReply } from 'fastify';
+import {query} from '@/misc/prelude/url.js';
+import {LoggerService} from '@/core/LoggerService.js';
+import {bindThis} from '@/decorators.js';
+import {ApiError} from '@/server/api/error.js';
+import {MiMeta} from '@/models/Meta.js';
+import type {FastifyReply, FastifyRequest} from 'fastify';
 
 @Injectable()
 export class UrlPreviewService {
@@ -34,6 +34,9 @@ export class UrlPreviewService {
 		this.logger = this.loggerService.getLogger('url-preview');
 	}
 
+	/* @deprecated
+   * Better alternatives are already available
+   */
 	@bindThis
 	private wrap(url?: string | null): string | null {
 		return url != null
@@ -45,15 +48,34 @@ export class UrlPreviewService {
 	}
 
 	@bindThis
+	private async wrapAsync(url?: string | null): Promise<string | null> {
+		if (!url) return null;
+
+		const proxyBase = `${this.config.mediaProxy}/preview.webp?`;
+
+		if (url.toLowerCase().startsWith('http://')) {
+			const httpsUrlToCheck = url.replace(/^http:\/\//i, 'https://');
+			try {
+				await this.httpRequestService.send(
+					httpsUrlToCheck,
+					{ method: 'HEAD' },
+					{ throwErrorWhenResponseNotOk: false }
+				);
+				return proxyBase + query({ url: httpsUrlToCheck, preview: '1' });
+			} catch {
+				return proxyBase + query({ url, preview: '1' });
+			}
+		}
+
+		return proxyBase + query({ url, preview: '1' });
+	}
+
+	@bindThis
 	public async handle(
 		request: FastifyRequest<{ Querystring: { url: string; lang?: string; } }>,
 		reply: FastifyReply,
 	): Promise<object | undefined> {
 		const url = request.query.url;
-		if (typeof url !== 'string') {
-			reply.code(400);
-			return;
-		}
 
 		const lang = request.query.lang;
 		if (Array.isArray(lang)) {
@@ -91,8 +113,10 @@ export class UrlPreviewService {
 				throw new Error('unsupported schema included');
 			}
 
-			summary.icon = this.wrap(summary.icon);
-			summary.thumbnail = this.wrap(summary.thumbnail);
+			[summary.icon, summary.thumbnail] = await Promise.all([
+				this.wrapAsync(summary.icon),
+				this.wrapAsync(summary.thumbnail),
+			]);
 
 			// Cache 1day
 			reply.header('Cache-Control', 'max-age=86400, immutable');
