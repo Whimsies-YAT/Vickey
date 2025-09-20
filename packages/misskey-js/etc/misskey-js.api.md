@@ -282,6 +282,18 @@ type AdminInviteListResponse = operations['admin___invite___list']['responses'][
 type AdminMetaResponse = operations['admin___meta']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type AdminNotesListDeletedRequest = operations['admin___notes___list-deleted']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminNotesListDeletedResponse = operations['admin___notes___list-deleted']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AdminNotesShowDeletedRequest = operations['admin___notes___show-deleted']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminNotesShowDeletedResponse = operations['admin___notes___show-deleted']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type AdminPromoCreateRequest = operations['admin___promo___create']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -1658,6 +1670,10 @@ declare namespace entities {
         AdminInviteListRequest,
         AdminInviteListResponse,
         AdminMetaResponse,
+        AdminNotesListDeletedRequest,
+        AdminNotesListDeletedResponse,
+        AdminNotesShowDeletedRequest,
+        AdminNotesShowDeletedResponse,
         AdminPromoCreateRequest,
         AdminQueueClearRequest,
         AdminQueueDeliverDelayedResponse,

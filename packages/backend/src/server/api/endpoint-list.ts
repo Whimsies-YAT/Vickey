@@ -70,6 +70,8 @@ export * as 'admin/get-user-ips' from './endpoints/admin/get-user-ips.js';
 export * as 'admin/invite/create' from './endpoints/admin/invite/create.js';
 export * as 'admin/invite/list' from './endpoints/admin/invite/list.js';
 export * as 'admin/meta' from './endpoints/admin/meta.js';
+export * as 'admin/notes/list-deleted' from './endpoints/admin/notes/list-deleted.js';
+export * as 'admin/notes/show-deleted' from './endpoints/admin/notes/show-deleted.js';
 export * as 'admin/recommendation-stats' from './endpoints/admin/recommendation-stats.js';
 export * as 'admin/promo/create' from './endpoints/admin/promo/create.js';
 export * as 'admin/queue/clear' from './endpoints/admin/queue/clear.js';

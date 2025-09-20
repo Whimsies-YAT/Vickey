@@ -545,6 +545,10 @@ export const ROUTE_DEF = [{
 		name: 'approvals',
 		component: page(() => import('@/pages/admin/approvals.vue')),
 	}, {
+		path: '/deleted-notes',
+		name: 'deleted-notes',
+		component: page(() => import('@/pages/admin/deleted-notes.vue')),
+	}, {
 		path: '/',
 		component: page(() => import('@/pages/_empty_.vue')),
 	}],

@@ -302,7 +302,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.renoteId != null) {
 				// Fetch renote to note
 				renote = await this.notesRepository.findOne({
-					where: { id: ps.renoteId },
+					where: { id: ps.renoteId, isDeleted: false },
 					relations: ['user', 'renote', 'reply'],
 				});
 
@@ -351,7 +351,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.replyId != null) {
 				// Fetch reply
 				reply = await this.notesRepository.findOne({
-					where: { id: ps.replyId },
+					where: { id: ps.replyId, isDeleted: false },
 					relations: ['user'],
 				});
 

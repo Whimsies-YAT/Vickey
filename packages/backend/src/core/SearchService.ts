@@ -573,6 +573,7 @@ export class SearchService {
 
 			query.where('note.id IN (:...noteIds)', { noteIds: res.hits.map(x => x.id) });
 
+			this.queryService.generateSoftDeletedNoteQuery(query);
 			this.queryService.generateBlockedHostQueryForNote(query);
 			this.queryService.generateSuspendedUserQueryForNote(query);
 
@@ -657,6 +658,7 @@ export class SearchService {
 
 			query.where('note.id IN (:...noteIds)', { noteIds });
 
+			this.queryService.generateSoftDeletedNoteQuery(query);
 			this.queryService.generateBlockedHostQueryForNote(query);
 			this.queryService.generateSuspendedUserQueryForNote(query);
 
@@ -704,6 +706,7 @@ export class SearchService {
 			}
 
 			this.queryService.generateVisibilityQuery(query, me);
+			this.queryService.generateSoftDeletedNoteQuery(query);
 			if (me) this.queryService.generateMutedUserQueryForNotes(query, me);
 			if (me) this.queryService.generateBlockedUserQueryForNotes(query, me);
 

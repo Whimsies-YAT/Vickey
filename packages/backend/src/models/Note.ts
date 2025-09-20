@@ -201,6 +201,13 @@ export class MiNote {
 	public hasPoll: boolean;
 
 	@Index()
+	@Column('boolean', {
+		default: false,
+		comment: 'Soft delete flag - deleted notes are not shown in timelines but kept for moderation.',
+	})
+	public isDeleted: boolean;
+
+	@Index()
 	@Column({
 		...id(),
 		nullable: true,

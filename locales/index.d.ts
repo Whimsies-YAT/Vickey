@@ -154,6 +154,10 @@ export interface Locale extends ILocale {
      */
     "updated": string;
     /**
+     * Updated
+     */
+    "updatedAlt": string;
+    /**
      * Not Available
      */
     "notAvailable": string;
@@ -273,6 +277,158 @@ export interface Locale extends ILocale {
      * Pause
      */
     "pause": string;
+    /**
+     * Deleted Notes
+     */
+    "deletedNotes": string;
+    /**
+     * View and manage soft-deleted notes for administrative purposes
+     */
+    "deletedNotesDescription": string;
+    /**
+     * View Deleted Note
+     */
+    "viewDeletedNote": string;
+    /**
+     * List Deleted Notes
+     */
+    "listDeletedNotes": string;
+    /**
+     * Deleted Note Details
+     */
+    "deletedNoteDetails": string;
+    /**
+     * No deleted notes found
+     */
+    "noDeletedNotesFound": string;
+    /**
+     * Soft-deleted Note
+     */
+    "softDeletedNote": string;
+    /**
+     * Hard-deleted Note
+     */
+    "hardDeletedNote": string;
+    /**
+     * Note deleted at
+     */
+    "noteDeletedAt": string;
+    /**
+     * Note created at
+     */
+    "noteCreatedAt": string;
+    /**
+     * Note ID
+     */
+    "noteId": string;
+    /**
+     * Note author
+     */
+    "noteAuthor": string;
+    /**
+     * Note content
+     */
+    "noteContent": string;
+    /**
+     * Deleted note access logged for audit trail
+     */
+    "deletedNoteAuditLog": string;
+    /**
+     * View deleted notes (Admin/Moderator only)
+     */
+    "viewDeletedNotePermission": string;
+    /**
+     * Search deleted notes
+     */
+    "searchDeletedNotes": string;
+    /**
+     * Filter by user
+     */
+    "filterByUser": string;
+    /**
+     * Filter by date range
+     */
+    "filterByDateRange": string;
+    /**
+     * Deleted after
+     */
+    "deletedAfter": string;
+    /**
+     * Deleted before
+     */
+    "deletedBefore": string;
+    /**
+     * Load more deleted notes
+     */
+    "loadMoreDeletedNotes": string;
+    /**
+     * Refresh deleted notes
+     */
+    "refreshDeletedNotes": string;
+    /**
+     * Clear filters
+     */
+    "clearFilters": string;
+    /**
+     * Export deleted notes
+     */
+    "exportDeletedNotes": string;
+    /**
+     * Deleted Note Details
+     */
+    "deletedNoteDetailsTitle": string;
+    /**
+     * エラー
+     */
+    "error": string;
+    /**
+     * Failed to load note details
+     */
+    "failedToLoadNoteDetails": string;
+    /**
+     * No text content
+     */
+    "noTextContent": string;
+    /**
+     * はい
+     */
+    "yes": string;
+    /**
+     * いいえ
+     */
+    "no": string;
+    /**
+     * ユーザー
+     */
+    "user": string;
+    /**
+     * ID
+     */
+    "id": string;
+    /**
+     * Created
+     */
+    "created": string;
+    /**
+     * Deleted
+     */
+    "deleted": string;
+    /**
+     * CW
+     */
+    "cw": string;
+    /**
+     * もっと見る
+     */
+    "loadMore": string;
+    /**
+     * ファイル
+     */
+    "files": string;
+    /**
+     * Failed to load deleted notes
+     */
+    "failedToLoadDeletedNotes": string;
     "_oauthAppVK": {
         /**
          * OAuth Application
@@ -1260,6 +1416,18 @@ export interface Locale extends ILocale {
          * Declined
          */
         "decline": string;
+        /**
+         * Viewed deleted note
+         */
+        "viewDeletedNote": string;
+        /**
+         * Listed deleted notes
+         */
+        "listDeletedNotes": string;
+        /**
+         * Hard deleted note
+         */
+        "hardDeleteNote": string;
         /**
          * ロールを作成
          */
@@ -3343,10 +3511,6 @@ export interface Locale extends ILocale {
     /**
      * もっと見る
      */
-    "loadMore": string;
-    /**
-     * もっと見る
-     */
     "showMore": string;
     /**
      * 閉じる
@@ -3388,10 +3552,6 @@ export interface Locale extends ILocale {
      * エクスポート
      */
     "export": string;
-    /**
-     * ファイル
-     */
-    "files": string;
     /**
      * ダウンロード
      */
@@ -3448,10 +3608,6 @@ export interface Locale extends ILocale {
      * リストの管理
      */
     "manageLists": string;
-    /**
-     * エラー
-     */
-    "error": string;
     /**
      * 問題が発生しました
      */
@@ -6125,14 +6281,6 @@ export interface Locale extends ILocale {
      */
     "pollVotedCount": string;
     /**
-     * はい
-     */
-    "yes": string;
-    /**
-     * いいえ
-     */
-    "no": string;
-    /**
      * ドライブのファイル数
      */
     "driveFilesCount": string;
@@ -6520,10 +6668,6 @@ export interface Locale extends ILocale {
      * クイックアクション
      */
     "quickAction": string;
-    /**
-     * ユーザー
-     */
-    "user": string;
     /**
      * 管理
      */

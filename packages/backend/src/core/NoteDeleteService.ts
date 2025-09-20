@@ -114,6 +114,76 @@ export class NoteDeleteService {
 
 		await this.cleanupNotificationsForNote(note);
 
+		await this.notesRepository.update({
+			id: note.id,
+			userId: user.id,
+		}, {
+			isDeleted: true,
+		});
+
+		if (deleter && (note.userId !== deleter.id)) {
+			const user = await this.usersRepository.findOneByOrFail({ id: note.userId });
+			this.moderationLogService.log(deleter, 'deleteNote', {
+				noteId: note.id,
+				noteUserId: note.userId,
+				noteUserUsername: user.username,
+				noteUserHost: user.host,
+				note: note,
+			});
+		}
+	}
+
+	async hardDelete(user: { id: MiUser['id']; uri: MiUser['uri']; host: MiUser['host']; isBot: MiUser['isBot']; }, note: MiNote, quiet = false, deleter?: MiUser) {
+		const deletedAt = new Date();
+
+		if (note.replyId) {
+			await this.notesRepository.decrement({ id: note.replyId }, 'repliesCount', 1);
+		}
+
+		if (!quiet) {
+			this.globalEventService.publishNoteStream(note.id, 'deleted', {
+				deletedAt: deletedAt,
+			});
+
+			//#region ローカルの投稿なら削除アクティビティを配送
+			if (this.userEntityService.isLocalUser(user) && !note.localOnly) {
+				let renote: MiNote | null = null;
+
+				if (isRenote(note) && !isQuote(note)) {
+					renote = await this.notesRepository.findOneBy({
+						id: note.renoteId,
+					});
+				}
+
+				const content = this.apRendererService.addContext(renote
+					? this.apRendererService.renderUndo(this.apRendererService.renderAnnounce(renote.uri ?? `${this.config.url}/notes/${renote.id}`, note), user)
+					: this.apRendererService.renderDelete(this.apRendererService.renderTombstone(`${this.config.url}/notes/${note.id}`), user));
+
+				this.deliverToConcerned(user, note, content);
+			}
+			//#endregion
+
+			this.notesChart.update(note, false);
+			if (this.meta.enableChartsForRemoteUser || (user.host == null)) {
+				this.perUserNotesChart.update(user, note, false);
+			}
+
+			if (this.meta.enableStatsForFederatedInstances) {
+				if (this.userEntityService.isRemoteUser(user)) {
+					this.federatedInstanceService.fetchOrRegister(user.host).then(async i => {
+						this.instancesRepository.decrement({ id: i.id }, 'notesCount', 1);
+						if (this.meta.enableChartsForFederatedInstances) {
+							this.instanceChart.updateNote(i.host, note, false);
+						}
+					});
+				}
+			}
+		}
+
+		this.searchService.unindexNote(note);
+
+		await this.cleanupNotificationsForNote(note);
+
 		await this.notesRepository.delete({
 			id: note.id,
 			userId: user.id,
@@ -121,7 +191,7 @@ export class NoteDeleteService {
 
 		if (deleter && (note.userId !== deleter.id)) {
 			const user = await this.usersRepository.findOneByOrFail({ id: note.userId });
-			this.moderationLogService.log(deleter, 'deleteNote', {
+			this.moderationLogService.log(deleter, 'hardDeleteNote', {
 				noteId: note.id,
 				noteUserId: note.userId,
 				noteUserUsername: user.username,

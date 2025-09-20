@@ -130,6 +130,9 @@ export const moderationLogTypes = [
 	'deleteGalleryPost',
 	'deleteChatRoom',
 	'updateProxyAccountDescription',
+	'hardDeleteNote',
+	'viewDeletedNote',
+	'listDeletedNotes',
 ] as const;
 
 export type ModerationLogPayloads = {
@@ -400,6 +403,26 @@ export type ModerationLogPayloads = {
 	updateProxyAccountDescription: {
 		before: string | null;
 		after: string | null;
+	};
+	hardDeleteNote: {
+		noteId: string;
+		noteUserId: string;
+		noteUserUsername: string;
+		noteUserHost: string | null;
+		note: any;
+	};
+	viewDeletedNote: {
+		noteId: string;
+		noteUserId: string;
+		noteText: string;
+		isDeleted: boolean;
+	};
+	listDeletedNotes: {
+		count: number;
+		limit: number;
+		userId: string | null;
+		deletedAfter: string | null;
+		deletedBefore: string | null;
 	};
 };
 

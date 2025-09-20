@@ -81,6 +81,10 @@ import type {
 	AdminInviteListRequest,
 	AdminInviteListResponse,
 	AdminMetaResponse,
+	AdminNotesListDeletedRequest,
+	AdminNotesListDeletedResponse,
+	AdminNotesShowDeletedRequest,
+	AdminNotesShowDeletedResponse,
 	AdminPromoCreateRequest,
 	AdminQueueClearRequest,
 	AdminQueueDeliverDelayedResponse,
@@ -765,6 +769,8 @@ export type Endpoints = {
 	'admin/invite/create': { req: AdminInviteCreateRequest; res: AdminInviteCreateResponse };
 	'admin/invite/list': { req: AdminInviteListRequest; res: AdminInviteListResponse };
 	'admin/meta': { req: EmptyRequest; res: AdminMetaResponse };
+	'admin/notes/list-deleted': { req: AdminNotesListDeletedRequest; res: AdminNotesListDeletedResponse };
+	'admin/notes/show-deleted': { req: AdminNotesShowDeletedRequest; res: AdminNotesShowDeletedResponse };
 	'admin/promo/create': { req: AdminPromoCreateRequest; res: EmptyResponse };
 	'admin/queue/clear': { req: AdminQueueClearRequest; res: EmptyResponse };
 	'admin/queue/deliver-delayed': { req: EmptyRequest; res: AdminQueueDeliverDelayedResponse };
