@@ -613,7 +613,7 @@ export class DriveService {
 			if (existingFile) {
 				this.registerLogger.info(`file with same fingerprint found: ${existingFile.id}, creating new reference`);
 
-				let file = new MiDriveFile();
+				const file = new MiDriveFile();
 				file.id = this.idService.gen();
 				file.userId = user ? user.id : null;
 				file.userHost = user ? user.host : null;

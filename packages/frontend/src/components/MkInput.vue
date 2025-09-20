@@ -14,16 +14,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 		:disabled="disabled"
 		:required="required"
 		:readonly="readonly"
-		:time-only="type === 'time'"
-		:date-only="type === 'date'"
-		:enable-time-picker="type === 'datetime-local'"
+		:timeOnly="type === 'time'"
+		:dateOnly="type === 'date'"
+		:enableTimePicker="type === 'datetime-local'"
 		:clearable="true"
-		:auto-apply="true"
+		:autoApply="true"
 		@focus="focused = true"
 		@blur="focused = false"
-		@update:model-value="onDateTimeUpdate"
+		@update:modelValue="onDateTimeUpdate"
 	>
-		<template #prefix v-if="$slots.prefix">
+		<template v-if="$slots.prefix" #prefix>
 			<slot name="prefix"></slot>
 		</template>
 	</MkDateTimePicker>

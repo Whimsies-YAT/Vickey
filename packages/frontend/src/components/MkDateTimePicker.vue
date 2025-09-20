@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div class="_formBlock">
-	<div class="label" v-if="label">{{ label }}</div>
+	<div v-if="label" class="label">{{ label }}</div>
 	<div :class="$style.inputWrapper">
 		<div ref="prefixEl" :class="$style.prefix"><slot name="prefix"></slot></div>
 		<VueDatePicker
@@ -15,29 +15,29 @@ SPDX-License-Identifier: AGPL-3.0-only
 			:disabled="disabled"
 			:readonly="readonly"
 			:required="required"
-			:time-picker="timeOnly"
-			:date-picker="dateOnly"
-			:enable-time-picker="enableTimePicker"
-			:month-picker="monthOnly"
-			:year-picker="yearOnly"
+			:timePicker="timeOnly"
+			:datePicker="dateOnly"
+			:enableTimePicker="enableTimePicker"
+			:monthPicker="monthOnly"
+			:yearPicker="yearOnly"
 			:range="range"
-			:multi-calendars="multiCalendars"
+			:multiCalendars="multiCalendars"
 			:locale="locale"
 			:clearable="clearable"
-			:close-on-select="closeOnSelect"
-			:close-on-auto-apply="closeOnAutoApply"
-			:auto-apply="autoApply"
+			:closeOnSelect="closeOnSelect"
+			:closeOnAutoApply="closeOnAutoApply"
+			:autoApply="autoApply"
 			:dark="isDark"
 			:teleport="true"
 			:class="$style.datePicker"
-			@update:model-value="onUpdate"
+			@update:modelValue="onUpdate"
 			@open="onOpen"
 			@closed="onClosed"
 			@focus="onFocus"
 			@blur="onBlur"
 		/>
 	</div>
-	<div class="caption" v-if="caption">{{ caption }}</div>
+	<div v-if="caption" class="caption">{{ caption }}</div>
 </div>
 </template>
 
@@ -116,7 +116,7 @@ const onBlur = () => {
 };
 
 useInterval(() => {
-	const inputWrap = document.querySelector('.dp__input_wrap .dp__input') as HTMLElement;
+	const inputWrap = window.document.querySelector('.dp__input_wrap .dp__input') as HTMLElement;
 	if (!inputWrap || !prefixEl.value) return;
 
 	if (prefixEl.value.offsetWidth) {

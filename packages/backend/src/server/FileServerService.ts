@@ -11,7 +11,7 @@ import rename from 'rename';
 import sharp from 'sharp';
 import { sharpBmp } from '@misskey-dev/sharp-read-bmp';
 import type { Config } from '@/config.js';
-import type { MiDriveFile, DriveFilesRepository, MiMeta, MetaRepository } from '@/models/_.js';
+import type { MiDriveFile, DriveFilesRepository, MiMeta, MetasRepository } from '@/models/_.js';
 import { IsNull } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import { createTemp } from '@/misc/create-temp.js';
@@ -49,7 +49,7 @@ export class FileServerService {
 		private driveFilesRepository: DriveFilesRepository,
 
 		@Inject(DI.metasRepository)
-		private metaRepository: MetaRepository,
+		private metasRepository: MetasRepository,
 
 		private fileInfoService: FileInfoService,
 		private downloadService: DownloadService,
@@ -580,7 +580,7 @@ export class FileServerService {
 					physicalPath = this.internalStorageService.resolvePath(originalFile.thumbnailAccessKey);
 				} else if (isWebpublic && originalFile.webpublicAccessKey) {
 					physicalPath = this.internalStorageService.resolvePath(originalFile.webpublicAccessKey);
-				} else if (!isThumbnail && !isWebpublic) {
+				} else if (!isThumbnail && !isWebpublic && originalFile.accessKey) {
 					physicalPath = this.internalStorageService.resolvePath(originalFile.accessKey);
 				} else {
 					physicalPath = this.internalStorageService.resolvePath(key);
@@ -622,7 +622,7 @@ export class FileServerService {
 		| '404'
 	> {
 		try {
-			const meta = await this.metaRepository.findOneBy({ id: IsNull() });
+			const meta = await this.metasRepository.findOneBy({ id: IsNull() });
 			if (!meta || !meta.objectStorageBucket) return '404';
 
 			const isThumbnail = file.thumbnailAccessKey === key;
@@ -640,7 +640,7 @@ export class FileServerService {
 						s3Key = originalFile.thumbnailAccessKey;
 					} else if (isWebpublic && originalFile.webpublicAccessKey) {
 						s3Key = originalFile.webpublicAccessKey;
-					} else if (!isThumbnail && !isWebpublic) {
+					} else if (!isThumbnail && !isWebpublic && originalFile.accessKey) {
 						s3Key = originalFile.accessKey;
 					} else {
 						s3Key = key;
