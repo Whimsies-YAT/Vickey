@@ -382,8 +382,7 @@ export class SearchService {
 								text: {
 									query: cleanQuery,
 									operator: 'and',
-									boost: 8,
-									minimum_should_match: '100%'
+									boost: 8
 								}
 							}
 						},
@@ -392,8 +391,7 @@ export class SearchService {
 								cw: {
 									query: cleanQuery,
 									operator: 'and',
-									boost: 6,
-									minimum_should_match: '100%'
+									boost: 6
 								}
 							}
 						},
@@ -403,7 +401,7 @@ export class SearchService {
 									query: cleanQuery,
 									operator: 'or',
 									boost: 4,
-									minimum_should_match: '75%'
+									minimum_should_match: '50%'
 								}
 							}
 						},
@@ -413,8 +411,18 @@ export class SearchService {
 									query: cleanQuery,
 									operator: 'or',
 									boost: 3,
-									minimum_should_match: '75%'
+									minimum_should_match: '50%'
 								}
+							}
+						},
+						{
+							multi_match: {
+								query: cleanQuery,
+								fields: ['text^2', 'cw^1.5'],
+								type: 'best_fields',
+								boost: 2,
+								fuzziness: 'AUTO',
+								minimum_should_match: '30%'
 							}
 						},
 						{
@@ -614,7 +622,7 @@ export class SearchService {
 					}
 				},
 				sort: [
-					{ _score: { order: "desc" } },
+					// { _score: { order: "desc" } },
 					{ createdAt: { order: "desc" } }
 				],
 				_source: ['id', 'createdAt'],
@@ -635,7 +643,7 @@ export class SearchService {
 						}
 					}
 				},
-				min_score: 0.1
+				min_score: 0.01
 			});
 
 			const noteIds = res.hits.hits.map((hit: any) => hit._id);
@@ -669,16 +677,21 @@ export class SearchService {
 
 			const scoreMap = new Map();
 			res.hits.hits.forEach((hit: any, index: number) => {
-				scoreMap.set(hit._id, { score: hit._score, index });
+				scoreMap.set(hit._id, { score: hit._score, index, createdAt: hit._source?.createdAt || 0 });
 			});
 
 			return notes.sort((a, b) => {
-				const aScore = scoreMap.get(a.id)?.score || 0;
-				const bScore = scoreMap.get(b.id)?.score || 0;
-				if (aScore !== bScore) {
+				const aInfo = scoreMap.get(a.id);
+				const bInfo = scoreMap.get(b.id);
+				const aScore = aInfo?.score || 0;
+				const bScore = bInfo?.score || 0;
+
+				if (Math.abs(aScore - bScore) > 0.001) {
 					return bScore - aScore;
 				}
-				return a.id > b.id ? -1 : 1;
+				const aCreatedAt = aInfo?.createdAt || this.idService.parse(a.id).date.getTime();
+				const bCreatedAt = bInfo?.createdAt || this.idService.parse(b.id).date.getTime();
+				return bCreatedAt - aCreatedAt;
 			});
 		} else {
 			const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), pagination.sinceId, pagination.untilId);
