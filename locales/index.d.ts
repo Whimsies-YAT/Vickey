@@ -14091,6 +14091,10 @@ export interface Locale extends ILocale {
              */
             "grayscale": string;
             /**
+             * ぼかし
+             */
+            "blur": string;
+            /**
              * 色調補正
              */
             "colorAdjust": string;
@@ -14135,9 +14139,9 @@ export interface Locale extends ILocale {
              */
             "tearing": string;
             /**
-             * 塗りつぶし(四角)
+             * 塗りつぶし
              */
-            "fillSquare": string;
+            "fill": string;
         };
         "_fxProps": {
             /**
@@ -14152,6 +14156,14 @@ export interface Locale extends ILocale {
              * サイズ
              */
             "size": string;
+            /**
+             * 半径
+             */
+            "radius": string;
+            /**
+             * サンプル数
+             */
+            "samples": string;
             /**
              * 位置
              */
@@ -14268,6 +14280,10 @@ export interface Locale extends ILocale {
              * 黒色にする
              */
             "zoomLinesBlack": string;
+            /**
+             * 円形
+             */
+            "circle": string;
         };
     };
     /**

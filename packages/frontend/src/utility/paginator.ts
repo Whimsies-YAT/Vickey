@@ -171,6 +171,13 @@ export class Paginator<
 	}
 
 	private getNewestId(): string | null | undefined {
+		if (this.endpoint === 'notes/search') {
+			if (this.aheadQueue.length > 0) {
+				return this.aheadQueue[0]?.id;
+			}
+			return this.items.value[0]?.id;
+		}
+
 		// 様々な要因により並び順は保証されないのでソートが必要
 		if (this.aheadQueue.length > 0) {
 			return this.aheadQueue.map(x => x.id).sort().at(-1);
@@ -179,6 +186,10 @@ export class Paginator<
 	}
 
 	private getOldestId(): string | null | undefined {
+		if (this.endpoint === 'notes/search') {
+			return this.items.value[this.items.value.length - 1]?.id;
+		}
+
 		// 様々な要因により並び順は保証されないのでソートが必要
 		return this.items.value.map(x => x.id).sort().at(0);
 	}
@@ -226,7 +237,11 @@ export class Paginator<
 			if (i === 3) item._shouldInsertAd_ = true;
 		}
 
-		this.pushItems(apiRes);
+		if (this.endpoint === 'notes/search' && this.order.value === 'oldest') {
+			this.pushItems(apiRes.toReversed());
+		} else {
+			this.pushItems(apiRes);
+		}
 
 		if (this.canFetchDetection === 'limit') {
 			if (apiRes.length < FIRST_FETCH_LIMIT) {
