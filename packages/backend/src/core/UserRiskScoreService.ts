@@ -124,10 +124,12 @@ export interface UserRiskScore {
 		recommendations: string[];
 	};
 	calculatedAt: Date;
+	algorithmVersion: string;
 }
 
 @Injectable()
 export class UserRiskScoreService implements OnApplicationShutdown {
+	private static readonly ALGORITHM_VERSION = '1.2.3';
 	constructor(
 		@Inject(DI.redis)
 		private redisClient: Redis.Redis,
@@ -167,7 +169,9 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 		private ip2LocationService: IP2LocationService,
 		private multiAccountDetectionService: MultiAccountDetectionService,
 	) {
-		this.initializeConfig().catch(err => {
+		this.initializeConfig().then(async () => {
+			await this.checkAndPerformBatchRecalculation();
+		}).catch(err => {
 			console.error('Failed to initialize risk score configuration:', err);
 		});
 	}
@@ -360,6 +364,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 			dimensions,
 			details,
 			calculatedAt: new Date(),
+			algorithmVersion: UserRiskScoreService.ALGORITHM_VERSION,
 		};
 
 			await this.redisClient.set(
@@ -390,7 +395,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	private createDefaultRiskScore(userId: string): UserRiskScore {
 		return {
 			userId,
-			totalScore: 65,
+			totalScore: 70,
 			riskLevel: 'good',
 			dimensions: this.createDefaultDimensions(),
 			details: {
@@ -399,6 +404,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 				recommendations: ['User activity required for accurate scoring'],
 			},
 			calculatedAt: new Date(),
+			algorithmVersion: UserRiskScoreService.ALGORITHM_VERSION,
 		};
 	}
 
@@ -410,10 +416,13 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 		const accountAge = Date.now() - createdAt.getTime();
 		const days = accountAge / (1000 * 60 * 60 * 24);
 
-		dimensions.accountAge = Math.min(5, Math.log(days + 1) / Math.log(365));
-		dimensions.avatarExists = user.avatarId ? 1 : 0;
+		dimensions.accountAge = Math.min(10, Math.log(days + 1) * 2);
+		dimensions.avatarExists = user.avatarId ? 2 : 0;
 
-		const totalScore = (dimensions.accountAge * 8 + dimensions.avatarExists * 5) + 55;
+		const baseScore = 68;
+		const ageBonus = Math.min(15, dimensions.accountAge * 1.2);
+		const avatarBonus = dimensions.avatarExists * 3;
+		const totalScore = baseScore + ageBonus + avatarBonus;
 
 		return {
 			userId,
@@ -426,46 +435,47 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 				recommendations: ['Complete user profile', 'Add profile information'],
 			},
 			calculatedAt: new Date(),
+			algorithmVersion: UserRiskScoreService.ALGORITHM_VERSION,
 		};
 	}
 
 	@bindThis
 	private createDefaultDimensions(): RiskScoreDimensions {
 		return {
-			accountAge: 0.7,
-			emailVerified: 0.6,
-			avatarExists: 0.6,
-			profileComplete: 0.5,
-			twoFactorEnabled: 0.4,
+			accountAge: 6.0,
+			emailVerified: 0.0,
+			avatarExists: 0.0,
+			profileComplete: 4.0,
+			twoFactorEnabled: 0.0,
 
-			loginFrequency: 0.7,
-			loginTimePattern: 0.7,
-			ipChangeFrequency: 0.8,
-			deviceDiversity: 0.7,
-			sessionDuration: 0.7,
-			failedLoginAttempts: 1.0,
+			loginFrequency: 7.0,
+			loginTimePattern: 6.0,
+			ipChangeFrequency: 8.0,
+			deviceDiversity: 7.0,
+			sessionDuration: 7.0,
+			failedLoginAttempts: 9.0,
 
-			postingFrequency: 0.7,
-			postingTimePattern: 0.7,
-			contentDiversity: 0.7,
-			mediaUsagePattern: 0.7,
-			interactionPattern: 0.7,
+			postingFrequency: 6.0,
+			postingTimePattern: 6.0,
+			contentDiversity: 7.0,
+			mediaUsagePattern: 7.0,
+			interactionPattern: 7.0,
 
-			followRatio: 0.7,
-			mutualFollowRate: 0.7,
-			socialGraphDensity: 0.6,
-			interactionReciprocity: 0.6,
+			followRatio: 6.0,
+			mutualFollowRate: 6.0,
+			socialGraphDensity: 5.0,
+			interactionReciprocity: 5.0,
 
-			averageNoteLength: 0.7,
-			hashtagUsage: 0.7,
-			mentionFrequency: 0.7,
-			urlUsage: 0.7,
+			averageNoteLength: 7.0,
+			hashtagUsage: 6.0,
+			mentionFrequency: 6.0,
+			urlUsage: 6.0,
 
-			reportedCount: 1.0,
-			blockedByCount: 1.0,
+			reportedCount: 9.0,
+			blockedByCount: 9.0,
 
-			rateLimitHits: 1.0,
-			apiUsagePattern: 0.8,
+			rateLimitHits: 9.0,
+			apiUsagePattern: 8.0,
 		};
 	}
 
@@ -731,25 +741,52 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 
 	@bindThis
 	private async calculatePostingFrequencyScore(userId: string): Promise<number> {
-		const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-		const recentNotes = await this.notesRepository.count({
-			where: {
-				userId,
-				id: MoreThan(this.idService.gen(sevenDaysAgo.getTime())),
-			},
+		const notes = await this.notesRepository.find({
+			where: { userId },
+			select: ['id'],
+			order: { id: 'DESC' },
+			take: 1000,
 		});
 
-		const avgPerDay = recentNotes / 7;
+		if (notes.length === 0) {
+			return await this.normalizeScore(0.3, 'postingFrequency', userId);
+		}
+
+		const now = Date.now();
+		const maxAge = 180 * 24 * 60 * 60 * 1000;
+		let weightedPostCount = 0;
+		let totalWeight = 0;
+
+		for (const note of notes) {
+			const noteTime = this.idService.parse(note.id).date.getTime();
+			const age = now - noteTime;
+
+			const timeWeight = Math.exp(-age / (30 * 24 * 60 * 60 * 1000));
+
+			if (age <= maxAge) {
+				weightedPostCount += timeWeight;
+				totalWeight += timeWeight;
+			}
+		}
+
+		if (totalWeight === 0) {
+			return await this.normalizeScore(0.3, 'postingFrequency', userId);
+		}
+
+		const effectiveDays = Math.min(180, (now - this.idService.parse(notes[notes.length - 1].id).date.getTime()) / (24 * 60 * 60 * 1000));
+		const avgPerDay = weightedPostCount / Math.max(1, effectiveDays / 7);
 
 		let rawScore: number;
-		if (avgPerDay > 100) {
-			rawScore = 0;
-		} else if (avgPerDay > 50) {
-			rawScore = 0.2;
-		} else if (avgPerDay >= 1 && avgPerDay <= 10) {
-			rawScore = 1;
-		} else if (avgPerDay < 0.1) {
+		if (avgPerDay > 15) { // 调整阈值考虑时间衰减
+			rawScore = 0.1;
+		} else if (avgPerDay > 10) {
 			rawScore = 0.3;
+		} else if (avgPerDay >= 1 && avgPerDay <= 7) {
+			rawScore = 1;
+		} else if (avgPerDay >= 0.3 && avgPerDay < 1) {
+			rawScore = 0.8;
+		} else if (avgPerDay < 0.1) {
+			rawScore = 0.4;
 		} else {
 			rawScore = 0.7;
 		}
@@ -791,20 +828,48 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	private async calculateContentDiversityScore(userId: string): Promise<number> {
 		const notes = await this.notesRepository.find({
 			where: { userId },
-			select: ['text'],
-			take: 50,
+			select: ['id', 'text'],
+			take: 200,
 			order: { id: 'DESC' },
 		});
 
 		if (notes.length < 5) return 2;
 
-		const texts = notes.filter(n => n.text).map(n => n.text!);
-		const uniqueTexts = new Set(texts).size;
-		const diversityRatio = uniqueTexts / texts.length;
+		const now = Date.now();
+		const textWeights = new Map<string, number>();
+		let totalWeight = 0;
+
+		for (const note of notes) {
+			if (!note.text) continue;
+
+			const noteTime = this.idService.parse(note.id).date.getTime();
+			const age = now - noteTime;
+			const timeWeight = Math.exp(-age / (60 * 24 * 60 * 60 * 1000));
+
+			const normalizedText = note.text.toLowerCase().replace(/[^\w\s]/g, '').trim();
+			if (normalizedText.length < 3) continue;
+
+			let maxSimilarity = 0;
+			for (const [existingText, _] of textWeights) {
+				const similarity = this.calculateTextSimilarity(normalizedText, existingText);
+				maxSimilarity = Math.max(maxSimilarity, similarity);
+			}
+
+			const diversityWeight = maxSimilarity > 0.8 ? 0.2 : (maxSimilarity > 0.6 ? 0.5 : 1.0);
+			const finalWeight = timeWeight * diversityWeight;
+
+			textWeights.set(normalizedText, (textWeights.get(normalizedText) || 0) + finalWeight);
+			totalWeight += finalWeight;
+		}
+
+		if (textWeights.size === 0 || totalWeight === 0) return 2;
+
+		const uniqueWeightedTexts = Array.from(textWeights.values()).reduce((sum, weight) => sum + Math.min(1, weight), 0);
+		const diversityRatio = uniqueWeightedTexts / Math.max(1, notes.filter(n => n.text && n.text.trim().length >= 3).length);
 
 		const stats = await this.getPopulationStats('content_diversity');
 
-		return this.calculateDynamicScore(diversityRatio, stats.mean, stats.stdDev, true);
+		return Math.max(2, this.calculateDynamicScore(diversityRatio, stats.mean, stats.stdDev, true) * 10);
 	}
 
 	@bindThis
@@ -832,30 +897,69 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 
 	@bindThis
 	private async calculateInteractionPatternScore(userId: string): Promise<number> {
-		const [replies, renotes] = await Promise.all([
-			this.notesRepository.count({
+		const [replyNotes, renoteNotes, allNotes] = await Promise.all([
+			this.notesRepository.find({
 				where: {
 					userId,
 					replyId: Not(IsNull()),
 				},
+				select: ['id'],
+				take: 500,
+				order: { id: 'DESC' },
 			}),
-			this.notesRepository.count({
+			this.notesRepository.find({
 				where: {
 					userId,
 					renoteId: Not(IsNull()),
 				},
+				select: ['id'],
+				take: 500,
+				order: { id: 'DESC' },
+			}),
+			this.notesRepository.find({
+				where: { userId },
+				select: ['id'],
+				take: 1000,
+				order: { id: 'DESC' },
 			}),
 		]);
 
-		const totalNotes = await this.notesRepository.count({ where: { userId } });
+		if (allNotes.length === 0) return 2;
 
-		if (totalNotes === 0) return 2;
+		const now = Date.now();
+		let weightedInteractions = 0;
+		let totalWeight = 0;
 
-		const interactionRatio = (replies + renotes) / totalNotes;
+		for (const note of replyNotes) {
+			const noteTime = this.idService.parse(note.id).date.getTime();
+			const age = now - noteTime;
+			const timeWeight = Math.exp(-age / (45 * 24 * 60 * 60 * 1000));
+			weightedInteractions += timeWeight;
+		}
 
-		if (interactionRatio > 0.2 && interactionRatio < 0.7) return 5;
-		if (interactionRatio > 0.1 && interactionRatio < 0.8) return 4;
+		for (const note of renoteNotes) {
+			const noteTime = this.idService.parse(note.id).date.getTime();
+			const age = now - noteTime;
+			const timeWeight = Math.exp(-age / (45 * 24 * 60 * 60 * 1000)) * 0.7;
+			weightedInteractions += timeWeight;
+		}
+
+		for (const note of allNotes) {
+			const noteTime = this.idService.parse(note.id).date.getTime();
+			const age = now - noteTime;
+			const timeWeight = Math.exp(-age / (45 * 24 * 60 * 60 * 1000));
+			totalWeight += timeWeight;
+		}
+
+		if (totalWeight === 0) return 2;
+
+		const interactionRatio = weightedInteractions / totalWeight;
+
+		if (interactionRatio > 0.15 && interactionRatio < 0.6) return 7;
+		if (interactionRatio > 0.08 && interactionRatio < 0.75) return 5;
+		if (interactionRatio > 0.03 && interactionRatio < 0.85) return 4;
 		if (interactionRatio > 0.9) return 2;
+		if (interactionRatio < 0.01) return 3;
 		return 3;
 	}
 
@@ -944,13 +1048,23 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 				userId,
 				replyId: Not(IsNull()),
 			},
-			select: ['replyUserId'],
+			select: ['id', 'replyId'],
 			take: 100,
 		});
 
+		const replyIds = sentReplies.map(r => r.replyId).filter(Boolean);
+		const replyNotes = replyIds.length > 0 ? await this.notesRepository.find({
+			where: {
+				id: In(replyIds),
+			},
+			select: ['id', 'userId'],
+		}) : [];
+
+		const replyUserIdMap = new Map(replyNotes.map(n => [n.id, n.userId]));
+
 		const receivedReplies = await this.notesRepository.find({
 			where: {
-				replyUserId: userId,
+				replyId: In(sentReplies.map(r => r.id)),
 			},
 			select: ['userId'],
 			take: 100,
@@ -958,7 +1072,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 
 		if (sentReplies.length === 0) return 2;
 
-		const sentToUsers = new Set(sentReplies.map(r => r.replyUserId).filter(Boolean));
+		const sentToUsers = new Set(sentReplies.map(r => replyUserIdMap.get(r.replyId!)).filter(Boolean));
 		const receivedFromUsers = new Set(receivedReplies.map(r => r.userId));
 
 		let reciprocalCount = 0;
@@ -1182,7 +1296,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	private calculatePercentile(score: number): number {
 		const distributionData = this.baselines.get('scoreDistribution');
 		const distribution = Array.isArray(distributionData) ? distributionData : [];
-		if (distribution.length === 0) return 60;
+		if (distribution.length === 0) return 70;
 
 		const below = distribution.filter(s => s < score).length;
 		return (below / distribution.length) * 100;
@@ -1190,7 +1304,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 
 	@bindThis
 	private async calculateTotalScore(dimensions: RiskScoreDimensions): Promise<number> {
-		if (!this.config) return 60;
+		if (!this.config) return 68;
 
 		let totalScore = 0;
 		let totalWeight = 0;
@@ -1205,14 +1319,53 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 			}
 		}
 
-		if (totalWeight === 0) return 60;
+		if (totalWeight === 0) return 68;
 
-		let finalScore = (totalScore / totalWeight) * 100;
+		let rawScore = (totalScore / totalWeight) * 100;
 
 		const outlierPenalty = this.calculateOutlierPenalty(dimensions);
-		finalScore *= (1 - outlierPenalty);
+		rawScore *= (1 - outlierPenalty);
 
-		return Math.min(95, Math.max(5, finalScore));
+		const normalizedScore = await this.applyPopulationNormalization(rawScore);
+
+		return Math.min(95, Math.max(45, normalizedScore));
+	}
+
+	@bindThis
+	private async applyPopulationNormalization(rawScore: number): Promise<number> {
+		const median = this.baselines.get('riskScore_median') || 65;
+		const mean = this.baselines.get('riskScore_mean') || 65;
+
+		if (!this.baselines.has('scoreDistribution')) {
+			return rawScore * 0.95;
+		}
+
+		const distributionData = this.baselines.get('scoreDistribution');
+		const distribution = Array.isArray(distributionData) ? distributionData : [];
+		if (distribution.length < 50) {
+			return rawScore * 0.95;
+		}
+
+		const percentile = this.calculatePercentile(rawScore);
+
+		let adjustmentFactor: number;
+		if (percentile > 90) {
+			adjustmentFactor = 0.85 + (percentile - 90) * 0.01;
+		} else if (percentile > 70) {
+			adjustmentFactor = 0.90 + (percentile - 70) * 0.0025;
+		} else if (percentile > 30) {
+			adjustmentFactor = 0.95 + (percentile - 30) * 0.00125;
+		} else {
+			adjustmentFactor = 1.00 + (30 - percentile) * 0.002;
+		}
+
+		const populationAdjustedScore = rawScore * adjustmentFactor;
+
+		const targetMean = 65;
+		const currentDeviation = mean - targetMean;
+		const correctionFactor = 1 - (currentDeviation * 0.01);
+
+		return populationAdjustedScore * Math.max(0.85, Math.min(1.15, correctionFactor));
 	}
 
 	@bindThis
@@ -1483,9 +1636,750 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	}
 
 	@bindThis
+	private calculateTextSimilarity(text1: string, text2: string): number {
+		if (text1 === text2) return 1.0;
+		if (text1.length === 0 || text2.length === 0) return 0.0;
+
+		const charSimilarity = this.calculateLevenshteinSimilarity(text1, text2);
+
+		const wordSimilarity = this.calculateWordSimilarity(text1, text2);
+
+		const ngramSimilarity = this.calculateNgramSimilarity(text1, text2, 2);
+
+		const structureSimilarity = this.calculateStructuralSimilarity(text1, text2);
+
+		const finalSimilarity = (
+			charSimilarity * 0.2 +
+			wordSimilarity * 0.4 +
+			ngramSimilarity * 0.3 +
+			structureSimilarity * 0.1
+		);
+
+		return Math.min(1.0, finalSimilarity);
+	}
+
+	@bindThis
+	private calculateLevenshteinSimilarity(text1: string, text2: string): number {
+		const len1 = text1.length;
+		const len2 = text2.length;
+
+		if (len1 === 0) return len2 === 0 ? 1.0 : 0.0;
+		if (len2 === 0) return 0.0;
+
+		const matrix: number[][] = Array(len1 + 1).fill(null).map(() => Array(len2 + 1).fill(0));
+
+		for (let i = 0; i <= len1; i++) matrix[i][0] = i;
+		for (let j = 0; j <= len2; j++) matrix[0][j] = j;
+
+		for (let i = 1; i <= len1; i++) {
+			for (let j = 1; j <= len2; j++) {
+				const cost = text1[i - 1] === text2[j - 1] ? 0 : 1;
+				matrix[i][j] = Math.min(
+					matrix[i - 1][j] + 1,
+					matrix[i][j - 1] + 1,
+					matrix[i - 1][j - 1] + cost
+				);
+			}
+		}
+
+		const maxLen = Math.max(len1, len2);
+		return 1 - (matrix[len1][len2] / maxLen);
+	}
+
+	@bindThis
+	private calculateWordSimilarity(text1: string, text2: string): number {
+		const words1 = this.tokenizeText(text1);
+		const words2 = this.tokenizeText(text2);
+
+		if (words1.length === 0 && words2.length === 0) return 1.0;
+		if (words1.length === 0 || words2.length === 0) return 0.0;
+
+		const freq1 = new Map<string, number>();
+		const freq2 = new Map<string, number>();
+
+		words1.forEach(word => freq1.set(word, (freq1.get(word) || 0) + 1));
+		words2.forEach(word => freq2.set(word, (freq2.get(word) || 0) + 1));
+
+		const allWords = new Set([...words1, ...words2]);
+
+		let dotProduct = 0;
+		let norm1 = 0;
+		let norm2 = 0;
+
+		for (const word of allWords) {
+			const f1 = freq1.get(word) || 0;
+			const f2 = freq2.get(word) || 0;
+
+			dotProduct += f1 * f2;
+			norm1 += f1 * f1;
+			norm2 += f2 * f2;
+		}
+
+		if (norm1 === 0 || norm2 === 0) return 0.0;
+
+		const cosineSimilarity = dotProduct / (Math.sqrt(norm1) * Math.sqrt(norm2));
+
+		const intersection = new Set([...words1].filter(x => words2.includes(x)));
+		const union = new Set([...words1, ...words2]);
+		const jaccardSimilarity = intersection.size / union.size;
+
+		return (cosineSimilarity * 0.7 + jaccardSimilarity * 0.3);
+	}
+
+	@bindThis
+	private calculateNgramSimilarity(text1: string, text2: string, n: number): number {
+		const ngrams1 = this.generateNgrams(text1, n);
+		const ngrams2 = this.generateNgrams(text2, n);
+
+		if (ngrams1.length === 0 && ngrams2.length === 0) return 1.0;
+		if (ngrams1.length === 0 || ngrams2.length === 0) return 0.0;
+
+		const set1 = new Set(ngrams1);
+		const set2 = new Set(ngrams2);
+
+		const intersection = new Set([...set1].filter(x => set2.has(x)));
+		const union = new Set([...set1, ...set2]);
+
+		return intersection.size / union.size;
+	}
+
+	@bindThis
+	private calculateStructuralSimilarity(text1: string, text2: string): number {
+		const len1 = text1.length;
+		const len2 = text2.length;
+		const lengthSim = 1 - Math.abs(len1 - len2) / Math.max(len1, len2, 1);
+
+		const punct1 = (text1.match(/[.,!?;:]/g) || []).length;
+		const punct2 = (text2.match(/[.,!?;:]/g) || []).length;
+		const punctSim = 1 - Math.abs(punct1 - punct2) / Math.max(punct1 + punct2, 1);
+
+		const caps1 = (text1.match(/[A-Z]/g) || []).length;
+		const caps2 = (text2.match(/[A-Z]/g) || []).length;
+		const capsSim = 1 - Math.abs(caps1 - caps2) / Math.max(caps1 + caps2, 1);
+
+		const nums1 = (text1.match(/[0-9]/g) || []).length;
+		const nums2 = (text2.match(/[0-9]/g) || []).length;
+		const numsSim = 1 - Math.abs(nums1 - nums2) / Math.max(nums1 + nums2, 1);
+
+		return (lengthSim * 0.4 + punctSim * 0.3 + capsSim * 0.2 + numsSim * 0.1);
+	}
+
+	@bindThis
+	private tokenizeText(text: string): string[] {
+		const normalized = text.toLowerCase();
+		const words: string[] = [];
+
+		const needsNgram = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Arabic}\p{Script=Thai}\p{Script=Myanmar}\p{Script=Khmer}\p{Script=Lao}\p{Script=Hebrew}]/u.test(normalized);
+
+		if (needsNgram) {
+			const sequences = normalized.match(/\p{L}+/gu) || [];
+
+			sequences.forEach(sequence => {
+				if (sequence.length === 1) {
+					words.push(sequence);
+				} else if (sequence.length === 2) {
+					words.push(sequence);
+				} else {
+					for (let i = 0; i <= sequence.length - 2; i++) {
+						words.push(sequence.slice(i, i + 2));
+						if (i <= sequence.length - 3) {
+							words.push(sequence.slice(i, i + 3));
+						}
+					}
+				}
+			});
+		}
+
+		const spaceWords = normalized.match(/\p{L}{2,}/gu) || [];
+		spaceWords.forEach(word => {
+			if (word.length > 2 && !words.includes(word)) {
+				words.push(word);
+			}
+		});
+
+		if (words.length === 0) {
+			return normalized
+				.replace(/[^\p{L}\p{N}\s]/gu, ' ')
+				.split(/\s+/)
+				.filter(word => word.length > 1 && /\p{L}/u.test(word));
+		}
+
+		return [...new Set(words)].filter(word =>
+			word.length > 0 &&
+			/\p{L}/u.test(word) &&
+			!/^\p{N}+$/u.test(word)
+		);
+	}
+
+	@bindThis
+	private generateNgrams(text: string, n: number): string[] {
+		const normalized = text.toLowerCase().replace(/\s+/g, ' ').trim();
+		const ngrams: string[] = [];
+
+		for (let i = 0; i <= normalized.length - n; i++) {
+			ngrams.push(normalized.slice(i, i + n));
+		}
+
+		return ngrams;
+	}
+
+	@bindThis
+	private async checkAndPerformBatchRecalculation(): Promise<void> {
+		try {
+			const lastRecalculationInfo = await this.redisClient.get('risk-score:last-batch-recalculation');
+			let shouldRecalculate = false;
+
+			if (!lastRecalculationInfo) {
+				console.log('No previous batch recalculation found, scheduling one...');
+				shouldRecalculate = true;
+			} else {
+				const { version, timestamp } = JSON.parse(lastRecalculationInfo);
+				const timeSinceLastRecalc = Date.now() - new Date(timestamp).getTime();
+				const daysSinceLastRecalc = timeSinceLastRecalc / (1000 * 60 * 60 * 24);
+
+				if (version !== UserRiskScoreService.ALGORITHM_VERSION) {
+					console.log(`Algorithm version changed from ${version} to ${UserRiskScoreService.ALGORITHM_VERSION}, scheduling batch recalculation...`);
+					shouldRecalculate = true;
+				} else if (daysSinceLastRecalc > 7) {
+					console.log(`Last recalculation was ${daysSinceLastRecalc.toFixed(1)} days ago, scheduling batch recalculation...`);
+					shouldRecalculate = true;
+				}
+			}
+
+			if (shouldRecalculate) {
+				console.log('Starting time-sliced batch recalculation...');
+				setTimeout(async () => {
+					await this.startTimeSlicedBatchRecalculation();
+				}, 30000);
+			} else {
+				console.log('No batch recalculation needed');
+			}
+		} catch (error) {
+			console.error('Error checking batch recalculation needs:', error);
+		}
+	}
+
+	@bindThis
+	public async batchRecalculateAllScores(): Promise<{ processed: number; updated: number; errors: number }> {
+		const startTime = Date.now();
+		console.log('Starting batch recalculation of all user risk scores...');
+
+		let processed = 0;
+		let updated = 0;
+		let errors = 0;
+		const batchSize = 150;
+		const progressLogInterval = 250;
+
+		try {
+			const totalUsers = await this.usersRepository.count({
+				where: {
+					host: IsNull(),
+					isSuspended: false,
+					isDeleted: false,
+				},
+			});
+
+			console.log(`Found ${totalUsers} users to recalculate`);
+
+			let offset = 0;
+			while (offset < totalUsers) {
+				const users = await this.usersRepository.find({
+					where: {
+						host: IsNull(),
+						isSuspended: false,
+						isDeleted: false,
+					},
+					select: ['id'],
+					skip: offset,
+					take: batchSize,
+				});
+
+				if (users.length === 0) break;
+
+				const promises = users.map(async (user) => {
+					try {
+						const cachedScore = await this.getCachedScore(user.id);
+						const dbUser = await this.usersRepository.findOne({
+							where: { id: user.id },
+							select: ['riskScore', 'riskLevel']
+						});
+
+						const oldScore = cachedScore || (dbUser ? {
+							totalScore: dbUser.riskScore || 0,
+							riskLevel: dbUser.riskLevel || 'poor' as const,
+						} : null);
+
+						const newScore = await this.calculateUserRiskScore(user.id);
+
+						const scoreChanged = !oldScore || Math.abs(oldScore.totalScore - newScore.totalScore) > 1;
+						const levelChanged = !oldScore || oldScore.riskLevel !== newScore.riskLevel;
+						const forceUpdate = !cachedScore;
+
+						if (scoreChanged || levelChanged || forceUpdate) {
+							console.log(`User ${user.id}: ${oldScore?.totalScore || 'N/A'} (${oldScore?.riskLevel || 'N/A'}) → ${newScore.totalScore} (${newScore.riskLevel}) [${UserRiskScoreService.ALGORITHM_VERSION}]`);
+
+							await this.riskEventLogService.logRiskEvent({
+								userId: user.id,
+								eventType: 'risk_level_changed',
+								riskScore: newScore.totalScore,
+								riskLevel: newScore.riskLevel,
+								details: {
+									trigger: 'batch_recalculation',
+									oldScore: oldScore?.totalScore || null,
+									oldLevel: oldScore?.riskLevel || null,
+									newScore: newScore.totalScore,
+									newLevel: newScore.riskLevel,
+									forced: forceUpdate,
+								},
+								timestamp: new Date(),
+							});
+
+							return true;
+						}
+
+						return false;
+					} catch (error) {
+						console.error(`Failed to recalculate score for user ${user.id}:`, error);
+						throw error;
+					}
+				});
+
+				const results = await Promise.allSettled(promises);
+
+				results.forEach((result) => {
+					processed++;
+					if (result.status === 'fulfilled') {
+						if (result.value) updated++;
+					} else {
+						errors++;
+					}
+				});
+
+				offset += batchSize;
+
+				const elapsedTime = Date.now() - startTime;
+				const avgTimePerUser = elapsedTime / processed;
+				const remainingUsers = totalUsers - processed;
+				const estimatedRemainingTime = avgTimePerUser * remainingUsers;
+				const percentComplete = ((processed / totalUsers) * 100).toFixed(1);
+
+				console.log(`Progress: ${processed}/${totalUsers} (${percentComplete}%) - Updated: ${updated}, Errors: ${errors}`);
+				console.log(`Elapsed: ${this.formatDuration(elapsedTime)}, ETA: ${this.formatDuration(estimatedRemainingTime)}, Speed: ${(processed / (elapsedTime / 1000)).toFixed(1)} users/sec`);
+
+				if (processed % progressLogInterval === 0 || processed === totalUsers) {
+					console.log(`\n=== Detailed Progress Report ===`);
+					console.log(`Total Users: ${totalUsers}`);
+					console.log(`Processed: ${processed} (${percentComplete}%)`);
+					console.log(`Updated: ${updated} (${((updated / processed) * 100).toFixed(1)}% of processed)`);
+					console.log(`Errors: ${errors} (${((errors / processed) * 100).toFixed(1)}% of processed)`);
+					console.log(`Current Batch: ${batchSize} users`);
+					console.log(`Processing Speed: ${(processed / (elapsedTime / 1000)).toFixed(1)} users/sec`);
+					console.log(`Estimated Remaining Time: ${this.formatDuration(estimatedRemainingTime)}`);
+					console.log(`Memory Usage: ${this.getMemoryUsage()}`);
+					console.log('================================\n');
+				}
+
+				await new Promise(resolve => setTimeout(resolve, 200));
+			}
+
+			await this.updateBaselines();
+
+			const totalTime = Date.now() - startTime;
+			console.log(`\n=== Batch Recalculation Completed ===`);
+			console.log(`Total Time: ${this.formatDuration(totalTime)}`);
+			console.log(`Processed: ${processed}/${totalUsers} users`);
+			console.log(`Updated: ${updated} (${((updated / processed) * 100).toFixed(1)}%)`);
+			console.log(`Errors: ${errors} (${((errors / processed) * 100).toFixed(1)}%)`);
+			console.log(`Average Speed: ${(processed / (totalTime / 1000)).toFixed(1)} users/sec`);
+			console.log(`Final Memory Usage: ${this.getMemoryUsage()}`);
+			console.log('=====================================\n');
+
+		} catch (error) {
+			console.error('Error during batch recalculation:', error);
+			errors++;
+		}
+
+		return { processed, updated, errors };
+	}
+
+	@bindThis
 	public async onApplicationShutdown(): Promise<void> {
 		console.log('Application shutdown detected, syncing risk scores...');
 		await this.forceSyncAllScores();
 		console.log('Risk score sync completed');
+	}
+
+	@bindThis
+	private formatDuration(ms: number): string {
+		const seconds = Math.floor(ms / 1000) % 60;
+		const minutes = Math.floor(ms / (1000 * 60)) % 60;
+		const hours = Math.floor(ms / (1000 * 60 * 60)) % 24;
+		const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+
+		if (days > 0) {
+			return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+		} else if (hours > 0) {
+			return `${hours}h ${minutes}m ${seconds}s`;
+		} else if (minutes > 0) {
+			return `${minutes}m ${seconds}s`;
+		} else {
+			return `${seconds}s`;
+		}
+	}
+
+	@bindThis
+	private getMemoryUsage(): string {
+		const memUsage = process.memoryUsage();
+		const formatBytes = (bytes: number) => {
+			const mb = bytes / 1024 / 1024;
+			return `${mb.toFixed(1)}MB`;
+		};
+
+		return `RSS: ${formatBytes(memUsage.rss)}, Heap Used: ${formatBytes(memUsage.heapUsed)}, Heap Total: ${formatBytes(memUsage.heapTotal)}`;
+	}
+
+	private timeSliceRunning = false;
+	private readonly TIME_SLICE_DURATION = 5 * 60 * 1000;
+	private readonly REST_DURATION = 60 * 1000;
+
+	@bindThis
+	private async startTimeSlicedBatchRecalculation(): Promise<void> {
+		if (this.timeSliceRunning) {
+			console.log('Time-sliced batch recalculation already running');
+			return;
+		}
+
+		this.timeSliceRunning = true;
+		const sessionId = Date.now().toString();
+
+		try {
+			await this.redisClient.set(`risk-score:batch-progress:${sessionId}`, JSON.stringify({
+				startTime: Date.now(),
+				processed: 0,
+				updated: 0,
+				errors: 0,
+				currentOffset: 0,
+				status: 'running',
+				sessionId,
+			}), 'EX', 24 * 60 * 60);
+
+			console.log(`Starting time-sliced batch recalculation session: ${sessionId}`);
+			await this.runTimeSlicedBatch(sessionId);
+		} catch (error) {
+			console.error('Error in time-sliced batch recalculation:', error);
+			await this.redisClient.set(`risk-score:batch-progress:${sessionId}`, JSON.stringify({
+				status: 'error',
+				error: (error as Error).message,
+			}), 'EX', 24 * 60 * 60);
+		} finally {
+			this.timeSliceRunning = false;
+		}
+	}
+
+	@bindThis
+	private async runTimeSlicedBatch(sessionId: string): Promise<void> {
+		const batchSize = 50;
+		const progressLogInterval = 200;
+
+		let processed = 0;
+		let updated = 0;
+		let errors = 0;
+		let currentOffset = 0;
+
+		const totalUsers = await this.usersRepository.count({
+			where: {
+				host: IsNull(),
+				isSuspended: false,
+				isDeleted: false,
+			},
+		});
+
+		console.log(`Time-sliced processing: ${totalUsers} users total`);
+
+		while (currentOffset < totalUsers) {
+			const sliceStartTime = Date.now();
+
+			while (Date.now() - sliceStartTime < this.TIME_SLICE_DURATION && currentOffset < totalUsers) {
+				const users = await this.usersRepository.find({
+					where: {
+						host: IsNull(),
+						isSuspended: false,
+						isDeleted: false,
+					},
+					select: ['id'],
+					skip: currentOffset,
+					take: batchSize,
+				});
+
+				if (users.length === 0) break;
+
+				const batchResults = await this.processBatch(users);
+				processed += batchResults.processed;
+				updated += batchResults.updated;
+				errors += batchResults.errors;
+				currentOffset += users.length;
+
+				if (processed % progressLogInterval === 0) {
+					const elapsedTime = Date.now() - sliceStartTime;
+					const percentComplete = ((processed / totalUsers) * 100).toFixed(1);
+					console.log(`[Time Slice] Progress: ${processed}/${totalUsers} (${percentComplete}%) - Updated: ${updated}, Errors: ${errors}`);
+				}
+
+				await new Promise(resolve => setTimeout(resolve, 100));
+			}
+
+			await this.redisClient.set(`risk-score:batch-progress:${sessionId}`, JSON.stringify({
+				startTime: Date.now(),
+				processed,
+				updated,
+				errors,
+				currentOffset,
+				totalUsers,
+				status: 'running',
+				lastSliceTime: Date.now(),
+			}), 'EX', 24 * 60 * 60);
+
+			if (currentOffset < totalUsers) {
+				const nextSliceIn = this.REST_DURATION;
+				console.log(`Time slice completed. Processed: ${processed}/${totalUsers}. Next slice in ${nextSliceIn/1000}s...`);
+
+				setTimeout(async () => {
+					await this.runTimeSlicedBatch(sessionId);
+				}, nextSliceIn);
+
+				return;
+			}
+		}
+
+		await this.updateBaselines();
+
+		await this.redisClient.set('risk-score:last-batch-recalculation', JSON.stringify({
+			version: UserRiskScoreService.ALGORITHM_VERSION,
+			timestamp: new Date(),
+			result: { processed, updated, errors },
+			sessionId,
+		}), 'EX', 30 * 24 * 60 * 60);
+
+		await this.redisClient.set(`risk-score:batch-progress:${sessionId}`, JSON.stringify({
+			processed,
+			updated,
+			errors,
+			totalUsers,
+			status: 'completed',
+			completedAt: Date.now(),
+		}), 'EX', 24 * 60 * 60);
+
+		console.log(`Time-sliced batch recalculation completed: ${processed} processed, ${updated} updated, ${errors} errors`);
+	}
+
+	@bindThis
+	private async processBatch(users: Array<{ id: string }>): Promise<{ processed: number; updated: number; errors: number }> {
+		const promises = users.map(async (user) => {
+			try {
+				const cachedScore = await this.getCachedScore(user.id);
+				const dbUser = await this.usersRepository.findOne({
+					where: { id: user.id },
+					select: ['riskScore', 'riskLevel']
+				});
+
+				const oldScore = cachedScore || (dbUser ? {
+					totalScore: dbUser.riskScore || 0,
+					riskLevel: dbUser.riskLevel || 'poor' as const,
+				} : null);
+
+				const newScore = await this.calculateUserRiskScore(user.id);
+
+				const scoreChanged = !oldScore || Math.abs(oldScore.totalScore - newScore.totalScore) > 1;
+				const levelChanged = !oldScore || oldScore.riskLevel !== newScore.riskLevel;
+				const forceUpdate = !cachedScore;
+
+				if (scoreChanged || levelChanged || forceUpdate) {
+					await this.riskEventLogService.logRiskEvent({
+						userId: user.id,
+						eventType: 'risk_level_changed',
+						riskScore: newScore.totalScore,
+						riskLevel: newScore.riskLevel,
+						details: {
+							trigger: 'batch_recalculation_timesliced',
+							oldScore: oldScore?.totalScore || null,
+							oldLevel: oldScore?.riskLevel || null,
+							newScore: newScore.totalScore,
+							newLevel: newScore.riskLevel,
+							forced: forceUpdate,
+						},
+						timestamp: new Date(),
+					});
+
+					return true;
+				}
+
+				return false;
+			} catch (error) {
+				console.error(`Failed to recalculate score for user ${user.id}:`, error);
+				throw error;
+			}
+		});
+
+		const results = await Promise.allSettled(promises);
+
+		let processed = 0;
+		let updated = 0;
+		let errors = 0;
+
+		results.forEach((result) => {
+			processed++;
+			if (result.status === 'fulfilled') {
+				if (result.value) updated++;
+			} else {
+				errors++;
+			}
+		});
+
+		return { processed, updated, errors };
+	}
+
+	private processingQueue: Array<{ userId: string; priority: number; timestamp: number }> = [];
+	private queueProcessing = false;
+	private readonly QUEUE_PROCESS_INTERVAL = 5000;
+	private readonly MAX_QUEUE_SIZE = 1000;
+	private readonly HIGH_PRIORITY = 1;
+	private readonly NORMAL_PRIORITY = 2;
+	private readonly LOW_PRIORITY = 3;
+
+	@bindThis
+	public async enqueueUserScoreRecalculation(userId: string, priority: number = this.NORMAL_PRIORITY): Promise<void> {
+		if (this.processingQueue.length >= this.MAX_QUEUE_SIZE) {
+			const lowPriorityIndex = this.processingQueue.findIndex(item => item.priority === this.LOW_PRIORITY);
+			if (lowPriorityIndex !== -1) {
+				this.processingQueue.splice(lowPriorityIndex, 1);
+				console.log(`Queue full, removed low priority task`);
+			} else {
+				console.warn('Queue is full and no low priority tasks to remove');
+				return;
+			}
+		}
+
+		const existingIndex = this.processingQueue.findIndex(item => item.userId === userId);
+		if (existingIndex !== -1) {
+			if (priority < this.processingQueue[existingIndex].priority) {
+				this.processingQueue[existingIndex].priority = priority;
+				this.processingQueue[existingIndex].timestamp = Date.now();
+				this.processingQueue.sort((a, b) => {
+					if (a.priority !== b.priority) return a.priority - b.priority;
+					return a.timestamp - b.timestamp;
+				});
+			}
+			return;
+		}
+
+		this.processingQueue.push({
+			userId,
+			priority,
+			timestamp: Date.now(),
+		});
+
+		this.processingQueue.sort((a, b) => {
+			if (a.priority !== b.priority) return a.priority - b.priority;
+			return a.timestamp - b.timestamp;
+		});
+
+		if (!this.queueProcessing) {
+			this.startQueueProcessing();
+		}
+
+		await this.saveQueueState();
+	}
+
+	@bindThis
+	private async startQueueProcessing(): Promise<void> {
+		if (this.queueProcessing) return;
+
+		this.queueProcessing = true;
+		console.log('Starting async queue processing...');
+
+		await this.loadQueueState();
+
+		const processQueue = async () => {
+			try {
+				if (this.processingQueue.length === 0) {
+					this.queueProcessing = false;
+					console.log('Queue empty, stopping queue processing');
+					return;
+				}
+
+				const batchSize = Math.min(5, this.processingQueue.length);
+				const batch = this.processingQueue.splice(0, batchSize);
+
+				console.log(`Processing ${batch.length} users from queue (${this.processingQueue.length} remaining)`);
+
+				const promises = batch.map(async ({ userId, priority }) => {
+					try {
+						const startTime = Date.now();
+						await this.calculateUserRiskScore(userId);
+						const duration = Date.now() - startTime;
+						console.log(`Processed user ${userId} (priority: ${priority}) in ${duration}ms`);
+					} catch (error) {
+						console.error(`Failed to process queued user ${userId}:`, error);
+						if (priority === this.HIGH_PRIORITY) {
+							await this.enqueueUserScoreRecalculation(userId, this.NORMAL_PRIORITY);
+						}
+					}
+				});
+
+				await Promise.allSettled(promises);
+
+				await this.saveQueueState();
+
+				if (this.processingQueue.length > 0) {
+					setTimeout(processQueue, this.QUEUE_PROCESS_INTERVAL);
+				} else {
+					this.queueProcessing = false;
+					console.log('Queue processing completed');
+				}
+
+			} catch (error) {
+				console.error('Error in queue processing:', error);
+				this.queueProcessing = false;
+				setTimeout(() => this.startQueueProcessing(), this.QUEUE_PROCESS_INTERVAL * 2);
+			}
+		};
+
+		processQueue();
+	}
+
+	@bindThis
+	private async saveQueueState(): Promise<void> {
+		try {
+			await this.redisClient.set('risk-score:processing-queue', JSON.stringify(this.processingQueue), 'EX', 24 * 60 * 60);
+		} catch (error) {
+			console.error('Failed to save queue state:', error);
+		}
+	}
+
+	@bindThis
+	private async loadQueueState(): Promise<void> {
+		try {
+			const queueData = await this.redisClient.get('risk-score:processing-queue');
+			if (queueData) {
+				this.processingQueue = JSON.parse(queueData);
+				console.log(`Restored ${this.processingQueue.length} items from queue`);
+			}
+		} catch (error) {
+			console.error('Failed to load queue state:', error);
+		}
+	}
+
+	@bindThis
+	public getQueueStats(): { size: number; processing: boolean; priorities: Record<number, number> } {
+		const priorities: Record<number, number> = {};
+		this.processingQueue.forEach(item => {
+			priorities[item.priority] = (priorities[item.priority] || 0) + 1;
+		});
+
+		return {
+			size: this.processingQueue.length,
+			processing: this.queueProcessing,
+			priorities,
+		};
 	}
 }
