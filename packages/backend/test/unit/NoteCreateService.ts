@@ -63,6 +63,7 @@ describe('NoteCreateService', () => {
 			renoteUserHost: null,
 			geojson: null,
 			location: null,
+			isDeleted: false,
 		};
 
 		const poll: IPoll = {
@@ -101,6 +102,7 @@ describe('NoteCreateService', () => {
 			isLink: false,
 			requestHeaders: null,
 			requestIp: null,
+			pdqHash: null,
 		};
 
 		test('note without renote should not be Renote', () => {
