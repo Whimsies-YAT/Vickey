@@ -45,9 +45,35 @@ export class MiDriveFile {
 	@Column('varchar', {
 		length: 64,
 		nullable: true,
+	})
+	public sha256: string | null;
+
+	@Column('varchar', {
+		length: 144,
+		nullable: true,
+	})
+	public fingerprint: string | null;
+
+	@Column('varchar', {
+		length: 256,
+		nullable: true,
+	})
+	public physicalKey: string | null;
+
+	@Column('integer', {
+		default: 1,
+	})
+	public refCount: number;
+
+	@Column('varchar', {
+		length: 64,
+		nullable: true,
 		comment: 'The PDQ hash of the DriveFile for image similarity detection.',
 	})
 	public pdqHash: string | null;
+
+	// PDQ vector - stored as PostgreSQL vector(256), managed via raw SQL
+	public pdqVector?: number[] | null;
 
 	@Column('varchar', {
 		length: 256,

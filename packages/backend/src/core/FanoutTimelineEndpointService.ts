@@ -19,6 +19,7 @@ import { isQuote, isRenote } from '@/misc/is-renote.js';
 import { CacheService } from '@/core/CacheService.js';
 import { isReply } from '@/misc/is-reply.js';
 import { isInstanceMuted } from '@/misc/is-instance-muted.js';
+import { QueryService } from '@/core/QueryService.js';
 
 type NoteFilter = (note: MiNote) => boolean;
 
@@ -55,6 +56,7 @@ export class FanoutTimelineEndpointService {
 		private cacheService: CacheService,
 		private fanoutTimelineService: FanoutTimelineService,
 		private utilityService: UtilityService,
+		private queryService: QueryService,
 	) {
 	}
 
@@ -207,6 +209,8 @@ export class FanoutTimelineEndpointService {
 			.leftJoinAndSelect('reply.user', 'replyUser')
 			.leftJoinAndSelect('renote.user', 'renoteUser')
 			.leftJoinAndSelect('note.channel', 'channel');
+
+		this.queryService.generateSoftDeletedNoteQuery(query);
 
 		const notes = (await query.getMany()).filter(noteFilter);
 

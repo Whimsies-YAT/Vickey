@@ -103,6 +103,7 @@ describe('NoteCreateService', () => {
 			requestHeaders: null,
 			requestIp: null,
 			pdqHash: null,
+			pdqVector: null,
 		};
 
 		test('note without renote should not be Renote', () => {

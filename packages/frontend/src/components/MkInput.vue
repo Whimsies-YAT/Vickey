@@ -6,7 +6,29 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <div class="_selectable">
 	<div :class="$style.label" @click="focus"><slot name="label"></slot></div>
-	<div :class="[$style.input, { [$style.inline]: inline, [$style.disabled]: disabled, [$style.focused]: focused }]">
+
+	<MkDateTimePicker
+		v-if="isDateTimeType"
+		v-model="v"
+		:placeholder="placeholder"
+		:disabled="disabled"
+		:required="required"
+		:readonly="readonly"
+		:time-only="type === 'time'"
+		:date-only="type === 'date'"
+		:enable-time-picker="type === 'datetime-local'"
+		:clearable="true"
+		:auto-apply="true"
+		@focus="focused = true"
+		@blur="focused = false"
+		@update:model-value="onDateTimeUpdate"
+	>
+		<template #prefix v-if="$slots.prefix">
+			<slot name="prefix"></slot>
+		</template>
+	</MkDateTimePicker>
+
+	<div v-else :class="[$style.input, { [$style.inline]: inline, [$style.disabled]: disabled, [$style.focused]: focused }]">
 		<div ref="prefixEl" :class="$style.prefix"><slot name="prefix"></slot></div>
 		<input
 			ref="inputEl"
@@ -61,6 +83,7 @@ import MkButton from '@/components/MkButton.vue';
 import { i18n } from '@/i18n.js';
 import { Autocomplete } from '@/utility/autocomplete.js';
 import { genId } from '@/utility/id.js';
+import MkDateTimePicker from "./MkDateTimePicker.vue";
 
 const props = defineProps<{
 	modelValue: ModelValueType<T> | null;
@@ -109,6 +132,31 @@ const height =
 	props.large ? 39 :
 	36;
 let autocompleteWorker: Autocomplete | null = null;
+
+const isDateTimeType = computed(() => {
+	return props.type === 'date' || props.type === 'time' || props.type === 'datetime-local';
+});
+
+const onDateTimeUpdate = (value: string | Date | null) => {
+	let formattedValue: string = '';
+
+	if (value) {
+		if (typeof value === 'string') {
+			formattedValue = value;
+		} else {
+			if (props.type === 'date') {
+				formattedValue = value.toISOString().split('T')[0];
+			} else if (props.type === 'time') {
+				formattedValue = value.toTimeString().split(' ')[0];
+			} else if (props.type === 'datetime-local') {
+				formattedValue = value.toISOString().slice(0, -1);
+			}
+		}
+	}
+
+	v.value = formattedValue as ModelValueType<T>;
+	changed.value = true;
+};
 
 const focus = () => inputEl.value?.focus();
 const onInput = (event: Event) => {
@@ -314,6 +362,31 @@ defineExpose({
 	}
 	&:focus::-moz-range-thumb {
 		box-shadow: 0 0 0 4px var(--MI_THEME-focus);
+	}
+}
+
+.inputCore[type="date"],
+.inputCore[type="time"],
+.inputCore[type="datetime-local"] {
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: textfield;
+	color: var(--MI_THEME-fg) !important;
+	background: var(--MI_THEME-panel) !important;
+	border: solid 1px var(--MI_THEME-panel) !important;
+	font-family: inherit !important;
+	font-size: 1em !important;
+
+	&:hover {
+		border-color: var(--MI_THEME-inputBorderHover) !important;
+	}
+
+	&:focus {
+		border-color: var(--MI_THEME-accent) !important;
+	}
+
+	&:invalid {
+		border-color: var(--MI_THEME-error) !important;
 	}
 }
 

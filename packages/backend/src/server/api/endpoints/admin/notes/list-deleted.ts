@@ -10,6 +10,7 @@ import { DI } from '@/di-symbols.js';
 import type { NotesRepository } from '@/models/_.js';
 import { RoleService } from '@/core/RoleService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
+import { IdService } from '@/core/IdService.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
@@ -60,6 +61,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private noteEntityService: NoteEntityService,
 		private roleService: RoleService,
 		private moderationLogService: ModerationLogService,
+		private idService: IdService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			// Double-check permissions
@@ -81,11 +83,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			if (ps.deletedAfter) {
-				query.andWhere('note.updatedAt > :after', { after: ps.deletedAfter });
+				query.andWhere('note.id > :afterId', { afterId: this.idService.gen(new Date(ps.deletedAfter).getTime()) });
 			}
 
 			if (ps.deletedBefore) {
-				query.andWhere('note.updatedAt < :before', { before: ps.deletedBefore });
+				query.andWhere('note.id < :beforeId', { beforeId: this.idService.gen(new Date(ps.deletedBefore).getTime()) });
 			}
 
 			if (ps.sinceId) {

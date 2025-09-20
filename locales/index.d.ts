@@ -429,6 +429,22 @@ export interface Locale extends ILocale {
      * Failed to load deleted notes
      */
     "failedToLoadDeletedNotes": string;
+    /**
+     * User ID (optional)
+     */
+    "userIdOptionalPlaceholder": string;
+    /**
+     * Deleted after
+     */
+    "deletedAfterPlaceholder": string;
+    /**
+     * Deleted before
+     */
+    "deletedBeforePlaceholder": string;
+    /**
+     * Status
+     */
+    "status": string;
     "_oauthAppVK": {
         /**
          * OAuth Application

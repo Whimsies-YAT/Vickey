@@ -8,8 +8,8 @@ import * as fs from 'node:fs';
 import { Inject, Injectable } from '@nestjs/common';
 import sharp from 'sharp';
 import { sharpBmp } from '@misskey-dev/sharp-read-bmp';
-import { In, IsNull } from 'typeorm';
-import { DeleteObjectCommandInput, PutObjectCommandInput, NoSuchKey } from '@aws-sdk/client-s3';
+import { In, IsNull, MoreThan } from 'typeorm';
+import { DeleteObjectCommandInput, PutObjectCommandInput } from '@aws-sdk/client-s3';
 import { DI } from '@/di-symbols.js';
 import type { DriveFilesRepository, UsersRepository, DriveFoldersRepository, UserProfilesRepository, MiMeta } from '@/models/_.js';
 import type { Config } from '@/config.js';
@@ -151,7 +151,7 @@ export class DriveService {
 	 * @param size Size for original
 	 */
 	@bindThis
-	private async save(file: MiDriveFile, path: string, name: string, type: string, hash: string, size: number): Promise<MiDriveFile> {
+	private async save(file: MiDriveFile, path: string, name: string, type: string, hash: string, size: number, sha256?: string, fingerprint?: string): Promise<MiDriveFile> {
 	// thunbnail, webpublic を必要なら生成
 		const alts = await this.generateAlts(path, type, !file.uri);
 
@@ -174,19 +174,19 @@ export class DriveService {
 				ext = '';
 			}
 
-			const baseUrl = this.meta.objectStorageBaseUrl
-				?? `${ this.meta.objectStorageUseSSL ? 'https' : 'http' }://${ this.meta.objectStorageEndpoint }${ this.meta.objectStoragePort ? `:${this.meta.objectStoragePort}` : '' }/${ this.meta.objectStorageBucket }`;
-
-			// for original
+			// for original - generate access keys for internal proxy URLs
 			const prefix = this.meta.objectStoragePrefix ? `${this.meta.objectStoragePrefix}/` : '';
 			const key = `${prefix}${randomUUID()}${ext}`;
-			const url = `${ baseUrl }/${ key }`;
+			const accessKey = randomUUID();
+			const url = this.internalStorageService.getFileUrl(accessKey);
 
-			// for alts
+			// for alts - also use internal proxy URLs
 			let webpublicKey: string | null = null;
 			let webpublicUrl: string | null = null;
 			let thumbnailKey: string | null = null;
 			let thumbnailUrl: string | null = null;
+			let webpublicAccessKey: string | null = null;
+			let thumbnailAccessKey: string | null = null;
 			//#endregion
 
 			//#region Uploads
@@ -197,7 +197,8 @@ export class DriveService {
 
 			if (alts.webpublic) {
 				webpublicKey = `${prefix}webpublic-${randomUUID()}.${alts.webpublic.ext}`;
-				webpublicUrl = `${ baseUrl }/${ webpublicKey }`;
+				webpublicAccessKey = randomUUID();
+				webpublicUrl = this.internalStorageService.getFileUrl(webpublicAccessKey);
 
 				this.registerLogger.info(`uploading webpublic: ${webpublicKey}`);
 				uploads.push(this.upload(webpublicKey, alts.webpublic.data, alts.webpublic.type, alts.webpublic.ext, name));
@@ -205,7 +206,8 @@ export class DriveService {
 
 			if (alts.thumbnail) {
 				thumbnailKey = `${prefix}thumbnail-${randomUUID()}.${alts.thumbnail.ext}`;
-				thumbnailUrl = `${ baseUrl }/${ thumbnailKey }`;
+				thumbnailAccessKey = randomUUID();
+				thumbnailUrl = this.internalStorageService.getFileUrl(thumbnailAccessKey);
 
 				this.registerLogger.info(`uploading thumbnail: ${thumbnailKey}`);
 				uploads.push(this.upload(thumbnailKey, alts.thumbnail.data, alts.thumbnail.type, alts.thumbnail.ext, `${name}.thumbnail`));
@@ -217,13 +219,16 @@ export class DriveService {
 			file.url = url;
 			file.thumbnailUrl = thumbnailUrl;
 			file.webpublicUrl = webpublicUrl;
-			file.accessKey = key;
-			file.thumbnailAccessKey = thumbnailKey;
-			file.webpublicAccessKey = webpublicKey;
+			file.accessKey = accessKey;
+			file.thumbnailAccessKey = thumbnailAccessKey;
+			file.webpublicAccessKey = webpublicAccessKey;
 			file.webpublicType = alts.webpublic?.type ?? null;
 			file.name = name;
 			file.type = type;
 			file.md5 = hash;
+			file.sha256 = sha256 ?? null;
+			file.fingerprint = fingerprint ?? null;
+			file.physicalKey = key;
 			file.size = size;
 			file.storedInternal = false;
 
@@ -259,6 +264,9 @@ export class DriveService {
 			file.name = name;
 			file.type = type;
 			file.md5 = hash;
+			file.sha256 = sha256 ?? null;
+			file.fingerprint = fingerprint ?? null;
+			file.physicalKey = accessKey;
 			file.size = size;
 
 			return await this.driveFilesRepository.insertOne(file);
@@ -492,7 +500,13 @@ export class DriveService {
 			sensitiveThresholdForPorn: 0.75,
 			enableSensitiveMediaDetectionForVideos: this.meta.enableSensitiveMediaDetectionForVideos,
 		});
-		this.registerLogger.info(`${JSON.stringify(info)}`);
+		this.registerLogger.info(`File info: ${JSON.stringify({
+			size: info.size,
+			md5: info.md5,
+			sha256: info.sha256,
+			fingerprint: info.fingerprint,
+			mime: info.type.mime
+		})}`);
 
 		let pdqHashPromise: Promise<string | null> = Promise.resolve(null);
 		if (isMimeImage(info.type.mime, 'sharp-convertible-image')) {
@@ -516,28 +530,8 @@ export class DriveService {
 			ext ?? info.type.ext,
 		);
 
-		if (user && !force) {
-		// Check if there is a file with the same hash
-			const matched = await this.driveFilesRepository.findOneBy({
-				md5: info.md5,
-				userId: user.id,
-			});
-
-			if (matched) {
-				this.registerLogger.info(`file with same hash is found: ${matched.id}`);
-				if (sensitive && !matched.isSensitive) {
-					// The file is federated as sensitive for this time, but was federated as non-sensitive before.
-					// Therefore, update the file to sensitive.
-					await this.driveFilesRepository.update({ id: matched.id }, { isSensitive: true });
-					matched.isSensitive = true;
-				}
-				return matched;
-			}
-		}
-
 		this.registerLogger.debug(`ADD DRIVE FILE: user ${user?.id ?? 'not set'}, name ${detectedName}, tmp ${path}`);
 
-		//#region Check drive usage and mime type
 		if (user && !isLink) {
 			const isLocalUser = this.userEntityService.isLocalUser(user);
 			const policies = await this.roleService.getUserPolicies(user.id);
@@ -566,7 +560,6 @@ export class DriveService {
 			this.registerLogger.debug('drive capacity override applied');
 			this.registerLogger.debug(`overrideCap: ${driveCapacity}bytes, usage: ${usage}bytes, u+s: ${usage + info.size}bytes`);
 
-			// If usage limit exceeded
 			if (driveCapacity < usage + info.size) {
 				if (isLocalUser) {
 					throw new IdentifiableError('c6244ed2-a39a-4e1c-bf93-f0fbd7764fa6', 'No free space.');
@@ -608,6 +601,141 @@ export class DriveService {
 		const profile = user ? await this.userProfilesRepository.findOneBy({ userId: user.id }) : null;
 
 		const folder = await fetchFolder();
+
+		let existingFile: MiDriveFile | null = null;
+		if (!force && info.fingerprint) {
+			existingFile = await this.driveFilesRepository.findOneBy({
+				fingerprint: info.fingerprint,
+			});
+
+			this.registerLogger.debug(`Checking for duplicate with fingerprint: ${info.fingerprint}`);
+
+			if (existingFile) {
+				this.registerLogger.info(`file with same fingerprint found: ${existingFile.id}, creating new reference`);
+
+				let file = new MiDriveFile();
+				file.id = this.idService.gen();
+				file.userId = user ? user.id : null;
+				file.userHost = user ? user.host : null;
+				file.folderId = folder !== null ? folder.id : null;
+				file.comment = comment;
+				file.properties = properties;
+				file.blurhash = info.blurhash ?? null;
+				file.isLink = isLink;
+				file.requestIp = requestIp;
+				file.requestHeaders = requestHeaders;
+				file.maybeSensitive = info.sensitive;
+				file.maybePorn = info.porn;
+				file.isSensitive = user
+					? this.userEntityService.isLocalUser(user) && profile!.alwaysMarkNsfw ? true :
+					sensitive ?? false
+					: false;
+
+				file.md5 = info.md5;
+				file.sha256 = info.sha256;
+				file.fingerprint = info.fingerprint;
+				file.physicalKey = existingFile.physicalKey;
+				file.refCount = 1;
+				file.name = detectedName;
+				file.type = info.type.mime;
+				file.size = info.size;
+				file.storedInternal = existingFile.storedInternal;
+
+				file.accessKey = randomUUID();
+				file.thumbnailAccessKey = existingFile.thumbnailAccessKey ? 'thumbnail-' + randomUUID() : null;
+				file.webpublicAccessKey = existingFile.webpublicAccessKey ? 'webpublic-' + randomUUID() : null;
+				file.webpublicType = existingFile.webpublicType;
+
+				if (file.storedInternal) {
+					// For internal storage deduplication, share the physical files but provide unique URLs
+					// The FileServerService will handle mapping unique accessKeys to shared physical files
+					file.url = this.internalStorageService.getFileUrl(file.accessKey);
+					file.thumbnailUrl = file.thumbnailAccessKey ? this.internalStorageService.getFileUrl(file.thumbnailAccessKey) : null;
+					file.webpublicUrl = file.webpublicAccessKey ? this.internalStorageService.getFileUrl(file.webpublicAccessKey) : null;
+				} else {
+					// For S3 deduplication, use same logic as internal storage
+					// Create unique accessKeys for mapping but share the same physical S3 files
+					// The FileServerService will handle mapping unique accessKeys to shared physical files
+					file.url = this.internalStorageService.getFileUrl(file.accessKey);
+					file.thumbnailUrl = file.thumbnailAccessKey ? this.internalStorageService.getFileUrl(file.thumbnailAccessKey) : null;
+					file.webpublicUrl = file.webpublicAccessKey ? this.internalStorageService.getFileUrl(file.webpublicAccessKey) : null;
+				}
+
+				if (user && this.utilityService.isMediaSilencedHost(this.meta.mediaSilencedHosts, user.host)) file.isSensitive = true;
+				if (info.sensitive && profile!.autoSensitive) file.isSensitive = true;
+				if (info.sensitive && this.meta.setSensitiveFlagAutomatically) file.isSensitive = true;
+
+				if (url !== null) {
+					file.src = url;
+					if (isLink) {
+						file.url = url;
+					}
+				}
+
+				if (uri !== null) {
+					file.uri = uri;
+				}
+
+				const pdqHash = await pdqHashPromise;
+				file.pdqHash = pdqHash;
+
+				// Note: refCount is managed by counting actual database records, not by incrementing
+				const savedFile = await this.driveFilesRepository.insertOne(file);
+
+				this.registerLogger.succ(`deduplicated file created ${savedFile.id} (shares storage with ${existingFile.id})`);
+
+				if (pdqHash) {
+					try {
+						const vector = this.pdqService.hashToVector(pdqHash);
+						const vectorString = `[${vector.join(',')}]`;
+
+						await this.driveFilesRepository.manager.query(
+							'UPDATE "drive_file" SET "pdqVector" = $1::vector WHERE "id" = $2',
+							[vectorString, savedFile.id]
+						);
+
+						this.registerLogger.debug(`PDQ vector stored for deduplicated file ${savedFile.id}`);
+					} catch (error) {
+						this.registerLogger.warn(`Failed to store PDQ vector: ${error}`);
+					}
+				}
+
+				if (user) {
+					this.driveFileEntityService.pack(savedFile, { self: true }).then(packedFile => {
+						this.globalEventService.publishMainStream(user.id, 'driveFileCreated', packedFile);
+						this.globalEventService.publishDriveStream(user.id, 'fileCreated', packedFile);
+					});
+				}
+
+				this.driveChart.update(savedFile, true);
+				if (savedFile.userHost == null) {
+					this.perUserDriveChart.update(savedFile, true);
+				} else {
+					if (this.meta.enableChartsForFederatedInstances) {
+						this.instanceChart.updateDrive(savedFile, true);
+					}
+				}
+
+				return savedFile;
+			}
+
+			// Fallback to user-specific MD5 check for backward compatibility
+			if (user) {
+				const userMatch = await this.driveFilesRepository.findOneBy({
+					md5: info.md5,
+					userId: user.id,
+				});
+
+				if (userMatch) {
+					this.registerLogger.info(`file with same hash found for user: ${userMatch.id}`);
+					if (sensitive && !userMatch.isSensitive) {
+						await this.driveFilesRepository.update({ id: userMatch.id }, { isSensitive: true });
+						userMatch.isSensitive = true;
+					}
+					return userMatch;
+				}
+			}
+		}
 
 		let file = new MiDriveFile();
 		file.id = this.idService.gen();
@@ -678,10 +806,26 @@ export class DriveService {
 				}
 			}
 		} else {
-			file = await (this.save(file, path, detectedName, info.type.mime, info.md5, info.size));
+			file = await (this.save(file, path, detectedName, info.type.mime, info.md5, info.size, info.sha256, info.fingerprint));
 		}
 
 		this.registerLogger.succ(`drive file has been created ${file.id}`);
+
+		if (pdqHash) {
+			try {
+				const vector = this.pdqService.hashToVector(pdqHash);
+				const vectorString = `[${vector.join(',')}]`;
+
+				await this.driveFilesRepository.manager.query(
+					'UPDATE "drive_file" SET "pdqVector" = $1::vector WHERE "id" = $2',
+					[vectorString, file.id]
+				);
+
+				this.registerLogger.debug(`PDQ vector stored for file ${file.id}`);
+			} catch (error) {
+				this.registerLogger.warn(`Failed to store PDQ vector: ${error}`);
+			}
+		}
 
 		if (user) {
 			this.driveFileEntityService.pack(file, { self: true }).then(packedFile => {
@@ -777,25 +921,68 @@ export class DriveService {
 
 	@bindThis
 	public async deleteFile(file: MiDriveFile, isExpired = false, deleter?: MiUser) {
-		if (file.storedInternal) {
-			this.internalStorageService.del(file.accessKey!);
+		await this.driveFilesRepository.delete(file.id);
+		this.deleteLogger.info(`Database record deleted: ${file.id}`);
 
-			if (file.thumbnailUrl) {
-				this.internalStorageService.del(file.thumbnailAccessKey!);
+		if (file.physicalKey && file.physicalKey !== file.accessKey) {
+			const remainingReferences = await this.driveFilesRepository.countBy({
+				physicalKey: file.physicalKey,
+			});
+
+			this.deleteLogger.info(`Remaining references for physicalKey ${file.physicalKey}: ${remainingReferences}`);
+
+			if (remainingReferences === 0) {
+				this.deleteLogger.info(`Last reference deleted, removing physical storage: ${file.physicalKey}`);
+
+				const originalFile = await this.driveFilesRepository.createQueryBuilder('file')
+					.where('file.physicalKey = :physicalKey', { physicalKey: file.physicalKey })
+					.orderBy('file.id', 'ASC')
+					.withDeleted()
+					.getOne();
+
+				if (file.storedInternal) {
+					this.internalStorageService.del(file.physicalKey);
+
+					if (originalFile?.thumbnailAccessKey) {
+						this.internalStorageService.del(originalFile.thumbnailAccessKey);
+					}
+
+					if (originalFile?.webpublicAccessKey) {
+						this.internalStorageService.del(originalFile.webpublicAccessKey);
+					}
+				} else if (!file.isLink) {
+					this.queueService.createDeleteObjectStorageFileJob(file.physicalKey);
+
+					if (originalFile?.thumbnailAccessKey) {
+						this.queueService.createDeleteObjectStorageFileJob(originalFile.thumbnailAccessKey);
+					}
+
+					if (originalFile?.webpublicAccessKey) {
+						this.queueService.createDeleteObjectStorageFileJob(originalFile.webpublicAccessKey);
+					}
+				}
 			}
+		} else if (!file.physicalKey || file.physicalKey === file.accessKey) {
+			if (file.storedInternal) {
+				this.internalStorageService.del(file.accessKey!);
 
-			if (file.webpublicUrl) {
-				this.internalStorageService.del(file.webpublicAccessKey!);
-			}
-		} else if (!file.isLink) {
-			this.queueService.createDeleteObjectStorageFileJob(file.accessKey!);
+				if (file.thumbnailAccessKey) {
+					this.internalStorageService.del(file.thumbnailAccessKey);
+				}
 
-			if (file.thumbnailUrl) {
-				this.queueService.createDeleteObjectStorageFileJob(file.thumbnailAccessKey!);
-			}
+				if (file.webpublicAccessKey) {
+					this.internalStorageService.del(file.webpublicAccessKey);
+				}
+			} else if (!file.isLink) {
+				this.queueService.createDeleteObjectStorageFileJob(file.accessKey!);
 
-			if (file.webpublicUrl) {
-				this.queueService.createDeleteObjectStorageFileJob(file.webpublicAccessKey!);
+				if (file.thumbnailAccessKey) {
+					this.queueService.createDeleteObjectStorageFileJob(file.thumbnailAccessKey);
+				}
+
+				if (file.webpublicAccessKey) {
+					this.queueService.createDeleteObjectStorageFileJob(file.webpublicAccessKey);
+				}
 			}
 		}
 
@@ -848,9 +1035,8 @@ export class DriveService {
 				thumbnailAccessKey: 'thumbnail-' + randomUUID(),
 				webpublicAccessKey: 'webpublic-' + randomUUID(),
 			});
-		} else {
-			await this.driveFilesRepository.delete(file.id);
 		}
+		// Note: Database record was already deleted in deleteFile method
 
 		this.driveChart.update(file, false);
 		if (file.userHost == null) {

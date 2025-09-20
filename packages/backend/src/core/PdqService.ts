@@ -154,4 +154,20 @@ export class PdqService {
 	public areSimilar(hash1: string, hash2: string, threshold: number = 16): boolean {
 		return this.calculateHammingDistance(hash1, hash2) <= threshold;
 	}
+
+	@bindThis
+	public hashToVector(pdqHash: string): number[] {
+		if (!pdqHash || pdqHash.length !== 64) {
+			throw new Error('Invalid PDQ hash format');
+		}
+
+		const vector: number[] = [];
+		for (let i = 0; i < pdqHash.length; i += 2) {
+			const byte = parseInt(pdqHash.substr(i, 2), 16);
+			for (let bit = 7; bit >= 0; bit--) {
+				vector.push((byte >> bit) & 1);
+			}
+		}
+		return vector;
+	}
 }

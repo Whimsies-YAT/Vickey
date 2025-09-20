@@ -11,7 +11,8 @@ import rename from 'rename';
 import sharp from 'sharp';
 import { sharpBmp } from '@misskey-dev/sharp-read-bmp';
 import type { Config } from '@/config.js';
-import type { MiDriveFile, DriveFilesRepository } from '@/models/_.js';
+import type { MiDriveFile, DriveFilesRepository, MiMeta, MetaRepository } from '@/models/_.js';
+import { IsNull } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import { createTemp } from '@/misc/create-temp.js';
 import { FILE_TYPE_BROWSERSAFE } from '@/const.js';
@@ -24,6 +25,7 @@ import { InternalStorageService } from '@/core/InternalStorageService.js';
 import { contentDisposition } from '@/misc/content-disposition.js';
 import { FileInfoService } from '@/core/FileInfoService.js';
 import { LoggerService } from '@/core/LoggerService.js';
+import { S3Service } from '@/core/S3Service.js';
 import { bindThis } from '@/decorators.js';
 import { isMimeImage } from '@/misc/is-mime-image.js';
 import { correctFilename } from '@/misc/correct-filename.js';
@@ -46,11 +48,15 @@ export class FileServerService {
 		@Inject(DI.driveFilesRepository)
 		private driveFilesRepository: DriveFilesRepository,
 
+		@Inject(DI.metasRepository)
+		private metaRepository: MetaRepository,
+
 		private fileInfoService: FileInfoService,
 		private downloadService: DownloadService,
 		private imageProcessingService: ImageProcessingService,
 		private videoProcessingService: VideoProcessingService,
 		private internalStorageService: InternalStorageService,
+		private s3Service: S3Service,
 		private loggerService: LoggerService,
 	) {
 		this.logger = this.loggerService.getLogger('server', 'gray');
@@ -537,29 +543,64 @@ export class FileServerService {
 		const isWebpublic = file.webpublicAccessKey === key;
 
 		if (!file.storedInternal) {
-			if (!(file.isLink && file.uri)) return '204';
-			const result = await this.downloadAndDetectTypeFromUrl(file.uri);
-			file.size = (await fs.promises.stat(result.path)).size;	// DB file.sizeは正確とは限らないので
-			return {
-				...result,
-				url: file.uri,
-				fileRole: isThumbnail ? 'thumbnail' : isWebpublic ? 'webpublic' : 'original',
-				file,
-				filename: file.name,
-			};
+			if (file.isLink && file.uri) {
+				const result = await this.downloadAndDetectTypeFromUrl(file.uri);
+				file.size = (await fs.promises.stat(result.path)).size;	// DB file.sizeは正確とは限らないので
+				return {
+					...result,
+					url: file.uri,
+					fileRole: isThumbnail ? 'thumbnail' : isWebpublic ? 'webpublic' : 'original',
+					file,
+					filename: file.name,
+				};
+			} else {
+				const result = await this.downloadFromS3(file, key);
+				if (result === '404') return '404';
+				return {
+					...result,
+					fileRole: isThumbnail ? 'thumbnail' : isWebpublic ? 'webpublic' : 'original',
+					file,
+					filename: file.name,
+				};
+			}
 		}
 
-		const path = this.internalStorageService.resolvePath(key);
+		// For deduplicated files, use physicalKey to access the actual file
+		// For original files, physicalKey equals accessKey, so this works for both cases
+		let physicalPath: string;
+
+		if (file.physicalKey && file.physicalKey !== file.accessKey) {
+			const originalFile = await this.driveFilesRepository.createQueryBuilder('file')
+				.where('file.physicalKey = :physicalKey', { physicalKey: file.physicalKey })
+				.orderBy('file.id', 'ASC')
+				.getOne();
+
+			if (originalFile) {
+				if (isThumbnail && originalFile.thumbnailAccessKey) {
+					physicalPath = this.internalStorageService.resolvePath(originalFile.thumbnailAccessKey);
+				} else if (isWebpublic && originalFile.webpublicAccessKey) {
+					physicalPath = this.internalStorageService.resolvePath(originalFile.webpublicAccessKey);
+				} else if (!isThumbnail && !isWebpublic) {
+					physicalPath = this.internalStorageService.resolvePath(originalFile.accessKey);
+				} else {
+					physicalPath = this.internalStorageService.resolvePath(key);
+				}
+			} else {
+				physicalPath = this.internalStorageService.resolvePath(key);
+			}
+		} else {
+			physicalPath = this.internalStorageService.resolvePath(key);
+		}
 
 		if (isThumbnail || isWebpublic) {
-			const { mime, ext } = await this.fileInfoService.detectType(path);
+			const { mime, ext } = await this.fileInfoService.detectType(physicalPath);
 			return {
 				state: 'stored_internal',
 				fileRole: isThumbnail ? 'thumbnail' : 'webpublic',
 				file,
 				filename: file.name,
 				mime, ext,
-				path,
+				path: physicalPath,
 			};
 		}
 
@@ -571,7 +612,57 @@ export class FileServerService {
 			// 古いファイルは修正前のmimeを持っているのでできるだけ修正してあげる
 			mime: this.fileInfoService.fixMime(file.type),
 			ext: null,
-			path,
+			path: physicalPath,
 		};
+	}
+
+	@bindThis
+	private async downloadFromS3(file: MiDriveFile, key: string): Promise<
+		{ state: 'remote'; mime: string; ext: string | null; path: string; cleanup: () => void; filename: string; url: string; }
+		| '404'
+	> {
+		try {
+			const meta = await this.metaRepository.findOneBy({ id: IsNull() });
+			if (!meta || !meta.objectStorageBucket) return '404';
+
+			const isThumbnail = file.thumbnailAccessKey === key;
+			const isWebpublic = file.webpublicAccessKey === key;
+
+			let s3Key: string;
+			if (file.physicalKey && file.physicalKey !== file.accessKey) {
+				const originalFile = await this.driveFilesRepository.createQueryBuilder('file')
+					.where('file.physicalKey = :physicalKey', { physicalKey: file.physicalKey })
+					.orderBy('file.id', 'ASC')
+					.getOne();
+
+				if (originalFile) {
+					if (isThumbnail && originalFile.thumbnailAccessKey) {
+						s3Key = originalFile.thumbnailAccessKey;
+					} else if (isWebpublic && originalFile.webpublicAccessKey) {
+						s3Key = originalFile.webpublicAccessKey;
+					} else if (!isThumbnail && !isWebpublic) {
+						s3Key = originalFile.accessKey;
+					} else {
+						s3Key = key;
+					}
+				} else {
+					s3Key = key;
+				}
+			} else {
+				s3Key = key;
+			}
+
+			const s3Url = `${meta.objectStorageUseSSL ? 'https' : 'http'}://${meta.objectStorageEndpoint ? meta.objectStorageEndpoint + '/' : ''}${meta.objectStorageBucket}/${meta.objectStoragePrefix ? meta.objectStoragePrefix + '/' : ''}${s3Key}`;
+
+			const result = await this.downloadAndDetectTypeFromUrl(s3Url);
+
+			return {
+				...result,
+				url: s3Url,
+			};
+		} catch (e) {
+			this.logger.warn(`Failed to download S3 file: ${e}`);
+			return '404';
+		}
 	}
 }

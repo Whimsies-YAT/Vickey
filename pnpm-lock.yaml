@@ -814,6 +814,9 @@ importers:
       '@vue/compiler-sfc':
         specifier: 3.5.21
         version: 3.5.21
+      '@vuepic/vue-datepicker':
+        specifier: 11.0.2
+        version: 11.0.2(vue@3.5.21(typescript@5.9.2))
       aiscript-vscode:
         specifier: github:aiscript-dev/aiscript-vscode#v0.1.15
         version: https://codeload.github.com/aiscript-dev/aiscript-vscode/tar.gz/c3cde89e79a41d93540cf8a48cd619c3f2dcb1b7
@@ -5518,6 +5521,12 @@ packages:
     peerDependenciesMeta:
       '@vue/server-renderer':
         optional: true
+
+  '@vuepic/vue-datepicker@11.0.2':
+    resolution: {integrity: sha512-uHh78mVBXCEjam1uVfTzZ/HkyDwut/H6b2djSN9YTF+l/EA+XONfdCnOVSi1g+qVGSy65DcQAwyBNidAssnudQ==}
+    engines: {node: '>=18.12.0'}
+    peerDependencies:
+      vue: '>=3.3.0'
 
   '@webgpu/types@0.1.38':
     resolution: {integrity: sha512-7LrhVKz2PRh+DD7+S+PVaFd5HxaWQvoMqBbsV9fNJO1pjUs1P8bM2vQVNfk+3URTqbuTI7gkXi0rfsN0IadoBA==}
@@ -17253,6 +17262,11 @@ snapshots:
       vue-component-type-helpers: 1.8.4
     optionalDependencies:
       '@vue/server-renderer': 3.5.21(vue@3.5.21(typescript@5.9.2))
+
+  '@vuepic/vue-datepicker@11.0.2(vue@3.5.21(typescript@5.9.2))':
+    dependencies:
+      date-fns: 4.1.0
+      vue: 3.5.21(typescript@5.9.2)
 
   '@webgpu/types@0.1.38': {}
 
