@@ -1997,7 +1997,6 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 			console.log(`Average Speed: ${(processed / (totalTime / 1000)).toFixed(1)} users/sec`);
 			console.log(`Final Memory Usage: ${this.getMemoryUsage()}`);
 			console.log('=====================================\n');
-
 		} catch (error) {
 			console.error('Error during batch recalculation:', error);
 			errors++;
@@ -2145,7 +2144,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 
 			if (currentOffset < totalUsers) {
 				const nextSliceIn = this.REST_DURATION;
-				console.log(`Time slice completed. Processed: ${processed}/${totalUsers}. Next slice in ${nextSliceIn/1000}s...`);
+				console.log(`Time slice completed. Processed: ${processed}/${totalUsers}. Next slice in ${nextSliceIn / 1000}s...`);
 
 				setTimeout(async () => {
 					await this.runTimeSlicedBatch(sessionId);
@@ -2340,7 +2339,6 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 					this.queueProcessing = false;
 					console.log('Queue processing completed');
 				}
-
 			} catch (error) {
 				console.error('Error in queue processing:', error);
 				this.queueProcessing = false;
