@@ -220,6 +220,11 @@ const menuDef = computed<SuperMenuDef[]>(() => [{
 		text: i18n.ts.highRiskUsers,
 		to: '/admin/high-risk-users',
 		active: currentPage.value?.route.name === 'high-risk-users',
+	}, {
+		icon: 'ti ti-trash',
+		text: i18n.ts.deletedNotes,
+		to: '/admin/deleted-notes',
+		active: currentPage.value?.route.name === 'deleted-notes',
 	},
 	],
 }, ...(isAdmin.value ? [{

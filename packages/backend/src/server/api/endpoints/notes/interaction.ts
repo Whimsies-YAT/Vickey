@@ -72,7 +72,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			try {
 				// Validate target exists if it's a note
 				if (ps.targetType === 'note') {
-					const note = await this.notesRepository.findOneBy({ id: ps.targetId });
+					const note = await this.notesRepository.findOneBy({ id: ps.targetId, isDeleted: false });
 					if (!note) {
 						throw new ApiError(meta.errors.noSuchNote);
 					}

@@ -743,7 +743,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	private async calculatePostingFrequencyScore(userId: string): Promise<number> {
 		const notes = await this.notesRepository.find({
 			where: { userId },
-			select: ['id'],
+			select: ['id', 'isDeleted'],
 			order: { id: 'DESC' },
 			take: 1000,
 		});
@@ -761,7 +761,11 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 			const noteTime = this.idService.parse(note.id).date.getTime();
 			const age = now - noteTime;
 
-			const timeWeight = Math.exp(-age / (30 * 24 * 60 * 60 * 1000));
+			let timeWeight = Math.exp(-age / (30 * 24 * 60 * 60 * 1000));
+
+			if (note.isDeleted) {
+				timeWeight *= 0.3;
+			}
 
 			if (age <= maxAge) {
 				weightedPostCount += timeWeight;
@@ -777,7 +781,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 		const avgPerDay = weightedPostCount / Math.max(1, effectiveDays / 7);
 
 		let rawScore: number;
-		if (avgPerDay > 15) { // 调整阈值考虑时间衰减
+		if (avgPerDay > 15) {
 			rawScore = 0.1;
 		} else if (avgPerDay > 10) {
 			rawScore = 0.3;

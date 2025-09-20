@@ -43,6 +43,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					'deleteFlash',
 					'deleteGalleryPost',
 					'deleteChatRoom',
+					'hardDeleteNote',
 				].includes(log.type)
 			}"
 		>{{ i18n.ts._moderationLogTypes[log.type] }}</b>
@@ -86,6 +87,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<span v-else-if="log.type === 'deleteFlash'">: @{{ log.info.flashUserUsername }}</span>
 		<span v-else-if="log.type === 'deleteGalleryPost'">: @{{ log.info.postUserUsername }}</span>
 		<span v-else-if="log.type === 'deleteChatRoom'">: @{{ log.info.room.name }}</span>
+		<span v-else-if="log.type === 'viewDeletedNote'">: {{ log.info.noteId.substring(0, 8) }}... ({{ log.info.noteText.substring(0, 30) }}{{ log.info.noteText.length > 30 ? '...' : '' }})</span>
+		<span v-else-if="log.type === 'listDeletedNotes'">: {{ log.info.count }} notes{{ log.info.userId ? ' by user ' + log.info.userId.substring(0, 8) + '...' : '' }}</span>
+		<span v-else-if="log.type === 'hardDeleteNote'">: @{{ log.info.noteUserUsername }}{{ log.info.noteUserHost ? '@' + log.info.noteUserHost : '' }}</span>
 	</template>
 	<template #icon>
 		<i v-if="log.type === 'updateServerSettings'" class="ti ti-settings"></i>
@@ -130,6 +134,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<i v-else-if="log.type === 'deleteFlash'" class="ti ti-trash"></i>
 		<i v-else-if="log.type === 'deleteGalleryPost'" class="ti ti-trash"></i>
 		<i v-else-if="log.type === 'deleteChatRoom'" class="ti ti-trash"></i>
+		<i v-else-if="log.type === 'viewDeletedNote'" class="ti ti-eye"></i>
+		<i v-else-if="log.type === 'listDeletedNotes'" class="ti ti-list"></i>
+		<i v-else-if="log.type === 'hardDeleteNote'" class="ti ti-trash-x"></i>
 	</template>
 	<template #suffix>
 		<MkTime :time="log.createdAt"/>
@@ -224,6 +231,22 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div :class="$style.diff">
 				<CodeDiff :context="5" :hideHeader="true" :oldString="log.info.before ?? ''" :newString="log.info.after ?? ''" maxHeight="300px"/>
 			</div>
+		</template>
+		<template v-else-if="log.type === 'viewDeletedNote'">
+			<div>{{ i18n.ts.noteId }}: {{ log.info.noteId }}</div>
+			<div>{{ i18n.ts.noteAuthor }}: {{ log.info.noteUserId }}</div>
+			<div>{{ i18n.ts.deletedNoteAuditLog }}</div>
+		</template>
+		<template v-else-if="log.type === 'listDeletedNotes'">
+			<div>{{ i18n.ts.result }}: {{ log.info.count }} {{ i18n.ts.deletedNotes }}</div>
+			<div v-if="log.info.userId">{{ i18n.ts.filterByUser }}: {{ log.info.userId }}</div>
+			<div v-if="log.info.deletedAfter">{{ i18n.ts.deletedAfter }}: {{ log.info.deletedAfter }}</div>
+			<div v-if="log.info.deletedBefore">{{ i18n.ts.deletedBefore }}: {{ log.info.deletedBefore }}</div>
+		</template>
+		<template v-else-if="log.type === 'hardDeleteNote'">
+			<div>{{ i18n.ts.noteId }}: {{ log.info.noteId }}</div>
+			<div>{{ i18n.ts.noteAuthor }}: <MkA :to="`/admin/user/${log.info.noteUserId}`" class="_link">@{{ log.info.noteUserUsername }}{{ log.info.noteUserHost ? '@' + log.info.noteUserHost : '' }}</MkA></div>
+			<div>{{ i18n.ts.hardDeletedNote }}</div>
 		</template>
 
 		<details>

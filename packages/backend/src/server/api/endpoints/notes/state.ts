@@ -51,7 +51,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private noteFavoritesRepository: NoteFavoritesRepository,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const note = await this.notesRepository.findOneByOrFail({ id: ps.noteId });
+			const note = await this.notesRepository.findOneByOrFail({ id: ps.noteId, isDeleted: false });
 
 			const [favorite, threadMuting] = await Promise.all([
 				this.noteFavoritesRepository.count({

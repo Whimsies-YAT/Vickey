@@ -106,6 +106,11 @@ export class ClipService {
 			throw new ClipService.TooManyClipNotesError();
 		}
 
+		const note = await this.notesRepository.findOneBy({ id: noteId, isDeleted: false });
+		if (note == null) {
+			throw new ClipService.NoSuchNoteError();
+		}
+
 		try {
 			await this.clipNotesRepository.insert({
 				id: this.idService.gen(),
@@ -142,7 +147,7 @@ export class ClipService {
 			throw new ClipService.NoSuchClipError();
 		}
 
-		const note = await this.notesRepository.findOneBy({ id: noteId });
+		const note = await this.notesRepository.findOneBy({ id: noteId, isDeleted: false });
 
 		if (note == null) {
 			throw new ClipService.NoSuchNoteError();
