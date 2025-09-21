@@ -642,8 +642,8 @@ export class DriveService {
 				file.storedInternal = existingFile.storedInternal;
 
 				file.accessKey = randomUUID();
-				file.thumbnailAccessKey = existingFile.thumbnailAccessKey ? 'thumbnail-' + randomUUID() : null;
-				file.webpublicAccessKey = existingFile.webpublicAccessKey ? 'webpublic-' + randomUUID() : null;
+				file.thumbnailAccessKey = existingFile.thumbnailAccessKey ? randomUUID() : null;
+				file.webpublicAccessKey = existingFile.webpublicAccessKey ? randomUUID() : null;
 				file.webpublicType = existingFile.webpublicType;
 
 				if (file.storedInternal) {

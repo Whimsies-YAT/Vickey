@@ -636,20 +636,20 @@ export class FileServerService {
 					.getOne();
 
 				if (originalFile) {
-					if (isThumbnail && originalFile.thumbnailAccessKey) {
-						s3Key = originalFile.thumbnailAccessKey;
-					} else if (isWebpublic && originalFile.webpublicAccessKey) {
-						s3Key = originalFile.webpublicAccessKey;
-					} else if (!isThumbnail && !isWebpublic && originalFile.accessKey) {
-						s3Key = originalFile.accessKey;
+					if (isThumbnail) {
+						const originalPhysical = originalFile.physicalKey || '';
+						s3Key = originalPhysical.replace(/^(.*\/)?([^\/]+)(\.[^.]*)?$/, '$1thumbnail-$2$3');
+					} else if (isWebpublic) {
+						const originalPhysical = originalFile.physicalKey || '';
+						s3Key = originalPhysical.replace(/^(.*\/)?([^\/]+)(\.[^.]*)?$/, '$1webpublic-$2$3');
 					} else {
-						s3Key = key;
+						s3Key = file.physicalKey;
 					}
 				} else {
 					s3Key = key;
 				}
 			} else {
-				s3Key = key;
+				s3Key = file.physicalKey || key;
 			}
 
 			const s3Url = `${meta.objectStorageUseSSL ? 'https' : 'http'}://${meta.objectStorageEndpoint ? meta.objectStorageEndpoint + '/' : ''}${meta.objectStorageBucket}/${meta.objectStoragePrefix ? meta.objectStoragePrefix + '/' : ''}${s3Key}`;
