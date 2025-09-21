@@ -11,7 +11,7 @@ import { sharpBmp } from '@misskey-dev/sharp-read-bmp';
 import { In, IsNull, MoreThan } from 'typeorm';
 import { DeleteObjectCommandInput, PutObjectCommandInput } from '@aws-sdk/client-s3';
 import { DI } from '@/di-symbols.js';
-import type { DriveFilesRepository, UsersRepository, DriveFoldersRepository, UserProfilesRepository, MiMeta } from '@/models/_.js';
+import type { DriveFilesRepository, UsersRepository, DriveFoldersRepository, UserProfilesRepository, NotesRepository, MiMeta } from '@/models/_.js';
 import type { Config } from '@/config.js';
 import Logger from '@/logger.js';
 import type { MiRemoteUser, MiUser } from '@/models/User.js';
@@ -45,6 +45,7 @@ import { isMimeImage } from '@/misc/is-mime-image.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { PdqService } from '@/core/PdqService.js';
+import { NoteDeleteService } from '@/core/NoteDeleteService.js';
 import { fileTypeFromFile as FileType } from "file-type";
 
 type AddFileArgs = {
@@ -116,6 +117,9 @@ export class DriveService {
 		@Inject(DI.driveFoldersRepository)
 		private driveFoldersRepository: DriveFoldersRepository,
 
+		@Inject(DI.notesRepository)
+		private notesRepository: NotesRepository,
+
 		private fileInfoService: FileInfoService,
 		private userEntityService: UserEntityService,
 		private driveFileEntityService: DriveFileEntityService,
@@ -135,6 +139,7 @@ export class DriveService {
 		private instanceChart: InstanceChart,
 		private utilityService: UtilityService,
 		private pdqService: PdqService,
+		private noteDeleteService: NoteDeleteService,
 	) {
 		const logger = new Logger('drive', 'blue');
 		this.registerLogger = logger.createSubLogger('register', 'yellow');
@@ -152,8 +157,8 @@ export class DriveService {
 	 */
 	@bindThis
 	private async save(file: MiDriveFile, path: string, name: string, type: string, hash: string, size: number, sha256?: string, fingerprint?: string): Promise<MiDriveFile> {
-	// thunbnail, webpublic を必要なら生成
-		const alts = await this.generateAlts(path, type, !file.uri);
+	// thunbnail, webpublic を必要なら生成 (並行処理で高速化)
+		const altsPromise = this.generateAlts(path, type, !file.uri);
 
 		if (this.meta.useObjectStorage) {
 		//#region ObjectStorage params
@@ -194,6 +199,8 @@ export class DriveService {
 			const uploads = [
 				this.upload(key, fs.createReadStream(path), type, null, name),
 			];
+
+			const alts = await altsPromise;
 
 			if (alts.webpublic) {
 				webpublicKey = `${prefix}webpublic-${randomUUID()}.${alts.webpublic.ext}`;
@@ -246,6 +253,8 @@ export class DriveService {
 			const webpublicAccessKey = 'webpublic-' + randomUUID();
 
 			const url = this.internalStorageService.saveFromPath(accessKey, path);
+
+			const alts = await altsPromise;
 
 			let thumbnailUrl: string | null = null;
 			let webpublicUrl: string | null = null;
@@ -919,6 +928,23 @@ export class DriveService {
 
 	@bindThis
 	public async deleteFile(file: MiDriveFile, isExpired = false, deleter?: MiUser) {
+		const relatedNotes = await this.notesRepository
+			.createQueryBuilder('note')
+			.where(':fileId = ANY(note."fileIds")', { fileId: file.id })
+			.andWhere('note."isDeleted" = false')
+			.getMany();
+
+		if (relatedNotes.length > 0) {
+			this.deleteLogger.info(`Found ${relatedNotes.length} posts referencing file ${file.id}, soft-deleting them`);
+			for (const note of relatedNotes) {
+				try {
+					await this.noteDeleteService.delete(note.user ?? await this.usersRepository.findOneByOrFail({ id: note.userId }), note);
+				} catch (error) {
+					this.deleteLogger.warn(`Failed to soft-delete note ${note.id}: ${error}`);
+				}
+			}
+		}
+
 		await this.driveFilesRepository.delete(file.id);
 		this.deleteLogger.info(`Database record deleted: ${file.id}`);
 
