@@ -279,6 +279,21 @@ type AdminInviteListRequest = operations['admin___invite___list']['requestBody']
 type AdminInviteListResponse = operations['admin___invite___list']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type AdminLogsClearResponse = operations['admin___logs___clear']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AdminLogsConfigRequest = operations['admin___logs___config']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminLogsConfigResponse = operations['admin___logs___config']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AdminLogsShowRequest = operations['admin___logs___show']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminLogsShowResponse = operations['admin___logs___show']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type AdminMetaResponse = operations['admin___meta']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
@@ -1669,6 +1684,11 @@ declare namespace entities {
         AdminInviteCreateResponse,
         AdminInviteListRequest,
         AdminInviteListResponse,
+        AdminLogsClearResponse,
+        AdminLogsConfigRequest,
+        AdminLogsConfigResponse,
+        AdminLogsShowRequest,
+        AdminLogsShowResponse,
         AdminMetaResponse,
         AdminNotesListDeletedRequest,
         AdminNotesListDeletedResponse,

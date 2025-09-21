@@ -80,6 +80,11 @@ import type {
 	AdminInviteCreateResponse,
 	AdminInviteListRequest,
 	AdminInviteListResponse,
+	AdminLogsClearResponse,
+	AdminLogsConfigRequest,
+	AdminLogsConfigResponse,
+	AdminLogsShowRequest,
+	AdminLogsShowResponse,
 	AdminMetaResponse,
 	AdminNotesListDeletedRequest,
 	AdminNotesListDeletedResponse,
@@ -768,6 +773,9 @@ export type Endpoints = {
 	'admin/get-user-ips': { req: AdminGetUserIpsRequest; res: AdminGetUserIpsResponse };
 	'admin/invite/create': { req: AdminInviteCreateRequest; res: AdminInviteCreateResponse };
 	'admin/invite/list': { req: AdminInviteListRequest; res: AdminInviteListResponse };
+	'admin/logs/clear': { req: EmptyRequest; res: AdminLogsClearResponse };
+	'admin/logs/config': { req: AdminLogsConfigRequest; res: AdminLogsConfigResponse };
+	'admin/logs/show': { req: AdminLogsShowRequest; res: AdminLogsShowResponse };
 	'admin/meta': { req: EmptyRequest; res: AdminMetaResponse };
 	'admin/notes/list-deleted': { req: AdminNotesListDeletedRequest; res: AdminNotesListDeletedResponse };
 	'admin/notes/show-deleted': { req: AdminNotesShowDeletedRequest; res: AdminNotesShowDeletedResponse };
