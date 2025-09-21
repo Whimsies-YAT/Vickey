@@ -19,13 +19,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 
 			<div class="controls">
-				<MkButton @click="() => refreshLogs()" :disabled="loading">
+				<MkButton :disabled="loading" @click="() => refreshLogs()">
 					<i class="ti ti-refresh"></i> {{ i18n.ts.refresh }}
 				</MkButton>
-				<MkButton @click="clearLogs" danger :disabled="loading">
+				<MkButton danger :disabled="loading" @click="clearLogs">
 					<i class="ti ti-trash"></i> {{ i18n.ts.remove }}
 				</MkButton>
-				<MkButton @click="toggleAutoRefresh" :class="{ active: autoRefresh }">
+				<MkButton :class="{ active: autoRefresh }" @click="toggleAutoRefresh">
 					<i class="ti ti-clock"></i> {{ autoRefresh ? (i18n.ts.stopAutoRefresh) : (i18n.ts.startAutoRefresh) }}
 				</MkButton>
 			</div>
@@ -94,7 +94,7 @@ async function refreshLogs(sinceId: number | null = null) {
 		const params: any = { count: 100 };
 		if (sinceId) params.sinceId = sinceId;
 
-		const response = await misskeyApi('admin/logs/show', params);
+		const response = await misskeyApi('admin/logs/show', params) as any;
 
 		if (sinceId) {
 			const newLogs = response.logs;
@@ -105,7 +105,7 @@ async function refreshLogs(sinceId: number | null = null) {
 				}
 
 				window.setTimeout(() => {
-					const logContainer = document.querySelector('.logs');
+					const logContainer = window.document.querySelector('.logs');
 					if (logContainer) {
 						logContainer.scrollTop = logContainer.scrollHeight;
 					}
@@ -157,12 +157,12 @@ function toggleAutoRefresh() {
 	autoRefresh.value = !autoRefresh.value;
 
 	if (autoRefresh.value) {
-		refreshInterval.value = setInterval(() => {
+		refreshInterval.value = window.setInterval(() => {
 			refreshLogs(lastLogId.value);
 		}, 2000) as any;
 	} else {
 		if (refreshInterval.value) {
-			clearInterval(refreshInterval.value);
+			window.clearInterval(refreshInterval.value);
 			refreshInterval.value = null;
 		}
 	}
@@ -194,7 +194,7 @@ onMounted(() => {
 
 onUnmounted(() => {
 	if (refreshInterval.value) {
-		clearInterval(refreshInterval.value);
+		window.clearInterval(refreshInterval.value);
 	}
 });
 

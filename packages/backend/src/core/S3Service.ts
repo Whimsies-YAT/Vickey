@@ -80,7 +80,7 @@ export class S3Service {
 	public async download(meta: MiMeta, key: string, path: string): Promise<void> {
 		const client = this.getS3Client(meta);
 		const command = new GetObjectCommand({
-			Bucket: meta.objectStorageBucket,
+			Bucket: meta.objectStorageBucket!,
 			Key: key,
 		});
 
@@ -125,7 +125,7 @@ export class S3Service {
 	}> {
 		const client = this.getS3Client(meta);
 		const command = new GetObjectCommand({
-			Bucket: meta.objectStorageBucket,
+			Bucket: meta.objectStorageBucket!,
 			Key: key,
 		});
 

@@ -671,7 +671,7 @@ export class FileServerService {
 				}
 			}
 
-			this.logger.debug(`Downloading S3 file: ${s3Key} for file ${file.id} (isThumbnail: ${isThumbnail}, isWebpublic: ${isWebpublic})`)
+			this.logger.debug(`Downloading S3 file: ${s3Key} for file ${file.id} (isThumbnail: ${isThumbnail}, isWebpublic: ${isWebpublic})`);
 
 			this.logger.info(`Attempting to get S3 object: bucket=${meta.objectStorageBucket}, key=${s3Key}`);
 			const s3Object = await this.s3Service.getObjectStream(meta, s3Key);
