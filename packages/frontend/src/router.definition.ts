@@ -549,6 +549,10 @@ export const ROUTE_DEF = [{
 		name: 'deleted-notes',
 		component: page(() => import('@/pages/admin/deleted-notes.vue')),
 	}, {
+		path: '/system-logs',
+		name: 'system-logs',
+		component: page(() => import('@/pages/admin/system-logs.vue')),
+	}, {
 		path: '/',
 		component: page(() => import('@/pages/_empty_.vue')),
 	}],

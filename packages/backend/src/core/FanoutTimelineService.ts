@@ -109,6 +109,21 @@ export class FanoutTimelineService {
 	}
 
 	@bindThis
+	public remove(name: FanoutTimelineName, id: string) {
+		return this.redisForTimelines.lrem('list:' + name, 0, id);
+	}
+
+	@bindThis
+	public removeFromMultiple(names: FanoutTimelineName[], id: string) {
+		if (names.length === 0) return Promise.resolve();
+		const pipeline = this.redisForTimelines.pipeline();
+		for (const name of names) {
+			pipeline.lrem('list:' + name, 0, id);
+		}
+		return pipeline.exec();
+	}
+
+	@bindThis
 	public purge(name: FanoutTimelineName) {
 		return this.redisForTimelines.del('list:' + name);
 	}

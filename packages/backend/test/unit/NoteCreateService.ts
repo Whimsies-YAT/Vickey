@@ -104,6 +104,12 @@ describe('NoteCreateService', () => {
 			requestIp: null,
 			pdqHash: null,
 			pdqVector: null,
+			sha256: '',
+			physicalKey: null,
+			fingerprint: null,
+			refCount: 1,
+			webpublicPhysicalKey: null,
+			thumbnailPhysicalKey: null,
 		};
 
 		test('note without renote should not be Renote', () => {

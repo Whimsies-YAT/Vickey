@@ -182,9 +182,10 @@ import { ApQuestionService } from './activitypub/models/ApQuestionService.js';
 import { QueueModule } from './QueueModule.js';
 import { QueueService } from './QueueService.js';
 import { LoggerService } from './LoggerService.js';
+import { LogObserverService } from './LogObserverService.js';
 
 const serviceClasses = [
-	LoggerService, AbuseReportService, AbuseReportNotificationService, AccountMoveService,
+	LoggerService, LogObserverService, AbuseReportService, AbuseReportNotificationService, AccountMoveService,
 	AccountUpdateService, AiService, AnnouncementService, AntennaService, AppLockService,
 	AchievementService, AvatarDecorationService, CaptchaService, CheckSecurityUpdateService,
 	CustomEmojiService, DeleteAccountService, DownloadService, DriveService, EmailService,

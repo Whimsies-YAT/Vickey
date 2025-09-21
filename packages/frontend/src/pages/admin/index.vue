@@ -287,6 +287,11 @@ const menuDef = computed<SuperMenuDef[]>(() => [{
 		text: i18n.ts.database,
 		to: '/admin/database',
 		active: currentPage.value?.route.name === 'database',
+	}, {
+		icon: 'ti ti-file-text',
+		text: i18n.ts.systemLogs,
+		to: '/admin/system-logs',
+		active: currentPage.value?.route.name === 'system-logs',
 	}],
 }] : [])]);
 

@@ -200,7 +200,7 @@ export class DriveService {
 				webpublicAccessKey = randomUUID();
 				webpublicUrl = this.internalStorageService.getFileUrl(webpublicAccessKey);
 
-				this.registerLogger.info(`uploading webpublic: ${webpublicKey}`);
+				this.registerLogger.info(`uploading webpublic to S3: ${webpublicKey}`);
 				uploads.push(this.upload(webpublicKey, alts.webpublic.data, alts.webpublic.type, alts.webpublic.ext, name));
 			}
 
@@ -209,11 +209,13 @@ export class DriveService {
 				thumbnailAccessKey = randomUUID();
 				thumbnailUrl = this.internalStorageService.getFileUrl(thumbnailAccessKey);
 
-				this.registerLogger.info(`uploading thumbnail: ${thumbnailKey}`);
+				this.registerLogger.info(`uploading thumbnail to S3: ${thumbnailKey}`);
 				uploads.push(this.upload(thumbnailKey, alts.thumbnail.data, alts.thumbnail.type, alts.thumbnail.ext, `${name}.thumbnail`));
 			}
 
+			this.registerLogger.info(`Waiting for ${uploads.length} S3 uploads to complete...`);
 			await Promise.all(uploads);
+			this.registerLogger.info(`All S3 uploads completed. thumbnailKey: ${thumbnailKey}, webpublicKey: ${webpublicKey}`);
 			//#endregion
 
 			file.url = url;
@@ -229,8 +231,13 @@ export class DriveService {
 			file.sha256 = sha256 ?? null;
 			file.fingerprint = fingerprint ?? null;
 			file.physicalKey = key;
+			file.thumbnailPhysicalKey = thumbnailKey;
+			file.webpublicPhysicalKey = webpublicKey;
 			file.size = size;
 			file.storedInternal = false;
+
+			// Debug: Log physical keys for new S3 files
+			this.registerLogger.info(`New S3 file - physicalKey: "${key}", thumbnailPhysicalKey: "${thumbnailKey}", webpublicPhysicalKey: "${webpublicKey}"`);
 
 			return await this.driveFilesRepository.insertOne(file);
 		} else { // use internal storage
@@ -635,6 +642,8 @@ export class DriveService {
 				file.sha256 = info.sha256;
 				file.fingerprint = info.fingerprint;
 				file.physicalKey = existingFile.physicalKey;
+				file.thumbnailPhysicalKey = existingFile.thumbnailPhysicalKey;
+				file.webpublicPhysicalKey = existingFile.webpublicPhysicalKey;
 				file.refCount = 1;
 				file.name = detectedName;
 				file.type = info.type.mime;
@@ -914,9 +923,12 @@ export class DriveService {
 		this.deleteLogger.info(`Database record deleted: ${file.id}`);
 
 		if (file.physicalKey && file.physicalKey !== file.accessKey) {
-			const remainingReferences = await this.driveFilesRepository.countBy({
-				physicalKey: file.physicalKey,
-			});
+			const remainingReferences = await this.driveFilesRepository
+				.createQueryBuilder('file')
+				.leftJoin('note', 'note', 'file.id = ANY(note."fileIds")')
+				.where('file.physicalKey = :physicalKey', { physicalKey: file.physicalKey })
+				.andWhere('(note.id IS NULL OR note."isDeleted" = false)')
+				.getCount();
 
 			this.deleteLogger.info(`Remaining references for physicalKey ${file.physicalKey}: ${remainingReferences}`);
 
@@ -942,12 +954,12 @@ export class DriveService {
 				} else if (!file.isLink) {
 					this.queueService.createDeleteObjectStorageFileJob(file.physicalKey);
 
-					if (originalFile?.thumbnailAccessKey) {
-						this.queueService.createDeleteObjectStorageFileJob(originalFile.thumbnailAccessKey);
+					if (originalFile?.thumbnailPhysicalKey) {
+						this.queueService.createDeleteObjectStorageFileJob(originalFile.thumbnailPhysicalKey);
 					}
 
-					if (originalFile?.webpublicAccessKey) {
-						this.queueService.createDeleteObjectStorageFileJob(originalFile.webpublicAccessKey);
+					if (originalFile?.webpublicPhysicalKey) {
+						this.queueService.createDeleteObjectStorageFileJob(originalFile.webpublicPhysicalKey);
 					}
 				}
 			}
@@ -965,12 +977,20 @@ export class DriveService {
 			} else if (!file.isLink) {
 				this.queueService.createDeleteObjectStorageFileJob(file.accessKey!);
 
-				if (file.thumbnailAccessKey) {
-					this.queueService.createDeleteObjectStorageFileJob(file.thumbnailAccessKey);
+				if (file.thumbnailPhysicalKey) {
+					this.queueService.createDeleteObjectStorageFileJob(file.thumbnailPhysicalKey);
+				} else if (file.thumbnailAccessKey) {
+					const prefix = this.meta.objectStoragePrefix ? `${this.meta.objectStoragePrefix}/` : '';
+					const possibleThumbnailKey = `${prefix}thumbnail-${file.thumbnailAccessKey}.webp`;
+					this.queueService.createDeleteObjectStorageFileJob(possibleThumbnailKey);
 				}
 
-				if (file.webpublicAccessKey) {
-					this.queueService.createDeleteObjectStorageFileJob(file.webpublicAccessKey);
+				if (file.webpublicPhysicalKey) {
+					this.queueService.createDeleteObjectStorageFileJob(file.webpublicPhysicalKey);
+				} else if (file.webpublicAccessKey) {
+					const prefix = this.meta.objectStoragePrefix ? `${this.meta.objectStoragePrefix}/` : '';
+					const possibleWebpublicKey = `${prefix}webpublic-${file.webpublicAccessKey}.webp`;
+					this.queueService.createDeleteObjectStorageFileJob(possibleWebpublicKey);
 				}
 			}
 		}
@@ -993,14 +1013,26 @@ export class DriveService {
 		} else if (!file.isLink) {
 			const promises = [];
 
-			promises.push(this.deleteObjectStorageFile(file.accessKey!));
-
-			if (file.thumbnailUrl) {
-				promises.push(this.deleteObjectStorageFile(file.thumbnailAccessKey!));
+			if (file.physicalKey) {
+				promises.push(this.deleteObjectStorageFile(file.physicalKey));
+			} else {
+				promises.push(this.deleteObjectStorageFile(file.accessKey!));
 			}
 
-			if (file.webpublicUrl) {
-				promises.push(this.deleteObjectStorageFile(file.webpublicAccessKey!));
+			if (file.thumbnailPhysicalKey) {
+				promises.push(this.deleteObjectStorageFile(file.thumbnailPhysicalKey));
+			} else if (file.thumbnailAccessKey) {
+				const prefix = this.meta.objectStoragePrefix ? `${this.meta.objectStoragePrefix}/` : '';
+				const possibleThumbnailKey = `${prefix}thumbnail-${file.thumbnailAccessKey}.webp`;
+				promises.push(this.deleteObjectStorageFile(possibleThumbnailKey));
+			}
+
+			if (file.webpublicPhysicalKey) {
+				promises.push(this.deleteObjectStorageFile(file.webpublicPhysicalKey));
+			} else if (file.webpublicAccessKey) {
+				const prefix = this.meta.objectStoragePrefix ? `${this.meta.objectStoragePrefix}/` : '';
+				const possibleWebpublicKey = `${prefix}webpublic-${file.webpublicAccessKey}.webp`;
+				promises.push(this.deleteObjectStorageFile(possibleWebpublicKey));
 			}
 
 			await Promise.all(promises);

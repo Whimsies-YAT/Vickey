@@ -7,9 +7,10 @@ import { URL } from 'node:url';
 import * as http from 'node:http';
 import * as https from 'node:https';
 import { Injectable } from '@nestjs/common';
-import { DeleteObjectCommand, CopyObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, CopyObjectCommand, GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { NodeHttpHandler, NodeHttpHandlerOptions } from '@smithy/node-http-handler';
+import * as fs from 'node:fs';
 import type { MiMeta } from '@/models/Meta.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { bindThis } from '@/decorators.js';
@@ -73,5 +74,76 @@ export class S3Service {
 	public copyObject(meta: MiMeta, input: CopyObjectCommandInput) {
 		const client = this.getS3Client(meta);
 		return client.send(new CopyObjectCommand(input));
+	}
+
+	@bindThis
+	public async download(meta: MiMeta, key: string, path: string): Promise<void> {
+		const client = this.getS3Client(meta);
+		const command = new GetObjectCommand({
+			Bucket: meta.objectStorageBucket,
+			Key: key,
+		});
+
+		const response = await client.send(command);
+		if (!response.Body) {
+			throw new Error(`No body in S3 response for key: ${key}`);
+		}
+
+		const writeStream = fs.createWriteStream(path);
+
+		return new Promise((resolve, reject) => {
+			if (response.Body instanceof ReadableStream) {
+				const reader = response.Body.getReader();
+				const pump = async () => {
+					try {
+						while (true) {
+							const { done, value } = await reader.read();
+							if (done) break;
+							writeStream.write(value);
+						}
+						writeStream.end();
+						resolve();
+					} catch (error) {
+						writeStream.destroy();
+						reject(error);
+					}
+				};
+				pump();
+			} else {
+				(response.Body as any).pipe(writeStream);
+				writeStream.on('finish', resolve);
+				writeStream.on('error', reject);
+			}
+		});
+	}
+
+	@bindThis
+	public async getObjectStream(meta: MiMeta, key: string): Promise<{
+		stream: NodeJS.ReadableStream;
+		contentType?: string;
+		contentLength?: number;
+	}> {
+		const client = this.getS3Client(meta);
+		const command = new GetObjectCommand({
+			Bucket: meta.objectStorageBucket,
+			Key: key,
+		});
+
+		try {
+			const response = await client.send(command);
+
+			if (!response.Body) {
+				throw new Error(`No body in S3 response for key: ${key}`);
+			}
+
+			return {
+				stream: response.Body as NodeJS.ReadableStream,
+				contentType: response.ContentType,
+				contentLength: response.ContentLength,
+			};
+		} catch (error) {
+			console.error(`[S3Service] Error getting object ${key}:`, error);
+			throw error;
+		}
 	}
 }

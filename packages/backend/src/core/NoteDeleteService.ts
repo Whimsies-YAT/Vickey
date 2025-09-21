@@ -23,6 +23,7 @@ import { bindThis } from '@/decorators.js';
 import { SearchService } from '@/core/SearchService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { NotificationService } from '@/core/NotificationService.js';
+import { FanoutTimelineService } from '@/core/FanoutTimelineService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
 
 @Injectable()
@@ -52,6 +53,7 @@ export class NoteDeleteService {
 		private searchService: SearchService,
 		private moderationLogService: ModerationLogService,
 		private notificationService: NotificationService,
+		private fanoutTimelineService: FanoutTimelineService,
 		private notesChart: NotesChart,
 		private perUserNotesChart: PerUserNotesChart,
 		private instanceChart: InstanceChart,
@@ -113,6 +115,8 @@ export class NoteDeleteService {
 		this.searchService.unindexNote(note);
 
 		await this.cleanupNotificationsForNote(note);
+
+		await this.cleanupTimelineCaches(user, note);
 
 		await this.notesRepository.update({
 			id: note.id,
@@ -198,6 +202,79 @@ export class NoteDeleteService {
 				noteUserHost: user.host,
 				note: note,
 			});
+		}
+	}
+
+	@bindThis
+	private async cleanupTimelineCaches(user: { id: MiUser['id']; host: MiUser['host'] }, note: MiNote) {
+		const timelines: string[] = [];
+
+		if (note.channelId) {
+			timelines.push(`channelTimeline:${note.channelId}`);
+			timelines.push(`userTimelineWithChannel:${user.id}`);
+		} else {
+			if (note.replyId) {
+				timelines.push(`userTimelineWithReplies:${user.id}`);
+				if (user.host == null) {
+					timelines.push('localTimelineWithReplies');
+					if (note.replyUserId) {
+						timelines.push(`localTimelineWithReplyTo:${note.replyUserId}`);
+					}
+				}
+			} else {
+				timelines.push(`userTimeline:${user.id}`);
+				if (note.fileIds && note.fileIds.length > 0) {
+					timelines.push(`userTimelineWithFiles:${user.id}`);
+				}
+
+				if (user.host == null) {
+					timelines.push('localTimeline');
+					if (note.fileIds && note.fileIds.length > 0) {
+						timelines.push('localTimelineWithFiles');
+					}
+				}
+			}
+
+			try {
+				const followers = await this.usersRepository
+					.createQueryBuilder('user')
+					.innerJoin('following', 'following', 'following.followeeId = :userId AND following.followerId = user.id', { userId: user.id })
+					.select('user.id')
+					.getMany();
+
+				for (const follower of followers) {
+					timelines.push(`homeTimeline:${follower.id}`);
+					if (note.fileIds && note.fileIds.length > 0) {
+						timelines.push(`homeTimelineWithFiles:${follower.id}`);
+					}
+				}
+
+				const userListMemberships = await this.usersRepository
+					.createQueryBuilder('user')
+					.innerJoin('user_list_membership', 'membership', 'membership.userId = :userId', { userId: user.id })
+					.select('membership.userListId', 'userListId')
+					.getRawMany();
+
+				for (const membership of userListMemberships) {
+					timelines.push(`userListTimeline:${membership.userListId}`);
+					if (note.fileIds && note.fileIds.length > 0) {
+						timelines.push(`userListTimelineWithFiles:${membership.userListId}`);
+					}
+				}
+
+				timelines.push(`homeTimeline:${user.id}`);
+				if (note.fileIds && note.fileIds.length > 0) {
+					timelines.push(`homeTimelineWithFiles:${user.id}`);
+				}
+			} catch (error) {
+				console.error('Failed to cleanup some timeline caches:', error);
+			}
+		}
+
+		if (timelines.length > 0) {
+			for (const timeline of timelines) {
+				await this.fanoutTimelineService.remove(timeline as any, note.id);
+			}
 		}
 	}
 

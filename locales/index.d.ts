@@ -130,6 +130,34 @@ export interface Locale extends ILocale {
      */
     "aboutVickey": string;
     /**
+     * System Logs
+     */
+    "systemLogs": string;
+    /**
+     * Total Logs
+     */
+    "totalLogs": string;
+    /**
+     * Max Entries
+     */
+    "maxEntries": string;
+    /**
+     * No logs available
+     */
+    "noLogs": string;
+    /**
+     * Are you sure you want to clear all logs?
+     */
+    "clearLogsConfirm": string;
+    /**
+     * Start Auto Refresh
+     */
+    "startAutoRefresh": string;
+    /**
+     * Stop Auto Refresh
+     */
+    "stopAutoRefresh": string;
+    /**
      * This page has been deprecated and may be removed in the future.
      */
     "pageDeprecated": string;

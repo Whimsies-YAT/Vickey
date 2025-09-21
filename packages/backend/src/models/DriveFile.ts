@@ -60,6 +60,18 @@ export class MiDriveFile {
 	})
 	public physicalKey: string | null;
 
+	@Column('varchar', {
+		length: 256,
+		nullable: true,
+	})
+	public thumbnailPhysicalKey: string | null;
+
+	@Column('varchar', {
+		length: 256,
+		nullable: true,
+	})
+	public webpublicPhysicalKey: string | null;
+
 	@Column('integer', {
 		default: 1,
 	})
