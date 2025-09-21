@@ -646,20 +646,9 @@ export class DriveService {
 				file.webpublicAccessKey = existingFile.webpublicAccessKey ? randomUUID() : null;
 				file.webpublicType = existingFile.webpublicType;
 
-				if (file.storedInternal) {
-					// For internal storage deduplication, share the physical files but provide unique URLs
-					// The FileServerService will handle mapping unique accessKeys to shared physical files
-					file.url = this.internalStorageService.getFileUrl(file.accessKey);
-					file.thumbnailUrl = file.thumbnailAccessKey ? this.internalStorageService.getFileUrl(file.thumbnailAccessKey) : null;
-					file.webpublicUrl = file.webpublicAccessKey ? this.internalStorageService.getFileUrl(file.webpublicAccessKey) : null;
-				} else {
-					// For S3 deduplication, use same logic as internal storage
-					// Create unique accessKeys for mapping but share the same physical S3 files
-					// The FileServerService will handle mapping unique accessKeys to shared physical files
-					file.url = this.internalStorageService.getFileUrl(file.accessKey);
-					file.thumbnailUrl = file.thumbnailAccessKey ? this.internalStorageService.getFileUrl(file.thumbnailAccessKey) : null;
-					file.webpublicUrl = file.webpublicAccessKey ? this.internalStorageService.getFileUrl(file.webpublicAccessKey) : null;
-				}
+				file.url = this.internalStorageService.getFileUrl(file.accessKey);
+				file.thumbnailUrl = file.thumbnailAccessKey ? this.internalStorageService.getFileUrl(file.thumbnailAccessKey) : null;
+				file.webpublicUrl = file.webpublicAccessKey ? this.internalStorageService.getFileUrl(file.webpublicAccessKey) : null;
 
 				if (user && this.utilityService.isMediaSilencedHost(this.meta.mediaSilencedHosts, user.host)) file.isSensitive = true;
 				if (info.sensitive && profile!.autoSensitive) file.isSensitive = true;

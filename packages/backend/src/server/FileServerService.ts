@@ -649,7 +649,15 @@ export class FileServerService {
 					s3Key = key;
 				}
 			} else {
-				s3Key = file.physicalKey || key;
+				if (isThumbnail) {
+					const originalPhysical = file.physicalKey || '';
+					s3Key = originalPhysical.replace(/^(.*\/)?([^\/]+)(\.[^.]*)?$/, '$1thumbnail-$2$3');
+				} else if (isWebpublic) {
+					const originalPhysical = file.physicalKey || '';
+					s3Key = originalPhysical.replace(/^(.*\/)?([^\/]+)(\.[^.]*)?$/, '$1webpublic-$2$3');
+				} else {
+					s3Key = file.physicalKey || key;
+				}
 			}
 
 			const s3Url = `${meta.objectStorageUseSSL ? 'https' : 'http'}://${meta.objectStorageEndpoint ? meta.objectStorageEndpoint + '/' : ''}${meta.objectStorageBucket}/${meta.objectStoragePrefix ? meta.objectStoragePrefix + '/' : ''}${s3Key}`;
