@@ -35,6 +35,7 @@ import { RateLimiterService } from './api/RateLimiterService.js';
 import { OAuth2ProviderService } from './oauth/OAuth2ProviderService.js';
 import { OAuthAppServerService } from './oauth/OAuthAppServerService.js';
 import { IconService } from './IconService.js';
+import { StripeWebhookServerService } from './StripeWebhookServerService.js';
 import { getIpHash } from '@/misc/get-ip-hash.js';
 
 const _dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -77,6 +78,7 @@ export class ServerService implements OnApplicationShutdown {
 		private oauth2ProviderService: OAuth2ProviderService,
 		private oauthAppServerService: OAuthAppServerService,
 		private iconService: IconService,
+		private stripeWebhookServerService: StripeWebhookServerService,
 	) {
 		this.logger = this.loggerService.getLogger('server', 'gray');
 	}
@@ -182,6 +184,7 @@ export class ServerService implements OnApplicationShutdown {
 			await this.oauth2ProviderService.createServer(fastify);
 		}, { prefix: '/oauth' });
 		fastify.register(this.healthServerService.createServer, { prefix: '/healthz' });
+		fastify.register(this.stripeWebhookServerService.createServer);
 
 		fastify.get<{ Params: { path: string }; Querystring: { static?: any; badge?: any; }; }>('/emoji/:path(.*)', async (request, reply) => {
 			const path = request.params.path;

@@ -90,6 +90,12 @@ import type {
 	AdminNotesListDeletedResponse,
 	AdminNotesShowDeletedRequest,
 	AdminNotesShowDeletedResponse,
+	AdminPaymentsListRequest,
+	AdminPaymentsListResponse,
+	AdminPaymentsShowRequest,
+	AdminPaymentsShowResponse,
+	AdminPaymentsStatsRequest,
+	AdminPaymentsStatsResponse,
 	AdminPromoCreateRequest,
 	AdminQueueClearRequest,
 	AdminQueueDeliverDelayedResponse,
@@ -613,6 +619,15 @@ import type {
 	PagesShowResponse,
 	PagesUnlikeRequest,
 	PagesUpdateRequest,
+	PaymentCancelSubscriptionRequest,
+	PaymentCancelSubscriptionResponse,
+	PaymentConfirmIntentRequest,
+	PaymentConfirmIntentResponse,
+	PaymentCreateIntentRequest,
+	PaymentCreateIntentResponse,
+	PaymentCreateSubscriptionRequest,
+	PaymentCreateSubscriptionResponse,
+	PaymentGetConfigResponse,
 	PingResponse,
 	PinnedUsersResponse,
 	PromoReadRequest,
@@ -779,6 +794,9 @@ export type Endpoints = {
 	'admin/meta': { req: EmptyRequest; res: AdminMetaResponse };
 	'admin/notes/list-deleted': { req: AdminNotesListDeletedRequest; res: AdminNotesListDeletedResponse };
 	'admin/notes/show-deleted': { req: AdminNotesShowDeletedRequest; res: AdminNotesShowDeletedResponse };
+	'admin/payments/list': { req: AdminPaymentsListRequest; res: AdminPaymentsListResponse };
+	'admin/payments/show': { req: AdminPaymentsShowRequest; res: AdminPaymentsShowResponse };
+	'admin/payments/stats': { req: AdminPaymentsStatsRequest; res: AdminPaymentsStatsResponse };
 	'admin/promo/create': { req: AdminPromoCreateRequest; res: EmptyResponse };
 	'admin/queue/clear': { req: AdminQueueClearRequest; res: EmptyResponse };
 	'admin/queue/deliver-delayed': { req: EmptyRequest; res: AdminQueueDeliverDelayedResponse };
@@ -1120,6 +1138,11 @@ export type Endpoints = {
 	'pages/show': { req: PagesShowRequest; res: PagesShowResponse };
 	'pages/unlike': { req: PagesUnlikeRequest; res: EmptyResponse };
 	'pages/update': { req: PagesUpdateRequest; res: EmptyResponse };
+	'payment/cancel-subscription': { req: PaymentCancelSubscriptionRequest; res: PaymentCancelSubscriptionResponse };
+	'payment/confirm-intent': { req: PaymentConfirmIntentRequest; res: PaymentConfirmIntentResponse };
+	'payment/create-intent': { req: PaymentCreateIntentRequest; res: PaymentCreateIntentResponse };
+	'payment/create-subscription': { req: PaymentCreateSubscriptionRequest; res: PaymentCreateSubscriptionResponse };
+	'payment/get-config': { req: EmptyRequest; res: PaymentGetConfigResponse };
 	'ping': { req: EmptyRequest; res: PingResponse };
 	'pinned-users': { req: EmptyRequest; res: PinnedUsersResponse };
 	'promo/read': { req: PromoReadRequest; res: EmptyResponse };

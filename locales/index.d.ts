@@ -1686,6 +1686,108 @@ export interface Locale extends ILocale {
          * Donate to Vickey
          */
         "donate": string;
+    };
+    "_donation": {
+        /**
+         * Support this Instance
+         */
+        "title": string;
+        /**
+         * Help us keep {instanceName} running and growing!
+         */
+        "description": ParameterizedString<"instanceName">;
+        /**
+         * Support this Instance
+         */
+        "supportProject": string;
+        /**
+         * Donation Amount
+         */
+        "donateAmount": string;
+        /**
+         * Enter amount
+         */
+        "enterAmount": string;
+        /**
+         * Custom amount
+         */
+        "customAmount": string;
+        /**
+         * One-time
+         */
+        "oneTime": string;
+        /**
+         * Monthly
+         */
+        "monthly": string;
+        /**
+         * Donate
+         */
+        "donateButton": string;
+        /**
+         * Processing...
+         */
+        "processing": string;
+        /**
+         * Thank you for your support!
+         */
+        "thankYou": string;
+        /**
+         * Your donation helps us maintain and improve this instance.
+         */
+        "helpMaintain": string;
+        /**
+         * Secure payment powered by Stripe
+         */
+        "securePayment": string;
+        /**
+         * Why donate?
+         */
+        "whyDonate": string;
+        /**
+         * Server hosting and maintenance costs
+         */
+        "serverCosts": string;
+        /**
+         * Continued development and improvements
+         */
+        "development": string;
+        /**
+         * Supporting the open-source community
+         */
+        "community": string;
+        /**
+         * Optional
+         */
+        "optional": string;
+        /**
+         * Note
+         */
+        "note": string;
+        /**
+         * Thank you for this great instance!
+         */
+        "noteExample": string;
+        /**
+         * Payment Error
+         */
+        "error": string;
+        /**
+         * Failed to process donation. Please try again.
+         */
+        "errorText": string;
+        /**
+         * Payment Currently Unavailable
+         */
+        "paymentUnavailable": string;
+        /**
+         * Payment processing is currently disabled on this instance.
+         */
+        "paymentDisabled": string;
+        /**
+         * Payment Type
+         */
+        "paymentType": string;
         /**
          * {name} uses a modified version of the original Vickey.
          */
@@ -3278,6 +3380,294 @@ export interface Locale extends ILocale {
          * Clear
          */
         "clear": string;
+    };
+    "_payment": {
+        /**
+         * Payment
+         */
+        "title": string;
+        /**
+         * Payment is disabled
+         */
+        "disabled": string;
+        /**
+         * Amount
+         */
+        "amount": string;
+        /**
+         * Currency
+         */
+        "currency": string;
+        /**
+         * e.g. usd, eur, jpy
+         */
+        "currencyPlaceholder": string;
+        /**
+         * Description
+         */
+        "description": string;
+        /**
+         * Payment description (optional)
+         */
+        "descriptionPlaceholder": string;
+        /**
+         * Payment Method
+         */
+        "paymentMethod": string;
+        /**
+         * Pay Now
+         */
+        "payNow": string;
+        /**
+         * Subscribe
+         */
+        "subscribe": string;
+        /**
+         * Subscription
+         */
+        "subscription": string;
+        /**
+         * Create Subscription
+         */
+        "subscriptionTitle": string;
+        /**
+         * Make Payment
+         */
+        "paymentTitle": string;
+        /**
+         * Subscription Plan
+         */
+        "subscriptionPlan": string;
+        /**
+         * Processing...
+         */
+        "processing": string;
+        /**
+         * Payment successful!
+         */
+        "success": string;
+        /**
+         * Enter amount
+         */
+        "enterAmount": string;
+        /**
+         * Failed to initialize payment system
+         */
+        "initializationError": string;
+        /**
+         * Payment system not loaded
+         */
+        "stripeNotLoaded": string;
+        /**
+         * Payment processing error
+         */
+        "processingError": string;
+        /**
+         * Payment failed
+         */
+        "paymentFailed": string;
+        /**
+         * Subscription creation failed
+         */
+        "subscriptionFailed": string;
+    };
+    "_stripe": {
+        /**
+         * Stripe Settings
+         */
+        "settings": string;
+        /**
+         * Enable Stripe
+         */
+        "enable": string;
+        /**
+         * Enable Stripe payment processing for your instance
+         */
+        "enableDescription": string;
+        /**
+         * Configure your Stripe account settings below. You can find these values in your Stripe Dashboard.
+         */
+        "configurationInfo": string;
+        /**
+         * Publishable Key
+         */
+        "publicKey": string;
+        /**
+         * Your Stripe publishable key (starts with pk_). This is safe to expose in client-side code.
+         */
+        "publicKeyDescription": string;
+        /**
+         * Secret Key
+         */
+        "secretKey": string;
+        /**
+         * Your Stripe secret key (starts with sk_). Keep this confidential and secure.
+         */
+        "secretKeyDescription": string;
+        /**
+         * Webhook Endpoint Secret
+         */
+        "webhookSecret": string;
+        /**
+         * The signing secret for your webhook endpoint. Used to verify webhook authenticity.
+         */
+        "webhookSecretDescription": string;
+        /**
+         * ⚠️ Important: Keep your secret keys secure and never share them. The webhook secret is required for payment verification.
+         */
+        "securityWarning": string;
+    };
+    "_admin": {
+        "_payments": {
+            /**
+             * Payment Management
+             */
+            "title": string;
+            /**
+             * Stripe is not enabled. Please configure Stripe settings first.
+             */
+            "stripeNotEnabled": string;
+            /**
+             * Total Payments
+             */
+            "totalPayments": string;
+            /**
+             * Total Revenue
+             */
+            "totalRevenue": string;
+            /**
+             * Recent Payments
+             */
+            "recentPayments": string;
+            /**
+             * Successful Payments
+             */
+            "successfulPayments": string;
+            /**
+             * Filter by User ID
+             */
+            "filterByUser": string;
+            /**
+             * Status
+             */
+            "status": string;
+            /**
+             * All Statuses
+             */
+            "allStatuses": string;
+            /**
+             * Succeeded
+             */
+            "succeeded": string;
+            /**
+             * Pending
+             */
+            "pending": string;
+            /**
+             * Failed
+             */
+            "failed": string;
+            /**
+             * Canceled
+             */
+            "canceled": string;
+            /**
+             * No payments found
+             */
+            "noPayments": string;
+            /**
+             * Payment ID
+             */
+            "paymentId": string;
+            /**
+             * User
+             */
+            "user": string;
+            /**
+             * Amount
+             */
+            "amount": string;
+            /**
+             * Description
+             */
+            "description": string;
+            /**
+             * No description
+             */
+            "noDescription": string;
+            /**
+             * Created At
+             */
+            "createdAt": string;
+            /**
+             * Updated At
+             */
+            "updatedAt": string;
+            /**
+             * Actions
+             */
+            "actions": string;
+            /**
+             * View Details
+             */
+            "viewDetails": string;
+            /**
+             * Unknown User
+             */
+            "unknownUser": string;
+            /**
+             * Failed to load payments
+             */
+            "loadError": string;
+            /**
+             * Failed to load payment details
+             */
+            "loadDetailError": string;
+            /**
+             * Payment Details
+             */
+            "paymentDetails": string;
+            /**
+             * Basic Information
+             */
+            "basicInfo": string;
+            /**
+             * User Information
+             */
+            "userInfo": string;
+            /**
+             * Metadata
+             */
+            "metadata": string;
+            /**
+             * Stripe Details
+             */
+            "stripeDetails": string;
+            /**
+             * Charge ID
+             */
+            "chargeId": string;
+            /**
+             * Customer ID
+             */
+            "customerId": string;
+            /**
+             * Receipt
+             */
+            "receipt": string;
+            /**
+             * View Receipt
+             */
+            "viewReceipt": string;
+            /**
+             * Payment Method
+             */
+            "paymentMethod": string;
+            /**
+             * Raw Stripe Data
+             */
+            "rawStripeData": string;
+        };
     };
     /**
      * ノートでつながるネットワーク

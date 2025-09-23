@@ -3,10 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import Stripe from 'stripe';
-import type { Config } from '@/config.js';
-import { DI } from '@/di-symbols.js';
 import { bindThis } from '@/decorators.js';
 import { MetaService } from '@/core/MetaService.js';
 
@@ -16,9 +14,6 @@ export class StripeService implements OnModuleInit {
 	private isInitialized = false;
 
 	constructor(
-		@Inject(DI.config)
-		private config: Config,
-
 		private metaService: MetaService,
 	) {}
 
@@ -68,6 +63,37 @@ export class StripeService implements OnModuleInit {
 	}
 
 	@bindThis
+	public async findOrCreateCustomer(params: {
+		userId: string;
+		email?: string;
+		name?: string;
+	}): Promise<Stripe.Customer> {
+		const stripe = this.getStripe();
+
+		if (params.email) {
+			const existingCustomers = await stripe.customers.list({
+				email: params.email,
+				limit: 1,
+			});
+
+			if (existingCustomers.data.length > 0) {
+				const customer = existingCustomers.data[0];
+				if (customer.metadata?.userId === params.userId) {
+					return customer;
+				}
+			}
+		}
+
+		return await this.createCustomer({
+			email: params.email,
+			name: params.name,
+			metadata: {
+				userId: params.userId,
+			},
+		});
+	}
+
+	@bindThis
 	public async getCustomer(customerId: string): Promise<Stripe.Customer> {
 		return await this.getStripe().customers.retrieve(customerId) as Stripe.Customer;
 	}
@@ -98,6 +124,11 @@ export class StripeService implements OnModuleInit {
 				enabled: true,
 			},
 		});
+	}
+
+	@bindThis
+	public async getPaymentIntent(paymentIntentId: string): Promise<Stripe.PaymentIntent> {
+		return await this.getStripe().paymentIntents.retrieve(paymentIntentId);
 	}
 
 	@bindThis

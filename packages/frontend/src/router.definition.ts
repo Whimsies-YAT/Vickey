@@ -227,6 +227,9 @@ export const ROUTE_DEF = [{
 	path: '/contact',
 	component: page(() => import('@/pages/contact.vue')),
 }, {
+	path: '/donate',
+	component: page(() => import('@/pages/donate.vue')),
+}, {
 	path: '/about-misskey',
 	component: page(() => import('@/pages/about-misskey.vue')),
 }, {
@@ -552,6 +555,10 @@ export const ROUTE_DEF = [{
 		path: '/system-logs',
 		name: 'system-logs',
 		component: page(() => import('@/pages/admin/system-logs.vue')),
+	}, {
+		path: '/payments',
+		name: 'payments',
+		component: page(() => import('@/pages/admin/payments.vue')),
 	}, {
 		path: '/',
 		component: page(() => import('@/pages/_empty_.vue')),

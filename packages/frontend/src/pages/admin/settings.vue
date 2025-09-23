@@ -364,6 +364,55 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</MkFolder>
 				</SearchMarker>
 
+				<SearchMarker v-slot="slotProps" :keywords="['stripe', 'payment']">
+					<MkFolder :defaultOpen="slotProps.isParentOfTarget">
+						<template #icon><SearchIcon><i class="ti ti-credit-card"></i></SearchIcon></template>
+						<template #label><SearchLabel>{{ i18n.ts._stripe.settings }}</SearchLabel></template>
+						<template v-if="stripeForm.modified.value" #footer>
+							<MkFormFooter :form="stripeForm"/>
+						</template>
+
+						<div class="_gaps">
+							<SearchMarker :keywords="['enable', 'stripe']">
+								<MkSwitch v-model="stripeForm.state.enableStripe">
+									<template #label><SearchLabel>{{ i18n.ts._stripe.enable }}</SearchLabel><span v-if="stripeForm.modifiedStates.enableStripe" class="_modified">{{ i18n.ts.modified }}</span></template>
+									<template #caption><SearchText>{{ i18n.ts._stripe.enableDescription }}</SearchText></template>
+								</MkSwitch>
+							</SearchMarker>
+
+							<template v-if="stripeForm.state.enableStripe">
+								<MkInfo>{{ i18n.ts._stripe.configurationInfo }}</MkInfo>
+
+								<SearchMarker :keywords="['public', 'key']">
+									<MkInput v-model="stripeForm.state.stripePublicKey">
+										<template #label><SearchLabel>{{ i18n.ts._stripe.publicKey }}</SearchLabel><span v-if="stripeForm.modifiedStates.stripePublicKey" class="_modified">{{ i18n.ts.modified }}</span></template>
+										<template #caption><SearchText>{{ i18n.ts._stripe.publicKeyDescription }}</SearchText></template>
+										<template #prefix><i class="ti ti-key"></i></template>
+									</MkInput>
+								</SearchMarker>
+
+								<SearchMarker :keywords="['secret', 'key']">
+									<MkInput v-model="stripeForm.state.stripeSecretKey" type="password">
+										<template #label><SearchLabel>{{ i18n.ts._stripe.secretKey }}</SearchLabel><span v-if="stripeForm.modifiedStates.stripeSecretKey" class="_modified">{{ i18n.ts.modified }}</span></template>
+										<template #caption><SearchText>{{ i18n.ts._stripe.secretKeyDescription }}</SearchText></template>
+										<template #prefix><i class="ti ti-key"></i></template>
+									</MkInput>
+								</SearchMarker>
+
+								<SearchMarker :keywords="['webhook', 'secret']">
+									<MkInput v-model="stripeForm.state.stripeWebhookSecret" type="password">
+										<template #label><SearchLabel>{{ i18n.ts._stripe.webhookSecret }}</SearchLabel><span v-if="stripeForm.modifiedStates.stripeWebhookSecret" class="_modified">{{ i18n.ts.modified }}</span></template>
+										<template #caption><SearchText>{{ i18n.ts._stripe.webhookSecretDescription }}</SearchText></template>
+										<template #prefix><i class="ti ti-webhook"></i></template>
+									</MkInput>
+								</SearchMarker>
+
+								<MkInfo warn>{{ i18n.ts._stripe.securityWarning }}</MkInfo>
+							</template>
+						</div>
+					</MkFolder>
+				</SearchMarker>
+
 				<MkButton primary @click="openSetupWizard">
 					Open setup wizard
 				</MkButton>
@@ -502,6 +551,21 @@ const proxyAccountForm = useForm({
 }, async (state) => {
 	await os.apiWithDialog('admin/update-proxy-account', {
 		description: state.description,
+	});
+	fetchInstance(true);
+});
+
+const stripeForm = useForm({
+	enableStripe: meta.enableStripe ?? false,
+	stripePublicKey: meta.stripePublicKey ?? '',
+	stripeSecretKey: meta.stripeSecretKey ?? '',
+	stripeWebhookSecret: meta.stripeWebhookSecret ?? '',
+}, async (state) => {
+	await os.apiWithDialog('admin/update-meta', {
+		enableStripe: state.enableStripe,
+		stripePublicKey: state.stripePublicKey === '' ? null : state.stripePublicKey,
+		stripeSecretKey: state.stripeSecretKey === '' ? null : state.stripeSecretKey,
+		stripeWebhookSecret: state.stripeWebhookSecret === '' ? null : state.stripeWebhookSecret,
 	});
 	fetchInstance(true);
 });

@@ -225,6 +225,11 @@ const menuDef = computed<SuperMenuDef[]>(() => [{
 		text: i18n.ts.deletedNotes,
 		to: '/admin/deleted-notes',
 		active: currentPage.value?.route.name === 'deleted-notes',
+	}, {
+		icon: 'ti ti-credit-card',
+		text: i18n.ts._admin._payments.title,
+		to: '/admin/payments',
+		active: currentPage.value?.route.name === 'payments',
 	},
 	],
 }, ...(isAdmin.value ? [{
