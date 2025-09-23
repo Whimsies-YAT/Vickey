@@ -7,8 +7,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 <MkButton
 	v-if="paymentEnabled"
 	:disabled="processing"
-	@click="openPaymentDialog"
 	v-bind="$attrs"
+	@click="openPaymentDialog"
 >
 	<i v-if="processing" class="ti ti-loader spinning"></i>
 	<i v-else class="ti ti-credit-card"></i>
@@ -56,7 +56,7 @@ const buttonText = computed(() => {
 
 const checkPaymentConfig = async () => {
 	try {
-		const config = await misskeyApi('payment/get-config', {});
+		const config = await misskeyApi('payment/get-config', {}) as { enabled: boolean; publicKey: string | null };
 		paymentEnabled.value = config.enabled && !!config.publicKey;
 	} catch (error) {
 		console.error('Failed to check payment config:', error);

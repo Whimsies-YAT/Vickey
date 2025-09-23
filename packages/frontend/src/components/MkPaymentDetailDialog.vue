@@ -66,7 +66,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<div class="user-details">
 							<div class="user-name">{{ payment.user.name || payment.user.username }}</div>
 							<div class="user-username">@{{ payment.user.username }}</div>
-							<div class="user-email" v-if="payment.user.email">{{ payment.user.email }}</div>
+							<div v-if="payment.user.email" class="user-email">{{ payment.user.email }}</div>
 						</div>
 					</div>
 				</div>
@@ -81,17 +81,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div v-if="payment.stripeDetails" class="info-group">
 					<h3>{{ i18n.ts._admin._payments.stripeDetails }}</h3>
 					<div class="stripe-details">
-						<div class="detail-item" v-if="payment.stripeDetails.charges?.data?.[0]">
+						<div v-if="payment.stripeDetails.charges?.data?.[0]" class="detail-item">
 							<label>{{ i18n.ts._admin._payments.chargeId }}</label>
 							<code>{{ payment.stripeDetails.charges.data[0].id }}</code>
 						</div>
 
-						<div class="detail-item" v-if="payment.stripeDetails.customer">
+						<div v-if="payment.stripeDetails.customer" class="detail-item">
 							<label>{{ i18n.ts._admin._payments.customerId }}</label>
 							<code>{{ payment.stripeDetails.customer }}</code>
 						</div>
 
-						<div class="detail-item" v-if="payment.stripeDetails.receipt_url">
+						<div v-if="payment.stripeDetails.receipt_url" class="detail-item">
 							<label>{{ i18n.ts._admin._payments.receipt }}</label>
 							<MkButton size="small" @click="openReceipt(payment.stripeDetails.receipt_url)">
 								<i class="ti ti-external-link"></i>
@@ -99,7 +99,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</MkButton>
 						</div>
 
-						<div class="detail-item" v-if="payment.stripeDetails.payment_method">
+						<div v-if="payment.stripeDetails.payment_method" class="detail-item">
 							<label>{{ i18n.ts._admin._payments.paymentMethod }}</label>
 							<div class="payment-method">
 								<i class="ti ti-credit-card"></i>

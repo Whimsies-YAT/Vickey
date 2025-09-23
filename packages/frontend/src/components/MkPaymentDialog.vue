@@ -18,10 +18,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<div class="content">
 			<MkPaymentWidget
-				:show-subscription-options="subscription"
-				:default-amount="amount"
-				:default-currency="currency"
-				:subscription-plans="subscriptionPlans"
+				:showSubscriptionOptions="subscription"
+				:defaultAmount="amount"
+				:defaultCurrency="currency"
+				:subscriptionPlans="subscriptionPlans"
 				@success="onSuccess"
 				@error="onError"
 			/>
@@ -47,7 +47,7 @@ interface Props {
 	description?: string;
 	subscription?: boolean;
 	priceId?: string;
-	subscriptionPlans?: Array<{value: string, text: string}>;
+	subscriptionPlans?: Array<{ value: string, text: string }>;
 }
 
 const props = withDefaults(defineProps<Props>(), {

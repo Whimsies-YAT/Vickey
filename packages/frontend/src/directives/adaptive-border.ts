@@ -11,15 +11,17 @@ const handlerMap = new WeakMap<any, any>();
 const cachedResults = new WeakMap<any, string>();
 
 function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
-	let timeout: ReturnType<typeof setTimeout> | undefined;
+	let timeout: number | undefined;
 	return ((...args: any[]) => {
-		clearTimeout(timeout);
-		timeout = setTimeout(() => func.apply(this, args), wait);
+		if (timeout !== undefined) {
+			window.clearTimeout(timeout);
+		}
+		timeout = window.setTimeout(() => func(...args), wait);
 	}) as T;
 }
 
 export default {
-	mounted(src, binding, vn) {
+	mounted(src, _binding, _vn) {
 		function calc() {
 			const parentBg = getBgColor(src.parentElement) ?? 'transparent';
 			const myBg = window.getComputedStyle(src).backgroundColor;
@@ -54,7 +56,7 @@ export default {
 		globalEvents.on('themeChanged', debouncedCalc);
 	},
 
-	unmounted(src, binding, vn) {
+	unmounted(src, _binding, _vn) {
 		globalEvents.off('themeChanged', handlerMap.get(src));
 		cachedResults.delete(src);
 	},

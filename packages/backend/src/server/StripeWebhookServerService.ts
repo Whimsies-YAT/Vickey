@@ -24,7 +24,7 @@ export class StripeWebhookServerService {
 
 	@bindThis
 	public createServer(fastify: fastify_1.FastifyInstance, options: any, done: (err?: Error) => void): void {
-		fastify.addContentTypeParser('application/json', {parseAs: 'buffer'}, function (req, body, done) {
+		fastify.addContentTypeParser('application/json', { parseAs: 'buffer' }, (req, body, done) => {
 			done(null, body);
 		});
 

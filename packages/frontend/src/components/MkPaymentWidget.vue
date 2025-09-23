@@ -30,7 +30,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 				/>
 			</div>
 
-
 			<div class="description-section">
 				<label>{{ i18n.ts._payment.description }}</label>
 				<MkInput
@@ -53,7 +52,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 			<div class="payment-method-section">
 				<label>{{ i18n.ts._payment.paymentMethod }}</label>
-				<div id="card-element" ref="cardElement" class="card-element"></div>
+				<div id="card-element" ref="cardElementRef" class="card-element"></div>
 				<div v-if="cardError" class="error">{{ cardError }}</div>
 			</div>
 
@@ -153,7 +152,7 @@ const subscriptionPlanItems = computed(() =>
 
 const initializeStripe = async () => {
 	try {
-		const config = await misskeyApi('payment/get-config', {});
+		const config = await misskeyApi('payment/get-config', {}) as { enabled: boolean; publicKey: string | null };
 
 		if (!config.enabled || !config.publicKey) {
 			paymentEnabled.value = false;
@@ -225,11 +224,14 @@ const processPayment = async () => {
 };
 
 const processOneTimePayment = async () => {
-	const paymentIntent = await misskeyApi('payment/create-intent', {
+	const requestData: { amount: number; currency: string; description?: string } = {
 		amount: amount.value * 100,
-		currency: currency.value,
-		description: description.value || undefined
-	});
+		currency: currency.value
+	};
+	if (description.value) {
+		requestData.description = description.value;
+	}
+	const paymentIntent = await misskeyApi('payment/create-intent', requestData) as { clientSecret: string; paymentIntentId: string };
 
 	const { error, paymentIntent: confirmedPaymentIntent } = await stripe.value!.confirmCardPayment(
 		paymentIntent.clientSecret,
@@ -262,13 +264,12 @@ const processSubscription = async () => {
 		throw new Error(pmError.message);
 	}
 
-	const subscription = await misskeyApi('payment/create-subscription', {
+	const subscriptionData = {
 		priceId: selectedPlan.value,
 		paymentMethodId: paymentMethod.id,
-		metadata: {
-			description: description.value || undefined
-		}
-	});
+		metadata: description.value ? { description: description.value } : null
+	};
+	const subscription = await misskeyApi('payment/create-subscription', subscriptionData as any) as { subscriptionId: string; status: string; clientSecret: string | null };
 
 	if (subscription.status === 'active' || subscription.status === 'trialing') {
 		paymentSuccess.value = true;

@@ -41,7 +41,7 @@ export class StripeSubscriptionService {
 
 	@bindThis
 	public async getOrCreateStripeCustomer(user: MiUser): Promise<string> {
-		let stripeCustomer = await this.stripeCustomersRepository.findOneBy({
+		const stripeCustomer = await this.stripeCustomersRepository.findOneBy({
 			userId: user.id,
 		});
 
