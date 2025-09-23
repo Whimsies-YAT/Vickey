@@ -886,6 +886,29 @@ export class MiMeta {
 		default: { },
 	})
 	public clientOptions: Record<string, any>;
+
+	@Column('boolean', {
+		default: false,
+	})
+	public enableStripe: boolean;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public stripePublicKey: string | null;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public stripeSecretKey: string | null;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public stripeWebhookSecret: string | null;
 }
 
 export type SoftwareSuspension = {

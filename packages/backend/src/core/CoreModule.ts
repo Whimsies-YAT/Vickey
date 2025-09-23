@@ -183,6 +183,9 @@ import { QueueModule } from './QueueModule.js';
 import { QueueService } from './QueueService.js';
 import { LoggerService } from './LoggerService.js';
 import { LogObserverService } from './LogObserverService.js';
+import { StripeService } from './StripeService.js';
+import { StripeSubscriptionService } from './StripeSubscriptionService.js';
+import { StripeWebhookService } from './StripeWebhookService.js';
 
 const serviceClasses = [
 	LoggerService, LogObserverService, AbuseReportService, AbuseReportNotificationService, AccountMoveService,
@@ -222,7 +225,7 @@ const serviceClasses = [
 	ApAudienceService, ApDbResolverService, ApDeliverManagerService, ApInboxService, ApLoggerService,
 	ApMfmService, ApRendererService, ApRequestService, ApResolverService, JsonLdService,
 	RemoteLoggerService, RemoteUserResolveService, WebfingerService, ApImageService, ApMentionService,
-	ApNoteService, ApPersonService, ApQuestionService, QueueService
+	ApNoteService, ApPersonService, ApQuestionService, QueueService, StripeService, StripeSubscriptionService, StripeWebhookService
 ];
 
 const stringProviders: Provider[] = serviceClasses.map(ServiceClass => ({

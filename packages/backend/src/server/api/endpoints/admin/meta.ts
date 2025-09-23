@@ -720,6 +720,22 @@ export const meta = {
 			visibleRecipient: {
 				type: 'string',
 				optional: false, nullable: true,
+			},
+			enableStripe: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			stripePublicKey: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			stripeSecretKey: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			stripeWebhookSecret: {
+				type: 'string',
+				optional: false, nullable: true,
 			}
 		},
 	},
@@ -907,6 +923,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				enableBcc: instance.enableBcc,
 				bccLimit: instance.bccLimit,
 				visibleRecipient: instance.visibleRecipient && instance.visibleRecipient.trim() !== '' ? instance.visibleRecipient : instance.maintainerEmail,
+				enableStripe: instance.enableStripe,
+				stripePublicKey: instance.stripePublicKey,
+				stripeSecretKey: instance.stripeSecretKey,
+				stripeWebhookSecret: instance.stripeWebhookSecret,
 			};
 		});
 	}

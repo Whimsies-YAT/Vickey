@@ -106,6 +106,10 @@ import { MiUserInteractionHistory } from '@/models/UserInteractionHistory.js';
 import { MiContentEmbedding } from '@/models/ContentEmbedding.js';
 import { MiUserInterestEmbedding } from '@/models/UserInterestEmbedding.js';
 import { MiEmbeddingBatchQueue } from '@/models/EmbeddingBatchQueue.js';
+import { MiStripeCustomer } from '@/models/StripeCustomer.js';
+import { MiStripePayment } from '@/models/StripePayment.js';
+import { MiStripeSubscription } from '@/models/StripeSubscription.js';
+import { MiStripeRefund } from '@/models/StripeRefund.js';
 import type { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity.js';
 
 export interface MiRepository<T extends ObjectLiteral> {
@@ -262,6 +266,10 @@ export {
 	MiContentEmbedding,
 	MiUserInterestEmbedding,
 	MiEmbeddingBatchQueue,
+	MiStripeCustomer,
+	MiStripePayment,
+	MiStripeSubscription,
+	MiStripeRefund,
 };
 
 type MiRepositoryType<T extends ObjectLiteral> = Repository<T> & MiRepository<T>;
@@ -355,3 +363,7 @@ export type UserInteractionHistoryRepository = MiRepositoryType<MiUserInteractio
 export type ContentEmbeddingRepository = MiRepositoryType<MiContentEmbedding>;
 export type UserInterestEmbeddingRepository = MiRepositoryType<MiUserInterestEmbedding>;
 export type EmbeddingBatchQueueRepository = MiRepositoryType<MiEmbeddingBatchQueue>;
+export type StripeCustomersRepository = MiRepositoryType<MiStripeCustomer>;
+export type StripePaymentsRepository = MiRepositoryType<MiStripePayment>;
+export type StripeSubscriptionsRepository = MiRepositoryType<MiStripeSubscription>;
+export type StripeRefundsRepository = MiRepositoryType<MiStripeRefund>;

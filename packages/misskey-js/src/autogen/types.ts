@@ -5804,16 +5804,14 @@ export type components = {
             maxFileSize: number;
             security: boolean;
             enableEmailTemplates: boolean;
-            abuseMLCheck: boolean;
-            abuseReportMLAction: string;
-            abuseMLInfoUrl: string;
-            abuseMLInfoToken: string;
-            abuseMLInfoScore: number;
             /** @enum {string} */
             federation: 'all' | 'specified' | 'none';
             enableBcc: boolean;
             bccLimit: number;
             visibleRecipient: string | null;
+            /** @default false */
+            enableStripe: boolean;
+            stripePublicKey: string | null;
         };
         MetaDetailedOnly: {
             features?: {
@@ -5829,6 +5827,8 @@ export type components = {
                 serviceWorker: boolean;
                 /** @default true */
                 miauth: boolean;
+                /** @default false */
+                stripe: boolean;
             };
             proxyAccountName: string | null;
             /** @example false */
@@ -10523,6 +10523,10 @@ export interface operations {
                         enableBcc: boolean;
                         bccLimit: number;
                         visibleRecipient: string | null;
+                        enableStripe: boolean;
+                        stripePublicKey: string | null;
+                        stripeSecretKey: string | null;
+                        stripeWebhookSecret: string | null;
                     };
                 };
             };
@@ -14375,6 +14379,10 @@ export interface operations {
                     enableBcc?: boolean;
                     bccLimit?: number;
                     visibleRecipient?: string | null;
+                    enableStripe?: boolean;
+                    stripePublicKey?: string | null;
+                    stripeSecretKey?: string | null;
+                    stripeWebhookSecret?: string | null;
                 };
             };
         };

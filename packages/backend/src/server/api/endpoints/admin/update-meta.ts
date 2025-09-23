@@ -250,6 +250,10 @@ export const paramDef = {
 		enableBcc: { type: 'boolean', nullable: false },
 		bccLimit: { type: 'number', nullable: false },
 		visibleRecipient: { type: 'string', nullable: true },
+		enableStripe: { type: 'boolean' },
+		stripePublicKey: { type: 'string', nullable: true },
+		stripeSecretKey: { type: 'string', nullable: true },
+		stripeWebhookSecret: { type: 'string', nullable: true },
 	},
 	required: [],
 } as const;
@@ -975,6 +979,34 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					set.visibleRecipient = ps.visibleRecipient;
 				} else {
 					set.visibleRecipient = set.maintainerEmail;
+				}
+			}
+
+			if (ps.enableStripe !== undefined) {
+				set.enableStripe = ps.enableStripe;
+			}
+
+			if (ps.stripePublicKey !== undefined) {
+				if (ps.stripePublicKey === '') {
+					set.stripePublicKey = null;
+				} else {
+					set.stripePublicKey = ps.stripePublicKey;
+				}
+			}
+
+			if (ps.stripeSecretKey !== undefined) {
+				if (ps.stripeSecretKey === '') {
+					set.stripeSecretKey = null;
+				} else {
+					set.stripeSecretKey = ps.stripeSecretKey;
+				}
+			}
+
+			if (ps.stripeWebhookSecret !== undefined) {
+				if (ps.stripeWebhookSecret === '') {
+					set.stripeWebhookSecret = null;
+				} else {
+					set.stripeWebhookSecret = ps.stripeWebhookSecret;
 				}
 			}
 

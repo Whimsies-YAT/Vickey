@@ -105,5 +105,9 @@ export const DI = {
 	contentEmbeddingRepository: Symbol('contentEmbeddingRepository'),
 	userInterestEmbeddingRepository: Symbol('userInterestEmbeddingRepository'),
 	embeddingBatchQueueRepository: Symbol('embeddingBatchQueueRepository'),
+	stripeCustomersRepository: Symbol('stripeCustomersRepository'),
+	stripePaymentsRepository: Symbol('stripePaymentsRepository'),
+	stripeSubscriptionsRepository: Symbol('stripeSubscriptionsRepository'),
+	stripeRefundsRepository: Symbol('stripeRefundsRepository'),
 	//#endregion
 };

@@ -100,6 +100,10 @@ import { MiUserInteractionHistory } from '@/models/UserInteractionHistory.js';
 import { MiContentEmbedding } from '@/models/ContentEmbedding.js';
 import { MiUserInterestEmbedding } from '@/models/UserInterestEmbedding.js';
 import { MiEmbeddingBatchQueue } from '@/models/EmbeddingBatchQueue.js';
+import { MiStripeCustomer } from '@/models/StripeCustomer.js';
+import { MiStripePayment } from '@/models/StripePayment.js';
+import { MiStripeSubscription } from '@/models/StripeSubscription.js';
+import { MiStripeRefund } from '@/models/StripeRefund.js';
 
 pg.types.setTypeParser(20, Number);
 
@@ -284,6 +288,10 @@ export const entities = [
 	MiContentEmbedding,
 	MiUserInterestEmbedding,
 	MiEmbeddingBatchQueue,
+	MiStripeCustomer,
+	MiStripePayment,
+	MiStripeSubscription,
+	MiStripeRefund,
 	...charts,
 ];
 
