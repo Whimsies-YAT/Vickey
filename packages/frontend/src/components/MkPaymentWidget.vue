@@ -83,7 +83,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import { loadStripe } from '@stripe/stripe-js';
 import type { Stripe, StripeElements, StripeCardElement } from '@stripe/stripe-js';
 import { misskeyApi } from '@/utility/misskey-api.js';
@@ -173,14 +173,27 @@ const initializeStripe = async () => {
 			style: {
 				base: {
 					fontSize: '16px',
-					color: 'var(--fg)',
+					color: 'var(--MI_THEME-fg)',
 					fontFamily: 'system-ui, sans-serif',
+					backgroundColor: 'var(--MI_THEME-input)',
 					'::placeholder': {
-						color: 'var(--fg-muted)'
+						color: 'var(--MI_THEME-fgMuted)'
 					}
+				},
+				invalid: {
+					color: 'var(--MI_THEME-error)',
+					iconColor: 'var(--MI_THEME-error)'
+				},
+				complete: {
+					color: 'var(--MI_THEME-success)',
+					iconColor: 'var(--MI_THEME-success)'
 				}
 			}
 		});
+
+		loading.value = false;
+
+		await nextTick();
 
 		if (cardElementRef.value && cardElement.value) {
 			cardElement.value.mount(cardElementRef.value);
@@ -189,8 +202,6 @@ const initializeStripe = async () => {
 				cardError.value = event.error ? event.error.message : '';
 			});
 		}
-
-		loading.value = false;
 	} catch (error) {
 		console.error('Failed to initialize Stripe:', error);
 		paymentError.value = i18n.ts._payment.initializationError;
@@ -295,15 +306,15 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .payment-widget {
-	border: 1px solid var(--divider);
+	border: 1px solid var(--MI_THEME-divider);
 	border-radius: 8px;
 	padding: 20px;
-	background: var(--panel);
+	background: var(--MI_THEME-panel);
 
 	.disabled, .loading {
 		text-align: center;
 		padding: 40px 20px;
-		color: var(--fg-muted);
+		color: var(--MI_THEME-fgMuted);
 
 		i {
 			font-size: 48px;
@@ -321,7 +332,7 @@ onMounted(() => {
 
 			i {
 				font-size: 24px;
-				color: var(--accent);
+				color: var(--MI_THEME-accent);
 			}
 
 			h3 {
@@ -340,25 +351,25 @@ onMounted(() => {
 				display: block;
 				font-weight: 500;
 				margin-bottom: 8px;
-				color: var(--fg);
+				color: var(--MI_THEME-fg);
 			}
 
 			.card-element {
-				border: 1px solid var(--inputBorder);
+				border: 1px solid var(--MI_THEME-inputBorder);
 				border-radius: 4px;
 				padding: 12px;
-				background: var(--input);
+				background: var(--MI_THEME-input);
 				transition: border-color 0.2s;
 
 				&:focus-within {
-					border-color: var(--accent);
+					border-color: var(--MI_THEME-accent);
 				}
 			}
 
 			.subscription-options {
 				margin-top: 16px;
 				padding: 16px;
-				background: var(--bg);
+				background: var(--MI_THEME-bg);
 				border-radius: 6px;
 			}
 
@@ -388,13 +399,13 @@ onMounted(() => {
 		}
 
 		.success {
-			background: var(--success-bg);
-			color: var(--success);
+			background: var(--MI_THEME-successBg);
+			color: var(--MI_THEME-success);
 		}
 
 		.error {
-			background: var(--error-bg);
-			color: var(--error);
+			background: var(--MI_THEME-errorBg);
+			color: var(--MI_THEME-error);
 		}
 	}
 }

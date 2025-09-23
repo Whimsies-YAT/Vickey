@@ -26,7 +26,7 @@ export class StripeService implements OnModuleInit {
 		if (this.isInitialized) return;
 
 		const meta = await this.metaService.fetch();
-		if (meta.enableStripe && meta.stripeSecretKey) {
+		if (meta.enableStripe && meta.stripeSecretKey && meta.stripePublicKey) {
 			this.stripe = new Stripe(meta.stripeSecretKey, {
 			});
 			this.isInitialized = true;
@@ -36,7 +36,18 @@ export class StripeService implements OnModuleInit {
 	@bindThis
 	public async isEnabled(): Promise<boolean> {
 		const meta = await this.metaService.fetch();
-		return meta.enableStripe && meta.stripeSecretKey !== null;
+		return meta.enableStripe &&
+			meta.stripeSecretKey !== null &&
+			meta.stripePublicKey !== null;
+	}
+
+	@bindThis
+	public async isFullyConfigured(): Promise<boolean> {
+		const meta = await this.metaService.fetch();
+		return meta.enableStripe &&
+			meta.stripeSecretKey !== null &&
+			meta.stripePublicKey !== null &&
+			meta.stripeWebhookSecret !== null;
 	}
 
 	@bindThis
