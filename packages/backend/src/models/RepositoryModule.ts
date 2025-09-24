@@ -95,6 +95,10 @@ import {
 	MiContentEmbedding,
 	MiUserInterestEmbedding,
 	MiEmbeddingBatchQueue,
+	MiStripeCustomer,
+	MiStripePayment,
+	MiStripeSubscription,
+	MiStripeRefund,
 } from './_.js';
 import type { Provider } from '@nestjs/common';
 import type { DataSource, EntityTarget } from 'typeorm';
@@ -195,6 +199,10 @@ const repositoryMappings = [
 	{ token: DI.contentEmbeddingRepository, entity: MiContentEmbedding },
 	{ token: DI.userInterestEmbeddingRepository, entity: MiUserInterestEmbedding },
 	{ token: DI.embeddingBatchQueueRepository, entity: MiEmbeddingBatchQueue },
+	{ token: DI.stripeCustomersRepository, entity: MiStripeCustomer },
+	{ token: DI.stripePaymentsRepository, entity: MiStripePayment },
+	{ token: DI.stripeSubscriptionsRepository, entity: MiStripeSubscription },
+	{ token: DI.stripeRefundsRepository, entity: MiStripeRefund },
 ] as const;
 
 const providers = repositoryMappings.map(({ token, entity }) =>

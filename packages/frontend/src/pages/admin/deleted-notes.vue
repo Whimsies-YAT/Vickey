@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and misskey-project
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <MkStickyContainer>
 	<template #header><MkPageHeader :actions="headerActions" :tabs="headerTabs"/></template>
@@ -6,27 +11,27 @@
 			<div class="_panel" style="padding: 16px;">
 				<div class="_gaps_m">
 					<div style="display: flex; gap: 8px; flex-wrap: wrap;">
-						<MkInput v-model="userId" placeholder="User ID (optional)" style="flex: 1; min-width: 200px;">
-							<template #prefix><i class="ph ph-user ph-fw"></i></template>
+						<MkInput v-model="userId" :placeholder="i18n.ts.userIdOptionalPlaceholder" style="flex: 1; min-width: 200px;">
+							<template #prefix><i class="ti ti-user"></i></template>
 						</MkInput>
-						<MkInput v-model="deletedAfter" type="datetime-local" placeholder="Deleted after" style="flex: 1; min-width: 200px;">
-							<template #prefix><i class="ph ph-calendar ph-fw"></i></template>
+						<MkInput v-model="deletedAfter" type="datetime-local" :placeholder="i18n.ts.deletedAfterPlaceholder">
+							<template #prefix><i class="ti ti-calendar"></i></template>
 						</MkInput>
-						<MkInput v-model="deletedBefore" type="datetime-local" placeholder="Deleted before" style="flex: 1; min-width: 200px;">
-							<template #prefix><i class="ph ph-calendar ph-fw"></i></template>
+						<MkInput v-model="deletedBefore" type="datetime-local" :placeholder="i18n.ts.deletedBeforePlaceholder">
+							<template #prefix><i class="ti ti-calendar"></i></template>
 						</MkInput>
 					</div>
 					<div style="display: flex; gap: 8px;">
-						<MkButton primary @click="search"><i class="ph ph-magnifying-glass ph-fw"></i> {{ i18n.ts.searchDeletedNotes }}</MkButton>
-						<MkButton @click="refresh"><i class="ph ph-arrow-clockwise ph-fw"></i> {{ i18n.ts.refreshDeletedNotes }}</MkButton>
-						<MkButton @click="clear"><i class="ph ph-trash ph-fw"></i> {{ i18n.ts.clearFilters }}</MkButton>
+						<MkButton primary @click="search"><i class="ti ti-search"></i> {{ i18n.ts.searchDeletedNotes }}</MkButton>
+						<MkButton @click="refresh"><i class="ti ti-refresh"></i> {{ i18n.ts.refreshDeletedNotes }}</MkButton>
+						<MkButton @click="clear"><i class="ti ti-trash"></i> {{ i18n.ts.clearFilters }}</MkButton>
 					</div>
 				</div>
 			</div>
 
 			<div v-if="notes.length === 0 && !loading" class="_panel" style="padding: 32px; text-align: center;">
 				<div style="opacity: 0.7;">
-					<i class="ph ph-magnifying-glass ph-fw" style="font-size: 3em;"></i>
+					<i class="ti ti-search" style="font-size: 3em;"></i>
 					<div style="font-size: 120%; margin-top: 8px;">{{ i18n.ts.noDeletedNotesFound }}</div>
 				</div>
 			</div>
@@ -43,7 +48,7 @@
 						</div>
 						<div class="note-id">{{ note.id }}</div>
 						<div class="deleted-badge">
-							<i class="ph ph-trash ph-fw"></i> {{ String(i18n.ts.deleted).toUpperCase() }}
+							<i class="ti ti-trash"></i> {{ String(i18n.ts.deleted).toUpperCase() }}
 						</div>
 					</div>
 					<div class="note-content">
@@ -55,18 +60,18 @@
 						</div>
 						<div v-if="note.files && note.files.length > 0" class="files">
 							<div class="file-count">
-								<i class="ph ph-paperclip ph-fw"></i> {{ note.files.length }} {{ i18n.ts.files }}
+								<i class="ti ti-paperclip"></i> {{ note.files.length }} {{ i18n.ts.files }}
 							</div>
 						</div>
 					</div>
 					<div class="note-meta">
 						<div class="timestamps">
 							<div><strong>{{ i18n.ts.created }}:</strong> <MkTime :time="new Date(getTimestampFromId(note.id))" mode="absolute"/></div>
-							<div v-if="note.updatedAt"><strong>{{ i18n.ts.deleted }}:</strong> <MkTime :time="note.updatedAt" mode="absolute"/></div>
+							<div><strong>{{ i18n.ts.status }}:</strong> {{ String(i18n.ts.deleted).toUpperCase() }}</div>
 						</div>
 						<div class="actions">
 							<MkButton size="small" @click="viewNote(note)">
-								<i class="ph ph-eye ph-fw"></i> {{ i18n.ts.viewDeletedNote }}
+								<i class="ti ti-eye"></i> {{ i18n.ts.viewDeletedNote }}
 							</MkButton>
 						</div>
 					</div>
@@ -75,7 +80,7 @@
 
 			<div v-if="hasMore" style="text-align: center; margin-top: 16px;">
 				<MkButton :loading="loadingMore" @click="loadMore">
-					<i class="ph ph-arrow-down ph-fw"></i> {{ i18n.ts.loadMore }}
+					<i class="ti ti-arrow-down"></i> {{ i18n.ts.loadMore }}
 				</MkButton>
 			</div>
 		</div>
@@ -217,8 +222,7 @@ async function viewNote(note: any) {
 			text: `${i18n.ts.user}: @${fullNote.user.username}${fullNote.user.host ? '@' + fullNote.user.host : ''}
 ${i18n.ts.id}: ${fullNote.id}
 ${i18n.ts.created}: ${formatTime(new Date(getTimestampFromId(fullNote.id)).toISOString())}
-${i18n.ts.updatedAlt}: ${formatTime(fullNote.updatedAt)}
-${i18n.ts.deleted}: ${fullNote.isDeleted ? i18n.ts.yes : i18n.ts.no}
+${i18n.ts.status}: ${fullNote.isDeleted ? i18n.ts.deleted : i18n.ts.normal}
 
 ${fullNote.cw ? String(i18n.ts.cw) + ': ' + fullNote.cw + '\n\n' : ''}${fullNote.text || String(i18n.ts.noTextContent)}`,
 		});
@@ -237,7 +241,7 @@ onMounted(() => {
 
 definePage(() => ({
 	title: i18n.ts.deletedNotes,
-	icon: 'ph ph-trash ph-fw',
+	icon: 'ti ti-trash',
 }));
 </script>
 

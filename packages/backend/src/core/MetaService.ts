@@ -74,10 +74,12 @@ export class MetaService implements OnApplicationShutdown {
 
 		return await this.db.transaction(async transactionalEntityManager => {
 			// 過去のバグでレコードが複数出来てしまっている可能性があるので新しいIDを優先する
+			// 最適化: LIMIT 1を追加してスキャンを最小化
 			const metas = await transactionalEntityManager.find(MiMeta, {
 				order: {
 					id: 'DESC',
 				},
+				take: 1,
 			});
 
 			const metaBF = metas[0];
@@ -119,6 +121,7 @@ export class MetaService implements OnApplicationShutdown {
 				order: {
 					id: 'DESC',
 				},
+				take: 1,
 			});
 
 			before = metas[0];
@@ -143,6 +146,7 @@ export class MetaService implements OnApplicationShutdown {
 				order: {
 					id: 'DESC',
 				},
+				take: 1,
 			});
 
 			return afters[0];
