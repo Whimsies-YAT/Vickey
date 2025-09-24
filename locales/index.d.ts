@@ -3470,6 +3470,26 @@ export interface Locale extends ILocale {
          * Subscription creation failed
          */
         "subscriptionFailed": string;
+        /**
+         * Billing Information
+         */
+        "billingInformation": string;
+        /**
+         * First Name
+         */
+        "firstName": string;
+        /**
+         * Last Name
+         */
+        "lastName": string;
+        /**
+         * Email
+         */
+        "email": string;
+        /**
+         * Billing information is only stored by Stripe for payment processing and tax compliance.
+         */
+        "billingPrivacyNote": string;
     };
     "_stripe": {
         /**

@@ -148,7 +148,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch} from 'vue';
 import { definePage } from '@/page.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
@@ -271,19 +271,18 @@ const refreshPayments = () => {
 
 const showPaymentDetail = async (paymentId: string) => {
 	try {
+		console.log('Fetching payment details for ID:', paymentId);
 		const payment = await misskeyApi('admin/payments/show', { paymentId });
+		console.log('Payment details loaded:', payment);
 
-		os.popup(import('@/components/MkPaymentDetailDialog.vue').then(x => x.default), {
+		const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkPaymentDetailDialog.vue').then(x => x.default), {
 			payment,
-		}, {
-			closed: () => {
-			},
 		});
 	} catch (error) {
 		console.error('Failed to load payment details:', error);
 		os.alert({
 			type: 'error',
-			text: i18n.ts._admin._payments.loadDetailError,
+			text: (error as Error).message || i18n.ts._admin._payments.loadDetailError,
 		});
 	}
 };

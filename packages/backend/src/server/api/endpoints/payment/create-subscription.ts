@@ -7,8 +7,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { StripeService } from '@/core/StripeService.js';
 import { ApiError } from '../../error.js';
-import type { UserProfilesRepository } from '@/models/_.js';
+import type { UserProfilesRepository, StripeSubscriptionsRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
+import { IdService } from '@/core/IdService.js';
 
 export const meta = {
 	tags: ['payment'],
@@ -63,7 +64,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		@Inject(DI.userProfilesRepository)
 		private userProfilesRepository: UserProfilesRepository,
 
+		@Inject(DI.stripeSubscriptionsRepository)
+		private stripeSubscriptionsRepository: StripeSubscriptionsRepository,
+
 		private stripeService: StripeService,
+		private idService: IdService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			if (!await this.stripeService.isEnabled()) {
@@ -107,6 +112,21 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					}
 				}
 
+				await this.stripeSubscriptionsRepository.insert({
+					id: this.idService.gen(),
+					userId: me.id,
+					stripeSubscriptionId: subscription.id,
+					stripeCustomerId: customer.id,
+					stripePriceId: ps.priceId,
+					stripeProductId: await this.getProductIdFromPrice(ps.priceId),
+					status: subscription.status as any,
+					currentPeriodStart: new Date((subscription.items?.data?.[0]?.current_period_start) * 1000),
+					currentPeriodEnd: new Date((subscription.items?.data?.[0]?.current_period_end) * 1000),
+					metadata: subscription.metadata ? JSON.parse(JSON.stringify(subscription.metadata)) : {},
+					createdAt: new Date(),
+					updatedAt: new Date(),
+				});
+
 				return {
 					subscriptionId: subscription.id,
 					status: subscription.status,
@@ -116,5 +136,19 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				throw new ApiError(meta.errors.invalidPriceId);
 			}
 		});
+	}
+
+	private async getProductIdFromPrice(priceId: string): Promise<string | null> {
+		try {
+			const price = await this.stripeService.getPrice(priceId);
+			if (price && typeof price.product === 'string') {
+				return price.product;
+			} else if (price && typeof price.product === 'object' && price.product && 'id' in price.product) {
+				return price.product.id;
+			}
+		} catch (error) {
+			console.warn('Failed to fetch price details for product ID:', error);
+		}
+		return null;
 	}
 }

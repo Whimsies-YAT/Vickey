@@ -4,18 +4,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<MkModal ref="modal" @click="cancel" @closed="$emit('closed')">
-	<div class="payment-detail-modal">
-		<div class="header">
-			<h2>
-				<i class="ti ti-credit-card"></i>
-				{{ i18n.ts._admin._payments.paymentDetails }}
-			</h2>
-			<button class="close" @click="cancel">
-				<i class="ti ti-x"></i>
-			</button>
-		</div>
-
+<MkWindow ref="dialog" :initial-width="600" :initial-height="800" @closed="$emit('closed')">
+	<template #header>
+		<i class="ti ti-credit-card"></i>
+		{{ i18n.ts._admin._payments.paymentDetails }}
+	</template>
+	<div class="payment-detail-content">
 		<div class="content">
 			<div class="payment-info">
 				<div class="info-group">
@@ -120,13 +114,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<MkButton @click="cancel">{{ i18n.ts.close }}</MkButton>
 		</div>
 	</div>
-</MkModal>
+</MkWindow>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { i18n } from '@/i18n.js';
-import MkModal from '@/components/MkModal.vue';
+import MkWindow from '@/components/MkWindow.vue';
 import MkButton from '@/components/MkButton.vue';
 
 interface Props {
@@ -139,10 +133,10 @@ const emit = defineEmits<{
 	closed: [];
 }>();
 
-const modal = ref<InstanceType<typeof MkModal>>();
+const dialog = ref<InstanceType<typeof MkWindow>>();
 
 const cancel = () => {
-	modal.value?.close();
+	dialog.value?.close();
 };
 
 const getStatusIcon = (status: string) => {
@@ -184,133 +178,152 @@ const formatPaymentMethod = (paymentMethod: any) => {
 </script>
 
 <style lang="scss" scoped>
-.payment-detail-modal {
-	background: var(--panel);
-	border-radius: 12px;
-	min-width: 600px;
-	max-width: 90vw;
-	max-height: 90vh;
-	overflow: hidden;
+.payment-detail-content {
 	display: flex;
 	flex-direction: column;
-
-	@media (max-width: 768px) {
-		min-width: 90vw;
-		max-height: 95vh;
-	}
-
-	.header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 20px;
-		border-bottom: 1px solid var(--divider);
-
-		h2 {
-			margin: 0;
-			font-size: 18px;
-			font-weight: 600;
-			display: flex;
-			align-items: center;
-			gap: 12px;
-
-			i {
-				color: var(--accent);
-			}
-		}
-
-		.close {
-			background: none;
-			border: none;
-			color: var(--fg);
-			font-size: 20px;
-			cursor: pointer;
-			padding: 4px;
-			border-radius: 4px;
-			transition: background-color 0.2s;
-
-			&:hover {
-				background: var(--buttonHoverBg);
-			}
-		}
-	}
+	height: 100%;
+	background: var(--MI_THEME-panel);
 
 	.content {
 		flex: 1;
 		overflow-y: auto;
-		padding: 20px;
+		padding: 24px;
 
 		.payment-info {
 			display: flex;
 			flex-direction: column;
-			gap: 24px;
+			gap: 32px;
 		}
 
 		.info-group {
+			background: var(--MI_THEME-bg);
+			border-radius: 12px;
+			padding: 24px;
+			border: 1px solid var(--MI_THEME-divider);
+			transition: all 0.2s ease;
+
+			&:hover {
+				border-color: var(--MI_THEME-accent);
+				box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+			}
+
 			h3 {
-				margin: 0 0 16px 0;
-				font-size: 16px;
-				font-weight: 600;
-				color: var(--accent);
+				margin: 0 0 20px 0;
+				font-size: 18px;
+				font-weight: 700;
+				color: var(--MI_THEME-accent);
+				display: flex;
+				align-items: center;
+				gap: 8px;
+
+				&::before {
+					content: '';
+					width: 4px;
+					height: 18px;
+					background: var(--MI_THEME-accent);
+					border-radius: 2px;
+				}
 			}
 
 			.info-grid {
 				display: grid;
-				grid-template-columns: 1fr 1fr;
-				gap: 16px;
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 20px;
 
-				@media (max-width: 768px) {
+				@media (max-width: 640px) {
 					grid-template-columns: 1fr;
 				}
 			}
 
 			.info-item {
+				padding: 16px;
+				background: var(--MI_THEME-panel);
+				border-radius: 8px;
+				border: 1px solid var(--MI_THEME-divider);
+				transition: all 0.2s ease;
+
+				&:hover {
+					transform: translateY(-1px);
+					box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+				}
+
 				label {
 					display: block;
-					font-weight: 500;
-					margin-bottom: 4px;
-					color: var(--fg-muted);
-					font-size: 0.9em;
+					font-weight: 600;
+					margin-bottom: 8px;
+					color: var(--MI_THEME-fgMuted);
+					font-size: 0.85em;
+					text-transform: uppercase;
+					letter-spacing: 0.5px;
 				}
 
 				code {
-					background: var(--bg);
-					padding: 4px 8px;
-					border-radius: 4px;
-					font-family: monospace;
+					background: var(--MI_THEME-bg);
+					color: var(--MI_THEME-accent);
+					padding: 8px 12px;
+					border-radius: 6px;
+					font-family: 'SFMono-Regular', 'Monaco', 'Inconsolata', 'Fira Code', 'Fira Mono', 'Droid Sans Mono', 'Courier New', monospace;
 					font-size: 0.9em;
+					font-weight: 600;
+					border: 1px solid var(--MI_THEME-divider);
+					display: inline-block;
+					word-break: break-all;
 				}
 
 				.status {
-					display: flex;
+					display: inline-flex;
 					align-items: center;
-					gap: 6px;
-					font-weight: 500;
+					gap: 8px;
+					font-weight: 600;
+					padding: 6px 12px;
+					border-radius: 20px;
+					font-size: 0.9em;
 
 					&.succeeded {
-						color: var(--success);
+						color: var(--MI_THEME-success);
+						background: color-mix(in srgb, var(--MI_THEME-success) 15%, transparent);
+						border: 1px solid color-mix(in srgb, var(--MI_THEME-success) 30%, transparent);
 					}
 
 					&.pending {
-						color: var(--warn);
+						color: var(--MI_THEME-warn);
+						background: color-mix(in srgb, var(--MI_THEME-warn) 15%, transparent);
+						border: 1px solid color-mix(in srgb, var(--MI_THEME-warn) 30%, transparent);
 					}
 
 					&.failed, &.canceled {
-						color: var(--error);
+						color: var(--MI_THEME-error);
+						background: color-mix(in srgb, var(--MI_THEME-error) 15%, transparent);
+						border: 1px solid color-mix(in srgb, var(--MI_THEME-error) 30%, transparent);
+					}
+
+					i {
+						font-size: 1.1em;
 					}
 				}
 
 				.amount {
+					display: flex;
+					align-items: baseline;
+					gap: 6px;
+
 					.value {
-						font-weight: 600;
-						font-size: 1.2em;
+						font-weight: 700;
+						font-size: 1.5em;
+						color: var(--MI_THEME-accent);
 					}
 
 					.currency {
-						color: var(--fg-muted);
-						margin-left: 4px;
+						color: var(--MI_THEME-fgMuted);
+						font-weight: 600;
 						text-transform: uppercase;
+						font-size: 0.9em;
 					}
+				}
+
+				> span:not(.amount):not(.status) {
+					color: var(--MI_THEME-fg);
+					font-weight: 500;
 				}
 			}
 		}
@@ -318,97 +331,157 @@ const formatPaymentMethod = (paymentMethod: any) => {
 		.user-card {
 			display: flex;
 			align-items: center;
-			gap: 16px;
-			padding: 16px;
-			background: var(--bg);
-			border-radius: 8px;
+			gap: 20px;
+			padding: 20px;
+			background: var(--MI_THEME-panel);
+			border: 1px solid var(--MI_THEME-divider);
+			border-radius: 12px;
+			transition: all 0.2s ease;
+
+			&:hover {
+				transform: translateY(-1px);
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+				border-color: var(--MI_THEME-accent);
+			}
 
 			.user-details {
+				flex: 1;
+
 				.user-name {
-					font-weight: 600;
-					margin-bottom: 2px;
+					font-weight: 700;
+					font-size: 1.1em;
+					margin-bottom: 4px;
+					color: var(--MI_THEME-fg);
 				}
 
 				.user-username {
-					color: var(--fg-muted);
-					font-size: 0.9em;
-					margin-bottom: 2px;
+					color: var(--MI_THEME-accent);
+					font-weight: 600;
+					font-size: 0.95em;
+					margin-bottom: 4px;
 				}
 
 				.user-email {
-					color: var(--fg-muted);
-					font-size: 0.8em;
+					color: var(--MI_THEME-fgMuted);
+					font-size: 0.85em;
+					font-weight: 500;
 				}
 			}
 		}
 
 		.metadata, .raw-data {
-			background: var(--bg);
+			background: var(--MI_THEME-bg);
+			border: 1px solid var(--MI_THEME-divider);
 			border-radius: 8px;
-			padding: 16px;
+			padding: 20px;
+			font-family: 'SFMono-Regular', 'Monaco', 'Inconsolata', 'Fira Code', 'Fira Mono', 'Droid Sans Mono', 'Courier New', monospace;
 
 			pre {
 				margin: 0;
 				white-space: pre-wrap;
-				word-break: break-all;
-				font-size: 0.8em;
-				line-height: 1.4;
+				word-break: break-word;
+				font-size: 0.85em;
+				line-height: 1.6;
+				color: var(--MI_THEME-fg);
 			}
 
 			code {
-				color: var(--fg);
+				color: var(--MI_THEME-fg);
 			}
 		}
 
 		.stripe-details {
 			display: flex;
 			flex-direction: column;
-			gap: 16px;
+			gap: 20px;
 
 			.detail-item {
+				padding: 16px;
+				background: var(--MI_THEME-panel);
+				border: 1px solid var(--MI_THEME-divider);
+				border-radius: 8px;
+				transition: all 0.2s ease;
+
+				&:hover {
+					transform: translateY(-1px);
+					box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+				}
+
 				label {
 					display: block;
-					font-weight: 500;
-					margin-bottom: 8px;
-					color: var(--fg-muted);
-					font-size: 0.9em;
+					font-weight: 600;
+					margin-bottom: 12px;
+					color: var(--MI_THEME-fgMuted);
+					font-size: 0.85em;
+					text-transform: uppercase;
+					letter-spacing: 0.5px;
 				}
 
 				code {
-					background: var(--bg);
-					padding: 4px 8px;
-					border-radius: 4px;
-					font-family: monospace;
+					background: var(--MI_THEME-bg);
+					color: var(--MI_THEME-accent);
+					padding: 8px 12px;
+					border-radius: 6px;
+					font-family: 'SFMono-Regular', 'Monaco', 'Inconsolata', 'Fira Code', 'Fira Mono', 'Droid Sans Mono', 'Courier New', monospace;
 					font-size: 0.9em;
+					font-weight: 600;
+					border: 1px solid var(--MI_THEME-divider);
 				}
 
 				.payment-method {
 					display: flex;
 					align-items: center;
-					gap: 8px;
+					gap: 12px;
+					font-weight: 600;
+					color: var(--MI_THEME-fg);
+
+					i {
+						color: var(--MI_THEME-accent);
+						font-size: 1.2em;
+					}
 				}
 			}
 
 			.raw-data {
+				border: 1px solid var(--MI_THEME-divider);
+
 				summary {
 					cursor: pointer;
-					font-weight: 500;
-					padding: 8px 0;
-					color: var(--accent);
+					font-weight: 600;
+					padding: 16px 20px;
+					color: var(--MI_THEME-accent);
+					background: var(--MI_THEME-panel);
+					border-radius: 8px 8px 0 0;
+					transition: all 0.2s ease;
 
 					&:hover {
-						text-decoration: underline;
+						background: var(--MI_THEME-buttonHoverBg);
 					}
+
+					&::marker {
+						color: var(--MI_THEME-accent);
+					}
+				}
+
+				&[open] summary {
+					border-bottom: 1px solid var(--MI_THEME-divider);
+					border-radius: 8px 8px 0 0;
+				}
+
+				pre {
+					margin: 0 20px 20px;
 				}
 			}
 		}
 	}
 
 	.footer {
-		padding: 20px;
-		border-top: 1px solid var(--divider);
+		padding: 20px 24px;
+		border-top: 1px solid var(--MI_THEME-divider);
+		background: var(--MI_THEME-bg);
 		display: flex;
 		justify-content: flex-end;
+		gap: 12px;
 	}
 }
 </style>

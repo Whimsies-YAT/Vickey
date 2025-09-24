@@ -38,6 +38,33 @@ SPDX-License-Identifier: AGPL-3.0-only
 				/>
 			</div>
 
+			<div class="billing-info-section">
+				<h4>{{ i18n.ts._payment.billingInformation }}</h4>
+				<div class="billing-row">
+					<MkInput
+						v-model="billingInfo.firstName"
+						:placeholder="i18n.ts._payment.firstName"
+						required
+					/>
+					<MkInput
+						v-model="billingInfo.lastName"
+						:placeholder="i18n.ts._payment.lastName"
+						required
+					/>
+				</div>
+				<br/>
+				<MkInput
+					v-model="billingInfo.email"
+					type="email"
+					:placeholder="i18n.ts._payment.email"
+					required
+				/>
+				<div class="privacy-note">
+					<i class="ti ti-info-circle"></i>
+					<span>{{ i18n.ts._payment.billingPrivacyNote }}</span>
+				</div>
+			</div>
+
 			<div v-if="showSubscriptionOptions" class="subscription-section">
 				<MkSwitch v-model="isSubscription">
 					{{ i18n.ts._payment.subscription }}
@@ -97,6 +124,7 @@ interface Props {
 	showSubscriptionOptions?: boolean;
 	defaultAmount?: number;
 	defaultCurrency?: string;
+	defaultDescription?: string;
 	subscriptionPlans?: Array<{value: string, text: string}>;
 }
 
@@ -104,6 +132,7 @@ const props = withDefaults(defineProps<Props>(), {
 	showSubscriptionOptions: false,
 	defaultAmount: 10,
 	defaultCurrency: 'usd',
+	defaultDescription: '',
 	subscriptionPlans: () => []
 });
 
@@ -133,9 +162,22 @@ watch(() => props.defaultCurrency, (newCurrency) => {
 		currency.value = newCurrency;
 	}
 });
-const description = ref('');
+
+const description = ref(props.defaultDescription);
+
+watch(() => props.defaultDescription, (newDescription) => {
+	if (newDescription) {
+		description.value = newDescription;
+	}
+});
 const isSubscription = ref(false);
 const selectedPlan = ref('');
+
+const billingInfo = ref({
+	firstName: '',
+	lastName: '',
+	email: ''
+});
 
 const stripe = ref<Stripe | null>(null);
 const elements = ref<StripeElements | null>(null);
@@ -188,7 +230,8 @@ const initializeStripe = async () => {
 					color: 'var(--MI_THEME-success)',
 					iconColor: 'var(--MI_THEME-success)'
 				}
-			}
+			},
+			hidePostalCode: false,
 		});
 
 		loading.value = false;
@@ -235,13 +278,32 @@ const processPayment = async () => {
 };
 
 const processOneTimePayment = async () => {
-	const requestData: { amount: number; currency: string; description?: string } = {
+	const requestData: {
+		amount: number;
+		currency: string;
+		description?: string;
+		billingDetails?: {
+			firstName?: string;
+			lastName?: string;
+			email?: string;
+		};
+	} = {
 		amount: amount.value * 100,
 		currency: currency.value
 	};
+
 	if (description.value) {
 		requestData.description = description.value;
 	}
+
+	if (billingInfo.value.firstName || billingInfo.value.lastName || billingInfo.value.email) {
+		requestData.billingDetails = {
+			firstName: billingInfo.value.firstName || undefined,
+			lastName: billingInfo.value.lastName || undefined,
+			email: billingInfo.value.email || undefined,
+		};
+	}
+
 	const paymentIntent = await misskeyApi('payment/create-intent', requestData) as { clientSecret: string; paymentIntentId: string };
 
 	const { error, paymentIntent: confirmedPaymentIntent } = await stripe.value!.confirmCardPayment(
@@ -249,6 +311,10 @@ const processOneTimePayment = async () => {
 		{
 			payment_method: {
 				card: cardElement.value!,
+				billing_details: {
+					name: `${billingInfo.value.firstName} ${billingInfo.value.lastName}`.trim(),
+					email: billingInfo.value.email,
+				}
 			}
 		}
 	);
@@ -258,6 +324,19 @@ const processOneTimePayment = async () => {
 	}
 
 	if (confirmedPaymentIntent?.status === 'succeeded') {
+		try {
+			const paymentMethodId = typeof confirmedPaymentIntent.payment_method === 'string'
+				? confirmedPaymentIntent.payment_method
+				: confirmedPaymentIntent.payment_method?.id;
+
+			await misskeyApi('payment/confirm-intent', {
+				paymentIntentId: confirmedPaymentIntent.id,
+				paymentMethodId: paymentMethodId,
+			});
+		} catch (error) {
+			console.warn('Failed to confirm payment intent in database:', error);
+		}
+
 		paymentSuccess.value = true;
 		emit('success', confirmedPaymentIntent);
 	} else {
@@ -269,6 +348,10 @@ const processSubscription = async () => {
 	const { error: pmError, paymentMethod } = await stripe.value!.createPaymentMethod({
 		type: 'card',
 		card: cardElement.value!,
+		billing_details: {
+			name: `${billingInfo.value.firstName} ${billingInfo.value.lastName}`.trim(),
+			email: billingInfo.value.email,
+		}
 	});
 
 	if (pmError) {
@@ -363,6 +446,32 @@ onMounted(() => {
 
 				&:focus-within {
 					border-color: var(--MI_THEME-accent);
+				}
+			}
+
+			.billing-row {
+				display: flex;
+				gap: 12px;
+
+				> * {
+					flex: 1;
+				}
+			}
+
+			.privacy-note {
+				margin-top: 8px;
+				display: flex;
+				align-items: flex-start;
+				gap: 8px;
+				font-size: 14px;
+				color: var(--MI_THEME-fgMuted);
+				background: var(--MI_THEME-bg);
+				padding: 12px;
+				border-radius: 6px;
+
+				i {
+					margin-top: 2px;
+					flex-shrink: 0;
 				}
 			}
 

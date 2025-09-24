@@ -7,8 +7,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { StripeService } from '@/core/StripeService.js';
 import { ApiError } from '../../error.js';
-import type { UserProfilesRepository } from '@/models/_.js';
+import type { UserProfilesRepository, StripePaymentsRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
+import { IdService } from '@/core/IdService.js';
 
 export const meta = {
 	tags: ['payment'],
@@ -49,8 +50,17 @@ export const paramDef = {
 		currency: { type: 'string', default: 'usd' },
 		description: { type: 'string', nullable: true },
 		metadata: { type: 'object', nullable: true },
+		billingDetails: {
+			type: 'object',
+			properties: {
+				firstName: { type: 'string' },
+				lastName: { type: 'string' },
+				email: { type: 'string' },
+			},
+			required: ['firstName', 'lastName', 'email'],
+		},
 	},
-	required: ['amount'],
+	required: ['amount', 'billingDetails'],
 } as const;
 
 @Injectable()
@@ -59,7 +69,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		@Inject(DI.userProfilesRepository)
 		private userProfilesRepository: UserProfilesRepository,
 
+		@Inject(DI.stripePaymentsRepository)
+		private stripePaymentsRepository: StripePaymentsRepository,
+
 		private stripeService: StripeService,
+		private idService: IdService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			if (!await this.stripeService.isEnabled()) {
@@ -70,12 +84,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				throw new ApiError(meta.errors.invalidAmount);
 			}
 
-			const userEmail = (await this.userProfilesRepository.findOneBy({ userId: me.id }))?.email ?? null;
+			const billingEmail = ps.billingDetails.email;
+			const billingName = `${ps.billingDetails.firstName} ${ps.billingDetails.lastName}`.trim();
 
 			const customer = await this.stripeService.findOrCreateCustomer({
 				userId: me.id,
-				email: userEmail || undefined,
-				name: me.name || me.username,
+				email: billingEmail,
+				name: billingName,
 			});
 
 			const paymentIntent = await this.stripeService.createPaymentIntent({
@@ -87,6 +102,20 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					userId: me.id,
 					...ps.metadata,
 				},
+			});
+
+			await this.stripePaymentsRepository.insert({
+				id: this.idService.gen(),
+				userId: me.id,
+				stripePaymentIntentId: paymentIntent.id,
+				stripeCustomerId: customer.id,
+				amount: ps.amount,
+				currency: ps.currency,
+				status: paymentIntent.status as any,
+				description: ps.description || null,
+				metadata: paymentIntent.metadata ? JSON.parse(JSON.stringify(paymentIntent.metadata)) : {},
+				createdAt: new Date(),
+				updatedAt: new Date(),
 			});
 
 			return {

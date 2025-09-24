@@ -514,6 +514,11 @@ _payment:
   processingError: "Payment processing error"
   paymentFailed: "Payment failed"
   subscriptionFailed: "Subscription creation failed"
+  billingInformation: "Billing Information"
+  firstName: "First Name"
+  lastName: "Last Name"
+  email: "Email"
+  billingPrivacyNote: "Billing information is only stored by Stripe for payment processing and tax compliance."
 _stripe:
   settings: "Stripe Settings"
   enable: "Enable Stripe"

@@ -23,6 +23,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				:showSubscriptionOptions="subscription"
 				:defaultAmount="amount"
 				:defaultCurrency="currency"
+				:defaultDescription="description"
 				:subscriptionPlans="subscriptionPlans"
 				@success="onSuccess"
 				@error="onError"

@@ -3,10 +3,13 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, Inject } from '@nestjs/common';
 import Stripe from 'stripe';
 import { bindThis } from '@/decorators.js';
 import { MetaService } from '@/core/MetaService.js';
+import type { StripeCustomersRepository } from '@/models/_.js';
+import { DI } from '@/di-symbols.js';
+import { IdService } from '@/core/IdService.js';
 
 @Injectable()
 export class StripeService implements OnModuleInit {
@@ -14,7 +17,11 @@ export class StripeService implements OnModuleInit {
 	private isInitialized = false;
 
 	constructor(
+		@Inject(DI.stripeCustomersRepository)
+		private stripeCustomersRepository: StripeCustomersRepository,
+
 		private metaService: MetaService,
+		private idService: IdService,
 	) {}
 
 	async onModuleInit() {
@@ -27,6 +34,13 @@ export class StripeService implements OnModuleInit {
 
 		const meta = await this.metaService.fetch();
 		if (meta.enableStripe && meta.stripeSecretKey && meta.stripePublicKey) {
+			const isSecretTest = meta.stripeSecretKey.startsWith('sk_test_');
+			const isPublicTest = meta.stripePublicKey.startsWith('pk_test_');
+
+			if (isSecretTest !== isPublicTest) {
+				throw new Error('Stripe key environment mismatch: secret and public keys must both be test or live keys');
+			}
+
 			this.stripe = new Stripe(meta.stripeSecretKey, {
 			});
 			this.isInitialized = true;
@@ -79,29 +93,88 @@ export class StripeService implements OnModuleInit {
 		email?: string;
 		name?: string;
 	}): Promise<Stripe.Customer> {
-		const stripe = this.getStripe();
-
-		if (params.email) {
-			const existingCustomers = await stripe.customers.list({
-				email: params.email,
-				limit: 1,
-			});
-
-			if (existingCustomers.data.length > 0) {
-				const customer = existingCustomers.data[0];
-				if (customer.metadata?.userId === params.userId) {
-					return customer;
+		try {
+			const dbCustomer = await this.stripeCustomersRepository.findOneBy({ userId: params.userId });
+			if (dbCustomer) {
+				try {
+					const stripeCustomer = await this.getStripe().customers.retrieve(dbCustomer.stripeCustomerId);
+					if (stripeCustomer && !stripeCustomer.deleted) {
+						return stripeCustomer as Stripe.Customer;
+					}
+				} catch (error) {
+					console.warn('Customer exists in database but not in Stripe, will recreate:', error);
+					await this.stripeCustomersRepository.delete({ id: dbCustomer.id });
 				}
 			}
+		} catch (error) {
+			console.warn('Failed to check database for existing customer:', error);
 		}
 
-		return await this.createCustomer({
+		const stripe = this.getStripe();
+
+		try {
+			let hasMore = true;
+			let startingAfter: string | undefined;
+
+			while (hasMore) {
+				const customers = await stripe.customers.list({
+					limit: 100,
+					starting_after: startingAfter,
+				});
+
+				for (const customer of customers.data) {
+					if (customer.metadata?.userId === params.userId) {
+						try {
+							await this.stripeCustomersRepository.insert({
+								id: this.idService.gen(),
+								userId: params.userId,
+								stripeCustomerId: customer.id,
+								email: customer.email,
+								name: customer.name,
+								metadata: customer.metadata ? JSON.parse(JSON.stringify(customer.metadata)) : {},
+								createdAt: new Date(),
+								updatedAt: new Date(),
+							});
+						} catch (dbError) {
+							console.warn('Failed to create database record for existing Stripe customer:', dbError);
+						}
+						return customer;
+					}
+				}
+
+				hasMore = customers.has_more;
+				if (hasMore && customers.data.length > 0) {
+					startingAfter = customers.data[customers.data.length - 1].id;
+				}
+			}
+		} catch (error) {
+			console.warn('Failed to search existing customers:', error);
+		}
+
+		const newCustomer = await this.createCustomer({
 			email: params.email,
 			name: params.name,
 			metadata: {
 				userId: params.userId,
 			},
 		});
+
+		try {
+			await this.stripeCustomersRepository.insert({
+				id: this.idService.gen(),
+				userId: params.userId,
+				stripeCustomerId: newCustomer.id,
+				email: newCustomer.email,
+				name: newCustomer.name,
+				metadata: newCustomer.metadata ? JSON.parse(JSON.stringify(newCustomer.metadata)) : {},
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			});
+		} catch (error) {
+			console.warn('Failed to create database record for new customer:', error);
+		}
+
+		return newCustomer;
 	}
 
 	@bindThis
@@ -213,6 +286,11 @@ export class StripeService implements OnModuleInit {
 			recurring: params.recurring,
 			metadata: params.metadata,
 		});
+	}
+
+	@bindThis
+	public async getPrice(priceId: string): Promise<Stripe.Price> {
+		return await this.getStripe().prices.retrieve(priceId);
 	}
 
 	@bindThis
