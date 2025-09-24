@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<MkWindow ref="dialog" :initial-width="600" :initial-height="800" @closed="$emit('closed')">
+<MkWindow ref="dialog" :initialWidth="600" :initialHeight="800" @closed="$emit('closed')">
 	<template #header>
 		<i class="ti ti-credit-card"></i>
 		{{ i18n.ts._admin._payments.paymentDetails }}

@@ -125,7 +125,7 @@ interface Props {
 	defaultAmount?: number;
 	defaultCurrency?: string;
 	defaultDescription?: string;
-	subscriptionPlans?: Array<{value: string, text: string}>;
+	subscriptionPlans?: Array<{ value: string, text: string }>;
 }
 
 const props = withDefaults(defineProps<Props>(), {
