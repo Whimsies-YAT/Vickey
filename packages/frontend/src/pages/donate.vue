@@ -166,6 +166,8 @@ import { definePage } from '@/page.js';
 import MkButton from '@/components/MkButton.vue';
 import MkInput from '@/components/MkInput.vue';
 import { instanceName } from '@@/js/config.js';
+import { pleaseLogin } from '@/utility/please-login.js';
+import { $i } from '@/i.js';
 
 const loading = ref(true);
 const processing = ref(false);
@@ -211,6 +213,27 @@ const onCustomAmountChange = () => {
 
 const processDonation = async () => {
 	if (!canDonate.value) return;
+
+	if (!$i) {
+		const { dispose } = await os.popupAsyncWithDialog(
+			import('@/components/MkSigninDialog.vue').then(x => x.default),
+			{
+				autoSet: true,
+				message: i18n.ts.signinRequired,
+			},
+			{
+				done: async () => {
+					dispose();
+					window.setTimeout(() => processDonation(), 100);
+				},
+				cancelled: () => {
+					dispose();
+				},
+				closed: () => dispose(),
+			}
+		);
+		return;
+	}
 
 	processing.value = true;
 
