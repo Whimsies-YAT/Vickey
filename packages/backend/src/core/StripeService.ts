@@ -227,17 +227,24 @@ export class StripeService implements OnModuleInit {
 	public async createSubscription(params: {
 		customerId: string;
 		priceId: string;
+		paymentMethodId?: string;
 		metadata?: Record<string, string>;
 		trialPeriodDays?: number;
 	}): Promise<Stripe.Subscription> {
-		return await this.getStripe().subscriptions.create({
+		const subscriptionParams: Stripe.SubscriptionCreateParams = {
 			customer: params.customerId,
 			items: [{
 				price: params.priceId,
 			}],
 			metadata: params.metadata,
 			trial_period_days: params.trialPeriodDays,
-		});
+		};
+
+		if (params.paymentMethodId) {
+			subscriptionParams.default_payment_method = params.paymentMethodId;
+		}
+
+		return await this.getStripe().subscriptions.create(subscriptionParams);
 	}
 
 	@bindThis
@@ -316,6 +323,16 @@ export class StripeService implements OnModuleInit {
 			signature,
 			meta.stripeWebhookSecret,
 		);
+	}
+
+	@bindThis
+	public async attachPaymentMethodToCustomer(
+		paymentMethodId: string,
+		customerId: string,
+	): Promise<Stripe.PaymentMethod> {
+		return await this.getStripe().paymentMethods.attach(paymentMethodId, {
+			customer: customerId,
+		});
 	}
 
 	@bindThis

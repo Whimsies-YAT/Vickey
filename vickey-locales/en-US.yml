@@ -212,6 +212,7 @@ _donation:
   paymentUnavailable: "Payment Currently Unavailable"
   paymentDisabled: "Payment processing is currently disabled on this instance."
   paymentType: "Payment Type"
+  monthlyDonation: "${amount} monthly donation"
   thisIsModifiedVersionVK: "{name} uses a modified version of the original Vickey."
   source: "Source code"
   original: "Original"

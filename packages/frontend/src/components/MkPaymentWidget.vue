@@ -361,6 +361,7 @@ const processSubscription = async () => {
 	const subscriptionData = {
 		priceId: selectedPlan.value,
 		paymentMethodId: paymentMethod.id,
+		amount: amount.value,
 		metadata: description.value ? { description: description.value } : null
 	};
 	const subscription = await misskeyApi('payment/create-subscription', subscriptionData as any) as { subscriptionId: string; status: string; clientSecret: string | null };

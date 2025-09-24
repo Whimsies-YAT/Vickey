@@ -1789,6 +1789,10 @@ export interface Locale extends ILocale {
          */
         "paymentType": string;
         /**
+         * ${amount} monthly donation
+         */
+        "monthlyDonation": ParameterizedString<"amount">;
+        /**
          * {name} uses a modified version of the original Vickey.
          */
         "thisIsModifiedVersionVK": ParameterizedString<"name">;

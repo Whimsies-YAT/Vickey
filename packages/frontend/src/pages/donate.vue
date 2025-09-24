@@ -238,11 +238,16 @@ const processDonation = async () => {
 	processing.value = true;
 
 	try {
+		const subscriptionPlans = paymentType.value === 'monthly' ? [
+			{ value: `monthly_${finalAmount.value}`, text: i18n.tsx._donation.monthlyDonation({ amount: finalAmount.value }) }
+		] : [];
+
 		const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkPaymentDialog.vue').then(x => x.default), {
 			amount: finalAmount.value,
 			currency: 'usd',
 			description: donationNote.value || i18n.tsx._donation.description({ instanceName }),
 			subscription: paymentType.value === 'monthly',
+			subscriptionPlans: subscriptionPlans,
 		}, {
 			closed: () => {
 				processing.value = false;

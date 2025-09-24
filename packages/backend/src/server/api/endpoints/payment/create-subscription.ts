@@ -54,6 +54,7 @@ export const paramDef = {
 		paymentMethodId: { type: 'string', nullable: true },
 		trialPeriodDays: { type: 'integer', nullable: true },
 		metadata: { type: 'object', nullable: true },
+		amount: { type: 'number', nullable: true },
 	},
 	required: ['priceId'],
 } as const;
@@ -84,9 +85,48 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					name: me.name || me.username,
 				});
 
+				let priceId = ps.priceId;
+
+				if (ps.priceId.startsWith('monthly_')) {
+					const priceAmount = parseInt(ps.priceId.replace('monthly_', ''));
+
+					if (ps.amount && Math.abs(ps.amount - priceAmount) > 0.01) {
+						throw new Error('Amount mismatch: priceId and amount parameter do not match');
+					}
+
+					const amount = priceAmount;
+					if (!amount || amount <= 0) {
+						throw new Error('Invalid donation amount');
+					}
+
+					const product = await this.stripeService.createProduct({
+						name: `Monthly Donation - $${amount}`,
+						description: `Monthly recurring donation of $${amount}`,
+						metadata: {
+							type: 'donation',
+							amount: amount.toString(),
+						},
+					});
+
+					const price = await this.stripeService.createPrice({
+						productId: product.id,
+						unitAmount: amount * 100,
+						currency: 'usd',
+						recurring: {
+							interval: 'month',
+						},
+					});
+					priceId = price.id;
+				}
+
+				if (ps.paymentMethodId) {
+					await this.stripeService.attachPaymentMethodToCustomer(ps.paymentMethodId, customer.id);
+				}
+
 				const subscription = await this.stripeService.createSubscription({
 					customerId: customer.id,
-					priceId: ps.priceId,
+					priceId: priceId,
+					paymentMethodId: ps.paymentMethodId || undefined,
 					trialPeriodDays: ps.trialPeriodDays || undefined,
 					metadata: {
 						userId: me.id,
@@ -117,8 +157,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					userId: me.id,
 					stripeSubscriptionId: subscription.id,
 					stripeCustomerId: customer.id,
-					stripePriceId: ps.priceId,
-					stripeProductId: await this.getProductIdFromPrice(ps.priceId),
+					stripePriceId: priceId,
+					stripeProductId: await this.getProductIdFromPrice(priceId),
 					status: subscription.status as any,
 					currentPeriodStart: new Date((subscription.items?.data?.[0]?.current_period_start) * 1000),
 					currentPeriodEnd: new Date((subscription.items?.data?.[0]?.current_period_end) * 1000),
@@ -133,6 +173,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					clientSecret,
 				};
 			} catch (error) {
+				console.error('Subscription creation error:', error);
+				if (error instanceof Error) {
+					throw new Error(`Subscription creation failed: ${error.message}`);
+				}
 				throw new ApiError(meta.errors.invalidPriceId);
 			}
 		});
