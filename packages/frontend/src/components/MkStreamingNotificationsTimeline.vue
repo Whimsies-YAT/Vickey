@@ -162,73 +162,79 @@ function tryMergeNotification(newNotification) {
 	const items = paginator.items.value;
 	if (items.length === 0) return false;
 
-	const lastNotification = items[0];
+	for (let i = 0; i < Math.min(items.length, 10); i++) {
+		const existingNotification = items[i];
 
-	if (newNotification.type === 'reaction' &&
-		lastNotification.type === 'reaction' &&
-		newNotification.noteId === lastNotification.noteId) {
-		const groupedNotification = {
-			...lastNotification,
-			type: 'reaction:grouped',
-			id: newNotification.id,
-			reactions: [
-				{
-					user: lastNotification.user,
-					reaction: lastNotification.reaction,
-				},
-				{
+		if (newNotification.type === 'reaction' &&
+			existingNotification.type === 'reaction' &&
+			newNotification.noteId && existingNotification.noteId &&
+			newNotification.noteId === existingNotification.noteId) {
+			const groupedNotification = {
+				...existingNotification,
+				type: 'reaction:grouped',
+				id: newNotification.id,
+				reactions: [
+					{
+						user: existingNotification.user,
+						reaction: existingNotification.reaction,
+					},
+					{
+						user: newNotification.user,
+						reaction: newNotification.reaction,
+					}
+				]
+			};
+
+			paginator.updateItem(existingNotification.id, (item) => ({ ...item, ...groupedNotification }));
+			return true;
+		}
+
+		if (newNotification.type === 'reaction' &&
+			existingNotification.type === 'reaction:grouped' &&
+			newNotification.noteId && existingNotification.noteId &&
+			newNotification.noteId === existingNotification.noteId) {
+			paginator.updateItem(existingNotification.id, (item) => {
+				const updated = { ...item };
+				updated.reactions = [...updated.reactions, {
 					user: newNotification.user,
 					reaction: newNotification.reaction,
-				}
-			]
-		};
+				}];
+				updated.id = newNotification.id;
+				return updated;
+			});
+			return true;
+		}
 
-		paginator.updateItem(lastNotification.id, (item) => ({ ...item, ...groupedNotification }));
-		return true;
-	}
+		if (newNotification.type === 'renote' &&
+			existingNotification.type === 'renote' &&
+			newNotification.targetNoteId && existingNotification.targetNoteId &&
+			newNotification.targetNoteId === existingNotification.targetNoteId) {
+			const groupedNotification = {
+				...existingNotification,
+				type: 'renote:grouped',
+				id: newNotification.id,
+				users: [
+					existingNotification.user,
+					newNotification.user
+				]
+			};
 
-	if (newNotification.type === 'reaction' &&
-		lastNotification.type === 'reaction:grouped' &&
-		newNotification.noteId === lastNotification.noteId) {
-		paginator.updateItem(lastNotification.id, (item) => {
-			const updated = { ...item };
-			updated.reactions = [...updated.reactions, {
-				user: newNotification.user,
-				reaction: newNotification.reaction,
-			}];
-			updated.id = newNotification.id;
-			return updated;
-		});
-		return true;
-	}
+			paginator.updateItem(existingNotification.id, (item) => ({ ...item, ...groupedNotification }));
+			return true;
+		}
 
-	if (newNotification.type === 'renote' &&
-		lastNotification.type === 'renote' &&
-		newNotification.targetNoteId === lastNotification.targetNoteId) {
-		const groupedNotification = {
-			...lastNotification,
-			type: 'renote:grouped',
-			id: newNotification.id,
-			users: [
-				lastNotification.user,
-				newNotification.user
-			]
-		};
-
-		paginator.updateItem(lastNotification.id, (item) => ({ ...item, ...groupedNotification }));
-		return true;
-	}
-
-	if (newNotification.type === 'renote' &&
-		lastNotification.type === 'renote:grouped' &&
-		newNotification.targetNoteId === lastNotification.targetNoteId) {
-		paginator.updateItem(lastNotification.id, (item) => {
-			const updated = { ...item };
-			updated.users = [...updated.users, newNotification.user];
-			updated.id = newNotification.id;
-			return updated;
-		});
-		return true;
+		if (newNotification.type === 'renote' &&
+			existingNotification.type === 'renote:grouped' &&
+			newNotification.targetNoteId && existingNotification.targetNoteId &&
+			newNotification.targetNoteId === existingNotification.targetNoteId) {
+			paginator.updateItem(existingNotification.id, (item) => {
+				const updated = { ...item };
+				updated.users = [...updated.users, newNotification.user];
+				updated.id = newNotification.id;
+				return updated;
+			});
+			return true;
+		}
 	}
 
 	return false;
