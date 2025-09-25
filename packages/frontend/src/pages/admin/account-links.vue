@@ -11,10 +11,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div class="_title">{{ i18n.ts._accountLink.createAccountLink }}</div>
 				<div class="_content">
 					<div class="_gaps_m">
-						<MkSelect v-model="linkMode" style="flex: 1;">
+						<MkSelect v-model="linkMode" style="flex: 1;" :items="linkModeItems">
 							<template #label>{{ i18n.ts._accountLink.mode }}</template>
-							<option value="pair">{{ i18n.ts._accountLink.pair }}</option>
-							<option value="group">{{ i18n.ts._accountLink.group }}</option>
 						</MkSelect>
 
 						<div v-if="linkMode === 'pair'" class="_gaps_m">
@@ -171,6 +169,11 @@ const network = ref<any>(null);
 const showNetwork = ref(false);
 const error = ref('');
 const success = ref('');
+
+const linkModeItems = [
+	{ label: i18n.ts._accountLink.pair, value: 'pair' },
+	{ label: i18n.ts._accountLink.group, value: 'group' },
+];
 
 const parsedUserIds = computed(() => {
 	if (!userIdsText.value.trim()) return [];

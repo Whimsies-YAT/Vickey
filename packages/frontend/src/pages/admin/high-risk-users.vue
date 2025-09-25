@@ -8,11 +8,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div class="_spacer" style="--MI_SPACER-w: 900px;">
 		<div class="_gaps">
 			<div :class="$style.inputs">
-				<MkSelect v-model="riskLevel" style="flex: 1;">
+				<MkSelect v-model="riskLevel" style="flex: 1;" :items="riskLevelItems">
 					<template #label>{{ i18n.ts.riskLevel }}</template>
-					<option value="">{{ i18n.ts.all }} (Poor & Fair)</option>
-					<option value="poor">{{ i18n.ts._riskLevel.poor }}</option>
-					<option value="fair">{{ i18n.ts._riskLevel.fair }}</option>
 				</MkSelect>
 				<MkInput v-model="limit" style="flex: 1;" type="number" :min="1" :max="100">
 					<template #label>{{ i18n.ts.limit }}</template>
@@ -100,6 +97,12 @@ const users = ref<any[]>([]);
 const searched = ref(false);
 const loading = ref(false);
 const error = ref('');
+
+const riskLevelItems = [
+	{ label: `${i18n.ts.all} (Poor & Fair)`, value: '' },
+	{ label: i18n.ts._riskLevel.poor, value: 'poor' },
+	{ label: i18n.ts._riskLevel.fair, value: 'fair' },
+];
 
 async function loadHighRiskUsers() {
 	try {
