@@ -374,7 +374,7 @@ const processOneTimePayment = async () => {
 
 	const checkClosed = window.setInterval(() => {
 		if (paymentWindow.closed) {
-			clearInterval(checkClosed);
+			window.clearInterval(checkClosed);
 			window.removeEventListener('message', messageHandler);
 			if (!paymentSuccess.value) {
 				processing.value = false;

@@ -34,7 +34,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</div>
 
 				<div class="actions">
-					<MkButton @click="closeWindow" primary>{{ i18n.ts.close }}</MkButton>
+					<MkButton primary @click="closeWindow">{{ i18n.ts.close }}</MkButton>
 				</div>
 			</div>
 		</div>
@@ -81,7 +81,7 @@ onMounted(() => {
 	}
 
 	if (window.opener) {
-		setTimeout(() => {
+		window.setTimeout(() => {
 			closeWindow();
 		}, 3000);
 	}

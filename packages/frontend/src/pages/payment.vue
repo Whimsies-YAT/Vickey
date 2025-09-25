@@ -31,7 +31,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 					</div>
 					<div class="actions">
-						<MkButton @click="closeWindow" primary>{{ i18n.ts.close }}</MkButton>
+						<MkButton primary @click="closeWindow">{{ i18n.ts.close }}</MkButton>
 					</div>
 				</div>
 
@@ -67,12 +67,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 					<div class="payment-actions">
 						<MkButton
-							@click="processPayment"
 							:disabled="!paymentElementMounted || processing || !paymentData"
 							primary
 							large
+							@click="processPayment"
 						>
-							<i v-if="processing" class="ti ti-loader loading-icon"></i>
+						<i v-if="processing" class="ti ti-loader loading-icon"></i>
 							<i v-else class="ti ti-lock"></i>
 							{{ processing ? i18n.ts._payment.processing : i18n.tsx._payment.payAmount({ amount: formatAmount(paymentData.amount) }) }}
 						</MkButton>
@@ -183,7 +183,6 @@ const mountStripeElement = async () => {
 			paymentError.value = 'Payment form initialization failed. Please refresh the page.';
 			paymentElementMounted.value = true;
 		}
-
 	} catch (error) {
 		console.error('Error creating/mounting Stripe element:', error);
 		paymentError.value = 'Failed to initialize payment form. Please refresh the page.';
@@ -199,14 +198,6 @@ const initializePayment = async () => {
 
 		const paymentIntent = urlParams.get('payment_intent');
 		const redirectStatus = urlParams.get('redirect_status');
-
-		console.log('URL params:', {
-			paymentIntentId,
-			clientSecret,
-			paymentIntent,
-			redirectStatus,
-			fullURL: window.location.href
-		});
 
 		if (!paymentIntentId || !clientSecret) {
 			throw new Error('Missing payment parameters');
@@ -258,7 +249,6 @@ const initializePayment = async () => {
 		window.setTimeout(() => {
 			mountStripeElement();
 		}, 200);
-
 	} catch (error) {
 		console.error('Failed to initialize payment:', error);
 		paymentError.value = error instanceof Error ? error.message : 'Payment initialization failed';
