@@ -319,15 +319,32 @@ export class StripeSubscriptionService {
 
 		const updateData: any = {
 			status: paymentIntentData.status,
-			metadata: paymentIntentData.metadata,
+			metadata: paymentIntentData.metadata || {},
 			updatedAt: new Date(),
 		};
+
+		if (paymentIntentData.payment_method) {
+			const paymentMethod = paymentIntentData.payment_method;
+			if (typeof paymentMethod === 'object' && paymentMethod.type) {
+				updateData.metadata.paymentMethod = {
+					type: paymentMethod.type,
+					id: paymentMethod.id,
+				};
+			} else if (typeof paymentMethod === 'string') {
+				updateData.metadata.paymentMethodId = paymentMethod;
+			}
+		}
 
 		if (paymentIntentData.charges && paymentIntentData.charges.data.length > 0) {
 			const charge = paymentIntentData.charges.data[0];
 			if (charge.outcome) {
 				updateData.stripeRiskLevel = charge.outcome.risk_level || null;
 				updateData.stripeRiskScore = charge.outcome.risk_score || null;
+			}
+
+			// Store payment method details generically
+			if (charge.payment_method_details) {
+				updateData.metadata.paymentMethodDetails = charge.payment_method_details;
 			}
 		}
 

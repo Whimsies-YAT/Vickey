@@ -227,6 +227,12 @@ export const ROUTE_DEF = [{
 	path: '/contact',
 	component: page(() => import('@/pages/contact.vue')),
 }, {
+	path: '/payment',
+	component: page(() => import('@/pages/payment.vue')),
+}, {
+	path: '/payment/success',
+	component: page(() => import('@/pages/payment-success.vue')),
+}, {
 	path: '/donate',
 	component: page(() => import('@/pages/donate.vue')),
 }, {
