@@ -201,26 +201,6 @@ watch(v, () => {
 	invalid.value = inputEl.value?.validity.badInput ?? true;
 });
 
-// このコンポーネントが作成された時、非表示状態である場合がある
-// 非表示状態だと要素の幅などは0になってしまうので、定期的に計算する
-useInterval(() => {
-	if (inputEl.value == null) return;
-
-	if (prefixEl.value) {
-		if (prefixEl.value.offsetWidth) {
-			inputEl.value.style.paddingLeft = prefixEl.value.offsetWidth + 'px';
-		}
-	}
-	if (suffixEl.value) {
-		if (suffixEl.value.offsetWidth) {
-			inputEl.value.style.paddingRight = suffixEl.value.offsetWidth + 'px';
-		}
-	}
-}, 100, {
-	immediate: true,
-	afterMounted: true,
-});
-
 onMounted(() => {
 	nextTick(() => {
 		if (props.autofocus) {
@@ -313,6 +293,14 @@ defineExpose({
 	&:hover {
 		border-color: var(--MI_THEME-inputBorderHover) !important;
 	}
+}
+
+.input:has(.prefix:not(:empty)) .inputCore {
+	padding-left: 40px;
+}
+
+.input:has(.suffix:not(:empty)) .inputCore {
+	padding-right: 40px;
 }
 
 .inputCore[type="range"] {

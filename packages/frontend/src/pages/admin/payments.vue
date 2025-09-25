@@ -434,11 +434,13 @@ definePage(() => ({
 		text-align: center;
 		padding: 40px 20px;
 		color: var(--MI_THEME-fgTransparent);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
 
 		i {
 			font-size: 48px;
 			margin-bottom: 16px;
-			display: block;
 		}
 	}
 
