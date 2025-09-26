@@ -79,8 +79,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 			<div class="payment-method-section">
 				<label>{{ i18n.ts._payment.paymentMethod }}</label>
-				<div id="card-element" ref="cardElementRef" class="card-element"></div>
-				<div v-if="cardError" class="error">{{ cardError }}</div>
+				<div v-if="showSubscriptionOptions && isSubscription" id="card-element" ref="cardElementRef" class="card-element"></div>
+				<div v-else class="payment-element">
+					<div class="payment-placeholder">
+						<i class="ti ti-credit-card"></i>
+						<p>{{ i18n.ts._payment.paymentOptionsPlaceholder }}</p>
+						<small>{{ i18n.ts._payment.multiplePaymentMethods }}</small>
+					</div>
+				</div>
+				<div v-if="paymentError" class="error">{{ paymentError }}</div>
 			</div>
 
 			<div class="actions">
@@ -173,6 +180,25 @@ watch(() => props.defaultDescription, (newDescription) => {
 const isSubscription = ref(false);
 const selectedPlan = ref('');
 
+watch(isSubscription, async (newValue) => {
+	if (newValue && props.showSubscriptionOptions) {
+		await nextTick();
+		if (cardElementRef.value && cardElement.value) {
+			try {
+				cardElement.value.mount(cardElementRef.value);
+			} catch (error) {
+				try {
+					cardElement.value.unmount();
+					await nextTick();
+					cardElement.value.mount(cardElementRef.value);
+				} catch (remountError) {
+					console.warn('Failed to remount card element:', remountError);
+				}
+			}
+		}
+	}
+});
+
 const billingInfo = ref({
 	firstName: '',
 	lastName: '',
@@ -184,7 +210,6 @@ const elements = ref<StripeElements | null>(null);
 const cardElement = ref<StripeCardElement | null>(null);
 const cardElementRef = ref<HTMLElement | null>(null);
 
-// Convert subscriptionPlans to the format expected by MkSelect
 const subscriptionPlanItems = computed(() =>
 	props.subscriptionPlans.map(plan => ({
 		value: plan.value,
@@ -253,8 +278,14 @@ const initializeStripe = async () => {
 };
 
 const processPayment = async () => {
-	if (!stripe.value || !cardElement.value) {
+	if (!stripe.value) {
 		paymentError.value = i18n.ts._payment.stripeNotLoaded;
+		return;
+	}
+
+	const isOneTimePayment = !props.showSubscriptionOptions || !isSubscription.value;
+	if (!isOneTimePayment && !cardElement.value) {
+		paymentError.value = 'Card element not available';
 		return;
 	}
 
@@ -272,7 +303,6 @@ const processPayment = async () => {
 		console.error('Payment processing error:', error);
 		paymentError.value = error instanceof Error ? error.message : i18n.ts._payment.processingError;
 		emit('error', paymentError.value);
-	} finally {
 		processing.value = false;
 	}
 };
@@ -289,59 +319,69 @@ const processOneTimePayment = async () => {
 		};
 	} = {
 		amount: amount.value * 100,
-		currency: currency.value
+		currency: currency.value,
 	};
 
 	if (description.value) {
 		requestData.description = description.value;
 	}
 
-	if (billingInfo.value.firstName || billingInfo.value.lastName || billingInfo.value.email) {
-		requestData.billingDetails = {
-			firstName: billingInfo.value.firstName || undefined,
-			lastName: billingInfo.value.lastName || undefined,
-			email: billingInfo.value.email || undefined,
-		};
-	}
+	requestData.billingDetails = {
+		firstName: billingInfo.value.firstName || undefined,
+		lastName: billingInfo.value.lastName || undefined,
+		email: billingInfo.value.email || undefined,
+	};
 
-	const paymentIntent = await misskeyApi('payment/create-intent', requestData) as { clientSecret: string; paymentIntentId: string };
+	const intentResponse = await misskeyApi('payment/create-intent', requestData) as { clientSecret: string; paymentIntentId: string };
 
-	const { error, paymentIntent: confirmedPaymentIntent } = await stripe.value!.confirmCardPayment(
-		paymentIntent.clientSecret,
-		{
-			payment_method: {
-				card: cardElement.value!,
-				billing_details: {
-					name: `${billingInfo.value.firstName} ${billingInfo.value.lastName}`.trim(),
-					email: billingInfo.value.email,
-				}
-			}
-		}
+	const paymentParams = new URLSearchParams({
+		payment_intent_id: intentResponse.paymentIntentId,
+		client_secret: intentResponse.clientSecret,
+		amount: (amount.value * 100).toString(),
+		currency: currency.value,
+		description: description.value || '',
+		first_name: billingInfo.value.firstName || '',
+		last_name: billingInfo.value.lastName || '',
+		email: billingInfo.value.email || ''
+	});
+
+	const paymentWindow = window.open(
+		`/payment?${paymentParams.toString()}`,
+		'stripe-payment',
+		'width=600,height=800,scrollbars=yes,resizable=yes,status=yes,toolbar=no,menubar=no'
 	);
 
-	if (error) {
-		throw new Error(error.message);
+	if (!paymentWindow) {
+		throw new Error('Failed to open payment window. Please allow popups.');
 	}
 
-	if (confirmedPaymentIntent?.status === 'succeeded') {
-		try {
-			const paymentMethodId = typeof confirmedPaymentIntent.payment_method === 'string'
-				? confirmedPaymentIntent.payment_method
-				: confirmedPaymentIntent.payment_method?.id;
-
-			await misskeyApi('payment/confirm-intent', {
-				paymentIntentId: confirmedPaymentIntent.id,
-				paymentMethodId: paymentMethodId,
-			});
-		} catch (error) {
-			console.warn('Failed to confirm payment intent in database:', error);
+	const messageHandler = (event: MessageEvent) => {
+		if (event.source === paymentWindow && event.data?.type === 'payment-complete') {
+			if (event.data.success) {
+				paymentSuccess.value = true;
+				processing.value = false;
+				emit('success', event.data.paymentData);
+			} else {
+				paymentError.value = 'Payment was not completed';
+				processing.value = false;
+			}
+			window.clearInterval(checkClosed);
+			window.removeEventListener('message', messageHandler);
 		}
+	};
 
-		paymentSuccess.value = true;
-		emit('success', confirmedPaymentIntent);
-	} else {
-		throw new Error(i18n.ts._payment.paymentFailed);
-	}
+	window.addEventListener('message', messageHandler);
+
+	const checkClosed = window.setInterval(() => {
+		if (paymentWindow.closed) {
+			window.clearInterval(checkClosed);
+			window.removeEventListener('message', messageHandler);
+			if (!paymentSuccess.value) {
+				processing.value = false;
+				// User closed window without completing payment
+			}
+		}
+	}, 1000);
 };
 
 const processSubscription = async () => {
@@ -368,6 +408,7 @@ const processSubscription = async () => {
 
 	if (subscription.status === 'active' || subscription.status === 'trialing') {
 		paymentSuccess.value = true;
+		processing.value = false;
 		emit('success', subscription);
 	} else if (subscription.clientSecret) {
 		const { error } = await stripe.value!.confirmCardPayment(subscription.clientSecret);
@@ -376,6 +417,7 @@ const processSubscription = async () => {
 			throw new Error(error.message);
 		} else {
 			paymentSuccess.value = true;
+			processing.value = false;
 			emit('success', subscription);
 		}
 	} else {
@@ -426,6 +468,13 @@ onMounted(() => {
 			}
 		}
 
+		.optional {
+			font-weight: normal;
+			font-size: 14px;
+			color: var(--MI_THEME-fgMuted);
+			opacity: 0.8;
+		}
+
 		form {
 			display: flex;
 			flex-direction: column;
@@ -438,7 +487,7 @@ onMounted(() => {
 				color: var(--MI_THEME-fg);
 			}
 
-			.card-element {
+			.card-element, .payment-element {
 				border: 1px solid var(--MI_THEME-inputBorder);
 				border-radius: 4px;
 				padding: 12px;
@@ -447,6 +496,34 @@ onMounted(() => {
 
 				&:focus-within {
 					border-color: var(--MI_THEME-accent);
+				}
+
+				.payment-placeholder {
+					display: flex;
+					flex-direction: column;
+					align-items: center;
+					justify-content: center;
+					text-align: center;
+					padding: 20px;
+					color: var(--MI_THEME-fgMuted);
+
+					i {
+						font-size: 32px;
+						margin-bottom: 12px;
+						opacity: 0.7;
+					}
+
+					p {
+						margin: 0 0 8px 0;
+						font-size: 14px;
+						font-weight: 500;
+					}
+
+					small {
+						font-size: 12px;
+						opacity: 0.8;
+						line-height: 1.4;
+					}
 				}
 			}
 

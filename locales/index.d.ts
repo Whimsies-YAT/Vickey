@@ -3494,6 +3494,34 @@ export interface Locale extends ILocale {
          * Billing information is only stored by Stripe for payment processing and tax compliance.
          */
         "billingPrivacyNote": string;
+        /**
+         * Payment options will be displayed after clicking the pay button
+         */
+        "paymentOptionsPlaceholder": string;
+        /**
+         * Supports credit cards, PayPal, Alipay, WeChat Pay, and other payment methods
+         */
+        "multiplePaymentMethods": string;
+        /**
+         * Secure Payment
+         */
+        "securePayment": string;
+        /**
+         * Loading payment methods...
+         */
+        "loadingPaymentMethods": string;
+        /**
+         * Pay ${amount}
+         */
+        "payAmount": ParameterizedString<"amount">;
+        /**
+         * Your payment is processed securely by Stripe
+         */
+        "securePaymentNote": string;
+        /**
+         * optional
+         */
+        "optional": string;
     };
     "_stripe": {
         /**

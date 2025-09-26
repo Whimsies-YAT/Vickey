@@ -86,7 +86,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				let paymentIntent = await this.stripeService.getPaymentIntent(ps.paymentIntentId);
 
 				if (['succeeded', 'processing', 'requires_action'].includes(paymentIntent.status)) {
-                } else if (paymentIntent.status === 'requires_confirmation' ||
+				} else if (paymentIntent.status === 'requires_confirmation' ||
 					(paymentIntent.status === 'requires_payment_method' && ps.paymentMethodId)) {
 					const confirmParams: any = {};
 					if (ps.paymentMethodId) {
@@ -115,12 +115,28 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					updatedAt: new Date(),
 				};
 
+				if (paymentIntent.payment_method) {
+					const paymentMethod = paymentIntent.payment_method;
+					if (typeof paymentMethod === 'object' && paymentMethod.type) {
+						updateData.metadata.paymentMethod = {
+							type: paymentMethod.type,
+							id: paymentMethod.id,
+						};
+					} else if (typeof paymentMethod === 'string') {
+						updateData.metadata.paymentMethodId = paymentMethod;
+					}
+				}
+
 				const paymentData = paymentIntent as any;
 				if (paymentData.charges && paymentData.charges.data && paymentData.charges.data.length > 0) {
 					const charge = paymentData.charges.data[0];
 					if (charge.outcome) {
 						updateData.stripeRiskLevel = charge.outcome.risk_level || null;
 						updateData.stripeRiskScore = charge.outcome.risk_score || null;
+					}
+
+					if (charge.payment_method_details) {
+						updateData.metadata.paymentMethodDetails = charge.payment_method_details;
 					}
 				}
 
