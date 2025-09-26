@@ -319,7 +319,7 @@ const processOneTimePayment = async () => {
 		};
 	} = {
 		amount: amount.value * 100,
-		currency: currency.value
+		currency: currency.value,
 	};
 
 	if (description.value) {

@@ -60,7 +60,7 @@ export const paramDef = {
 			required: ['firstName', 'lastName', 'email'],
 		},
 	},
-	required: ['amount', 'billingDetails'],
+	required: ['amount', 'currency', 'billingDetails'],
 } as const;
 
 @Injectable()
@@ -110,7 +110,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				stripePaymentIntentId: paymentIntent.id,
 				stripeCustomerId: customer.id,
 				amount: ps.amount,
-				currency: ps.currency,
+				currency: paymentIntent.currency,
 				status: paymentIntent.status as any,
 				description: ps.description || null,
 				metadata: paymentIntent.metadata ? JSON.parse(JSON.stringify(paymentIntent.metadata)) : {},

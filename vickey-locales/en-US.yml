@@ -538,7 +538,7 @@ _stripe:
   secretKeyDescription: "Your Stripe secret key (starts with sk_). Keep this confidential and secure."
   webhookSecret: "Webhook Endpoint Secret"
   webhookSecretDescription: "The signing secret for your webhook endpoint. Used to verify webhook authenticity."
-  securityWarning: "⚠️ Important: Keep your secret keys secure and never share them. The webhook secret is required for payment verification."
+  securityWarning: "Important: Keep your secret keys secure and never share them. The webhook secret is required for payment verification."
 _admin:
   _payments:
     title: "Payment Management"

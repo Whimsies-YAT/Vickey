@@ -154,14 +154,33 @@ const mountStripeElement = async () => {
 	try {
 		console.log('Creating Stripe elements with client secret...');
 		elements.value = stripe.value.elements({
-			clientSecret: paymentData.value.clientSecret
+			clientSecret: paymentData.value.clientSecret,
+			appearance: {
+				theme: 'stripe',
+			},
+			locale: (localStorage.getItem('lang') || 'en-US').slice(0, 2) as any,
 		});
+
 
 		paymentElement.value = elements.value.create('payment', {
 			layout: {
 				type: 'tabs',
 				defaultCollapsed: false,
 			},
+			defaultValues: {
+				billingDetails: {
+					name: `${paymentData.value.billingDetails.firstName} ${paymentData.value.billingDetails.lastName}`.trim(),
+					email: paymentData.value.billingDetails.email,
+				}
+			},
+			fields: {
+				billingDetails: {
+					name: 'auto',
+					email: 'auto',
+					phone: 'auto',
+					address: 'if_required'
+				}
+			}
 		});
 
 		await nextTick();

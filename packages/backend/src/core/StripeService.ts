@@ -206,13 +206,27 @@ export class StripeService implements OnModuleInit {
 			description: params.description,
 			automatic_payment_methods: {
 				enabled: true,
+				allow_redirects: 'always',
 			},
+			use_stripe_sdk: true,
 		});
 	}
 
 	@bindThis
 	public async getPaymentIntent(paymentIntentId: string): Promise<Stripe.PaymentIntent> {
 		return await this.getStripe().paymentIntents.retrieve(paymentIntentId);
+	}
+
+	@bindThis
+	public async updatePaymentIntent(
+		paymentIntentId: string,
+		params: {
+			amount?: number;
+			currency?: string;
+			metadata?: Record<string, string>;
+		},
+	): Promise<Stripe.PaymentIntent> {
+		return await this.getStripe().paymentIntents.update(paymentIntentId, params);
 	}
 
 	@bindThis
