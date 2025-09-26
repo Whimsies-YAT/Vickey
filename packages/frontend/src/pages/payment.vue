@@ -161,7 +161,6 @@ const mountStripeElement = async () => {
 			locale: (localStorage.getItem('lang') || 'en-US').slice(0, 2) as any,
 		});
 
-
 		paymentElement.value = elements.value.create('payment', {
 			layout: {
 				type: 'tabs',
