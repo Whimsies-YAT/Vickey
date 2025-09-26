@@ -530,6 +530,13 @@ _payment:
   lastName: "Last Name"
   email: "Email"
   billingPrivacyNote: "Billing information is only stored by Stripe for payment processing and tax compliance."
+  paymentOptionsPlaceholder: "Payment options will be displayed after clicking the pay button"
+  multiplePaymentMethods: "Supports credit cards, PayPal, Alipay, WeChat Pay, and other payment methods"
+  securePayment: "Secure Payment"
+  loadingPaymentMethods: "Loading payment methods..."
+  payAmount: "Pay ${amount}"
+  securePaymentNote: "Your payment is processed securely by Stripe"
+  optional: "optional"
 _stripe:
   settings: "Stripe Settings"
   enable: "Enable Stripe"
