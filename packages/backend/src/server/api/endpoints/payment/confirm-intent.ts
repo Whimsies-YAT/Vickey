@@ -178,6 +178,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 						}
 					} else {
 						status = checkoutSession.payment_status === 'paid' ? 'succeeded' :
+						  checkoutSession.payment_status === 'no_payment_required' ? 'succeeded' :
 							checkoutSession.payment_status === 'unpaid' ? 'requires_payment_method' :
 							checkoutSession.status as any;
 						updateData.status = status;
