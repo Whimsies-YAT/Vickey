@@ -521,7 +521,33 @@ export function inputDatetime(props: {
 			},
 		}, {
 			done: result => {
-				resolve(result != null && result.result != null ? { result: new Date(result.result), canceled: false } : { result: undefined, canceled: true });
+				if (result != null && result.result != null) {
+					let date: Date;
+					if (typeof result.result === 'string') {
+						if (result.result.includes('T')) {
+							const [datePart, timePart] = result.result.split('T');
+							const [year, month, day] = datePart.split('-').map(Number);
+							const [hour, minute, second] = timePart.split(':').map(Number);
+							date = new Date(year, month - 1, day, hour || 0, minute || 0, second || 0, 0);
+						} else {
+							const parsed = new Date(result.result);
+							date = new Date(
+								parsed.getFullYear(),
+								parsed.getMonth(),
+								parsed.getDate(),
+								parsed.getHours(),
+								parsed.getMinutes(),
+								parsed.getSeconds(),
+								0
+							);
+						}
+					} else {
+						date = result.result;
+					}
+					resolve({ result: date, canceled: false });
+				} else {
+					resolve({ result: undefined, canceled: true });
+				}
 			},
 			closed: () => dispose(),
 		});

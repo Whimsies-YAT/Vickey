@@ -81,11 +81,24 @@ export class NoteDraftService {
 
 		await this.validate(me, data);
 
-		const draft = await this.noteDraftsRepository.insertOne({
+		const insertData: any = {
 			...data,
 			id: this.idService.gen(),
 			userId: me.id,
-		});
+		};
+
+		if (data.geojson) {
+			const geoJsonData = data.geojson as any;
+			if (geoJsonData.features && geoJsonData.features.length > 0) {
+				const firstFeature = geoJsonData.features[0];
+				if (firstFeature.geometry && firstFeature.geometry.type === 'Point' && firstFeature.geometry.coordinates) {
+					const [lon, lat] = firstFeature.geometry.coordinates;
+					insertData.location = () => `ST_SetSRID(ST_Point(${lon}, ${lat}), 4326)`;
+				}
+			}
+		}
+
+		const draft = await this.noteDraftsRepository.insertOne(insertData);
 
 		if (draft.scheduledAt && draft.isActuallyScheduled) {
 			this.schedule(draft);
@@ -121,8 +134,21 @@ export class NoteDraftService {
 
 		await this.validate(me, data);
 
+		const updateData: any = { ...data };
+
+		if (data.geojson) {
+			const geoJsonData = data.geojson as any;
+			if (geoJsonData.features && geoJsonData.features.length > 0) {
+				const firstFeature = geoJsonData.features[0];
+				if (firstFeature.geometry && firstFeature.geometry.type === 'Point' && firstFeature.geometry.coordinates) {
+					const [lon, lat] = firstFeature.geometry.coordinates;
+					updateData.location = () => `ST_SetSRID(ST_Point(${lon}, ${lat}), 4326)`;
+				}
+			}
+		}
+
 		const updatedDraft = await this.noteDraftsRepository.createQueryBuilder().update()
-			.set(data)
+			.set(updateData)
 			.where('id = :id', { id: draftId })
 			.returning('*')
 			.execute()

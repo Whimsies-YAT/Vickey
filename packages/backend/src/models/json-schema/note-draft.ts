@@ -170,5 +170,9 @@ export const packedNoteDraftSchema = {
 			type: 'boolean',
 			optional: false, nullable: false,
 		},
+		geojson: {
+			type: 'object',
+			optional: false, nullable: true,
+		},
 	},
 } as const;

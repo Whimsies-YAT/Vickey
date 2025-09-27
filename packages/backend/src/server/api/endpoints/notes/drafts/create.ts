@@ -191,8 +191,16 @@ export const paramDef = {
 		},
 		scheduledAt: { type: 'integer', nullable: true },
 		isActuallyScheduled: { type: 'boolean', default: false },
+		geojson: {
+			type: 'object',
+			nullable: true,
+			properties: {
+				type: { type: 'string' },
+				coordinates: { type: 'array' },
+			},
+		},
 	},
-	required: ['visibility', 'visibleUserIds', 'cw', 'hashtag', 'localOnly', 'reactionAcceptance', 'replyId', 'renoteId', 'channelId', 'text', 'fileIds', 'poll', 'scheduledAt', 'isActuallyScheduled'],
+	required: ['visibility', 'visibleUserIds', 'cw', 'hashtag', 'localOnly', 'reactionAcceptance', 'replyId', 'renoteId', 'channelId', 'text', 'fileIds', 'poll', 'scheduledAt', 'isActuallyScheduled', 'geojson'],
 } as const;
 
 @Injectable()
@@ -221,6 +229,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				channelId: ps.channelId,
 				scheduledAt: ps.scheduledAt ? new Date(ps.scheduledAt) : null,
 				isActuallyScheduled: ps.isActuallyScheduled,
+				geojson: ps.geojson,
+				location: null,
 			}).catch((err) => {
 				if (err instanceof IdentifiableError) {
 					switch (err.id) {

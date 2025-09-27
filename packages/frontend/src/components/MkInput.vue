@@ -7,26 +7,25 @@ SPDX-License-Identifier: AGPL-3.0-only
 <div class="_selectable">
 	<div :class="$style.label" @click="focus"><slot name="label"></slot></div>
 
-	<MkDateTimePicker
-		v-if="isDateTimeType"
-		v-model="dateTimeValue"
-		:placeholder="placeholder"
-		:disabled="disabled"
-		:required="required"
-		:readonly="readonly"
-		:timeOnly="type === 'time'"
-		:dateOnly="type === 'date'"
-		:enableTimePicker="type === 'datetime-local'"
-		:clearable="true"
-		:autoApply="true"
-		@focus="focused = true"
-		@blur="focused = false"
-		@update:modelValue="onDateTimeUpdate"
-	>
-		<template v-if="$slots.prefix" #prefix>
-			<slot name="prefix"></slot>
-		</template>
-	</MkDateTimePicker>
+	<div v-if="isDateTimeType" :class="$style.dateTimeWrapper">
+		<MkDateTimePicker
+			v-model="dateTimeValue"
+			:placeholder="placeholder"
+			:disabled="disabled"
+			:required="required"
+			:readonly="readonly"
+			:timeOnly="type === 'time'"
+			:dateOnly="type === 'date'"
+			:enableSeconds="false"
+			@focus="focused = true"
+			@blur="focused = false"
+			@update:modelValue="onDateTimeUpdate"
+		>
+			<template v-if="$slots.prefix" #prefix>
+				<slot name="prefix"></slot>
+			</template>
+		</MkDateTimePicker>
+	</div>
 
 	<div v-else :class="[$style.input, { [$style.inline]: inline, [$style.disabled]: disabled, [$style.focused]: focused }]">
 		<div ref="prefixEl" :class="$style.prefix"><slot name="prefix"></slot></div>
@@ -146,11 +145,11 @@ const onDateTimeUpdate = (value: string | Date | null) => {
 			formattedValue = value;
 		} else {
 			if (props.type === 'date') {
-				formattedValue = value.toISOString().split('T')[0];
+				formattedValue = `${value.getFullYear()}-${(value.getMonth() + 1).toString().padStart(2, '0')}-${value.getDate().toString().padStart(2, '0')}`;
 			} else if (props.type === 'time') {
-				formattedValue = value.toTimeString().split(' ')[0];
+				formattedValue = `${value.getHours().toString().padStart(2, '0')}:${value.getMinutes().toString().padStart(2, '0')}:${value.getSeconds().toString().padStart(2, '0')}`;
 			} else if (props.type === 'datetime-local') {
-				formattedValue = value.toISOString().slice(0, -1);
+				formattedValue = `${value.getFullYear()}-${(value.getMonth() + 1).toString().padStart(2, '0')}-${value.getDate().toString().padStart(2, '0')}T${value.getHours().toString().padStart(2, '0')}:${value.getMinutes().toString().padStart(2, '0')}:${value.getSeconds().toString().padStart(2, '0')}`;
 			}
 		}
 	}
@@ -414,5 +413,12 @@ defineExpose({
 }
 .save {
 	margin: 8px 0 0 0;
+}
+
+.dateTimeWrapper {
+	position: relative;
+	display: block;
+	width: 100%;
+	z-index: 1;
 }
 </style>

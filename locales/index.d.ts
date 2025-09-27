@@ -210,6 +210,114 @@ export interface Locale extends ILocale {
      */
     "externalLink": string;
     /**
+     * Sun
+     */
+    "sunday": string;
+    /**
+     * Mon
+     */
+    "monday": string;
+    /**
+     * Tue
+     */
+    "tuesday": string;
+    /**
+     * Wed
+     */
+    "wednesday": string;
+    /**
+     * Thu
+     */
+    "thursday": string;
+    /**
+     * Fri
+     */
+    "friday": string;
+    /**
+     * Sat
+     */
+    "saturday": string;
+    /**
+     * Jan
+     */
+    "january": string;
+    /**
+     * Feb
+     */
+    "february": string;
+    /**
+     * Mar
+     */
+    "march": string;
+    /**
+     * Apr
+     */
+    "april": string;
+    /**
+     * May
+     */
+    "may": string;
+    /**
+     * Jun
+     */
+    "june": string;
+    /**
+     * Jul
+     */
+    "july": string;
+    /**
+     * Aug
+     */
+    "august": string;
+    /**
+     * Sep
+     */
+    "september": string;
+    /**
+     * Oct
+     */
+    "october": string;
+    /**
+     * Nov
+     */
+    "november": string;
+    /**
+     * Dec
+     */
+    "december": string;
+    /**
+     * Hour
+     */
+    "hour": string;
+    /**
+     * Minute
+     */
+    "minute": string;
+    /**
+     * Second
+     */
+    "second": string;
+    /**
+     * Now
+     */
+    "now": string;
+    /**
+     * キャンセル
+     */
+    "cancel": string;
+    /**
+     * OK
+     */
+    "ok": string;
+    /**
+     * Date
+     */
+    "date": string;
+    /**
+     * Time
+     */
+    "time": string;
+    /**
      * You are about to visit an external website:
      *
      * <b>{url}</b>
@@ -3823,17 +3931,9 @@ export interface Locale extends ILocale {
      */
     "fetchingAsApObject": string;
     /**
-     * OK
-     */
-    "ok": string;
-    /**
      * わかった
      */
     "gotIt": string;
-    /**
-     * キャンセル
-     */
-    "cancel": string;
     /**
      * やめておく
      */

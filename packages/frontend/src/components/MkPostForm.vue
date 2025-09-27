@@ -877,6 +877,7 @@ async function saveServerDraft(options: {
 		reactionAcceptance: reactionAcceptance.value,
 		scheduledAt: scheduledAt.value,
 		isActuallyScheduled: options.isActuallyScheduled ?? false,
+		geojson: locationInfo.value?.geoJson || null,
 	});
 }
 
