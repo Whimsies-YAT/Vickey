@@ -230,6 +230,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				scheduledAt: ps.scheduledAt ? new Date(ps.scheduledAt) : null,
 				isActuallyScheduled: ps.isActuallyScheduled,
 				geojson: ps.geojson,
+				location: null,
 			}).catch((err) => {
 				if (err instanceof IdentifiableError) {
 					switch (err.id) {

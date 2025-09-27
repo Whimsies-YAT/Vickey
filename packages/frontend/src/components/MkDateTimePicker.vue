@@ -134,8 +134,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import {computed, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch} from 'vue';
-import {i18n} from '@/i18n.js';
+import { computed, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
+import { i18n } from '@/i18n.js';
 
 const props = defineProps<{
 	modelValue?: string | Date | null;
@@ -266,11 +266,11 @@ const initializeDateTime = () => {
 
 onMounted(() => {
 	initializeDateTime();
-	document.addEventListener('click', handleOutsideClick);
+	window.document.addEventListener('click', handleOutsideClick);
 });
 
 onUnmounted(() => {
-	document.removeEventListener('click', handleOutsideClick);
+	window.document.removeEventListener('click', handleOutsideClick);
 });
 
 watch(() => props.modelValue, () => {
@@ -398,7 +398,7 @@ const positionDropdown = () => {
 	if (!inputEl.value) return;
 
 	const inputRect = inputEl.value.getBoundingClientRect();
-	const dropdown = document.querySelector('[data-mk-datetime-dropdown]') as HTMLElement;
+	const dropdown = window.document.querySelector('[data-mk-datetime-dropdown]') as HTMLElement;
 
 	if (dropdown) {
 		dropdown.style.left = `${inputRect.left}px`;
