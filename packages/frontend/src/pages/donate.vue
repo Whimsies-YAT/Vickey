@@ -248,6 +248,7 @@ const processDonation = async () => {
 			description: donationNote.value || i18n.tsx._donation.description({ instanceName }),
 			subscription: paymentType.value === 'monthly',
 			subscriptionPlans: subscriptionPlans,
+			useCheckout: paymentType.value === 'one-time',
 		}, {
 			closed: () => {
 				processing.value = false;

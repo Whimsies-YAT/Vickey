@@ -3522,6 +3522,10 @@ export interface Locale extends ILocale {
          * optional
          */
         "optional": string;
+        /**
+         * Vickey Checkout
+         */
+        "checkoutTitle": string;
     };
     "_stripe": {
         /**
@@ -3565,7 +3569,7 @@ export interface Locale extends ILocale {
          */
         "webhookSecretDescription": string;
         /**
-         * ⚠️ Important: Keep your secret keys secure and never share them. The webhook secret is required for payment verification.
+         * Important: Keep your secret keys secure and never share them. The webhook secret is required for payment verification.
          */
         "securityWarning": string;
     };
@@ -3719,6 +3723,22 @@ export interface Locale extends ILocale {
              * Raw Stripe Data
              */
             "rawStripeData": string;
+            /**
+             * Unknown ID
+             */
+            "unknownId": string;
+            /**
+             * Checkout Session
+             */
+            "checkoutSession": string;
+            /**
+             * Payment Mode
+             */
+            "paymentMode": string;
+            /**
+             * Payment Intent
+             */
+            "paymentIntent": string;
         };
     };
     /**

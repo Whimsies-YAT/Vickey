@@ -133,6 +133,7 @@ interface Props {
 	defaultCurrency?: string;
 	defaultDescription?: string;
 	subscriptionPlans?: Array<{ value: string, text: string }>;
+	useCheckout?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -140,7 +141,8 @@ const props = withDefaults(defineProps<Props>(), {
 	defaultAmount: 10,
 	defaultCurrency: 'usd',
 	defaultDescription: '',
-	subscriptionPlans: () => []
+	subscriptionPlans: () => [],
+	useCheckout: false
 });
 
 const emit = defineEmits<{
@@ -312,6 +314,7 @@ const processOneTimePayment = async () => {
 		amount: number;
 		currency: string;
 		description?: string;
+		useCheckout: boolean;
 		billingDetails?: {
 			firstName?: string;
 			lastName?: string;
@@ -320,6 +323,7 @@ const processOneTimePayment = async () => {
 	} = {
 		amount: amount.value * 100,
 		currency: currency.value,
+		useCheckout: props.useCheckout,
 	};
 
 	if (description.value) {
@@ -332,10 +336,14 @@ const processOneTimePayment = async () => {
 		email: billingInfo.value.email || undefined,
 	};
 
-	const intentResponse = await misskeyApi('payment/create-intent', requestData) as { clientSecret: string; paymentIntentId: string };
+	const intentResponse = await misskeyApi('payment/create-intent', requestData) as {
+		clientSecret: string;
+		paymentIntentId?: string;
+		checkoutSessionId?: string;
+		useCheckout: boolean;
+	};
 
 	const paymentParams = new URLSearchParams({
-		payment_intent_id: intentResponse.paymentIntentId,
 		client_secret: intentResponse.clientSecret,
 		amount: (amount.value * 100).toString(),
 		currency: currency.value,
@@ -345,10 +353,17 @@ const processOneTimePayment = async () => {
 		email: billingInfo.value.email || ''
 	});
 
+	if (intentResponse.useCheckout && intentResponse.checkoutSessionId) {
+		paymentParams.set('use_checkout', 'true');
+		paymentParams.set('checkout_session_id', intentResponse.checkoutSessionId);
+	} else if (intentResponse.paymentIntentId) {
+		paymentParams.set('payment_intent_id', intentResponse.paymentIntentId);
+	}
+
 	const paymentWindow = window.open(
 		`/payment?${paymentParams.toString()}`,
 		'stripe-payment',
-		'width=600,height=800,scrollbars=yes,resizable=yes,status=yes,toolbar=no,menubar=no'
+		'width=750,height=900,scrollbars=yes,resizable=yes,status=yes,toolbar=no,menubar=no'
 	);
 
 	if (!paymentWindow) {

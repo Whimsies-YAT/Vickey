@@ -350,4 +350,76 @@ export class StripeSubscriptionService {
 
 		await this.stripePaymentsRepository.update(dbPayment.id, updateData);
 	}
+
+	@bindThis
+	public async updateCheckoutSessionFromWebhook(checkoutSessionData: any): Promise<void> {
+		const dbPayment = await this.stripePaymentsRepository.findOneBy({
+			stripeCheckoutSessionId: checkoutSessionData.id,
+		});
+		if (!dbPayment) {
+			return;
+		}
+
+		const updateData: any = {
+			metadata: checkoutSessionData.metadata || {},
+			updatedAt: new Date(),
+		};
+
+		updateData.metadata.stripeCheckoutSessionRaw = JSON.parse(JSON.stringify(checkoutSessionData));
+
+		if (checkoutSessionData.payment_intent) {
+			try {
+				let actualPaymentIntent;
+				if (typeof checkoutSessionData.payment_intent === 'string') {
+					actualPaymentIntent = await this.stripeService.getPaymentIntent(checkoutSessionData.payment_intent);
+					updateData.stripePaymentIntentId = checkoutSessionData.payment_intent;
+				} else {
+					actualPaymentIntent = checkoutSessionData.payment_intent;
+					updateData.stripePaymentIntentId = actualPaymentIntent.id;
+				}
+
+				updateData.status = actualPaymentIntent.status;
+				updateData.metadata.stripePaymentIntentRaw = JSON.parse(JSON.stringify(actualPaymentIntent));
+
+				if (actualPaymentIntent.payment_method) {
+					const paymentMethod = actualPaymentIntent.payment_method;
+					if (typeof paymentMethod === 'object' && paymentMethod.type) {
+						updateData.metadata.paymentMethod = {
+							type: paymentMethod.type,
+							id: paymentMethod.id,
+						};
+					} else if (typeof paymentMethod === 'string') {
+						updateData.metadata.paymentMethodId = paymentMethod;
+					}
+				}
+
+				if (actualPaymentIntent.charges && actualPaymentIntent.charges.data && actualPaymentIntent.charges.data.length > 0) {
+					const charge = actualPaymentIntent.charges.data[0];
+					if (charge.outcome) {
+						updateData.stripeRiskLevel = charge.outcome.risk_level || null;
+						updateData.stripeRiskScore = charge.outcome.risk_score || null;
+					}
+
+					if (charge.payment_method_details) {
+						updateData.metadata.paymentMethodDetails = charge.payment_method_details;
+					}
+				}
+			} catch (error) {
+				console.warn('Failed to fetch payment intent for checkout session:', error);
+				updateData.status = checkoutSessionData.payment_status === 'paid' ? 'succeeded' :
+					checkoutSessionData.payment_status === 'unpaid' ? 'requires_payment_method' :
+					checkoutSessionData.status;
+			}
+		} else {
+			updateData.status = checkoutSessionData.payment_status === 'paid' ? 'succeeded' :
+				checkoutSessionData.payment_status === 'unpaid' ? 'requires_payment_method' :
+				checkoutSessionData.status;
+		}
+
+		if (checkoutSessionData.customer_details) {
+			updateData.metadata.customerDetails = checkoutSessionData.customer_details;
+		}
+
+		await this.stripePaymentsRepository.update(dbPayment.id, updateData);
+	}
 }

@@ -46,6 +46,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { onMounted, ref } from 'vue';
 import MkButton from '@/components/MkButton.vue';
 import { i18n } from '@/i18n.js';
+import { definePage } from '@/page.js';
 
 interface PaymentDetails {
 	paymentIntentId: string;
@@ -68,14 +69,55 @@ const closeWindow = () => {
 	}
 };
 
-onMounted(() => {
+onMounted(async () => {
 	const urlParams = new URLSearchParams(window.location.search);
 	const paymentIntent = urlParams.get('payment_intent');
 	const redirectStatus = urlParams.get('redirect_status');
+	const checkoutSessionId = urlParams.get('checkout_session_id');
+	const useCheckout = urlParams.get('use_checkout') === 'true';
 
-	if (paymentIntent && redirectStatus === 'succeeded') {
+	try {
+		if (useCheckout && checkoutSessionId) {
+			const { misskeyApi } = await import('@/utility/misskey-api.js');
+			const confirmResult = await misskeyApi('payment/confirm-intent', {
+				checkoutSessionId: checkoutSessionId,
+			}) as {
+				status: string;
+				paymentIntentId?: string;
+				checkoutSessionId?: string;
+				amount: number;
+				currency: string;
+				description?: string;
+			};
+
+			paymentDetails.value = {
+				paymentIntentId: confirmResult.paymentIntentId || checkoutSessionId,
+				amount: confirmResult.amount,
+				description: confirmResult.description,
+			};
+		} else if (paymentIntent && redirectStatus === 'succeeded') {
+			const { misskeyApi } = await import('@/utility/misskey-api.js');
+			const confirmResult = await misskeyApi('payment/confirm-intent', {
+				paymentIntentId: paymentIntent,
+			}) as {
+				status: string;
+				paymentIntentId?: string;
+				checkoutSessionId?: string;
+				amount: number;
+				currency: string;
+				description?: string;
+			};
+
+			paymentDetails.value = {
+				paymentIntentId: confirmResult.paymentIntentId || paymentIntent,
+				amount: confirmResult.amount,
+				description: confirmResult.description,
+			};
+		}
+	} catch (error) {
+		console.error('Failed to load payment details:', error);
 		paymentDetails.value = {
-			paymentIntentId: paymentIntent,
+			paymentIntentId: checkoutSessionId || paymentIntent || 'Unknown',
 			amount: 0,
 		};
 	}
@@ -85,6 +127,14 @@ onMounted(() => {
 			closeWindow();
 		}, 3000);
 	}
+});
+
+definePage({
+	title: '',
+	hideHeader: true,
+	hideSidebar: true,
+	hideWidgets: true,
+	hideFooter: true,
 });
 </script>
 

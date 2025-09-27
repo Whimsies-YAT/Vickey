@@ -5284,6 +5284,12 @@ export type components = {
             /** Format: date-time */
             usedAt: string | null;
             used: boolean;
+            pendingUser: {
+                username: string;
+                emailVerified: boolean;
+                isProcessed: boolean;
+                result: string;
+            } | null;
         };
         Page: {
             /**
@@ -10151,7 +10157,7 @@ export interface operations {
                      * @default all
                      * @enum {string}
                      */
-                    type?: 'unused' | 'used' | 'expired' | 'all';
+                    type?: 'unused' | 'used' | 'pending' | 'expired' | 'all';
                     /** @enum {string} */
                     sort?: '+createdAt' | '-createdAt' | '+usedAt' | '-usedAt';
                 };
@@ -10828,7 +10834,10 @@ export interface operations {
                 content: {
                     'application/json': {
                         id: string;
-                        paymentIntentId: string;
+                        paymentIntentId: string | null;
+                        checkoutSessionId: string | null;
+                        stripePaymentIntentId: string | null;
+                        stripeCheckoutSessionId: string | null;
                         amount: number;
                         currency: string;
                         status: string;
@@ -10844,6 +10853,9 @@ export interface operations {
                         /** Format: date-time */
                         updatedAt: string;
                         metadata: Record<string, never> | null;
+                        paymentMode: string;
+                        hasCheckoutSession: boolean;
+                        hasPaymentIntent: boolean;
                     }[];
                 };
             };
@@ -10912,7 +10924,10 @@ export interface operations {
                 content: {
                     'application/json': {
                         id: string;
-                        paymentIntentId: string;
+                        paymentIntentId: string | null;
+                        checkoutSessionId: string | null;
+                        stripePaymentIntentId: string | null;
+                        stripeCheckoutSessionId: string | null;
                         amount: number;
                         currency: string;
                         status: string;
@@ -10930,6 +10945,10 @@ export interface operations {
                         updatedAt: string;
                         metadata: Record<string, never> | null;
                         stripeDetails: Record<string, never> | null;
+                        paymentMode: string;
+                        hasCheckoutSession: boolean;
+                        hasPaymentIntent: boolean;
+                        rawData: Record<string, never> | null;
                     };
                 };
             };
@@ -35820,9 +35839,10 @@ export interface operations {
         requestBody: {
             content: {
                 'application/json': {
-                    paymentIntentId: string;
+                    paymentIntentId?: string | null;
+                    checkoutSessionId?: string | null;
                     paymentMethodId?: string | null;
-                };
+                } | unknown | unknown;
             };
         };
         responses: {
@@ -35834,7 +35854,11 @@ export interface operations {
                 content: {
                     'application/json': {
                         status: string;
-                        paymentIntentId: string;
+                        paymentIntentId: string | null;
+                        checkoutSessionId: string | null;
+                        amount: number;
+                        currency: string;
+                        description: string | null;
                     };
                 };
             };
@@ -35891,9 +35915,16 @@ export interface operations {
                 'application/json': {
                     amount: number;
                     /** @default usd */
-                    currency?: string;
+                    currency: string;
                     description?: string | null;
                     metadata?: Record<string, never> | null;
+                    /** @default false */
+                    useCheckout?: boolean;
+                    billingDetails: {
+                        firstName: string;
+                        lastName: string;
+                        email: string;
+                    };
                 };
             };
         };
@@ -35906,7 +35937,9 @@ export interface operations {
                 content: {
                     'application/json': {
                         clientSecret: string;
-                        paymentIntentId: string;
+                        paymentIntentId: string | null;
+                        checkoutSessionId: string | null;
+                        useCheckout: boolean;
                     };
                 };
             };
@@ -35965,6 +35998,7 @@ export interface operations {
                     paymentMethodId?: string | null;
                     trialPeriodDays?: number | null;
                     metadata?: Record<string, never> | null;
+                    amount?: number | null;
                 };
             };
         };

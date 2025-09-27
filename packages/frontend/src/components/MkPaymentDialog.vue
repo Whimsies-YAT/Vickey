@@ -25,6 +25,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				:defaultCurrency="currency"
 				:defaultDescription="description"
 				:subscriptionPlans="subscriptionPlans"
+				:useCheckout="useCheckout"
 				@success="onSuccess"
 				@error="onError"
 			/>
@@ -46,6 +47,7 @@ interface Props {
 	subscription?: boolean;
 	priceId?: string;
 	subscriptionPlans?: Array<{ value: string, text: string }>;
+	useCheckout?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -54,7 +56,8 @@ const props = withDefaults(defineProps<Props>(), {
 	description: '',
 	subscription: false,
 	priceId: '',
-	subscriptionPlans: () => []
+	subscriptionPlans: () => [],
+	useCheckout: false
 });
 
 const emit = defineEmits<{

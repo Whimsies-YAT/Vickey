@@ -527,6 +527,7 @@ _payment:
   payAmount: "Pay ${amount}"
   securePaymentNote: "Your payment is processed securely by Stripe"
   optional: "optional"
+  checkoutTitle: "Vickey Checkout"
 _stripe:
   settings: "Stripe Settings"
   enable: "Enable Stripe"
@@ -578,3 +579,7 @@ _admin:
     viewReceipt: "View Receipt"
     paymentMethod: "Payment Method"
     rawStripeData: "Raw Stripe Data"
+    unknownId: "Unknown ID"
+    checkoutSession: "Checkout Session"
+    paymentMode: "Payment Mode"
+    paymentIntent: "Payment Intent"

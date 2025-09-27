@@ -51,6 +51,12 @@ export class StripeWebhookService {
 					await this.handlePaymentIntentEvent(event);
 					break;
 
+				case 'checkout.session.completed':
+				case 'checkout.session.async_payment_succeeded':
+				case 'checkout.session.async_payment_failed':
+					await this.handleCheckoutSessionEvent(event);
+					break;
+
 				case 'setup_intent.succeeded':
 				case 'setup_intent.setup_failed':
 				case 'setup_intent.canceled':
@@ -172,6 +178,47 @@ export class StripeWebhookService {
 			}
 		} catch (error) {
 			this.logger.error(`Failed to process payment intent event for ${paymentIntent.id}`, (error as Error));
+			throw error;
+		}
+	}
+
+	@bindThis
+	private async handleCheckoutSessionEvent(event: any): Promise<void> {
+		const session = event.data.object;
+
+		this.logger.info(`Processing checkout session event: ${event.type} for ${session.id}`);
+
+		try {
+			if (session.payment_intent) {
+				const paymentIntentId = typeof session.payment_intent === 'string'
+					? session.payment_intent
+					: session.payment_intent.id;
+
+				this.logger.info(`Checkout session ${session.id} has payment intent ${paymentIntentId}, fetching from Stripe`);
+
+				const paymentIntent = await this.stripeService.getPaymentIntent(paymentIntentId);
+				await this.stripeSubscriptionService.updatePaymentFromWebhook(paymentIntent);
+
+				this.logger.info(`Updated payment status from checkout session to: ${paymentIntent.status}`);
+			} else {
+				await this.stripeSubscriptionService.updateCheckoutSessionFromWebhook(session);
+			}
+
+			switch (event.type) {
+				case 'checkout.session.completed':
+					this.logger.info(`Checkout session completed: ${session.id}`);
+					break;
+
+				case 'checkout.session.async_payment_succeeded':
+					this.logger.info(`Checkout session payment succeeded: ${session.id}`);
+					break;
+
+				case 'checkout.session.async_payment_failed':
+					this.logger.warn(`Checkout session payment failed: ${session.id}`);
+					break;
+			}
+		} catch (error) {
+			this.logger.error(`Failed to process checkout session event for ${session.id}`, (error as Error));
 			throw error;
 		}
 	}

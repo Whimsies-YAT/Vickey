@@ -10,6 +10,7 @@ import { ApiError } from '../../error.js';
 import type { UserProfilesRepository, StripePaymentsRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
 import { IdService } from '@/core/IdService.js';
+import type { Config } from '@/config.js';
 
 export const meta = {
 	tags: ['payment'],
@@ -25,6 +26,14 @@ export const meta = {
 			},
 			paymentIntentId: {
 				type: 'string',
+				nullable: true,
+			},
+			checkoutSessionId: {
+				type: 'string',
+				nullable: true,
+			},
+			useCheckout: {
+				type: 'boolean',
 			},
 		},
 	},
@@ -50,6 +59,7 @@ export const paramDef = {
 		currency: { type: 'string', default: 'usd' },
 		description: { type: 'string', nullable: true },
 		metadata: { type: 'object', nullable: true },
+		useCheckout: { type: 'boolean', default: false },
 		billingDetails: {
 			type: 'object',
 			properties: {
@@ -72,10 +82,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		@Inject(DI.stripePaymentsRepository)
 		private stripePaymentsRepository: StripePaymentsRepository,
 
+		@Inject(DI.config)
+		private config: Config,
+
 		private stripeService: StripeService,
 		private idService: IdService,
 	) {
-		super(meta, paramDef, async (ps, me) => {
+		super(meta, paramDef, async (ps, me, _accessToken, _file, _cleanup, _ip, headers) => {
 			if (!await this.stripeService.isEnabled()) {
 				throw new ApiError(meta.errors.stripeNotEnabled);
 			}
@@ -93,35 +106,84 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				name: billingName,
 			});
 
-			const paymentIntent = await this.stripeService.createPaymentIntent({
-				amount: ps.amount,
-				currency: ps.currency,
-				customerId: customer.id,
-				description: ps.description || undefined,
-				metadata: {
+			if (ps.useCheckout) {
+				let baseUrl = '';
+				if (headers?.origin) {
+					baseUrl = headers.origin;
+				} else {
+					baseUrl = this.config.url;
+				}
+
+				if (!baseUrl) {
+					throw new Error('Could not determine base URL for return URL');
+				}
+
+				const checkoutSession = await this.stripeService.createEmbeddedCheckoutSession({
+					amount: ps.amount,
+					currency: ps.currency,
+					customerId: customer.id,
+					description: ps.description || undefined,
+					metadata: {
+						userId: me.id,
+						...ps.metadata,
+					},
+					returnUrl: `${baseUrl}/payment?use_checkout=true&checkout_complete=true&checkout_session_id={CHECKOUT_SESSION_ID}`,
+				});
+
+				await this.stripePaymentsRepository.insert({
+					id: this.idService.gen(),
 					userId: me.id,
-					...ps.metadata,
-				},
-			});
+					stripePaymentIntentId: null,
+					stripeCheckoutSessionId: checkoutSession.id,
+					stripeCustomerId: customer.id,
+					amount: ps.amount,
+					currency: ps.currency,
+					status: 'requires_payment_method',
+					description: ps.description || null,
+					metadata: checkoutSession.metadata ? JSON.parse(JSON.stringify(checkoutSession.metadata)) : {},
+					createdAt: new Date(),
+					updatedAt: new Date(),
+				});
 
-			await this.stripePaymentsRepository.insert({
-				id: this.idService.gen(),
-				userId: me.id,
-				stripePaymentIntentId: paymentIntent.id,
-				stripeCustomerId: customer.id,
-				amount: ps.amount,
-				currency: paymentIntent.currency,
-				status: paymentIntent.status as any,
-				description: ps.description || null,
-				metadata: paymentIntent.metadata ? JSON.parse(JSON.stringify(paymentIntent.metadata)) : {},
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			});
+				return {
+					clientSecret: checkoutSession.client_secret || checkoutSession.id,
+					paymentIntentId: null,
+					checkoutSessionId: checkoutSession.id,
+					useCheckout: true,
+				};
+			} else {
+				const paymentIntent = await this.stripeService.createPaymentIntent({
+					amount: ps.amount,
+					currency: ps.currency,
+					customerId: customer.id,
+					description: ps.description || undefined,
+					metadata: {
+						userId: me.id,
+						...ps.metadata,
+					},
+				});
 
-			return {
-				clientSecret: paymentIntent.client_secret!,
-				paymentIntentId: paymentIntent.id,
-			};
+				await this.stripePaymentsRepository.insert({
+					id: this.idService.gen(),
+					userId: me.id,
+					stripePaymentIntentId: paymentIntent.id,
+					stripeCustomerId: customer.id,
+					amount: ps.amount,
+					currency: paymentIntent.currency,
+					status: paymentIntent.status as any,
+					description: ps.description || null,
+					metadata: paymentIntent.metadata ? JSON.parse(JSON.stringify(paymentIntent.metadata)) : {},
+					createdAt: new Date(),
+					updatedAt: new Date(),
+				});
+
+				return {
+					clientSecret: paymentIntent.client_secret!,
+					paymentIntentId: paymentIntent.id,
+					checkoutSessionId: null,
+					useCheckout: false,
+				};
+			}
 		});
 	}
 }

@@ -23,7 +23,10 @@ export const meta = {
 		type: 'object',
 		properties: {
 			id: { type: 'string' },
-			paymentIntentId: { type: 'string' },
+			paymentIntentId: { type: 'string', nullable: true },
+			checkoutSessionId: { type: 'string', nullable: true },
+			stripePaymentIntentId: { type: 'string', nullable: true },
+			stripeCheckoutSessionId: { type: 'string', nullable: true },
 			amount: { type: 'number' },
 			currency: { type: 'string' },
 			status: { type: 'string' },
@@ -43,6 +46,10 @@ export const meta = {
 			updatedAt: { type: 'string', format: 'date-time' },
 			metadata: { type: 'object', nullable: true },
 			stripeDetails: { type: 'object', nullable: true },
+			paymentMode: { type: 'string' },
+			hasCheckoutSession: { type: 'boolean' },
+			hasPaymentIntent: { type: 'boolean' },
+			rawData: { type: 'object', nullable: true },
 		},
 	},
 
@@ -90,9 +97,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			}
 
 			let stripeDetails = null;
-			if (await this.stripeService.isEnabled() && payment.stripePaymentIntentId) {
+			if (await this.stripeService.isEnabled()) {
 				try {
-					stripeDetails = await this.stripeService.getPaymentIntent(payment.stripePaymentIntentId);
+					if (payment.stripePaymentIntentId) {
+						stripeDetails = await this.stripeService.getPaymentIntent(payment.stripePaymentIntentId);
+					} else if (payment.stripeCheckoutSessionId) {
+						stripeDetails = await this.stripeService.getCheckoutSession(payment.stripeCheckoutSessionId);
+					}
 				} catch (error) {
 					console.warn('Failed to fetch Stripe details:', error);
 				}
@@ -101,6 +112,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			return {
 				id: payment.id,
 				paymentIntentId: payment.stripePaymentIntentId,
+				checkoutSessionId: payment.stripeCheckoutSessionId,
+				stripePaymentIntentId: payment.stripePaymentIntentId,
+				stripeCheckoutSessionId: payment.stripeCheckoutSessionId,
 				amount: payment.amount,
 				currency: payment.currency,
 				status: payment.status,
@@ -116,6 +130,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				updatedAt: payment.updatedAt.toISOString(),
 				metadata: payment.metadata,
 				stripeDetails,
+				paymentMode: payment.stripeCheckoutSessionId ? 'checkout_session' : 'payment_intent',
+				hasCheckoutSession: !!payment.stripeCheckoutSessionId,
+				hasPaymentIntent: !!payment.stripePaymentIntentId,
+				rawData: {
+					checkoutSession: payment.metadata?.stripeCheckoutSessionRaw || null,
+					paymentIntent: payment.metadata?.stripePaymentIntentRaw || null,
+				},
 			};
 		});
 	}

@@ -24,7 +24,10 @@ export const meta = {
 			type: 'object',
 			properties: {
 				id: { type: 'string' },
-				paymentIntentId: { type: 'string' },
+				paymentIntentId: { type: 'string', nullable: true },
+				checkoutSessionId: { type: 'string', nullable: true },
+				stripePaymentIntentId: { type: 'string', nullable: true },
+				stripeCheckoutSessionId: { type: 'string', nullable: true },
 				amount: { type: 'number' },
 				currency: { type: 'string' },
 				status: { type: 'string' },
@@ -42,6 +45,9 @@ export const meta = {
 				createdAt: { type: 'string', format: 'date-time' },
 				updatedAt: { type: 'string', format: 'date-time' },
 				metadata: { type: 'object', nullable: true },
+				paymentMode: { type: 'string' },
+				hasCheckoutSession: { type: 'boolean' },
+				hasPaymentIntent: { type: 'boolean' },
 			},
 		},
 	},
@@ -94,6 +100,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			return payments.map(payment => ({
 				id: payment.id,
 				paymentIntentId: payment.stripePaymentIntentId,
+				checkoutSessionId: payment.stripeCheckoutSessionId,
+				stripePaymentIntentId: payment.stripePaymentIntentId,
+				stripeCheckoutSessionId: payment.stripeCheckoutSessionId,
 				amount: payment.amount,
 				currency: payment.currency,
 				status: payment.status,
@@ -107,6 +116,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				createdAt: payment.createdAt.toISOString(),
 				updatedAt: payment.updatedAt.toISOString(),
 				metadata: payment.metadata,
+				paymentMode: payment.stripeCheckoutSessionId ? 'checkout_session' : 'payment_intent',
+				hasCheckoutSession: !!payment.stripeCheckoutSessionId,
+				hasPaymentIntent: !!payment.stripePaymentIntentId,
 			}));
 		});
 	}

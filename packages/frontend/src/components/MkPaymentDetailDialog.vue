@@ -17,7 +17,25 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<div class="info-grid">
 						<div class="info-item">
 							<label>{{ i18n.ts._admin._payments.paymentId }}</label>
-							<code>{{ payment.paymentIntentId }}</code>
+							<div class="payment-ids">
+								<code v-if="payment.paymentIntentId" class="payment-intent-id">
+									<span class="id-label">PI:</span>
+									{{ payment.paymentIntentId }}
+								</code>
+								<code v-if="payment.checkoutSessionId" class="checkout-session-id">
+									<span class="id-label">CS:</span>
+									{{ payment.checkoutSessionId }}
+								</code>
+								<span v-if="!payment.paymentIntentId && !payment.checkoutSessionId" class="no-id">{{ i18n.ts._admin._payments.unknownId }}</span>
+							</div>
+						</div>
+
+						<div v-if="payment.paymentMode" class="info-item">
+							<label>{{ i18n.ts._admin._payments.paymentMode }}</label>
+							<div class="payment-mode">
+								<i :class="payment.paymentMode === 'checkout_session' ? 'ti ti-shopping-cart' : 'ti ti-credit-card'"></i>
+								{{ payment.paymentMode === 'checkout_session' ? i18n.ts._admin._payments.checkoutSession : i18n.ts._admin._payments.paymentIntent }}
+							</div>
 						</div>
 
 						<div class="info-item">
@@ -268,6 +286,60 @@ const formatPaymentMethod = (paymentMethod: any) => {
 					border: 1px solid var(--MI_THEME-divider);
 					display: inline-block;
 					word-break: break-all;
+				}
+
+				.payment-ids {
+					display: flex;
+					flex-direction: column;
+					gap: 8px;
+
+					.payment-intent-id {
+						.id-label {
+							background: var(--MI_THEME-accent);
+							color: white;
+							padding: 2px 6px;
+							border-radius: 4px 0 0 4px;
+							font-size: 0.8em;
+							margin-right: -1px;
+						}
+					}
+
+					.checkout-session-id {
+						background: var(--MI_THEME-accentedBg);
+						color: var(--MI_THEME-accent);
+						border-color: var(--MI_THEME-accent);
+
+						.id-label {
+							background: var(--MI_THEME-accent);
+							color: white;
+							padding: 2px 6px;
+							border-radius: 4px 0 0 4px;
+							font-size: 0.8em;
+							margin-right: -1px;
+						}
+					}
+
+					.no-id {
+						color: var(--MI_THEME-fgMuted);
+						font-style: italic;
+						font-weight: normal;
+					}
+				}
+
+				.payment-mode {
+					display: flex;
+					align-items: center;
+					gap: 8px;
+					font-weight: 600;
+					padding: 8px 12px;
+					background: var(--MI_THEME-accentedBg);
+					color: var(--MI_THEME-accent);
+					border-radius: 8px;
+					border: 1px solid var(--MI_THEME-accent);
+
+					i {
+						font-size: 1.1em;
+					}
 				}
 
 				.status {

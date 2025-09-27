@@ -387,4 +387,103 @@ export class StripeService implements OnModuleInit {
 			},
 		});
 	}
+
+	@bindThis
+	public async createCheckoutSession(params: {
+		amount: number;
+		currency: string;
+		customerId?: string;
+		customerEmail?: string;
+		metadata?: Record<string, string>;
+		description?: string;
+		successUrl: string;
+		cancelUrl: string;
+	}): Promise<Stripe.Checkout.Session> {
+		const sessionParams: Stripe.Checkout.SessionCreateParams = {
+			line_items: [{
+				price_data: {
+					currency: params.currency,
+					product_data: {
+						name: params.description || 'Payment',
+					},
+					unit_amount: params.amount,
+				},
+				quantity: 1,
+			}],
+			mode: 'payment',
+			success_url: params.successUrl,
+			cancel_url: params.cancelUrl,
+			metadata: params.metadata,
+			automatic_tax: {
+				enabled: true,
+			},
+			billing_address_collection: 'auto',
+			customer_update: {
+				address: 'auto',
+			},
+			adaptive_pricing: {
+				enabled: true,
+			},
+		};
+
+		if (params.customerId) {
+			sessionParams.customer = params.customerId;
+		} else if (params.customerEmail) {
+			sessionParams.customer_email = params.customerEmail;
+		}
+
+		return await this.getStripe().checkout.sessions.create(sessionParams);
+	}
+
+	@bindThis
+	public async getCheckoutSession(sessionId: string): Promise<Stripe.Checkout.Session> {
+		return await this.getStripe().checkout.sessions.retrieve(sessionId);
+	}
+
+	@bindThis
+	public async createEmbeddedCheckoutSession(params: {
+		amount: number;
+		currency: string;
+		customerId?: string;
+		customerEmail?: string;
+		metadata?: Record<string, string>;
+		description?: string;
+		returnUrl: string;
+	}): Promise<Stripe.Checkout.Session> {
+
+		const sessionParams: Stripe.Checkout.SessionCreateParams = {
+			line_items: [{
+				price_data: {
+					currency: params.currency,
+					product_data: {
+						name: params.description || 'Payment',
+					},
+					unit_amount: params.amount,
+				},
+				quantity: 1,
+			}],
+			mode: 'payment',
+			ui_mode: 'embedded',
+			return_url: params.returnUrl,
+			metadata: params.metadata,
+			automatic_tax: {
+				enabled: true,
+			},
+			billing_address_collection: 'auto',
+			customer_update: {
+				address: 'auto',
+			},
+			adaptive_pricing: {
+				enabled: true,
+			},
+		};
+
+		if (params.customerId) {
+			sessionParams.customer = params.customerId;
+		} else if (params.customerEmail) {
+			sessionParams.customer_email = params.customerEmail;
+		}
+
+		return await this.getStripe().checkout.sessions.create(sessionParams);
+	}
 }
