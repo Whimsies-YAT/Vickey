@@ -450,7 +450,6 @@ export class StripeService implements OnModuleInit {
 		description?: string;
 		returnUrl: string;
 	}): Promise<Stripe.Checkout.Session> {
-
 		const sessionParams: Stripe.Checkout.SessionCreateParams = {
 			line_items: [{
 				price_data: {

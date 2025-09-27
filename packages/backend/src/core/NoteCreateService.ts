@@ -251,6 +251,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 		localOnly: boolean;
 		reactionAcceptance: MiNote['reactionAcceptance'];
 		poll: IPoll | null;
+		geoJson?: object | null;
 		apMentions?: MinimumUser[] | null;
 		apHashtags?: string[] | null;
 		apEmojis?: string[] | null;
@@ -386,6 +387,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 			visibility: data.visibility,
 			visibleUsers,
 			channel,
+			geoJson: data.geoJson,
 			apMentions: data.apMentions,
 			apHashtags: data.apHashtags,
 			apEmojis: data.apEmojis,

@@ -222,6 +222,14 @@ export interface Locale extends ILocale {
      */
     "refresh": string;
     /**
+     * Scheduled time
+     */
+    "scheduledTime": string;
+    /**
+     * The scheduled time is in the past
+     */
+    "scheduledTimeIsInThePast": string;
+    /**
      * User Id
      */
     "userId": string;
@@ -811,6 +819,10 @@ export interface Locale extends ILocale {
              * サーバーサイドのノートの下書きの作成可能数
              */
             "noteDraftLimit": string;
+            /**
+             * 予約投稿の同時作成可能数
+             */
+            "scheduledNoteLimit": string;
             /**
              * ウォーターマーク機能の使用可否
              */
@@ -8995,6 +9007,10 @@ export interface Locale extends ILocale {
      */
     "draft": string;
     /**
+     * 下書きと予約投稿
+     */
+    "draftsAndScheduledNotes": string;
+    /**
      * リアクションする際に確認する
      */
     "confirmOnReact": string;
@@ -9261,6 +9277,26 @@ export interface Locale extends ILocale {
      * ユーザー指定ノートを作成
      */
     "createUserSpecifiedNote": string;
+    /**
+     * 投稿を予約
+     */
+    "schedulePost": string;
+    /**
+     * {x}に投稿を予約します
+     */
+    "scheduleToPostOnX": ParameterizedString<"x">;
+    /**
+     * {x}に投稿が予約されています
+     */
+    "scheduledToPostOnX": ParameterizedString<"x">;
+    /**
+     * 予約
+     */
+    "schedule": string;
+    /**
+     * 予約
+     */
+    "scheduled": string;
     "_compression": {
         "_quality": {
             /**
@@ -12917,6 +12953,14 @@ export interface Locale extends ILocale {
          */
         "pollEnded": string;
         /**
+         * 予約ノートが投稿されました
+         */
+        "scheduledNotePosted": string;
+        /**
+         * 予約ノートの投稿に失敗しました
+         */
+        "scheduledNotePostFailed": string;
+        /**
          * 新しい投稿
          */
         "newNote": string;
@@ -14643,6 +14687,10 @@ export interface Locale extends ILocale {
              */
             "blur": string;
             /**
+             * モザイク
+             */
+            "pixelate": string;
+            /**
              * 色調補正
              */
             "colorAdjust": string;
@@ -14891,6 +14939,18 @@ export interface Locale extends ILocale {
          * 下書き一覧
          */
         "listDrafts": string;
+        /**
+         * 投稿予約
+         */
+        "schedule": string;
+        /**
+         * 予約投稿一覧
+         */
+        "listScheduledNotes": string;
+        /**
+         * 予約解除
+         */
+        "cancelSchedule": string;
     };
     /**
      * 二次元コード

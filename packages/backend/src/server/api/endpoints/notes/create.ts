@@ -270,10 +270,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					visibility: ps.visibility,
 					visibleUserIds: ps.visibleUserIds ?? [],
 					channelId: ps.channelId ?? null,
+					geoJson: ps.geoJson,
 					apMentions: ps.noExtractMentions ? [] : undefined,
 					apHashtags: ps.noExtractHashtags ? [] : undefined,
 					apEmojis: ps.noExtractEmojis ? [] : undefined,
-					geoJson: ps.geoJson,
 				});
 
 				return {
