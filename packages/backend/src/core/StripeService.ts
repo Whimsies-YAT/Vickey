@@ -398,6 +398,7 @@ export class StripeService implements OnModuleInit {
 		description?: string;
 		successUrl: string;
 		cancelUrl: string;
+		paymentMethodConfiguration?: string;
 	}): Promise<Stripe.Checkout.Session> {
 		const sessionParams: Stripe.Checkout.SessionCreateParams = {
 			line_items: [{
@@ -424,12 +425,22 @@ export class StripeService implements OnModuleInit {
 			adaptive_pricing: {
 				enabled: true,
 			},
+			locale: "auto",
 		};
 
 		if (params.customerId) {
 			sessionParams.customer = params.customerId;
 		} else if (params.customerEmail) {
 			sessionParams.customer_email = params.customerEmail;
+		}
+
+		if (params.paymentMethodConfiguration) {
+			sessionParams.payment_method_configuration = params.paymentMethodConfiguration;
+		} else {
+			const meta = await this.metaService.fetch();
+			if (meta.stripePaymentMethodConfiguration) {
+				sessionParams.payment_method_configuration = meta.stripePaymentMethodConfiguration;
+			}
 		}
 
 		return await this.getStripe().checkout.sessions.create(sessionParams);
@@ -449,6 +460,7 @@ export class StripeService implements OnModuleInit {
 		metadata?: Record<string, string>;
 		description?: string;
 		returnUrl: string;
+		paymentMethodConfiguration?: string;
 	}): Promise<Stripe.Checkout.Session> {
 		const sessionParams: Stripe.Checkout.SessionCreateParams = {
 			line_items: [{
@@ -475,12 +487,22 @@ export class StripeService implements OnModuleInit {
 			adaptive_pricing: {
 				enabled: true,
 			},
+			locale: "auto",
 		};
 
 		if (params.customerId) {
 			sessionParams.customer = params.customerId;
 		} else if (params.customerEmail) {
 			sessionParams.customer_email = params.customerEmail;
+		}
+
+		if (params.paymentMethodConfiguration) {
+			sessionParams.payment_method_configuration = params.paymentMethodConfiguration;
+		} else {
+			const meta = await this.metaService.fetch();
+			if (meta.stripePaymentMethodConfiguration) {
+				sessionParams.payment_method_configuration = meta.stripePaymentMethodConfiguration;
+			}
 		}
 
 		return await this.getStripe().checkout.sessions.create(sessionParams);

@@ -254,6 +254,7 @@ export const paramDef = {
 		stripePublicKey: { type: 'string', nullable: true },
 		stripeSecretKey: { type: 'string', nullable: true },
 		stripeWebhookSecret: { type: 'string', nullable: true },
+		stripePaymentMethodConfiguration: { type: 'string', nullable: true },
 	},
 	required: [],
 } as const;
@@ -986,19 +987,25 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				set.enableStripe = ps.enableStripe;
 			}
 
-			if (ps.stripePublicKey !== undefined) {
-				if (ps.stripePublicKey === '') {
-					set.stripePublicKey = null;
-				} else {
-					set.stripePublicKey = ps.stripePublicKey;
-				}
-			}
+			const hasStripePublicKey = ps.stripePublicKey !== undefined;
+			const hasStripeSecretKey = ps.stripeSecretKey !== undefined;
 
-			if (ps.stripeSecretKey !== undefined) {
-				if (ps.stripeSecretKey === '') {
-					set.stripeSecretKey = null;
-				} else {
-					set.stripeSecretKey = ps.stripeSecretKey;
+			if (hasStripePublicKey || hasStripeSecretKey) {
+				const publicKey = ps.stripePublicKey || this.mMeta.stripePublicKey;
+				const secretKey = ps.stripeSecretKey || this.mMeta.stripeSecretKey;
+				const bothEmpty = (!publicKey || publicKey === '') && (!secretKey || secretKey === '');
+				const bothPresent = (publicKey && publicKey !== '') && (secretKey && secretKey !== '');
+
+				if (!bothEmpty && !bothPresent) {
+					throw new Error('Stripe public key and secret key must both be provided or both be empty');
+				}
+
+				if (ps.stripePublicKey !== undefined) {
+					set.stripePublicKey = ps.stripePublicKey === '' ? null : ps.stripePublicKey;
+				}
+
+				if (ps.stripeSecretKey !== undefined) {
+					set.stripeSecretKey = ps.stripeSecretKey === '' ? null : ps.stripeSecretKey;
 				}
 			}
 
@@ -1007,6 +1014,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					set.stripeWebhookSecret = null;
 				} else {
 					set.stripeWebhookSecret = ps.stripeWebhookSecret;
+				}
+			}
+
+			if (ps.stripePaymentMethodConfiguration !== undefined) {
+				if (ps.stripePaymentMethodConfiguration === '') {
+					set.stripePaymentMethodConfiguration = null;
+				} else {
+					set.stripePaymentMethodConfiguration = ps.stripePaymentMethodConfiguration;
 				}
 			}
 

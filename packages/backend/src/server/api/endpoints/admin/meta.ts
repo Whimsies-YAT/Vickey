@@ -736,6 +736,10 @@ export const meta = {
 			stripeWebhookSecret: {
 				type: 'string',
 				optional: false, nullable: true,
+			},
+			stripePaymentMethodConfiguration: {
+				type: 'string',
+				optional: false, nullable: true,
 			}
 		},
 	},
@@ -927,6 +931,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				stripePublicKey: instance.stripePublicKey,
 				stripeSecretKey: instance.stripeSecretKey,
 				stripeWebhookSecret: instance.stripeWebhookSecret,
+				stripePaymentMethodConfiguration: instance.stripePaymentMethodConfiguration,
 			};
 		});
 	}
