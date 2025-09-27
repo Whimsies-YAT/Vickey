@@ -162,4 +162,17 @@ export class MiNoteDraft {
 		default: false,
 	})
 	public isActuallyScheduled: boolean;
+
+	@Column('jsonb', {
+		nullable: true,
+		comment: 'Original GeoJSON data (shared with lower precision if needed).',
+	})
+	public geojson: Record<string, any> | null;
+
+	@Index({ spatial: true })
+	@Column('geometry', {
+		nullable: true,
+		comment: 'Geographic location as Point (lon/lat, WGS84).',
+	})
+	public location: string | null;
 }

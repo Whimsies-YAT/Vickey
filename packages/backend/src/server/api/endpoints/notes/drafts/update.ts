@@ -223,6 +223,14 @@ export const paramDef = {
 		},
 		scheduledAt: { type: 'integer', nullable: true },
 		isActuallyScheduled: { type: 'boolean' },
+		geojson: {
+			type: 'object',
+			nullable: true,
+			properties: {
+				type: { type: 'string' },
+				coordinates: { type: 'array' },
+			},
+		},
 	},
 	required: ['draftId'],
 } as const;
@@ -252,6 +260,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				channelId: ps.channelId,
 				scheduledAt: ps.scheduledAt ? new Date(ps.scheduledAt) : null,
 				isActuallyScheduled: ps.isActuallyScheduled,
+				geojson: ps.geojson,
 			}).catch((err) => {
 				if (err instanceof IdentifiableError) {
 					switch (err.id) {

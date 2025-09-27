@@ -135,6 +135,7 @@ export class NoteDraftEntityService implements OnModuleInit {
 				expiresAt: noteDraft.pollExpiresAt?.toISOString(),
 				expiredAfter: noteDraft.pollExpiredAfter,
 			} : null,
+			geojson: noteDraft.geojson,
 
 			...(opts.detail ? {
 				reply: noteDraft.replyId ? nullIfEntityNotFound(this.noteEntityService.pack(noteDraft.replyId, me, {
