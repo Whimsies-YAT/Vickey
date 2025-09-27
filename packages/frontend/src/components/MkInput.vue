@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 	<MkDateTimePicker
 		v-if="isDateTimeType"
-		v-model="v"
+		v-model="dateTimeValue"
 		:placeholder="placeholder"
 		:disabled="disabled"
 		:required="required"
@@ -119,6 +119,7 @@ const emit = defineEmits<{
 
 const { modelValue } = toRefs(props);
 const v = ref<ModelValueType<T> | null>(modelValue.value);
+const dateTimeValue = ref<string | Date | null | undefined>(modelValue.value);
 const id = genId();
 const focused = ref(false);
 const changed = ref(false);
@@ -187,6 +188,7 @@ const debouncedUpdated = debounce(1000, updated);
 
 watch(modelValue, newValue => {
 	v.value = newValue;
+	dateTimeValue.value = newValue;
 });
 
 watch(v, () => {

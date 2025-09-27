@@ -4,32 +4,21 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-	<MkStickyContainer>
-		<template #header>
-			<MkPageHeader/>
-		</template>
-		<div class="_spacer" style="--MI_SPACER-w: 500px;">
-			<div class="payment-page">
-				<div v-if="!paymentData" class="loading-state">
-					<MkLoading/>
-				</div>
+	<div class="payment-page-wrapper">
+		<div class="payment-page">
+			<div v-if="!paymentData" class="loading-state">
+				<MkLoading/>
+			</div>
 
 				<div v-else-if="paymentComplete" class="success-state">
-					<div class="success-icon">
-						<i class="ti ti-check-circle"></i>
+					<div class="success-checkmark">
+						<svg width="100" height="100" viewBox="0 0 100 100">
+							<circle fill="none" stroke="#22c55e" stroke-width="4" cx="50" cy="50" r="46" stroke-linecap="round" transform="rotate(-90 50 50)" class="circle" />
+							<polyline fill="none" stroke="#22c55e" stroke-width="5" points="22,53.5 43.5,71 76,34.5" stroke-linecap="round" stroke-linejoin="round" class="tick" />
+						</svg>
 					</div>
 					<h2>{{ i18n.ts._payment.success }}</h2>
 					<p>{{ i18n.ts._donation.thankYou }}</p>
-					<div class="payment-summary">
-						<div class="summary-item">
-							<span class="label">{{ i18n.ts._admin._payments.amount }}:</span>
-							<span class="value">${{ formatAmount(paymentData.amount) }}</span>
-						</div>
-						<div v-if="paymentData.description" class="summary-item">
-							<span class="label">{{ i18n.ts._admin._payments.description }}:</span>
-							<span class="value">{{ paymentData.description }}</span>
-						</div>
-					</div>
 					<div class="actions">
 						<MkButton primary @click="closeWindow">{{ i18n.ts.close }}</MkButton>
 					</div>
@@ -65,7 +54,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<span>{{ paymentError }}</span>
 					</div>
 
-					<div class="payment-actions">
+					<div v-if="!paymentData.useCheckout" class="payment-actions">
 						<MkButton
 							:disabled="!paymentElementMounted || processing || !paymentData"
 							primary
@@ -83,19 +72,19 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<span>{{ i18n.ts._payment.securePaymentNote }}</span>
 					</div>
 				</div>
-			</div>
 		</div>
-	</MkStickyContainer>
+	</div>
 </template>
 
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref, nextTick } from 'vue';
 import { loadStripe } from '@stripe/stripe-js';
-import type { Stripe, StripeElements, PaymentIntent } from '@stripe/stripe-js';
+import type { Stripe, StripeElements, StripeEmbeddedCheckout } from '@stripe/stripe-js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
 import MkButton from '@/components/MkButton.vue';
 import { useRouter } from '@/router.js';
+import { definePage } from '@/page.js';
 
 const router = useRouter();
 
@@ -103,13 +92,15 @@ interface PaymentData {
 	amount: number;
 	currency: string;
 	description?: string;
-	clientSecret: string;
-	paymentIntentId: string;
+	clientSecret?: string;
+	paymentIntentId?: string;
+	checkoutSessionId?: string;
 	billingDetails: {
 		firstName: string;
 		lastName: string;
 		email: string;
 	};
+	useCheckout: boolean;
 }
 
 const paymentData = ref<PaymentData | null>(null);
@@ -121,6 +112,7 @@ const paymentElementMounted = ref(false);
 const stripe = ref<Stripe | null>(null);
 const elements = ref<StripeElements | null>(null);
 const paymentElement = ref<any>(null);
+const checkoutElement = ref<StripeEmbeddedCheckout | null>(null);
 const paymentElementRef = ref<HTMLElement | null>(null);
 
 const formatAmount = (amount: number) => {
@@ -129,16 +121,23 @@ const formatAmount = (amount: number) => {
 
 const closeWindow = () => {
 	if (window.opener) {
-		window.opener.postMessage({
+		const messageData = {
 			type: 'payment-complete',
 			success: paymentComplete.value,
 			paymentData: paymentData.value ? {
 				amount: paymentData.value.amount,
 				currency: paymentData.value.currency,
 				description: paymentData.value.description,
-				paymentIntentId: paymentData.value.paymentIntentId
+				paymentIntentId: paymentData.value.paymentIntentId,
+				checkoutSessionId: paymentData.value.checkoutSessionId
 			} : null
-		}, '*');
+		};
+
+		console.log('Sending payment result to parent:', messageData);
+		console.log('paymentComplete.value:', paymentComplete.value);
+		console.log('paymentData.value:', paymentData.value);
+
+		window.opener.postMessage(messageData, '*');
 		window.close();
 	} else {
 		router.push('/');
@@ -152,54 +151,77 @@ const mountStripeElement = async () => {
 	}
 
 	try {
-		console.log('Creating Stripe elements with client secret...');
-		elements.value = stripe.value.elements({
-			clientSecret: paymentData.value.clientSecret,
-			appearance: {
-				theme: 'stripe',
-			},
-			locale: (localStorage.getItem('lang') || 'en-US').slice(0, 2) as any,
-		});
+		if (paymentData.value.useCheckout && (paymentData.value.checkoutSessionId || paymentData.value.clientSecret)) {
+			console.log('Creating embedded checkout with session ID...');
 
-		paymentElement.value = elements.value.create('payment', {
-			layout: {
-				type: 'tabs',
-				defaultCollapsed: false,
-			},
-			defaultValues: {
-				billingDetails: {
-					name: `${paymentData.value.billingDetails.firstName} ${paymentData.value.billingDetails.lastName}`.trim(),
-					email: paymentData.value.billingDetails.email,
-				}
-			},
-			fields: {
-				billingDetails: {
-					name: 'auto',
-					email: 'auto',
-					phone: 'auto',
-					address: 'if_required'
-				}
-			}
-		});
-
-		await nextTick();
-
-		if (paymentElementRef.value) {
-			console.log('Mounting Stripe payment element...');
-			paymentElement.value.mount(paymentElementRef.value);
-
-			paymentElement.value.on('ready', () => {
-				console.log('Stripe payment element ready');
+			const clientSecret = paymentData.value.clientSecret;
+			if (!clientSecret) {
+				console.error('Missing client secret for embedded checkout');
+				paymentError.value = 'Missing client secret for embedded checkout';
 				paymentElementMounted.value = true;
+				return;
+			}
+
+			checkoutElement.value = await stripe.value.initEmbeddedCheckout({
+				clientSecret: clientSecret,
+      });
+
+			await nextTick();
+			if (paymentElementRef.value) {
+				console.log('Mounting embedded checkout...');
+				checkoutElement.value.mount(paymentElementRef.value);
+				paymentElementMounted.value = true;
+			}
+		} else if (paymentData.value.clientSecret) {
+			console.log('Creating Stripe elements with client secret...');
+			elements.value = stripe.value.elements({
+				clientSecret: paymentData.value.clientSecret,
+				appearance: {
+					theme: 'stripe',
+				},
+				locale: (localStorage.getItem('lang') || 'en-US').slice(0, 2) as any,
 			});
 
-			paymentElement.value.on('change', (event: any) => {
-				paymentError.value = event.error ? event.error.message : '';
+			paymentElement.value = elements.value.create('payment', {
+				layout: {
+					type: 'tabs',
+					defaultCollapsed: false,
+				},
+				defaultValues: {
+					billingDetails: {
+						name: `${paymentData.value.billingDetails.firstName} ${paymentData.value.billingDetails.lastName}`.trim(),
+						email: paymentData.value.billingDetails.email,
+					}
+				},
+				fields: {
+					billingDetails: {
+						name: 'auto',
+						email: 'auto',
+						phone: 'auto',
+						address: 'if_required'
+					}
+				}
 			});
-		} else {
-			console.error('Payment element ref not available');
-			paymentError.value = 'Payment form initialization failed. Please refresh the page.';
-			paymentElementMounted.value = true;
+
+			await nextTick();
+
+			if (paymentElementRef.value) {
+				console.log('Mounting Stripe payment element...');
+				paymentElement.value.mount(paymentElementRef.value);
+
+				paymentElement.value.on('ready', () => {
+					console.log('Stripe payment element ready');
+					paymentElementMounted.value = true;
+				});
+
+				paymentElement.value.on('change', (event: any) => {
+					paymentError.value = event.error ? event.error.message : '';
+				});
+			} else {
+				console.error('Payment element ref not available');
+				paymentError.value = 'Payment form initialization failed. Please refresh the page.';
+				paymentElementMounted.value = true;
+			}
 		}
 	} catch (error) {
 		console.error('Error creating/mounting Stripe element:', error);
@@ -211,14 +233,121 @@ const mountStripeElement = async () => {
 const initializePayment = async () => {
 	try {
 		const urlParams = new URLSearchParams(window.location.search);
+		const useCheckout = urlParams.get('use_checkout') === 'true';
+		const checkoutSessionId = urlParams.get('checkout_session_id');
 		const paymentIntentId = urlParams.get('payment_intent_id');
 		const clientSecret = urlParams.get('client_secret');
+		const paymentStatus = urlParams.get('payment_status');
 
 		const paymentIntent = urlParams.get('payment_intent');
 		const redirectStatus = urlParams.get('redirect_status');
 
-		if (!paymentIntentId || !clientSecret) {
-			throw new Error('Missing payment parameters');
+		const checkoutComplete = urlParams.get('checkout_complete') === 'true';
+
+		console.log('=== DEBUG URL PARAMS ===');
+		console.log('useCheckout:', useCheckout);
+		console.log('checkoutSessionId:', checkoutSessionId);
+		console.log('checkoutComplete:', checkoutComplete);
+		console.log('paymentStatus:', paymentStatus);
+		console.log('All URL params:', Array.from(urlParams.entries()));
+
+		// For embedded checkout, we need to check with backend if checkout_complete=true
+		// For regular checkout, we can rely on payment_status from Stripe
+		const shouldConfirm = useCheckout && checkoutSessionId &&
+			(paymentStatus === 'paid' || paymentStatus === 'unpaid' || checkoutComplete);
+		console.log('shouldConfirm:', shouldConfirm, 'reason:',
+			paymentStatus === 'paid' ? 'paid' :
+			paymentStatus === 'unpaid' ? 'unpaid' :
+			checkoutComplete ? 'checkout_complete_from_return_url' : 'none');
+
+		if (shouldConfirm) {
+			console.log('Checkout session completed successfully');
+
+      let sessionIdToConfirm = checkoutSessionId;
+
+			if (!sessionIdToConfirm && clientSecret && clientSecret.startsWith('cs_')) {
+				sessionIdToConfirm = clientSecret;
+			}
+
+			if (!sessionIdToConfirm) {
+				const allParams = Array.from(urlParams.entries());
+				for (const [key, value] of allParams) {
+					if (value && value.startsWith('cs_')) {
+						sessionIdToConfirm = value;
+						break;
+					}
+				}
+			}
+
+			try {
+				const confirmResult = await misskeyApi('payment/confirm-intent', {
+					checkoutSessionId: sessionIdToConfirm,
+				}) as {
+					status: string;
+					paymentIntentId?: string;
+					checkoutSessionId?: string;
+					amount: number;
+					currency: string;
+					description?: string;
+				};
+
+				console.log('Payment confirmed with status:', confirmResult.status);
+
+				if (['succeeded', 'processing', 'requires_capture'].includes(confirmResult.status)) {
+					paymentData.value = {
+						amount: confirmResult.amount,
+						currency: confirmResult.currency,
+						description: confirmResult.description || 'Payment completed successfully',
+						clientSecret: clientSecret || undefined,
+						paymentIntentId: confirmResult.paymentIntentId || undefined,
+						checkoutSessionId: sessionIdToConfirm || undefined,
+						billingDetails: { firstName: '', lastName: '', email: '' },
+						useCheckout
+					};
+
+					paymentComplete.value = true;
+					if (window.opener) {
+						window.setTimeout(() => {
+							closeWindow();
+						}, 3000);
+					}
+				} else {
+					console.warn('Payment not successful in redirect, status:', confirmResult.status);
+					paymentError.value = `Payment ${confirmResult.status}. Please try again.`;
+
+					if (window.opener) {
+						window.setTimeout(() => {
+							closeWindow();
+						}, 3000);
+					}
+					return;
+				}
+			} catch (error) {
+				console.error('Failed to confirm checkout session with backend:', error);
+				paymentError.value = 'Failed to confirm payment. Please try again.';
+				window.setTimeout(() => closeWindow(), 2000);
+				return;
+			}
+
+			if (!paymentComplete.value) {
+			} else {
+				return;
+			}
+			// if (window.opener) {
+			// 	window.setTimeout(() => {
+			// 		closeWindow();
+			// 	}, 3000);
+			// }
+			// return;
+		}
+
+		if (useCheckout) {
+			// For embedded checkout, we'll get the session ID from the URL parameters when opening the payment page
+			// If not present, this might be a return from checkout completion
+		} else {
+			if (!paymentIntentId || !clientSecret) {
+				throw new Error('Missing payment intent parameters');
+			}
 		}
 
 		const config = await misskeyApi('payment/get-config', {}) as { enabled: boolean; publicKey: string | null };
@@ -243,30 +372,73 @@ const initializePayment = async () => {
 			amount,
 			currency,
 			description,
-			clientSecret,
-			paymentIntentId,
-			billingDetails: { firstName, lastName, email }
+			clientSecret: clientSecret || undefined,
+			paymentIntentId: paymentIntentId || undefined,
+			checkoutSessionId: checkoutSessionId || undefined,
+			billingDetails: { firstName, lastName, email },
+			useCheckout
 		};
 
-		if (paymentIntent && redirectStatus === 'succeeded') {
-			console.log('Returning from successful digital wallet payment');
-			await handleRedirectReturn(paymentIntent);
-			return;
+		if (!useCheckout) {
+			if (paymentIntent && redirectStatus === 'succeeded') {
+				console.log('Returning from successful digital wallet payment');
+
+				try {
+					const confirmResult = await misskeyApi('payment/confirm-intent', {
+						paymentIntentId: paymentIntent,
+					}) as {
+						status: string;
+						paymentIntentId?: string;
+						checkoutSessionId?: string;
+						amount: number;
+						currency: string;
+						description?: string;
+					};
+
+					console.log('Payment confirmed with status:', confirmResult.status);
+
+					paymentData.value = {
+						amount: confirmResult.amount,
+						currency: confirmResult.currency,
+						description: confirmResult.description || 'Payment completed successfully',
+						clientSecret: clientSecret || undefined,
+						paymentIntentId: confirmResult.paymentIntentId || paymentIntent,
+						checkoutSessionId: undefined,
+						billingDetails: { firstName: '', lastName: '', email: '' },
+						useCheckout: false
+					};
+
+					paymentComplete.value = true;
+
+					if (window.opener) {
+						window.setTimeout(() => {
+							closeWindow();
+						}, 3000);
+					}
+				} catch (error) {
+					console.error('Failed to confirm digital wallet payment:', error);
+					paymentError.value = 'Failed to confirm payment. Please contact support.';
+					paymentElementMounted.value = true;
+				}
+				return;
+			}
+
+			if (redirectStatus === 'failed') {
+				console.log('Returning from failed digital wallet payment');
+				paymentError.value = 'Digital wallet payment was cancelled or failed.';
+				paymentElementMounted.value = true;
+				return;
+			}
 		}
 
-		if (redirectStatus === 'failed') {
-			console.log('Returning from failed digital wallet payment');
-			paymentError.value = 'Digital wallet payment was cancelled or failed.';
-			paymentElementMounted.value = true;
-			return;
+		if (!paymentComplete.value) {
+			await nextTick();
+			await nextTick();
+
+			window.setTimeout(() => {
+				mountStripeElement();
+			}, 200);
 		}
-
-		await nextTick();
-		await nextTick();
-
-		window.setTimeout(() => {
-			mountStripeElement();
-		}, 200);
 	} catch (error) {
 		console.error('Failed to initialize payment:', error);
 		paymentError.value = error instanceof Error ? error.message : 'Payment initialization failed';
@@ -283,7 +455,7 @@ const handleRedirectReturn = async (paymentIntentId: string) => {
 
 		console.log('Handling redirect return for payment intent:', paymentIntentId);
 
-		const { paymentIntent, error } = await stripe.value.retrievePaymentIntent(paymentData.value.clientSecret);
+		const { paymentIntent, error } = await stripe.value.retrievePaymentIntent(paymentData.value.clientSecret!);
 
 		if (error) {
 			console.error('Error retrieving payment intent:', error);
@@ -331,8 +503,17 @@ const handleRedirectReturn = async (paymentIntentId: string) => {
 };
 
 const processPayment = async () => {
-	if (!stripe.value || !elements.value || !paymentData.value || !paymentElementMounted.value) {
+	if (!stripe.value || !paymentData.value || !paymentElementMounted.value) {
 		paymentError.value = 'Payment form not ready. Please wait or refresh the page.';
+		return;
+	}
+
+	if (paymentData.value.useCheckout) {
+		return;
+	}
+
+	if (!elements.value) {
+		paymentError.value = 'Payment elements not initialized.';
 		return;
 	}
 
@@ -356,6 +537,7 @@ const processPayment = async () => {
 
 		if (error) {
 			paymentError.value = error.message || 'Payment failed';
+			window.setTimeout(() => closeWindow(), 2000);
 		} else if (paymentIntent) {
 			console.log('Payment Intent full object:', paymentIntent);
 			console.log('Payment Intent status:', paymentIntent.status);
@@ -401,17 +583,46 @@ onMounted(() => {
 	initializePayment();
 });
 
+definePage({
+	title: i18n.ts._payment.checkoutTitle,
+	hideHeader: true,
+	hideSidebar: true,
+	hideWidgets: true,
+	hideFooter: true,
+});
+
 onUnmounted(() => {
 	if (paymentElement.value) {
 		paymentElement.value.unmount();
+	}
+	if (checkoutElement.value) {
+		checkoutElement.value.unmount();
 	}
 });
 </script>
 
 <style lang="scss" scoped>
+.payment-page-wrapper {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: var(--MI_THEME-bg);
+	z-index: 10000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
 .payment-page {
-	max-width: 500px;
-	margin: 0 auto;
+	max-width: 600px;
+	width: 100%;
+	max-height: 90vh;
+	overflow-y: auto;
 
 	.loading-state {
 		text-align: center;
@@ -422,18 +633,48 @@ onUnmounted(() => {
 		text-align: center;
 		padding: 40px 20px;
 
-		.success-icon {
-			font-size: 80px;
-			color: var(--MI_THEME-success);
-			margin-bottom: 24px;
+		.success-checkmark {
+			display: flex;
+			justify-content: center;
+			margin-bottom: 32px;
 
-			i {
-				animation: scale-in 0.5s ease-out;
+			svg {
+				width: min(20vw, 120px);
+				height: min(20vw, 120px);
+				max-width: 120px;
+				max-height: 120px;
+				min-width: 60px;
+				min-height: 60px;
+
+				.circle {
+					stroke-dasharray: 289;
+					stroke-dashoffset: 289;
+					animation: circle 0.5s ease-in-out forwards;
+				}
+
+				.tick {
+					stroke-dasharray: 80;
+					stroke-dashoffset: 80;
+					animation: tick 0.4s ease-out 0.475s forwards;
+				}
 			}
 
-			@keyframes scale-in {
-				0% { transform: scale(0); }
-				100% { transform: scale(1); }
+			@keyframes circle {
+				from {
+					stroke-dashoffset: 289;
+				}
+				to {
+					stroke-dashoffset: 578;
+				}
+			}
+
+			@keyframes tick {
+				from {
+					stroke-dashoffset: 80;
+				}
+				to {
+					stroke-dashoffset: 0;
+				}
 			}
 		}
 
@@ -581,6 +822,8 @@ onUnmounted(() => {
 				.payment-element {
 					padding: 16px;
 					min-height: 200px;
+					width: 100%;
+					box-sizing: border-box;
 				}
 			}
 		}

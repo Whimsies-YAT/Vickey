@@ -98,7 +98,19 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<tbody>
 								<tr v-for="payment in payments" :key="payment.id" class="payment-row">
 									<td>
-										<code class="payment-id">{{ payment.paymentIntentId.substring(0, 16) }}...</code>
+										<div class="payment-id-container">
+											<code v-if="payment.paymentIntentId" class="payment-id">
+												{{ (payment.paymentIntentId || '').substring(0, 16) }}...
+											</code>
+											<code v-else-if="payment.checkoutSessionId" class="payment-id checkout-session">
+												{{ (payment.checkoutSessionId || '').substring(0, 16) }}...
+											</code>
+											<span v-else class="no-id">{{ i18n.ts._admin._payments.unknownId }}</span>
+
+											<div v-if="payment.paymentIntentId && payment.checkoutSessionId" class="dual-id-indicator">
+												<span class="checkout-badge">{{ i18n.ts._admin._payments.checkoutSession }}</span>
+											</div>
+										</div>
 									</td>
 									<td>
 										<div v-if="payment.user" class="user-info">
@@ -479,6 +491,29 @@ definePage(() => ({
 			padding: 4px 8px;
 			border-radius: 4px;
 			font-size: 0.9em;
+
+			&.checkout-session {
+				background: var(--MI_THEME-accentedBg);
+				color: var(--MI_THEME-accent);
+			}
+		}
+
+		.no-id {
+			color: var(--MI_THEME-fgTransparent);
+			font-style: italic;
+		}
+
+		.dual-id-indicator {
+			margin-top: 4px;
+
+			.checkout-badge {
+				background: var(--MI_THEME-accentedBg);
+				color: var(--MI_THEME-accent);
+				font-size: 0.7em;
+				padding: 2px 6px;
+				border-radius: 3px;
+				font-weight: 500;
+			}
 		}
 
 		.user-info {

@@ -9,7 +9,8 @@ import { MiUser } from './User.js';
 
 @Entity('stripe_payment')
 @Index(['userId'])
-@Index(['stripePaymentIntentId'], { unique: true })
+@Index(['stripePaymentIntentId'], { unique: true, sparse: true })
+@Index(['stripeCheckoutSessionId'], { unique: true, sparse: true })
 export class MiStripePayment {
 	@PrimaryColumn(id())
 	public id: string;
@@ -26,8 +27,15 @@ export class MiStripePayment {
 
 	@Column('varchar', {
 		length: 256,
+		nullable: true,
 	})
-	public stripePaymentIntentId: string;
+	public stripePaymentIntentId: string | null;
+
+	@Column('varchar', {
+		length: 256,
+		nullable: true,
+	})
+	public stripeCheckoutSessionId: string | null;
 
 	@Column('varchar', {
 		length: 256,

@@ -30,6 +30,7 @@ interface Props {
 	buttonText?: string;
 	subscription?: boolean;
 	priceId?: string;
+	useCheckout?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -38,7 +39,8 @@ const props = withDefaults(defineProps<Props>(), {
 	description: '',
 	buttonText: '',
 	subscription: false,
-	priceId: ''
+	priceId: '',
+	useCheckout: false
 });
 
 const emit = defineEmits<{
@@ -75,7 +77,8 @@ const openPaymentDialog = async () => {
 				currency: props.currency,
 				description: props.description,
 				subscription: props.subscription,
-				priceId: props.priceId
+				priceId: props.priceId,
+				useCheckout: props.useCheckout
 			},
 			{
 				done: (result) => {
