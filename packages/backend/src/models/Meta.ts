@@ -909,6 +909,12 @@ export class MiMeta {
 		nullable: true,
 	})
 	public stripeWebhookSecret: string | null;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public stripePaymentMethodConfiguration: string | null;
 }
 
 export type SoftwareSuspension = {

@@ -3581,6 +3581,14 @@ export interface Locale extends ILocale {
          */
         "webhookSecretDescription": string;
         /**
+         * Payment Method Configuration
+         */
+        "paymentMethodConfiguration": string;
+        /**
+         * Optional Stripe Payment Method Configuration ID to customize available payment methods and options.
+         */
+        "paymentMethodConfigurationDescription": string;
+        /**
          * Important: Keep your secret keys secure and never share them. The webhook secret is required for payment verification.
          */
         "securityWarning": string;

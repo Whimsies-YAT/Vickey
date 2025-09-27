@@ -407,6 +407,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 									</MkInput>
 								</SearchMarker>
 
+								<SearchMarker :keywords="['payment', 'method', 'configuration']">
+									<MkInput v-model="stripeForm.state.stripePaymentMethodConfiguration">
+										<template #label><SearchLabel>{{ i18n.ts._stripe.paymentMethodConfiguration }}</SearchLabel><span v-if="stripeForm.modifiedStates.stripePaymentMethodConfiguration" class="_modified">{{ i18n.ts.modified }}</span></template>
+										<template #caption><SearchText>{{ i18n.ts._stripe.paymentMethodConfigurationDescription }}</SearchText></template>
+										<template #prefix><i class="ti ti-credit-card"></i></template>
+									</MkInput>
+								</SearchMarker>
+
 								<MkInfo warn>{{ i18n.ts._stripe.securityWarning }}</MkInfo>
 							</template>
 						</div>
@@ -560,12 +568,14 @@ const stripeForm = useForm({
 	stripePublicKey: meta.stripePublicKey ?? '',
 	stripeSecretKey: meta.stripeSecretKey ?? '',
 	stripeWebhookSecret: meta.stripeWebhookSecret ?? '',
+	stripePaymentMethodConfiguration: meta.stripePaymentMethodConfiguration ?? '',
 }, async (state) => {
 	await os.apiWithDialog('admin/update-meta', {
 		enableStripe: state.enableStripe,
 		stripePublicKey: state.stripePublicKey === '' ? null : state.stripePublicKey,
 		stripeSecretKey: state.stripeSecretKey === '' ? null : state.stripeSecretKey,
 		stripeWebhookSecret: state.stripeWebhookSecret === '' ? null : state.stripeWebhookSecret,
+		stripePaymentMethodConfiguration: state.stripePaymentMethodConfiguration === '' ? null : state.stripePaymentMethodConfiguration,
 	});
 	fetchInstance(true);
 });

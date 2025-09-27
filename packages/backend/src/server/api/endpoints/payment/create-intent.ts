@@ -60,6 +60,7 @@ export const paramDef = {
 		description: { type: 'string', nullable: true },
 		metadata: { type: 'object', nullable: true },
 		useCheckout: { type: 'boolean', default: false },
+		paymentMethodConfiguration: { type: 'string', nullable: true },
 		billingDetails: {
 			type: 'object',
 			properties: {
@@ -128,6 +129,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 						...ps.metadata,
 					},
 					returnUrl: `${baseUrl}/payment?use_checkout=true&checkout_complete=true&checkout_session_id={CHECKOUT_SESSION_ID}`,
+					paymentMethodConfiguration: ps.paymentMethodConfiguration || undefined,
 				});
 
 				await this.stripePaymentsRepository.insert({
