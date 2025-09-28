@@ -206,8 +206,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		private downloadService: DownloadService,
 	) {
 		this.logger = loggerService.getLogger('geocoding');
-		const projectRoot = process.cwd();
-		const filesDir = path.join(projectRoot, 'files');
+		const filesDir = path.join(process.cwd(), '../../files');
 		this.dataPath = path.join(filesDir, 'geoData');
 		this.syncDataPath = path.join(filesDir, 'geoData-sync');
 
@@ -2282,14 +2281,14 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		try {
 			const allCountriesPath = path.join(this.syncDataPath, 'allCountries.zip');
 			this.logger.info('Downloading allCountries.zip (~300MB)...');
-			await this.downloadService.downloadUrl(this.OSM_DATA_SOURCES.allCountries, allCountriesPath);
+			await this.downloadService.downloadUrl(this.OSM_DATA_SOURCES.allCountries, allCountriesPath, false, true);
 
 			const alternateNamesPath = path.join(this.syncDataPath, 'alternateNames.zip');
 			this.logger.info('Downloading alternateNames.zip (multilingual names)...');
-			await this.downloadService.downloadUrl(this.OSM_DATA_SOURCES.alternateNames, alternateNamesPath);
+			await this.downloadService.downloadUrl(this.OSM_DATA_SOURCES.alternateNames, alternateNamesPath, false, true);
 
 			const admin1Path = path.join(this.syncDataPath, 'admin1Codes.txt');
-			await this.downloadService.downloadUrl(this.OSM_DATA_SOURCES.admin1Codes, admin1Path);
+			await this.downloadService.downloadUrl(this.OSM_DATA_SOURCES.admin1Codes, admin1Path, false, true);
 
 			const mainData = await this.processLargeGeoNamesFile(allCountriesPath);
 			results.push(...mainData);
@@ -2322,7 +2321,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				this.logger.info(`Downloading ${dataset.name} data...`);
 
 				const zipPath = path.join(this.syncDataPath, `${dataset.name}.zip`);
-				await this.downloadService.downloadUrl(dataset.url, zipPath);
+				await this.downloadService.downloadUrl(dataset.url, zipPath, false, true);
 
 				const geoData = await this.processGeoNamesZip(zipPath, dataset.minPopulation);
 				results.push(...geoData);

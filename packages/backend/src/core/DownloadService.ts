@@ -37,14 +37,14 @@ export class DownloadService {
 	}
 
 	@bindThis
-	public async downloadUrl(url: string, path: string, errorCode: boolean = false): Promise<{
+	public async downloadUrl(url: string, path: string, errorCode: boolean = false, allowLargeFile: boolean = false): Promise<{
 		filename: string;
 	}> {
 		this.logger.info(`Downloading ${chalk.cyan(url)} to ${chalk.cyanBright(path)} ...`);
 
 		const timeout = 30 * 1000;
 		const operationTimeout = 60 * 1000;
-		const maxSize = this.config.maxFileSize;
+		const maxSize = allowLargeFile ? 1024 * 1024 * 1024 * 1024 : this.config.maxFileSize; // 1TB when allowLargeFile is true
 
 		const urlObj = new URL(url);
 		let filename = urlObj.pathname.split('/').pop() ?? 'untitled';
@@ -78,15 +78,6 @@ export class DownloadService {
 				return;
 			}
 
-			const fileInfo = await FileType(path);
-			if (fileInfo?.mime === 'application/zip') {
-				const check = await this.securityCoreService.checkZip(path);
-				if (!check.result) {
-					this.logger.error(`Failed to check zip: ${check.reason}`);
-					return;
-				}
-			}
-
 			const contentLength = res.headers['content-length'];
 			if (contentLength != null) {
 				const size = Number(contentLength);
@@ -116,6 +107,15 @@ export class DownloadService {
 
 		try {
 			await stream.pipeline(req, fs.createWriteStream(path));
+
+			const fileInfo = await FileType(path);
+			if (fileInfo?.mime === 'application/zip') {
+				const check = await this.securityCoreService.checkZip(path);
+				if (!check.result) {
+					this.logger.error(`Failed to check zip: ${check.reason}`);
+					throw new Error(`Zip file security check failed: ${check.reason}`);
+				}
+			}
 		} catch (e) {
 			if (e instanceof Got.HTTPError) {
 				throw new StatusError(`${e.response.statusCode} ${e.response.statusMessage}`, e.response.statusCode, e.response.statusMessage);
