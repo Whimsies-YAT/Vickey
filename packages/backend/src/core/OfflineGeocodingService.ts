@@ -21,6 +21,7 @@ import { createReadStream, createWriteStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { EventEmitter } from 'node:events';
 import { setInterval, clearInterval, setTimeout, clearTimeout } from 'node:timers';
+import * as os from "os";
 
 interface GeocodingResult {
 	type: 'FeatureCollection';
@@ -2155,7 +2156,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			this.eventEmitter.removeAllListeners();
 
 			this.logger.info('OfflineGeocodingService shutdown complete');
-
 		} catch (error) {
 			this.logger.error('Error during shutdown:', error as Error);
 		} finally {
@@ -3539,7 +3539,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			const sampleSize = Math.min(1000, this.geoData.length);
 			let invalidCoords = 0;
 			let missingNames = 0;
-			let duplicateIds = new Set();
+			const duplicateIds = new Set();
 
 			for (let i = 0; i < sampleSize; i++) {
 				const entry = this.geoData[Math.floor(Math.random() * this.geoData.length)];
@@ -3562,11 +3562,11 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			}
 
 			if (invalidCoords > sampleSize * 0.1) {
-				criticalIssues.push(`High rate of invalid coordinates: ${Math.round(invalidCoords/sampleSize*100)}%`);
+				criticalIssues.push(`High rate of invalid coordinates: ${Math.round(invalidCoords / sampleSize * 100)}%`);
 			}
 
 			if (missingNames > sampleSize * 0.5) {
-				issues.push(`Many entries missing names: ${Math.round(missingNames/sampleSize*100)}%`);
+				issues.push(`Many entries missing names: ${Math.round(missingNames / sampleSize * 100)}%`);
 			}
 
 			const memUsage = process.memoryUsage();
@@ -3579,7 +3579,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				issues,
 				criticalIssues
 			};
-
 		} catch (error) {
 			criticalIssues.push(`Integrity check failed: ${(error as Error).message}`);
 			return {
@@ -3623,7 +3622,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			} else {
 				this.logger.warn('Emergency restart completed but data recovery is pending');
 			}
-
 		} catch (error) {
 			this.logger.error('Emergency restart failed:', error as Error);
 			throw error;
@@ -3637,7 +3635,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 			let totalSystemMemory = 0;
 			try {
-				const os = require('os');
 				totalSystemMemory = os.totalmem();
 			} catch (osError) {
 				this.logger.warn('OS totalmem not available, using conservative estimation');
@@ -3676,7 +3673,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		this.initializeMemoryMonitoring();
 		this.setupErrorHandling();
 	}
-
 
 	@bindThis
 	private setupGracefulShutdownHandling(): void {
