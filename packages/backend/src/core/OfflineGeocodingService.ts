@@ -2042,7 +2042,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			this.startInitialDownload().catch(error => {
 				this.logger.error('Initial offline geocoding data download failed:', error as any);
 			});
-
 		} catch (error) {
 			this.logger.error('Error during offline geocoding initialization:', error as any);
 		}
