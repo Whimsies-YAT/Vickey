@@ -2068,7 +2068,9 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 			if (hasExistingData) {
 				this.logger.info('Existing offline geocoding data loaded successfully');
-				await this.checkAndDownloadMissingData();
+				this.checkAndDownloadMissingData().catch(error => {
+					this.logger.error('Failed to check and download missing data:', error as Error);
+				});
 				return;
 			}
 
