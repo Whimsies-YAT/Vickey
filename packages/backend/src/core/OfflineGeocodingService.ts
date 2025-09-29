@@ -2885,18 +2885,17 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 	@bindThis
 	private async parseOSMPBF(filePath: string): Promise<GeoDataEntry[]> {
-		this.logger.info('Starting OSM PBF parsing with osm-pbf-parser-node...');
+		this.logger.info('Starting OSM PBF parsing with streaming memory optimization...');
 
-		const BATCH_SIZE = 10000;
-		const MAX_MEMORY_ENTRIES = 100000;
+		const BATCH_SIZE = 1000;
 		let batch: GeoDataEntry[] = [];
-		const allResults: GeoDataEntry[] = [];
+		let indexedCount = 0;
 
 		try {
 			const stats = await stat(filePath);
 			if (stats.size === 0) {
 				this.logger.warn('OSM PBF file is empty');
-				return allResults;
+				return [];
 			}
 
 			this.logger.info(`Processing OSM PBF file: ${Math.round(stats.size / 1024 / 1024)}MB`);
@@ -2936,13 +2935,9 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 								this.addToSpatialIndex(entry);
 							}
 
-							if (allResults.length < MAX_MEMORY_ENTRIES) {
-								allResults.push(...batch);
-							}
-
 							batch = [];
 
-							if (global.gc && processedCount % 50000 === 0) {
+							if (global.gc && processedCount % 25000 === 0) {
 								global.gc();
 							}
 						}
@@ -2952,11 +2947,17 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 						this.logger.info(`Processed: ${nodeCount} nodes, ${wayCount} ways, ${relationCount} relations. Found ${processedCount} relevant entries.`);
 
 						const memUsage = process.memoryUsage();
-						if (memUsage.heapUsed > 3000000000) { // 3GB threshold
-							this.logger.warn(`High memory usage detected: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`);
-							if (allResults.length > MAX_MEMORY_ENTRIES / 2) {
-								allResults.splice(0, allResults.length - MAX_MEMORY_ENTRIES / 4);
-								if (global.gc) global.gc();
+						const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
+						if (memUsage.heapUsed > 2000000000) {
+							this.logger.error(`High memory usage detected: ${heapUsedMB}MB - forcing immediate garbage collection`);
+							if (global.gc) {
+								global.gc();
+								global.gc();
+							}
+							const memAfterGC = process.memoryUsage();
+							if (memAfterGC.heapUsed > 2500000000) {
+								this.logger.error(`Memory still too high after GC (${Math.round(memAfterGC.heapUsed / 1024 / 1024)}MB), stopping processing to prevent crash`);
+								break;
 							}
 						}
 					}
@@ -2969,18 +2970,16 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				for (const entry of batch) {
 					this.addToSpatialIndex(entry);
 				}
-				if (allResults.length < MAX_MEMORY_ENTRIES) {
-					allResults.push(...batch);
-				}
+				indexedCount += batch.length;
 			}
 
 			this.logger.info(`OSM PBF parsing completed: ${processedCount} relevant entries processed from ${nodeCount} nodes, ${wayCount} ways, ${relationCount} relations`);
-			this.logger.info(`Returned ${allResults.length} entries in memory (others added directly to spatial index)`);
+			this.logger.info(`Indexed ${indexedCount} entries directly to spatial index`);
 		} catch (error) {
 			this.logger.error('OSM PBF parsing failed:', error as any);
 		}
 
-		return allResults;
+		return [];
 	}
 
 	@bindThis
