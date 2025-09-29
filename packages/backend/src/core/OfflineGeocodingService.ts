@@ -2890,8 +2890,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			let wayCount = 0;
 			let relationCount = 0;
 
-			const fileBuffer = await fs.readFile(filePath);
-
 			await osmPbfParserNode.parseFromFile(filePath, (item: any) => {
 				try {
 					if (item.type === 'node') {
