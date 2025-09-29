@@ -2361,7 +2361,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 		try {
 			const allCountriesPath = path.join(this.syncDataPath, 'allCountries.zip');
-			this.logger.info('Downloading allCountries.zip (~300MB)...');
+			this.logger.info('Downloading allCountries.zip...');
 			await this.downloadService.downloadUrl(this.OSM_DATA_SOURCES.allCountries, allCountriesPath, false, true, true);
 
 			const alternateNamesPath = path.join(this.syncDataPath, 'alternateNames.zip');
@@ -2838,7 +2838,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		try {
 			if (this.config.offlineGeocoding?.downloadOSM) {
 				this.logger.warn('Starting OSM data download for global dataset...');
-				this.logger.warn('WARNING: This will download the entire planet OSM data (~70GB). This may take several hours and requires significant disk space and memory.');
+				this.logger.warn('WARNING: This will download the entire planet OSM data. This may take several hours and requires significant disk space and memory.');
 
 				const planetOsmPath = path.join(this.syncDataPath, 'planet-latest.osm.pbf');
 
