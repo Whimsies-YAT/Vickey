@@ -37,13 +37,13 @@ export class DownloadService {
 	}
 
 	@bindThis
-	public async downloadUrl(url: string, path: string, errorCode: boolean = false, allowLargeFile: boolean = false): Promise<{
+	public async downloadUrl(url: string, path: string, errorCode: boolean = false, allowLargeFile: boolean = false, longTimeout: boolean = false): Promise<{
 		filename: string;
 	}> {
 		this.logger.info(`Downloading ${chalk.cyan(url)} to ${chalk.cyanBright(path)} ...`);
 
-		const timeout = 30 * 1000;
-		const operationTimeout = 60 * 1000;
+		const timeout = longTimeout ? 600 * 1000 : 30 * 1000; // 10 minutes vs 30 seconds
+		const operationTimeout = longTimeout ? 24 * 3600 * 1000 : 60 * 1000; // 6 hours vs 1 minute
 		const maxSize = allowLargeFile ? 1024 * 1024 * 1024 * 1024 : this.config.maxFileSize; // 1TB when allowLargeFile is true
 
 		const urlObj = new URL(url);
@@ -52,6 +52,7 @@ export class DownloadService {
 		const req = got.stream(url, {
 			headers: {
 				'User-Agent': this.config.userAgent,
+				'Accept-Encoding': 'identity',
 			},
 			timeout: {
 				lookup: timeout,
@@ -72,6 +73,7 @@ export class DownloadService {
 			},
 			enableUnixSockets: false,
 			followRedirect: true,
+			decompress: false,
 		}).on('response', async (res: Got.Response) => {
 			if (errorCode && (res.statusCode.toString().startsWith("4")) || res.statusCode.toString().startsWith("5")) {
 				this.logger.error("Download failed. The status code is " + res.statusCode.toString());

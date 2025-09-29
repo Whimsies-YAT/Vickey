@@ -16,12 +16,44 @@ import { Worker } from 'node:worker_threads';
 import { LoggerService } from '@/core/LoggerService.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { DownloadService } from '@/core/DownloadService.js';
-import * as zlib from 'node:zlib';
 import { createReadStream, createWriteStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { EventEmitter } from 'node:events';
 import { setInterval, clearInterval, setTimeout, clearTimeout } from 'node:timers';
 import * as os from "os";
+import { ZipReader } from 'slacc';
+import * as osmPbfParserNode from 'osm-pbf-parser-node';
+
+declare module 'osm-pbf-parser-node' {
+	interface OSMNode {
+		id: number;
+		lat: number;
+		lon: number;
+		tags: Record<string, string>;
+	}
+
+	interface OSMWay {
+		id: number;
+		lat: number;
+		lon: number;
+		tags: Record<string, string>;
+		nodes: number[];
+	}
+
+	interface OSMRelation {
+		id: number;
+		lat: number;
+		lon: number;
+		tags: Record<string, string>;
+		members: Array<{
+			type: 'node' | 'way' | 'relation';
+			ref: number;
+			role: string;
+		}>;
+	}
+
+	export function parseFromFile(filePath: string, callback: (item: OSMNode | OSMWay | OSMRelation) => void): Promise<void>;
+}
 
 interface GeocodingResult {
 	type: 'FeatureCollection';
@@ -181,8 +213,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		cities500: 'https://download.geonames.org/export/dump/cities500.zip',
 
 		planet: 'https://planet.openstreetmap.org/pbf/planet-latest.osm.pbf',
-		asia: 'https://download.geofabrik.de/asia-latest.osm.pbf',
-		china: 'https://download.geofabrik.de/asia/china-latest.osm.pbf',
 
 		changesets: 'https://planet.openstreetmap.org/replication/changesets/',
 		minutely: 'https://planet.openstreetmap.org/replication/minute/',
@@ -387,11 +417,12 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	}
 
 	@bindThis
-	private filterAndValidateData(entries: Partial<GeoDataEntry>[]): GeoDataEntry[] {
+	private async filterAndValidateData(entries: Partial<GeoDataEntry>[]): Promise<GeoDataEntry[]> {
 		const validEntries: GeoDataEntry[] = [];
 		const seenCoordinates = new Set<string>();
 
-		for (const entry of entries) {
+		for (let i = 0; i < entries.length; i++) {
+			const entry = entries[i];
 			this.dataQualityStats.totalProcessed++;
 
 			const validation = this.validateGeoDataEntry(entry);
@@ -418,6 +449,11 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 			validEntries.push(entry as GeoDataEntry);
 			this.dataQualityStats.validEntries++;
+
+			// Yield control every 1000 entries to prevent call stack overflow
+			if (i % 1000 === 0) {
+				await new Promise(resolve => setImmediate(resolve));
+			}
 		}
 
 		return validEntries;
@@ -470,6 +506,22 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 					this.logger.info(`Network request successful: ${ requestId } (${ duration }ms, attempt ${ attempt + 1 })`);
 
 					this.networkRetryStats.delete(requestId);
+
+					if (typeof response === 'object' && response && 'text' in response) {
+						const contentType = response.headers?.get?.('content-type') || '';
+						const isGzipped = contentType.includes('gzip') || url.endsWith('.gz');
+						const isBinary = isGzipped || contentType.includes('application/octet-stream') || contentType.includes('application/x-gzip');
+
+						if (isBinary) {
+							const arrayBuffer = await response.arrayBuffer();
+							const buffer = Buffer.from(arrayBuffer);
+							return buffer as T;
+						} else {
+							const textContent = await response.text();
+							return textContent as T;
+						}
+					}
+
 					return response as T;
 				} catch (fetchError) {
 					clearTimeout(timeoutId);
@@ -522,28 +574,15 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 	@bindThis
 	private async streamDecompressFile(zipPath: string, outputPath: string): Promise<void> {
-		return new Promise((resolve, reject) => {
-			const readStream = createReadStream(zipPath);
-			const writeStream = createWriteStream(outputPath);
-			const unzipStream = zlib.createUnzip();
-
-			readStream
-				.pipe(unzipStream)
-				.pipe(writeStream)
-				.on('finish', () => {
-					this.logger.info('Stream decompression completed');
-					resolve();
-				})
-				.on('error', (error: any) => {
-					this.logger.error('Stream decompression failed:', error);
-					reject(error);
-				});
-
-			readStream.on('error', (error: any) => {
-				this.logger.error('Read stream error:', error);
-				reject(error);
-			});
-		});
+		try {
+			this.logger.info('Starting decompression with slacc');
+			const zipBuffer = await fs.readFile(zipPath);
+			await ZipReader.withDestinationPath(path.dirname(outputPath)).viaBuffer(zipBuffer);
+			this.logger.info('Stream decompression completed');
+		} catch (error: any) {
+			this.logger.error('Stream decompression failed:', error);
+			throw error;
+		}
 	}
 
 	@bindThis
@@ -576,9 +615,30 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 		console.log('Initializing offline geocoding service...');
 
+		try {
+			const optimizedData = await this.loadGeoDataFromFile('cities_optimized.json');
+			if (optimizedData.length > 0) {
+				this.geoData = optimizedData;
+
+				try {
+					const indexPath = path.join(this.dataPath, 'spatial_index.json');
+					const indexData = JSON.parse(await fs.readFile(indexPath, 'utf-8'));
+					this.spatialIndex = new Map(indexData);
+					console.log(`Loaded precomputed spatial index with ${this.spatialIndex.size} grid cells`);
+				} catch (indexError) {
+					this.buildSpatialIndex();
+				}
+
+				this.isInitialized = true;
+				console.log(`Offline geocoding initialized with optimized data: ${this.geoData.length} entries`);
+				return;
+			}
+		} catch (error) {
+			console.log('No optimized data found, trying legacy format...');
+		}
+
 		const dataFiles = [
 			'cities_world.json',
-			'cities_china.json',
 			'administrative_divisions.json',
 			'poi_data.json'
 		];
@@ -1002,7 +1062,9 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			});
 
 			const batchResults = await Promise.all(batchPromises);
-			results.push(...batchResults);
+			for (const result of batchResults) {
+				results.push(result);
+			}
 		}
 
 		return results;
@@ -2006,33 +2068,36 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 			if (hasExistingData) {
 				this.logger.info('Existing offline geocoding data loaded successfully');
+				await this.checkAndDownloadMissingData();
 				return;
 			}
 
-			const dataFiles = [
+			const geoNamesDataFiles = [
 				'cities_world.json',
-				'cities_china.json',
 				'administrative_divisions.json',
-				'poi_data.json'
+				'poi_data.json',
+				'cities_optimized.json'
 			];
 
-			let hasJsonData = false;
-			for (const filename of dataFiles) {
+			let hasGeoNamesData = false;
+			for (const filename of geoNamesDataFiles) {
 				try {
 					const filePath = path.join(this.dataPath, filename);
 					await fs.access(filePath);
 					const stats = await fs.stat(filePath);
 					if (stats.size > 0) {
-						hasJsonData = true;
+						hasGeoNamesData = true;
 						break;
 					}
 				} catch (error) {
 				}
 			}
 
-			if (hasJsonData) {
-				this.logger.info('Found existing JSON format data files');
+			if (hasGeoNamesData) {
+				this.logger.info('Found existing GeoNames data files');
 				await this.initialize();
+				// Check if we need to download OSM data separately
+				await this.checkAndDownloadMissingData();
 				return;
 			}
 
@@ -2068,8 +2133,12 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 					this.geoData = optimizedData;
 					this.buildSpatialIndex();
 
+					await this.ensureDataDirectory();
+
 					if (optimizedData.length > this.COMPRESS_THRESHOLD && !this.elasticClient) {
 						await this.convertToBinaryFormat(optimizedData);
+					} else {
+						await this.saveOptimizedDataAsJSON(optimizedData);
 					}
 
 					this.logger.info(`Initial offline geocoding data download completed: ${optimizedData.length} entries`);
@@ -2249,17 +2318,26 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 		if (this.config.offlineGeocoding?.downloadFullGeoNames !== false) {
 			const fullGeoNamesData = await this.downloadAndProcessFullGeoNames();
-			results.push(...fullGeoNamesData);
+			// Use for loop instead of spread to avoid call stack issues
+			for (const entry of fullGeoNamesData) {
+				results.push(entry);
+			}
 			this.logger.info(`Full GeoNames data: ${fullGeoNamesData.length} entries`);
 		} else {
 			const cityData = await this.downloadAndProcessGeoNamesCities();
-			results.push(...cityData);
+			// Use for loop instead of spread to avoid call stack issues
+			for (const entry of cityData) {
+				results.push(entry);
+			}
 			this.logger.info(`City data: ${cityData.length} entries`);
 		}
 
 		if (this.config.offlineGeocoding?.downloadOSM) {
 			const osmData = await this.downloadAndProcessOSMPBF();
-			results.push(...osmData);
+			// Use for loop instead of spread to avoid call stack issues
+			for (const entry of osmData) {
+				results.push(entry);
+			}
 			this.logger.info(`OSM data: ${osmData.length} entries`);
 		}
 
@@ -2281,17 +2359,20 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		try {
 			const allCountriesPath = path.join(this.syncDataPath, 'allCountries.zip');
 			this.logger.info('Downloading allCountries.zip (~300MB)...');
-			await this.downloadService.downloadUrl(this.OSM_DATA_SOURCES.allCountries, allCountriesPath, false, true);
+			await this.downloadService.downloadUrl(this.OSM_DATA_SOURCES.allCountries, allCountriesPath, false, true, true);
 
 			const alternateNamesPath = path.join(this.syncDataPath, 'alternateNames.zip');
 			this.logger.info('Downloading alternateNames.zip (multilingual names)...');
-			await this.downloadService.downloadUrl(this.OSM_DATA_SOURCES.alternateNames, alternateNamesPath, false, true);
+			await this.downloadService.downloadUrl(this.OSM_DATA_SOURCES.alternateNames, alternateNamesPath, false, true, true);
 
 			const admin1Path = path.join(this.syncDataPath, 'admin1Codes.txt');
 			await this.downloadService.downloadUrl(this.OSM_DATA_SOURCES.admin1Codes, admin1Path, false, true);
 
 			const mainData = await this.processLargeGeoNamesFile(allCountriesPath);
-			results.push(...mainData);
+			// Use for loop instead of spread to avoid call stack issues
+			for (const entry of mainData) {
+				results.push(entry);
+			}
 			this.logger.info(`Main data processed: ${ mainData.length } records`);
 
 			if ((this.config as any).offlineGeocoding?.includeAlternateNames !== false) {
@@ -2324,7 +2405,10 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				await this.downloadService.downloadUrl(dataset.url, zipPath, false, true);
 
 				const geoData = await this.processGeoNamesZip(zipPath, dataset.minPopulation);
-				results.push(...geoData);
+				// Use for loop instead of spread to avoid call stack issues
+				for (const entry of geoData) {
+					results.push(entry);
+				}
 
 				this.logger.info(`${dataset.name} processed: ${geoData.length} records`);
 			} catch (error) {
@@ -2340,24 +2424,65 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		const results: GeoDataEntry[] = [];
 
 		try {
-			const zipData = await fs.readFile(zipPath);
-			const unzippedData = zlib.unzipSync(zipData);
+			const tempDir = path.join(this.syncDataPath, 'temp_extract_' + Date.now());
+			await fs.mkdir(tempDir, { recursive: true });
 
-			const csvContent = unzippedData.toString('utf-8');
-			const lines = csvContent.split('\n');
+			try {
+				const zipBuffer = await fs.readFile(zipPath);
+				await ZipReader.withDestinationPath(tempDir).viaBuffer(zipBuffer);
 
-			for (const line of lines) {
-				if (!line.trim()) continue;
+				const files = await fs.readdir(tempDir);
+				if (files.length === 0) {
+					throw new Error('No files extracted from ZIP');
+				}
 
-				const parts = line.split('\t');
-				if (parts.length < 19) continue;
+				const txtFile = files.find(file => file.endsWith('.txt'));
+				if (!txtFile) {
+					throw new Error('No .txt file found in ZIP');
+				}
 
-				try {
-					const geoEntry = this.parseGeoNamesLine(parts, minPopulation);
-					if (geoEntry) {
-						results.push(geoEntry);
+				const csvContent = await fs.readFile(path.join(tempDir, txtFile), 'utf-8');
+				const lines = csvContent.split('\n');
+
+				const batchSize = 1000;
+				const batch: GeoDataEntry[] = [];
+
+				for (let i = 0; i < lines.length; i++) {
+					const line = lines[i];
+					if (!line.trim()) continue;
+
+					const parts = line.split('\t');
+					if (parts.length < 19) continue;
+
+					try {
+						const geoEntry = this.parseGeoNamesLine(parts, minPopulation);
+						if (geoEntry) {
+							batch.push(geoEntry);
+						}
+					} catch (parseError) {
 					}
-				} catch (parseError) {
+
+					if (batch.length >= batchSize || i % 1000 === 0) {
+						if (batch.length > 0) {
+							for (const item of batch) {
+								results.push(item);
+							}
+							batch.length = 0;
+						}
+						await new Promise(resolve => setImmediate(resolve));
+					}
+				}
+
+				if (batch.length > 0) {
+					for (const item of batch) {
+						results.push(item);
+					}
+				}
+			} finally {
+				try {
+					await fs.rm(tempDir, { recursive: true, force: true });
+				} catch (cleanupError) {
+					this.logger.warn('Failed to cleanup temp directory:', (cleanupError as Error));
 				}
 			}
 		} catch (error) {
@@ -2461,7 +2586,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				let buffer = '';
 				let chunkData: Partial<GeoDataEntry>[] = [];
 
-				stream.on('data', (chunk: string | Buffer) => {
+				stream.on('data', async (chunk: string | Buffer) => {
 					stream.pause();
 
 					const chunkStr = typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
@@ -2505,12 +2630,22 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 					}
 
 					if (chunkData.length >= CHUNK_SIZE) {
-						const validEntries = this.filterAndValidateData(chunkData);
-						results.push(...validEntries);
+						const validEntries = await this.filterAndValidateData(chunkData);
+						for (const entry of validEntries) {
+							results.push(entry);
+						}
 						chunkData = [];
 
+						if (results.length > 500000) {
+							this.logger.warn(`Results array too large (${results.length}), clearing to prevent memory overflow`);
+							results.length = Math.min(results.length, 100000);
+							if (global.gc) {
+								global.gc();
+							}
+						}
+
 						const progress = Math.round((processedSize / totalSize) * 100);
-						this.logger.info(`Processing progress: ${progress}% (${lineCount} lines, ${validEntryCount} valid entries)`);
+						this.logger.info(`Processing progress: ${progress}% (${lineCount} lines, ${validEntryCount} valid entries, ${results.length} in memory)`);
 
 						setTimeout(() => {
 							stream.resume();
@@ -2521,7 +2656,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 					setImmediate(() => stream.resume());
 				});
 
-				stream.on('end', () => {
+				stream.on('end', async () => {
 					try {
 						if (buffer.trim()) {
 							try {
@@ -2539,8 +2674,10 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 						}
 
 						if (chunkData.length > 0) {
-							const validEntries = this.filterAndValidateData(chunkData);
-							results.push(...validEntries);
+							const validEntries = await this.filterAndValidateData(chunkData);
+							for (const entry of validEntries) {
+								results.push(entry);
+							}
 						}
 
 						this.logger.info(`File processing completed:`);
@@ -2577,38 +2714,113 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				geonameIdIndex.set(entry.place_id, entry);
 			}
 
-			const zipData = await fs.readFile(zipPath);
-			const decompressed = zlib.unzipSync(zipData);
-			const content = decompressed.toString('utf-8');
+			const tempDir = path.join(this.syncDataPath, 'temp_extract_alt_' + Date.now());
+			await fs.mkdir(tempDir, { recursive: true });
 
-			const lines = content.split('\n');
-			let processedCount = 0;
+			try {
+				const zipBuffer = await fs.readFile(zipPath);
+				await ZipReader.withDestinationPath(tempDir).viaBuffer(zipBuffer);
 
-			for (const line of lines) {
-				if (!line.trim()) continue;
-
-				const parts = line.split('\t');
-				if (parts.length >= 4) {
-					const geonameId = parseInt(parts[1]);
-					const alternateName = parts[3];
-					const isoLanguage = parts[2];
-
-					const entry = geonameIdIndex.get(geonameId);
-					if (entry && alternateName && isoLanguage) {
-						if (!entry.properties.alternate_names) {
-							entry.properties.alternate_names = {};
-						}
-						entry.properties.alternate_names[isoLanguage] = alternateName;
-						processedCount++;
-					}
+				const files = await fs.readdir(tempDir);
+				if (files.length === 0) {
+					throw new Error('No files extracted from ZIP');
 				}
 
-				if (processedCount % 100000 === 0) {
-					this.logger.info(`Multilingual names processing progress: ${processedCount} entries`);
+				const txtFile = files.find(file => file.endsWith('.txt'));
+				if (!txtFile) {
+					throw new Error('No .txt file found in ZIP');
+				}
+
+				const filePath = path.join(tempDir, txtFile);
+				const stream = createReadStream(filePath, { encoding: 'utf-8', highWaterMark: 64 * 1024 });
+
+				let processedCount = 0;
+				let buffer = '';
+				let lineNumber = 0;
+
+				const processChunk = (chunk: string) => {
+					buffer += chunk;
+					const lines = buffer.split('\n');
+					buffer = lines.pop() || '';
+
+					for (const line of lines) {
+						lineNumber++;
+						if (!line.trim()) continue;
+
+						try {
+							const parts = line.split('\t');
+							if (parts.length >= 4) {
+								const geonameId = parseInt(parts[1]);
+								const alternateName = parts[3];
+								const isoLanguage = parts[2];
+
+								const entry = geonameIdIndex.get(geonameId);
+								if (entry && alternateName && isoLanguage) {
+									if (!entry.properties.alternate_names) {
+										entry.properties.alternate_names = {};
+									}
+									entry.properties.alternate_names[isoLanguage] = alternateName;
+									processedCount++;
+								}
+							}
+						} catch (parseError) {
+							if (lineNumber % 100000 === 0) {
+								this.logger.warn(`Parse error at line ${lineNumber}:`, parseError as Error);
+							}
+						}
+
+						if (processedCount % 50000 === 0 && processedCount > 0) {
+							this.logger.info(`Multilingual names processing progress: ${processedCount} entries`);
+						}
+					}
+				};
+
+				await new Promise<void>((resolve, reject) => {
+					stream.on('data', (chunk: string | Buffer) => {
+						try {
+							const chunkStr = typeof chunk === 'string' ? chunk : chunk.toString('utf8');
+							processChunk(chunkStr);
+						} catch (error) {
+							this.logger.error('Error processing chunk:', error as Error);
+						}
+					});
+
+					stream.on('end', () => {
+						if (buffer.trim()) {
+							try {
+								const parts = buffer.split('\t');
+								if (parts.length >= 4) {
+									const geonameId = parseInt(parts[1]);
+									const alternateName = parts[3];
+									const isoLanguage = parts[2];
+
+									const entry = geonameIdIndex.get(geonameId);
+									if (entry && alternateName && isoLanguage) {
+										if (!entry.properties.alternate_names) {
+											entry.properties.alternate_names = {};
+										}
+										entry.properties.alternate_names[isoLanguage] = alternateName;
+										processedCount++;
+									}
+								}
+							} catch (parseError) {
+								this.logger.warn('Error processing final buffer:', parseError as Error);
+							}
+						}
+						resolve();
+					});
+
+					stream.on('error', reject);
+				});
+
+				this.logger.info(`Multilingual names processing completed: ${processedCount} entries`);
+			} finally {
+				try {
+					await fs.rm(tempDir, { recursive: true, force: true });
+				} catch (cleanupError) {
+					this.logger.warn('Failed to cleanup temp directory:', (cleanupError as Error));
 				}
 			}
-
-			this.logger.info(`Multilingual names processing completed: ${processedCount} entries`);
 		} catch (error) {
 			this.logger.warn('Failed to process multilingual names:', error as any);
 		}
@@ -2618,7 +2830,572 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	private async downloadAndProcessOSMPBF(): Promise<GeoDataEntry[]> {
 		this.logger.warn('Processing OSM PBF data requires a large amount of memory and time (several GB of data). Recommended to enable only when necessary.');
 
-		return [];
+		const results: GeoDataEntry[] = [];
+
+		try {
+			if (this.config.offlineGeocoding?.downloadOSM) {
+				this.logger.warn('Starting OSM data download for global dataset...');
+				this.logger.warn('WARNING: This will download the entire planet OSM data (~70GB). This may take several hours and requires significant disk space and memory.');
+
+				const planetOsmPath = path.join(this.syncDataPath, 'planet-latest.osm.pbf');
+
+				try {
+					await this.downloadService.downloadUrl(
+						this.OSM_DATA_SOURCES.planet,
+						planetOsmPath,
+						false,
+						true,
+						true
+					);
+
+					this.logger.info('OSM PBF file downloaded, processing...');
+
+					const osmEntries = await this.parseOSMPBF(planetOsmPath);
+					results.push(...osmEntries);
+
+					this.logger.info(`OSM processing completed: ${osmEntries.length} entries`);
+				} catch (downloadError) {
+					this.logger.warn('OSM data download failed, skipping OSM processing:', downloadError as any);
+				}
+			}
+		} catch (error) {
+			this.logger.error('OSM processing failed:', error as any);
+		}
+
+		return results;
+	}
+
+	@bindThis
+	private async parseOSMPBF(filePath: string): Promise<GeoDataEntry[]> {
+		this.logger.info('Starting OSM PBF parsing with osm-pbf-parser-node...');
+
+		const results: GeoDataEntry[] = [];
+
+		try {
+			const stats = await stat(filePath);
+			if (stats.size === 0) {
+				this.logger.warn('OSM PBF file is empty');
+				return results;
+			}
+
+			this.logger.info(`Processing OSM PBF file: ${Math.round(stats.size / 1024 / 1024)}MB`);
+
+			let processedCount = 0;
+			let nodeCount = 0;
+			let wayCount = 0;
+			let relationCount = 0;
+
+			const fileBuffer = await fs.readFile(filePath);
+
+			await osmPbfParserNode.parseFromFile(filePath, (item: any) => {
+				try {
+					if (item.type === 'node') {
+						nodeCount++;
+						if (item.tags && this.isRelevantOSMNode(item.tags)) {
+							const geoEntry = this.convertOSMNodeToGeoEntry(item);
+							if (geoEntry) {
+								results.push(geoEntry);
+								processedCount++;
+							}
+						}
+					} else if (item.type === 'way') {
+						wayCount++;
+						if (item.tags && this.isRelevantOSMWay(item.tags)) {
+							const geoEntry = this.convertOSMWayToGeoEntry(item);
+							if (geoEntry) {
+								results.push(geoEntry);
+								processedCount++;
+							}
+						}
+					} else if (item.type === 'relation') {
+						relationCount++;
+						if (item.tags && this.isRelevantOSMRelation(item.tags)) {
+							const geoEntry = this.convertOSMRelationToGeoEntry(item);
+							if (geoEntry) {
+								results.push(geoEntry);
+								processedCount++;
+							}
+						}
+					}
+
+					if ((nodeCount + wayCount + relationCount) % 50000 === 0) {
+						this.logger.info(`Processed: ${nodeCount} nodes, ${wayCount} ways, ${relationCount} relations. Found ${processedCount} relevant entries.`);
+					}
+				} catch (err) {
+					this.logger.warn('Error processing OSM item:', err as Error);
+				}
+			});
+
+			this.logger.info(`OSM PBF parsing completed: ${results.length} relevant entries found from ${nodeCount} nodes, ${wayCount} ways, ${relationCount} relations`);
+
+		} catch (error) {
+			this.logger.error('OSM PBF parsing failed:', error as any);
+		}
+
+		return results;
+	}
+
+	@bindThis
+	private async parsePBFBuffer(buffer: Buffer): Promise<any[]> {
+		const results: any[] = [];
+		let offset = 0;
+
+		this.logger.info('Parsing PBF buffer with custom implementation...');
+
+		while (offset < buffer.length) {
+			try {
+				if (offset + 4 > buffer.length) break;
+
+				const headerLength = buffer.readUInt32BE(offset);
+				offset += 4;
+
+				if (offset + headerLength > buffer.length) break;
+
+				const headerData = buffer.subarray(offset, offset + headerLength);
+				offset += headerLength;
+
+				const header = this.parseSimplePBFMessage(headerData);
+
+				if (!header.datasize) continue;
+
+				const blobSize = header.datasize;
+				if (offset + blobSize > buffer.length) break;
+
+				const blobData = buffer.subarray(offset, offset + blobSize);
+				offset += blobSize;
+
+				const blob = this.parseSimplePBFMessage(blobData);
+
+				let primitiveBlockData: Buffer;
+
+				if (blob.raw) {
+					primitiveBlockData = blob.raw;
+				} else if (blob.zlib_data) {
+					const zlib = await import('node:zlib');
+					primitiveBlockData = zlib.inflateSync(blob.zlib_data);
+				} else {
+					continue;
+				}
+
+				const primitiveBlock = this.parseSimplePBFMessage(primitiveBlockData);
+
+				if (primitiveBlock.primitivegroup) {
+					const groups = Array.isArray(primitiveBlock.primitivegroup)
+						? primitiveBlock.primitivegroup
+						: [primitiveBlock.primitivegroup];
+
+					for (const group of groups) {
+						if (group.nodes) {
+							const nodes = Array.isArray(group.nodes) ? group.nodes : [group.nodes];
+							for (const node of nodes) {
+								if (node.id && node.lat !== undefined && node.lon !== undefined) {
+									const lat = node.lat / 10000000;
+									const lon = node.lon / 10000000;
+
+									const tags: Record<string, string> = {};
+									if (node.keys && node.vals && primitiveBlock.stringtable) {
+										const strings = primitiveBlock.stringtable.s || [];
+										for (let i = 0; i < node.keys.length && i < node.vals.length; i++) {
+											const keyIndex = node.keys[i];
+											const valIndex = node.vals[i];
+											if (strings[keyIndex] && strings[valIndex]) {
+												const key = strings[keyIndex].toString('utf8');
+												const val = strings[valIndex].toString('utf8');
+												tags[key] = val;
+											}
+										}
+									}
+
+									results.push({
+										type: 'node',
+										id: node.id,
+										lat,
+										lon,
+										tags
+									});
+								}
+							}
+						}
+					}
+				}
+
+				if (results.length % 50000 === 0) {
+					await new Promise(resolve => setImmediate(resolve));
+				}
+
+			} catch (parseError) {
+				this.logger.warn(`PBF parsing error at offset ${offset}:`, parseError as Error);
+				offset += Math.min(1024, buffer.length - offset);
+			}
+		}
+
+		return results;
+	}
+
+	@bindThis
+	private parseSimplePBFMessage(buffer: Buffer): any {
+		const result: any = {};
+		let offset = 0;
+
+		while (offset < buffer.length) {
+			const { value: fieldHeader, length: headerLen } = this.readVarint(buffer, offset);
+			offset += headerLen;
+
+			const fieldNumber = fieldHeader >> 3;
+			const wireType = fieldHeader & 0x7;
+
+			if (wireType === 0) {
+				const { value, length } = this.readVarint(buffer, offset);
+				offset += length;
+				this.setField(result, fieldNumber, value);
+			} else if (wireType === 2) {
+				const { value: length, length: lenLen } = this.readVarint(buffer, offset);
+				offset += lenLen;
+
+				if (offset + length > buffer.length) break;
+
+				const data = buffer.subarray(offset, offset + length);
+				offset += length;
+
+				if (fieldNumber === 1 || fieldNumber === 2) { // stringtable.s
+					if (!result.stringtable) result.stringtable = {};
+					if (!result.stringtable.s) result.stringtable.s = [];
+					result.stringtable.s.push(data);
+				} else if (fieldNumber === 2 && result.type === 'primitivegroup') { // primitivegroup.nodes
+					if (!result.nodes) result.nodes = [];
+					result.nodes.push(this.parseSimplePBFMessage(data));
+				} else {
+					this.setField(result, fieldNumber, data);
+				}
+			} else {
+				break;
+			}
+		}
+
+		return result;
+	}
+
+	@bindThis
+	private readVarint(buffer: Buffer, offset: number): { value: number, length: number } {
+		let value = 0;
+		let length = 0;
+		let shift = 0;
+
+		while (offset + length < buffer.length) {
+			const byte = buffer[offset + length];
+			length++;
+
+			value |= (byte & 0x7F) << shift;
+			shift += 7;
+
+			if ((byte & 0x80) === 0) {
+				break;
+			}
+
+			if (length > 10) {
+				throw new Error('Varint too long');
+			}
+		}
+
+		return { value, length };
+	}
+
+	@bindThis
+	private setField(obj: any, fieldNumber: number, value: any): void {
+		const fieldMap: Record<number, string> = {
+			1: 'type',
+			2: 'primitivegroup',
+			3: 'datasize',
+			4: 'raw',
+			5: 'zlib_data',
+			8: 'nodes',
+			10: 'id',
+			11: 'keys',
+			12: 'vals',
+			13: 'lat',
+			14: 'lon'
+		};
+
+		const fieldName = fieldMap[fieldNumber] || `field_${fieldNumber}`;
+
+		if (obj[fieldName] !== undefined) {
+			if (!Array.isArray(obj[fieldName])) {
+				obj[fieldName] = [obj[fieldName]];
+			}
+			obj[fieldName].push(value);
+		} else {
+			obj[fieldName] = value;
+		}
+	}
+
+	@bindThis
+	private isRelevantOSMNode(tags: Record<string, string>): boolean {
+		const relevantKeys = [
+			'place', 'name', 'amenity', 'shop', 'tourism', 'leisure',
+			'office', 'craft', 'emergency', 'healthcare', 'historic',
+			'landuse', 'natural', 'railway', 'highway', 'addr:city',
+			'addr:town', 'addr:village', 'population'
+		];
+
+		return relevantKeys.some(key => tags[key] !== undefined) ||
+			   (tags.name !== undefined && Object.keys(tags).length > 1);
+	}
+
+	@bindThis
+	private convertOSMNodeToGeoEntry(osmNode: any): GeoDataEntry | null {
+		if (!osmNode.tags || !osmNode.lat || !osmNode.lon) return null;
+
+		const tags = osmNode.tags;
+		const level = this.determineOSMLevel(tags);
+		const importance = this.calculateOSMImportance(tags);
+
+		let population: number | undefined;
+		if (tags.population) {
+			const pop = parseInt(tags.population);
+			if (!isNaN(pop)) population = pop;
+		}
+
+		return {
+			lat: osmNode.lat,
+			lon: osmNode.lon,
+			properties: {
+				name: tags.name || tags['name:en'] || tags['name:zh'] || '',
+				display_name: this.formatOSMDisplayName(tags),
+				city: tags['addr:city'] || tags['is_in:city'],
+				town: tags['addr:town'],
+				village: tags['addr:village'],
+				county: tags['addr:county'],
+				state: tags['addr:state'] || tags['is_in:state'],
+				country: tags['addr:country'] || tags['is_in:country'],
+				country_code: tags['addr:country_code'] || tags['ISO3166-1'],
+				postcode: tags['addr:postcode'],
+				road: tags['addr:street'],
+				house_number: tags['addr:housenumber'],
+				district: tags['addr:district'],
+				suburb: tags['addr:suburb'],
+				neighbourhood: tags['addr:neighbourhood'],
+				...tags
+			},
+			level,
+			population,
+			importance,
+			place_id: parseInt(osmNode.id.toString()),
+			osm_id: parseInt(osmNode.id.toString()),
+			hash: this.generateDataHash(`osm_${osmNode.id}`)
+		};
+	}
+
+	@bindThis
+	private formatOSMDisplayName(tags: Record<string, string>): string {
+		const parts: string[] = [];
+
+		if (tags.name) parts.push(tags.name);
+		if (tags.amenity && tags.amenity !== tags.name) parts.push(tags.amenity);
+		if (tags['addr:street']) parts.push(tags['addr:street']);
+		if (tags['addr:city'] && tags['addr:city'] !== tags.name) parts.push(tags['addr:city']);
+		if (tags['addr:state']) parts.push(tags['addr:state']);
+		if (tags['addr:country']) parts.push(tags['addr:country']);
+
+		return parts.length > 0 ? parts.join(', ') : `OSM Node ${tags.id || 'Unknown'}`;
+	}
+
+	@bindThis
+	private isRelevantOSMWay(tags: Record<string, string>): boolean {
+		const relevantKeys = [
+			'highway', 'building', 'name', 'place', 'landuse', 'natural',
+			'amenity', 'shop', 'leisure', 'tourism', 'historic', 'addr:city',
+			'addr:town', 'addr:street', 'railway', 'waterway', 'man_made'
+		];
+
+		return relevantKeys.some(key => tags[key] !== undefined) ||
+			   (tags.name !== undefined && Object.keys(tags).length > 2);
+	}
+
+	@bindThis
+	private convertOSMWayToGeoEntry(osmWay: any): GeoDataEntry | null {
+		if (!osmWay.tags || !osmWay.lat || !osmWay.lon) return null;
+
+		const tags = osmWay.tags;
+		const level = this.determineOSMWayLevel(tags);
+		const importance = this.calculateOSMImportance(tags);
+
+		return {
+			lat: osmWay.lat,
+			lon: osmWay.lon,
+			properties: {
+				name: tags.name || tags['name:en'] || tags['name:zh'] || '',
+				display_name: this.formatOSMWayDisplayName(tags),
+				highway: tags.highway,
+				building: tags.building,
+				landuse: tags.landuse,
+				natural: tags.natural,
+				city: tags['addr:city'] || tags['is_in:city'],
+				town: tags['addr:town'],
+				street: tags['addr:street'] || tags.name,
+				country: tags['addr:country'] || tags['is_in:country'],
+				...tags
+			},
+			level,
+			importance,
+			place_id: parseInt(osmWay.id.toString()),
+			osm_id: parseInt(osmWay.id.toString()),
+			hash: this.generateDataHash(`osm_way_${osmWay.id}`)
+		};
+	}
+
+	@bindThis
+	private determineOSMWayLevel(tags: Record<string, string>): GeoDataEntry['level'] {
+		if (tags.place) {
+			switch (tags.place) {
+				case 'city': return 'city';
+				case 'town': return 'town';
+				case 'village': return 'village';
+				case 'county': return 'county';
+				default: return 'district';
+			}
+		}
+
+		if (tags.highway) {
+			if (['motorway', 'trunk', 'primary'].includes(tags.highway)) return 'district';
+			return 'village';
+		}
+
+		if (tags.building && tags.name) return 'village';
+		if (tags.landuse && tags.name) return 'district';
+
+		return 'district';
+	}
+
+	@bindThis
+	private formatOSMWayDisplayName(tags: Record<string, string>): string {
+		const parts: string[] = [];
+
+		if (tags.name) parts.push(tags.name);
+		if (tags.highway && tags.highway !== tags.name) parts.push(`Highway ${tags.highway}`);
+		if (tags.building && tags.building !== 'yes' && tags.building !== tags.name) parts.push(tags.building);
+		if (tags['addr:street']) parts.push(tags['addr:street']);
+		if (tags['addr:city'] && tags['addr:city'] !== tags.name) parts.push(tags['addr:city']);
+		if (tags['addr:country']) parts.push(tags['addr:country']);
+
+		return parts.length > 0 ? parts.join(', ') : `OSM Way ${tags.id || 'Unknown'}`;
+	}
+
+	@bindThis
+	private isRelevantOSMRelation(tags: Record<string, string>): boolean {
+		const relevantKeys = [
+			'type', 'name', 'place', 'admin_level', 'boundary',
+			'landuse', 'natural', 'amenity', 'leisure', 'tourism',
+			'multipolygon', 'route', 'public_transport'
+		];
+
+		const isAdministrativeRelation = tags.type === 'boundary' && tags.boundary === 'administrative';
+		const isMultipolygon = tags.type === 'multipolygon';
+		const hasRelevantTags = relevantKeys.some(key => tags[key] !== undefined);
+		const hasName = tags.name !== undefined;
+
+		return (isAdministrativeRelation || isMultipolygon || hasRelevantTags) && hasName;
+	}
+
+	@bindThis
+	private convertOSMRelationToGeoEntry(osmRelation: any): GeoDataEntry | null {
+		if (!osmRelation.tags || !osmRelation.lat || !osmRelation.lon) return null;
+
+		const tags = osmRelation.tags;
+		const level = this.determineOSMRelationLevel(tags);
+		const importance = this.calculateOSMRelationImportance(tags);
+
+		let population: number | undefined;
+		if (tags.population) {
+			const pop = parseInt(tags.population);
+			if (!isNaN(pop)) population = pop;
+		}
+
+		return {
+			lat: osmRelation.lat,
+			lon: osmRelation.lon,
+			properties: {
+				name: tags.name || tags['name:en'] || tags['name:zh'] || '',
+				display_name: this.formatOSMRelationDisplayName(tags),
+				type: tags.type,
+				boundary: tags.boundary,
+				admin_level: tags.admin_level,
+				place: tags.place,
+				city: tags['addr:city'] || tags['is_in:city'],
+				state: tags['addr:state'] || tags['is_in:state'],
+				country: tags['addr:country'] || tags['is_in:country'],
+				...tags
+			},
+			level,
+			population,
+			importance,
+			place_id: parseInt(osmRelation.id.toString()),
+			osm_id: parseInt(osmRelation.id.toString()),
+			hash: this.generateDataHash(`osm_relation_${osmRelation.id}`)
+		};
+	}
+
+	@bindThis
+	private determineOSMRelationLevel(tags: Record<string, string>): GeoDataEntry['level'] {
+		if (tags.type === 'boundary' && tags.boundary === 'administrative') {
+			const adminLevel = parseInt(tags.admin_level);
+			if (!isNaN(adminLevel)) {
+				if (adminLevel <= 2) return 'country';
+				if (adminLevel <= 4) return 'state';
+				if (adminLevel <= 6) return 'county';
+				if (adminLevel <= 8) return 'city';
+				if (adminLevel <= 10) return 'district';
+			}
+		}
+
+		if (tags.place) {
+			switch (tags.place) {
+				case 'country': return 'country';
+				case 'state': case 'province': return 'state';
+				case 'city': return 'city';
+				case 'town': return 'town';
+				case 'village': return 'village';
+				case 'county': return 'county';
+				default: return 'district';
+			}
+		}
+
+		return 'district';
+	}
+
+	@bindThis
+	private calculateOSMRelationImportance(tags: Record<string, string>): number {
+		let importance = 0;
+
+		if (tags.type === 'boundary' && tags.boundary === 'administrative') {
+			const adminLevel = parseInt(tags.admin_level);
+			if (!isNaN(adminLevel)) {
+				importance += Math.max(0, 1 - (adminLevel / 12));
+			}
+		}
+
+		if (tags.name) importance += 0.3;
+		if (tags.place) importance += 0.4;
+		if (tags.population) {
+			const population = parseInt(tags.population);
+			if (!isNaN(population)) {
+				importance += Math.log10(population) / 10;
+			}
+		}
+
+		return Math.min(importance, 1);
+	}
+
+	@bindThis
+	private formatOSMRelationDisplayName(tags: Record<string, string>): string {
+		const parts: string[] = [];
+
+		if (tags.name) parts.push(tags.name);
+		if (tags.type && tags.type !== 'multipolygon') parts.push(`(${tags.type})`);
+		if (tags.admin_level) parts.push(`Admin Level ${tags.admin_level}`);
+		if (tags.place && tags.place !== tags.name) parts.push(tags.place);
+		if (tags['addr:country']) parts.push(tags['addr:country']);
+
+		return parts.length > 0 ? parts.join(', ') : `OSM Relation ${tags.id || 'Unknown'}`;
 	}
 
 	@bindThis
@@ -2811,6 +3588,24 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	}
 
 	@bindThis
+	private async saveOptimizedDataAsJSON(data: GeoDataEntry[]): Promise<void> {
+		this.logger.info('Saving optimized data as JSON for quick loading...');
+
+		try {
+			const dataFilePath = path.join(this.dataPath, 'cities_optimized.json');
+			await fs.writeFile(dataFilePath, JSON.stringify(data), 'utf-8');
+
+			const spatialIndexArray = Array.from(this.spatialIndex.entries());
+			const indexFilePath = path.join(this.dataPath, 'spatial_index.json');
+			await fs.writeFile(indexFilePath, JSON.stringify(spatialIndexArray), 'utf-8');
+
+			this.logger.info(`JSON format save completed: ${data.length} entries`);
+		} catch (error) {
+			this.logger.error('JSON format save failed:', error as any);
+		}
+	}
+
+	@bindThis
 	private async convertToBinaryFormat(data: GeoDataEntry[]): Promise<void> {
 		this.logger.info('Converting to efficient binary format...');
 
@@ -2886,7 +3681,18 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			offset += propsBuffer.length;
 		}
 
-		const compressed = zlib.gzipSync(buffer.subarray(0, offset));
+		const compressed = await new Promise<Buffer>((resolve, reject) => {
+			import('node:zlib').then(zlib => {
+				const gzip = zlib.createGzip();
+				const chunks: Buffer[] = [];
+
+				gzip.on('data', (chunk: Buffer) => chunks.push(chunk));
+				gzip.on('end', () => resolve(Buffer.concat(chunks)));
+				gzip.on('error', reject);
+
+				gzip.end(buffer.subarray(0, offset));
+			}).catch(reject);
+		});
 		await fs.writeFile(filePath, compressed);
 	}
 
@@ -3041,7 +3847,18 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 		let buffer: Buffer;
 		try {
-			buffer = zlib.gunzipSync(compressedData);
+			buffer = await new Promise<Buffer>((resolve, reject) => {
+				import('node:zlib').then(zlib => {
+					const gunzip = zlib.createGunzip();
+					const chunks: Buffer[] = [];
+
+					gunzip.on('data', (chunk: Buffer) => chunks.push(chunk));
+					gunzip.on('end', () => resolve(Buffer.concat(chunks)));
+					gunzip.on('error', reject);
+
+					gunzip.end(compressedData);
+				}).catch(reject);
+			});
 		} catch (decompressError) {
 			throw new Error(`Failed to decompress shard: ${(decompressError as Error).message}`);
 		}
@@ -3250,7 +4067,18 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			});
 			const compressedData = Buffer.from(response, 'binary');
 
-			const decompressedData = zlib.gunzipSync(compressedData);
+			const decompressedData = await new Promise<Buffer>((resolve, reject) => {
+				import('node:zlib').then(zlib => {
+					const gunzip = zlib.createGunzip();
+					const chunks: Buffer[] = [];
+
+					gunzip.on('data', (chunk: Buffer) => chunks.push(chunk));
+					gunzip.on('end', () => resolve(Buffer.concat(chunks)));
+					gunzip.on('error', reject);
+
+					gunzip.end(compressedData);
+				}).catch(reject);
+			});
 			const xmlContent = decompressedData.toString('utf-8');
 
 			return this.parseOSCXML(xmlContent);
@@ -3479,7 +4307,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 			const dataFiles = [
 				'cities_world.json',
-				'cities_china.json',
 				'administrative_divisions.json',
 				'poi_data.json'
 			];
@@ -3807,5 +4634,147 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			},
 			issues
 		};
+	}
+
+	@bindThis
+	private async checkAndDownloadMissingData(): Promise<void> {
+		this.logger.info('Checking for missing data sources...');
+
+		const config = this.config.offlineGeocoding;
+		if (!config) return;
+
+		const missingData: string[] = [];
+
+		if (config.downloadOSM) {
+			const osmDataExists = await this.checkOSMDataExists();
+			if (!osmDataExists) {
+				missingData.push('OSM data');
+			}
+		}
+
+		if (config.downloadFullGeoNames !== false) {
+			const hasFullGeoNames = await this.checkFullGeoNamesDataExists();
+			if (!hasFullGeoNames) {
+				missingData.push('Full GeoNames data');
+			}
+		}
+
+		if (missingData.length > 0) {
+			this.logger.info(`Missing data sources detected: ${missingData.join(', ')}`);
+			this.logger.info('Starting download of missing data sources...');
+
+			await this.downloadMissingDataSources(config);
+		} else {
+			this.logger.info('All configured data sources are available');
+		}
+	}
+
+	@bindThis
+	private async checkOSMDataExists(): Promise<boolean> {
+		try {
+			const osmFiles = [
+				'planet-latest.osm.pbf',
+				'osm_data_processed.json'
+			];
+
+			for (const filename of osmFiles) {
+				try {
+					const filePath = path.join(this.syncDataPath, filename);
+					await fs.access(filePath);
+					const stats = await fs.stat(filePath);
+					if (stats.size > 0) {
+						this.logger.info(`Found existing OSM data: ${filename}`);
+						return true;
+					}
+				} catch (error) {
+				}
+			}
+
+			return false;
+		} catch (error) {
+			this.logger.warn('Error checking OSM data existence:', error as Error);
+			return false;
+		}
+	}
+
+	@bindThis
+	private async checkFullGeoNamesDataExists(): Promise<boolean> {
+		try {
+			const geoNamesFiles = [
+				'allCountries.zip',
+				'allCountries.txt',
+				'geonames_full_processed.json'
+			];
+
+			for (const filename of geoNamesFiles) {
+				try {
+					const filePath = path.join(this.syncDataPath, filename);
+					await fs.access(filePath);
+					const stats = await fs.stat(filePath);
+					if (stats.size > 0) {
+						this.logger.info(`Found existing full GeoNames data: ${filename}`);
+						return true;
+					}
+				} catch (error) {
+				}
+			}
+
+			return false;
+		} catch (error) {
+			this.logger.warn('Error checking full GeoNames data existence:', error as Error);
+			return false;
+		}
+	}
+
+	@bindThis
+	private async downloadMissingDataSources(config: any): Promise<void> {
+		const results: GeoDataEntry[] = [];
+
+		try {
+			if (config.downloadOSM) {
+				const osmDataExists = await this.checkOSMDataExists();
+				if (!osmDataExists) {
+					this.logger.info('Downloading missing OSM data...');
+					const osmData = await this.downloadAndProcessOSMPBF();
+					results.push(...osmData);
+					this.logger.info(`OSM data download completed: ${osmData.length} entries`);
+				}
+			}
+
+			if (config.downloadFullGeoNames !== false) {
+				const hasFullGeoNames = await this.checkFullGeoNamesDataExists();
+				if (!hasFullGeoNames) {
+					this.logger.info('Downloading missing GeoNames data...');
+					const geoNamesData = config.downloadFullGeoNames === true
+						? await this.downloadAndProcessFullGeoNames()
+						: await this.downloadAndProcessGeoNamesCities();
+					results.push(...geoNamesData);
+					this.logger.info(`GeoNames data download completed: ${geoNamesData.length} entries`);
+				}
+			}
+
+			if (results.length > 0) {
+				this.logger.info(`Merging ${results.length} new entries with existing data...`);
+
+				for (const entry of results) {
+					this.geoData.push(entry);
+				}
+
+				const optimizedData = await this.optimizeGeoData(this.geoData);
+				this.geoData = optimizedData;
+
+				this.buildSpatialIndex();
+
+				if (optimizedData.length > this.COMPRESS_THRESHOLD && !this.elasticClient) {
+					await this.convertToBinaryFormat(optimizedData);
+				} else {
+					await this.saveOptimizedDataAsJSON(optimizedData);
+				}
+
+				this.logger.info(`Data merge completed: ${optimizedData.length} total entries`);
+			}
+		} catch (error) {
+			this.logger.error('Error downloading missing data sources:', error as Error);
+		}
 	}
 }
