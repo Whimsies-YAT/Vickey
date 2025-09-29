@@ -3,26 +3,25 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Injectable, OnApplicationShutdown, OnApplicationBootstrap } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
-import { DI } from '@/di-symbols.js';
-import type { Config } from '@/config.js';
-import { bindThis } from '@/decorators.js';
-import { Client as ElasticSearch } from '@elastic/elasticsearch';
+import {Inject, Injectable, OnApplicationBootstrap, OnApplicationShutdown} from '@nestjs/common';
+import {DI} from '@/di-symbols.js';
+import type {Config} from '@/config.js';
+import {bindThis} from '@/decorators.js';
+import {Client as ElasticSearch} from '@elastic/elasticsearch';
 import * as fs from 'node:fs/promises';
+import {stat} from 'node:fs/promises';
 import * as path from 'node:path';
-import { createHash } from 'node:crypto';
-import { Worker } from 'node:worker_threads';
-import { LoggerService } from '@/core/LoggerService.js';
-import { HttpRequestService } from '@/core/HttpRequestService.js';
-import { DownloadService } from '@/core/DownloadService.js';
-import { createReadStream, createWriteStream } from 'node:fs';
-import { stat } from 'node:fs/promises';
-import { EventEmitter } from 'node:events';
-import { setInterval, clearInterval, setTimeout, clearTimeout } from 'node:timers';
+import {createHash} from 'node:crypto';
+import {Worker} from 'node:worker_threads';
+import {LoggerService} from '@/core/LoggerService.js';
+import {HttpRequestService} from '@/core/HttpRequestService.js';
+import {DownloadService} from '@/core/DownloadService.js';
+import {createReadStream} from 'node:fs';
+import {EventEmitter} from 'node:events';
+import {clearInterval, clearTimeout, setInterval, setTimeout} from 'node:timers';
 import * as os from "os";
-import { ZipReader } from 'slacc';
-import { createOSMStream } from 'osm-pbf-parser-node';
+import {ZipReader} from 'slacc';
+import {createOSMStream} from 'osm-pbf-parser-node';
 
 interface OSMNode {
 	id: number;
@@ -159,7 +158,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	private readonly MIN_IMPORTANCE = 0;
 	private readonly MAX_IMPORTANCE = 1;
 	private readonly MAX_NAME_LENGTH = 500;
-	private readonly SUSPICIOUS_COORDINATE_THRESHOLD = 0.000001;
 	private readonly GRID_LEVELS = [
 		{ size: 1.0, name: 'L1' },
 		{ size: 0.1, name: 'L2' },
@@ -199,10 +197,8 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	private readonly GC_COOLDOWN = 30000;
 	private readonly MAX_CONCURRENT_OPERATIONS = 3;
 	private gracefulShutdown = false;
-	private shutdownTimeout: NodeJS.Timeout | null = null;
 	private readonly SHUTDOWN_GRACE_PERIOD = 30000;
 	private readonly operationTimeouts = new Map<string, NodeJS.Timeout>();
-	private readonly dataPipeline = new Map<string, ReadableStream>();
 	private currentMemoryPressure = 0;
 	private readonly OSM_DATA_SOURCES = {
 		allCountries: 'https://download.geonames.org/export/dump/allCountries.zip',
@@ -582,7 +578,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		try {
 			this.logger.info('Starting decompression with slacc');
 			const zipBuffer = await fs.readFile(zipPath);
-			await ZipReader.withDestinationPath(path.dirname(outputPath)).viaBuffer(zipBuffer);
+			ZipReader.withDestinationPath(path.dirname(outputPath)).viaBuffer(zipBuffer);
 			this.logger.info('Stream decompression completed');
 		} catch (error: any) {
 			this.logger.error('Stream decompression failed:', error);
@@ -1228,7 +1224,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 							}
 						} catch (entryError) {
 							this.logger.warn('Error processing entry:', entryError as Error);
-							continue;
 						}
 					}
 
@@ -1245,7 +1240,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 								processed++;
 							} catch (resultError) {
 								this.logger.warn('Error converting result:', resultError as Error);
-								continue;
 							}
 						}
 
@@ -1260,7 +1254,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 					}
 				} catch (gridError) {
 					this.logger.warn(`Error processing grid ${gridKey}:`, gridError as Error);
-					continue;
 				}
 			}
 
@@ -1279,7 +1272,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 					}
 				} catch (resultError) {
 					this.logger.warn('Error converting result:', resultError as Error);
-					continue;
 				}
 			}
 
@@ -1360,7 +1352,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 					}
 				} catch (resultError) {
 					this.logger.warn('Error converting entry to result:', resultError as Error);
-					continue;
 				}
 			}
 
@@ -1401,14 +1392,12 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 							}
 						} catch (entryError) {
 							this.logger.warn('Error processing entry in streamAllData:', entryError as Error);
-							continue;
 						}
 					}
 
 					await new Promise(resolve => setImmediate(resolve));
 				} catch (chunkError) {
 					this.logger.warn(`Error processing chunk ${i}-${i + chunkSize}:`, chunkError as Error);
-					continue;
 				}
 			}
 
@@ -1992,7 +1981,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		operation: () => Promise<T>,
 		options: { timeout?: number; cancellable?: boolean } = {}
 	): Promise<OperationResult<T>> {
-		const operationId = `${operationType}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+		const operationId = `${operationType}_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 		const startTime = Date.now();
 		const startMemory = process.memoryUsage().heapUsed;
 
@@ -2437,7 +2426,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 			try {
 				const zipBuffer = await fs.readFile(zipPath);
-				await ZipReader.withDestinationPath(tempDir).viaBuffer(zipBuffer);
+				ZipReader.withDestinationPath(tempDir).viaBuffer(zipBuffer);
 
 				const files = await fs.readdir(tempDir);
 				if (files.length === 0) {
@@ -2727,7 +2716,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 			try {
 				const zipBuffer = await fs.readFile(zipPath);
-				await ZipReader.withDestinationPath(tempDir).viaBuffer(zipBuffer);
+				ZipReader.withDestinationPath(tempDir).viaBuffer(zipBuffer);
 
 				const files = await fs.readdir(tempDir);
 				if (files.length === 0) {
@@ -3047,8 +3036,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 											const valIndex = node.vals[i];
 											if (strings[keyIndex] && strings[valIndex]) {
 												const key = strings[keyIndex].toString('utf8');
-												const val = strings[valIndex].toString('utf8');
-												tags[key] = val;
+												tags[key] = strings[valIndex].toString('utf8');
 											}
 										}
 									}
@@ -3990,7 +3978,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 					});
 				} catch (recordError) {
 					this.logger.warn(`Error parsing record ${i}:`, recordError as Error);
-					continue;
 				}
 			}
 		} catch (parseError) {
@@ -4698,7 +4685,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			}
 		}
 
-		if (config.downloadFullGeoNames !== false) {
+		if (config.downloadFullGeoNames) {
 			const hasFullGeoNames = await this.checkFullGeoNamesDataExists();
 			if (!hasFullGeoNames) {
 				missingData.push('Full GeoNames data');
