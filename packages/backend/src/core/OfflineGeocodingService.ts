@@ -2098,8 +2098,9 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			if (hasGeoNamesData) {
 				this.logger.info('Found existing GeoNames data files');
 				await this.initialize();
-				// Check if we need to download OSM data separately
-				await this.checkAndDownloadMissingData();
+				this.checkAndDownloadMissingData().catch(error => {
+					this.logger.error('Failed to check and download missing data:', error as Error);
+				});
 				return;
 			}
 
@@ -2853,7 +2854,9 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 					this.logger.info('OSM PBF file downloaded, processing...');
 
 					const osmEntries = await this.parseOSMPBF(planetOsmPath);
-					results.push(...osmEntries);
+					for (const entry of osmEntries) {
+						results.push(entry);
+					}
 
 					this.logger.info(`OSM processing completed: ${osmEntries.length} entries`);
 				} catch (downloadError) {
@@ -4736,7 +4739,9 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				if (!osmDataExists) {
 					this.logger.info('Downloading missing OSM data...');
 					const osmData = await this.downloadAndProcessOSMPBF();
-					results.push(...osmData);
+					for (const entry of osmData) {
+						results.push(entry);
+					}
 					this.logger.info(`OSM data download completed: ${osmData.length} entries`);
 				}
 			}
@@ -4748,7 +4753,9 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 					const geoNamesData = config.downloadFullGeoNames === true
 						? await this.downloadAndProcessFullGeoNames()
 						: await this.downloadAndProcessGeoNamesCities();
-					results.push(...geoNamesData);
+					for (const entry of geoNamesData) {
+						results.push(entry);
+					}
 					this.logger.info(`GeoNames data download completed: ${geoNamesData.length} entries`);
 				}
 			}
