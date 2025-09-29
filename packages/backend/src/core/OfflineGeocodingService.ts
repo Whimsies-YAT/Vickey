@@ -22,37 +22,42 @@ import { EventEmitter } from 'node:events';
 import { setInterval, clearInterval, setTimeout, clearTimeout } from 'node:timers';
 import * as os from "os";
 import { ZipReader } from 'slacc';
-import * as osmPbfParserNode from 'osm-pbf-parser-node';
+import { createOSMStream } from 'osm-pbf-parser-node';
+
+interface OSMNode {
+	id: number;
+	lat: number;
+	lon: number;
+	tags?: Record<string, string>;
+	type: 'node';
+}
+
+interface OSMWay {
+	id: number;
+	lat: number;
+	lon: number;
+	tags?: Record<string, string>;
+	nodes: number[];
+	type: 'way';
+}
+
+interface OSMRelation {
+	id: number;
+	lat: number;
+	lon: number;
+	tags?: Record<string, string>;
+	members: Array<{
+		type: 'node' | 'way' | 'relation';
+		ref: number;
+		role: string;
+	}>;
+	type: 'relation';
+}
+
+type OSMItem = OSMNode | OSMWay | OSMRelation;
 
 declare module 'osm-pbf-parser-node' {
-	interface OSMNode {
-		id: number;
-		lat: number;
-		lon: number;
-		tags: Record<string, string>;
-	}
-
-	interface OSMWay {
-		id: number;
-		lat: number;
-		lon: number;
-		tags: Record<string, string>;
-		nodes: number[];
-	}
-
-	interface OSMRelation {
-		id: number;
-		lat: number;
-		lon: number;
-		tags: Record<string, string>;
-		members: Array<{
-			type: 'node' | 'way' | 'relation';
-			ref: number;
-			role: string;
-		}>;
-	}
-
-	export function parseFromFile(filePath: string, callback: (item: OSMNode | OSMWay | OSMRelation) => void): Promise<void>;
+	function createOSMStream(filePath: string, options?: { withTags?: boolean; withInfo?: boolean }): AsyncIterable<OSMItem>;
 }
 
 interface GeocodingResult {
@@ -2890,7 +2895,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			let wayCount = 0;
 			let relationCount = 0;
 
-			await osmPbfParserNode.parseFromFile(filePath, (item: any) => {
+			for await (const item of createOSMStream(filePath, { withTags: true, withInfo: false }) as AsyncIterable<OSMItem>) {
 				try {
 					if (item.type === 'node') {
 						nodeCount++;
@@ -2927,7 +2932,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				} catch (err) {
 					this.logger.warn('Error processing OSM item:', err as Error);
 				}
-			});
+			}
 
 			this.logger.info(`OSM PBF parsing completed: ${results.length} relevant entries found from ${nodeCount} nodes, ${wayCount} ways, ${relationCount} relations`);
 		} catch (error) {
