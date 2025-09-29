@@ -2927,7 +2927,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			});
 
 			this.logger.info(`OSM PBF parsing completed: ${results.length} relevant entries found from ${nodeCount} nodes, ${wayCount} ways, ${relationCount} relations`);
-
 		} catch (error) {
 			this.logger.error('OSM PBF parsing failed:', error as any);
 		}
@@ -3022,7 +3021,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				if (results.length % 50000 === 0) {
 					await new Promise(resolve => setImmediate(resolve));
 				}
-
 			} catch (parseError) {
 				this.logger.warn(`PBF parsing error at offset ${offset}:`, parseError as Error);
 				offset += Math.min(1024, buffer.length - offset);
@@ -3057,13 +3055,13 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				const data = buffer.subarray(offset, offset + length);
 				offset += length;
 
-				if (fieldNumber === 1 || fieldNumber === 2) { // stringtable.s
+				if (fieldNumber === 2 && result.type === 'primitivegroup') { // primitivegroup.nodes
+					if (!result.nodes) result.nodes = [];
+					result.nodes.push(this.parseSimplePBFMessage(data));
+				} else if (fieldNumber === 1 || fieldNumber === 2) { // stringtable.s
 					if (!result.stringtable) result.stringtable = {};
 					if (!result.stringtable.s) result.stringtable.s = [];
 					result.stringtable.s.push(data);
-				} else if (fieldNumber === 2 && result.type === 'primitivegroup') { // primitivegroup.nodes
-					if (!result.nodes) result.nodes = [];
-					result.nodes.push(this.parseSimplePBFMessage(data));
 				} else {
 					this.setField(result, fieldNumber, data);
 				}
