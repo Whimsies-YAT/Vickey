@@ -2859,8 +2859,16 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 					this.logger.info('OSM PBF file downloaded, processing...');
 
 					const osmEntries = await this.parseOSMPBF(planetOsmPath);
-					for (const entry of osmEntries) {
-						results.push(entry);
+					if (results.length + osmEntries.length <= 200000) {
+						for (const entry of osmEntries) {
+							results.push(entry);
+						}
+					} else {
+						const sampleSize = Math.max(0, 200000 - results.length);
+						for (let i = 0; i < sampleSize && i < osmEntries.length; i++) {
+							results.push(osmEntries[i]);
+						}
+						this.logger.info(`Added ${sampleSize} OSM entries to results, ${osmEntries.length - sampleSize} added to spatial index only`);
 					}
 
 					this.logger.info(`OSM processing completed: ${osmEntries.length} entries`);
@@ -2879,13 +2887,16 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	private async parseOSMPBF(filePath: string): Promise<GeoDataEntry[]> {
 		this.logger.info('Starting OSM PBF parsing with osm-pbf-parser-node...');
 
-		const results: GeoDataEntry[] = [];
+		const BATCH_SIZE = 10000;
+		const MAX_MEMORY_ENTRIES = 100000;
+		let batch: GeoDataEntry[] = [];
+		const allResults: GeoDataEntry[] = [];
 
 		try {
 			const stats = await stat(filePath);
 			if (stats.size === 0) {
 				this.logger.warn('OSM PBF file is empty');
-				return results;
+				return allResults;
 			}
 
 			this.logger.info(`Processing OSM PBF file: ${Math.round(stats.size / 1024 / 1024)}MB`);
@@ -2897,49 +2908,79 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 			for await (const item of createOSMStream(filePath, { withTags: true, withInfo: false }) as AsyncIterable<OSMItem>) {
 				try {
+					let geoEntry: GeoDataEntry | null = null;
+
 					if (item.type === 'node') {
 						nodeCount++;
 						if (item.tags && this.isRelevantOSMNode(item.tags)) {
-							const geoEntry = this.convertOSMNodeToGeoEntry(item);
-							if (geoEntry) {
-								results.push(geoEntry);
-								processedCount++;
-							}
+							geoEntry = this.convertOSMNodeToGeoEntry(item);
 						}
 					} else if (item.type === 'way') {
 						wayCount++;
 						if (item.tags && this.isRelevantOSMWay(item.tags)) {
-							const geoEntry = this.convertOSMWayToGeoEntry(item);
-							if (geoEntry) {
-								results.push(geoEntry);
-								processedCount++;
-							}
+							geoEntry = this.convertOSMWayToGeoEntry(item);
 						}
 					} else if (item.type === 'relation') {
 						relationCount++;
 						if (item.tags && this.isRelevantOSMRelation(item.tags)) {
-							const geoEntry = this.convertOSMRelationToGeoEntry(item);
-							if (geoEntry) {
-								results.push(geoEntry);
-								processedCount++;
+							geoEntry = this.convertOSMRelationToGeoEntry(item);
+						}
+					}
+
+					if (geoEntry) {
+						batch.push(geoEntry);
+						processedCount++;
+
+						if (batch.length >= BATCH_SIZE) {
+							for (const entry of batch) {
+								this.addToSpatialIndex(entry);
+							}
+
+							if (allResults.length < MAX_MEMORY_ENTRIES) {
+								allResults.push(...batch);
+							}
+
+							batch = [];
+
+							if (global.gc && processedCount % 50000 === 0) {
+								global.gc();
 							}
 						}
 					}
 
 					if ((nodeCount + wayCount + relationCount) % 50000 === 0) {
 						this.logger.info(`Processed: ${nodeCount} nodes, ${wayCount} ways, ${relationCount} relations. Found ${processedCount} relevant entries.`);
+
+						const memUsage = process.memoryUsage();
+						if (memUsage.heapUsed > 3000000000) { // 3GB threshold
+							this.logger.warn(`High memory usage detected: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`);
+							if (allResults.length > MAX_MEMORY_ENTRIES / 2) {
+								allResults.splice(0, allResults.length - MAX_MEMORY_ENTRIES / 4);
+								if (global.gc) global.gc();
+							}
+						}
 					}
 				} catch (err) {
 					this.logger.warn('Error processing OSM item:', err as Error);
 				}
 			}
 
-			this.logger.info(`OSM PBF parsing completed: ${results.length} relevant entries found from ${nodeCount} nodes, ${wayCount} ways, ${relationCount} relations`);
+			if (batch.length > 0) {
+				for (const entry of batch) {
+					this.addToSpatialIndex(entry);
+				}
+				if (allResults.length < MAX_MEMORY_ENTRIES) {
+					allResults.push(...batch);
+				}
+			}
+
+			this.logger.info(`OSM PBF parsing completed: ${processedCount} relevant entries processed from ${nodeCount} nodes, ${wayCount} ways, ${relationCount} relations`);
+			this.logger.info(`Returned ${allResults.length} entries in memory (others added directly to spatial index)`);
 		} catch (error) {
 			this.logger.error('OSM PBF parsing failed:', error as any);
 		}
 
-		return results;
+		return allResults;
 	}
 
 	@bindThis
