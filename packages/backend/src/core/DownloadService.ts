@@ -42,8 +42,8 @@ export class DownloadService {
 	}> {
 		this.logger.info(`Downloading ${chalk.cyan(url)} to ${chalk.cyanBright(path)} ...`);
 
-		const timeout = longTimeout ? 600 * 1000 : 30 * 1000; // 10 minutes vs 30 seconds
-		const operationTimeout = longTimeout ? 24 * 3600 * 1000 : 60 * 1000; // 6 hours vs 1 minute
+		const timeout = longTimeout ? 12 * 3600 * 1000 : 30 * 1000; // 12 hours vs 30 seconds
+		const operationTimeout = longTimeout ? 48 * 3600 * 1000 : 60 * 1000; // 48 hours vs 1 minute
 		const maxSize = allowLargeFile ? 1024 * 1024 * 1024 * 1024 : this.config.maxFileSize; // 1TB when allowLargeFile is true
 
 		const urlObj = new URL(url);

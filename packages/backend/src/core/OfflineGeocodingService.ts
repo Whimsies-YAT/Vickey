@@ -2402,7 +2402,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				this.logger.info(`Downloading ${dataset.name} data...`);
 
 				const zipPath = path.join(this.syncDataPath, `${dataset.name}.zip`);
-				await this.downloadService.downloadUrl(dataset.url, zipPath, false, true);
+				await this.downloadService.downloadUrl(dataset.url, zipPath, false, true, true);
 
 				const geoData = await this.processGeoNamesZip(zipPath, dataset.minPopulation);
 				// Use for loop instead of spread to avoid call stack issues
