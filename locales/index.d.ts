@@ -3697,6 +3697,54 @@ export interface Locale extends ILocale {
          */
         "paymentMethodConfigurationDescription": string;
         /**
+         * Currency
+         */
+        "currency": string;
+        /**
+         * Default currency for Stripe payments
+         */
+        "currencyDescription": string;
+        /**
+         * US Dollar
+         */
+        "currencyUSD": string;
+        /**
+         * Euro
+         */
+        "currencyEUR": string;
+        /**
+         * Chinese Yuan
+         */
+        "currencyCNY": string;
+        /**
+         * Japanese Yen
+         */
+        "currencyJPY": string;
+        /**
+         * British Pound
+         */
+        "currencyGBP": string;
+        /**
+         * Swiss Franc
+         */
+        "currencyCHF": string;
+        /**
+         * Canadian Dollar
+         */
+        "currencyCAD": string;
+        /**
+         * Australian Dollar
+         */
+        "currencyAUD": string;
+        /**
+         * Singapore Dollar
+         */
+        "currencySGD": string;
+        /**
+         * Hong Kong Dollar
+         */
+        "currencyHKD": string;
+        /**
          * Important: Keep your secret keys secure and never share them. The webhook secret is required for payment verification.
          */
         "securityWarning": string;

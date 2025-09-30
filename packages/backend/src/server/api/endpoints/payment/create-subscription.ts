@@ -10,6 +10,7 @@ import { ApiError } from '../../error.js';
 import type { UserProfilesRepository, StripeSubscriptionsRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
 import { IdService } from '@/core/IdService.js';
+import { MetaService } from '@/core/MetaService.js';
 
 export const meta = {
 	tags: ['payment'],
@@ -70,11 +71,15 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 
 		private stripeService: StripeService,
 		private idService: IdService,
+		private metaService: MetaService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			if (!await this.stripeService.isEnabled()) {
 				throw new ApiError(meta.errors.stripeNotEnabled);
 			}
+
+			const metaData = await this.metaService.fetch();
+			const currency = (metaData.stripeCurrency || 'USD').toLowerCase();
 
 			const userEmail = (await this.userProfilesRepository.findOneBy({ userId: me.id }))?.email ?? null;
 
@@ -111,7 +116,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					const price = await this.stripeService.createPrice({
 						productId: product.id,
 						unitAmount: amount * 100,
-						currency: 'usd',
+						currency: currency,
 						recurring: {
 							interval: 'month',
 						},

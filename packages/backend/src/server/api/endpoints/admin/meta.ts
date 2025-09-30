@@ -740,6 +740,10 @@ export const meta = {
 			stripePaymentMethodConfiguration: {
 				type: 'string',
 				optional: false, nullable: true,
+			},
+			stripeCurrency: {
+				type: 'string',
+				optional: false, nullable: false,
 			}
 		},
 	},
@@ -932,6 +936,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				stripeSecretKey: instance.stripeSecretKey,
 				stripeWebhookSecret: instance.stripeWebhookSecret,
 				stripePaymentMethodConfiguration: instance.stripePaymentMethodConfiguration,
+				stripeCurrency: instance.stripeCurrency,
 			};
 		});
 	}

@@ -415,6 +415,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 									</MkInput>
 								</SearchMarker>
 
+								<SearchMarker :keywords="['currency', 'payment']">
+									<MkSelect v-model="stripeForm.state.stripeCurrency" :items="currencyOptions">
+										<template #label><SearchLabel>{{ i18n.ts._stripe.currency }}</SearchLabel><span v-if="stripeForm.modifiedStates.stripeCurrency" class="_modified">{{ i18n.ts.modified }}</span></template>
+										<template #caption><SearchText>{{ i18n.ts._stripe.currencyDescription }}</SearchText></template>
+									</MkSelect>
+								</SearchMarker>
+
 								<MkInfo warn>{{ i18n.ts._stripe.securityWarning }}</MkInfo>
 							</template>
 						</div>
@@ -447,6 +454,7 @@ import MkFolder from '@/components/MkFolder.vue';
 import { useForm } from '@/composables/use-form.js';
 import MkFormFooter from '@/components/MkFormFooter.vue';
 import MkRadios from '@/components/MkRadios.vue';
+import MkSelect from '@/components/MkSelect.vue';
 
 const meta = await misskeyApi('admin/meta');
 
@@ -563,12 +571,26 @@ const proxyAccountForm = useForm({
 	fetchInstance(true);
 });
 
+const currencyOptions = [
+	{ label: `USD - ${i18n.ts._stripe.currencyUSD}`, value: 'USD' },
+	{ label: `EUR - ${i18n.ts._stripe.currencyEUR}`, value: 'EUR' },
+	{ label: `CNY - ${i18n.ts._stripe.currencyCNY}`, value: 'CNY' },
+	{ label: `JPY - ${i18n.ts._stripe.currencyJPY}`, value: 'JPY' },
+	{ label: `GBP - ${i18n.ts._stripe.currencyGBP}`, value: 'GBP' },
+	{ label: `CHF - ${i18n.ts._stripe.currencyCHF}`, value: 'CHF' },
+	{ label: `CAD - ${i18n.ts._stripe.currencyCAD}`, value: 'CAD' },
+	{ label: `AUD - ${i18n.ts._stripe.currencyAUD}`, value: 'AUD' },
+	{ label: `SGD - ${i18n.ts._stripe.currencySGD}`, value: 'SGD' },
+	{ label: `HKD - ${i18n.ts._stripe.currencyHKD}`, value: 'HKD' },
+];
+
 const stripeForm = useForm({
 	enableStripe: meta.enableStripe ?? false,
 	stripePublicKey: meta.stripePublicKey ?? '',
 	stripeSecretKey: meta.stripeSecretKey ?? '',
 	stripeWebhookSecret: meta.stripeWebhookSecret ?? '',
 	stripePaymentMethodConfiguration: meta.stripePaymentMethodConfiguration ?? '',
+	stripeCurrency: meta.stripeCurrency ?? 'USD',
 }, async (state) => {
 	await os.apiWithDialog('admin/update-meta', {
 		enableStripe: state.enableStripe,
@@ -576,6 +598,7 @@ const stripeForm = useForm({
 		stripeSecretKey: state.stripeSecretKey === '' ? null : state.stripeSecretKey,
 		stripeWebhookSecret: state.stripeWebhookSecret === '' ? null : state.stripeWebhookSecret,
 		stripePaymentMethodConfiguration: state.stripePaymentMethodConfiguration === '' ? null : state.stripePaymentMethodConfiguration,
+		stripeCurrency: state.stripeCurrency,
 	});
 	fetchInstance(true);
 });

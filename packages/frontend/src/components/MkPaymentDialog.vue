@@ -52,7 +52,6 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
 	amount: 10,
-	currency: 'usd',
 	description: '',
 	subscription: false,
 	priceId: '',

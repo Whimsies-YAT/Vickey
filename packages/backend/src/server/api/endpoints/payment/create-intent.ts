@@ -11,6 +11,7 @@ import type { UserProfilesRepository, StripePaymentsRepository } from '@/models/
 import { DI } from '@/di-symbols.js';
 import { IdService } from '@/core/IdService.js';
 import type { Config } from '@/config.js';
+import { MetaService } from '@/core/MetaService.js';
 
 export const meta = {
 	tags: ['payment'],
@@ -56,7 +57,6 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		amount: { type: 'integer', minimum: 1 },
-		currency: { type: 'string', default: 'usd' },
 		description: { type: 'string', nullable: true },
 		metadata: { type: 'object', nullable: true },
 		useCheckout: { type: 'boolean', default: false },
@@ -71,7 +71,7 @@ export const paramDef = {
 			required: ['firstName', 'lastName', 'email'],
 		},
 	},
-	required: ['amount', 'currency', 'billingDetails'],
+	required: ['amount', 'billingDetails'],
 } as const;
 
 @Injectable()
@@ -88,6 +88,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 
 		private stripeService: StripeService,
 		private idService: IdService,
+		private metaService: MetaService,
 	) {
 		super(meta, paramDef, async (ps, me, _accessToken, _file, _cleanup, _ip, headers) => {
 			if (!await this.stripeService.isEnabled()) {
@@ -97,6 +98,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			if (ps.amount < 1) {
 				throw new ApiError(meta.errors.invalidAmount);
 			}
+
+			const metaData = await this.metaService.fetch();
+			const currency = (metaData.stripeCurrency || 'USD').toLowerCase();
 
 			const billingEmail = ps.billingDetails.email;
 			const billingName = `${ps.billingDetails.firstName} ${ps.billingDetails.lastName}`.trim();
@@ -121,7 +125,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 
 				const checkoutSession = await this.stripeService.createEmbeddedCheckoutSession({
 					amount: ps.amount,
-					currency: ps.currency,
+					currency: currency,
 					customerId: customer.id,
 					description: ps.description || undefined,
 					metadata: {
@@ -139,7 +143,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					stripeCheckoutSessionId: checkoutSession.id,
 					stripeCustomerId: customer.id,
 					amount: ps.amount,
-					currency: ps.currency,
+					currency: currency,
 					status: 'requires_payment_method',
 					description: ps.description || null,
 					metadata: checkoutSession.metadata ? JSON.parse(JSON.stringify(checkoutSession.metadata)) : {},
@@ -156,7 +160,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			} else {
 				const paymentIntent = await this.stripeService.createPaymentIntent({
 					amount: ps.amount,
-					currency: ps.currency,
+					currency: currency,
 					customerId: customer.id,
 					description: ps.description || undefined,
 					metadata: {

@@ -347,6 +347,11 @@ export const packedMetaLiteSchema = {
 			type: 'string',
 			optional: false, nullable: true,
 		},
+		stripeCurrency: {
+			type: 'string',
+			optional: false, nullable: false,
+			default: 'USD',
+		},
 	},
 } as const;
 
