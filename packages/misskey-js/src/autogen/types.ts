@@ -4919,6 +4919,7 @@ export type components = {
             reactionAcceptance: 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote' | null;
             scheduledAt: number | null;
             isActuallyScheduled: boolean;
+            geojson: Record<string, never> | null;
         };
         NoteReaction: {
             /** Format: id */
@@ -5923,6 +5924,8 @@ export type components = {
             /** @default false */
             enableStripe: boolean;
             stripePublicKey: string | null;
+            /** @default USD */
+            stripeCurrency: string;
         };
         MetaDetailedOnly: {
             features?: {
@@ -10638,6 +10641,8 @@ export interface operations {
                         stripePublicKey: string | null;
                         stripeSecretKey: string | null;
                         stripeWebhookSecret: string | null;
+                        stripePaymentMethodConfiguration: string | null;
+                        stripeCurrency: string;
                     };
                 };
             };
@@ -14780,6 +14785,9 @@ export interface operations {
                     stripePublicKey?: string | null;
                     stripeSecretKey?: string | null;
                     stripeWebhookSecret?: string | null;
+                    stripePaymentMethodConfiguration?: string | null;
+                    /** @enum {string} */
+                    stripeCurrency?: 'USD' | 'EUR' | 'CNY' | 'JPY' | 'GBP' | 'CHF' | 'CAD' | 'AUD' | 'SGD' | 'HKD';
                 };
             };
         };
@@ -32120,6 +32128,10 @@ export interface operations {
                     scheduledAt: number | null;
                     /** @default false */
                     isActuallyScheduled: boolean;
+                    geojson: {
+                        type?: string;
+                        coordinates?: unknown[];
+                    } | null;
                 };
             };
         };
@@ -32357,6 +32369,10 @@ export interface operations {
                     } | null;
                     scheduledAt?: number | null;
                     isActuallyScheduled?: boolean;
+                    geojson?: {
+                        type?: string;
+                        coordinates?: unknown[];
+                    } | null;
                 };
             };
         };
@@ -35975,12 +35991,11 @@ export interface operations {
             content: {
                 'application/json': {
                     amount: number;
-                    /** @default usd */
-                    currency: string;
                     description?: string | null;
                     metadata?: Record<string, never> | null;
                     /** @default false */
                     useCheckout?: boolean;
+                    paymentMethodConfiguration?: string | null;
                     billingDetails: {
                         firstName: string;
                         lastName: string;

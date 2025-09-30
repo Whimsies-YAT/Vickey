@@ -139,7 +139,6 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
 	showSubscriptionOptions: false,
 	defaultAmount: 10,
-	defaultCurrency: 'usd',
 	defaultDescription: '',
 	subscriptionPlans: () => [],
 	useCheckout: false
@@ -158,17 +157,10 @@ const paymentError = ref('');
 const cardError = ref('');
 
 const amount = ref(props.defaultAmount);
-const currency = ref(props.defaultCurrency);
 
 watch(() => props.defaultAmount, (newAmount) => {
 	if (newAmount) {
 		amount.value = newAmount;
-	}
-});
-
-watch(() => props.defaultCurrency, (newCurrency) => {
-	if (newCurrency) {
-		currency.value = newCurrency;
 	}
 });
 
@@ -312,7 +304,6 @@ const processPayment = async () => {
 const processOneTimePayment = async () => {
 	const requestData: {
 		amount: number;
-		currency: string;
 		description?: string;
 		useCheckout: boolean;
 		billingDetails?: {
@@ -322,7 +313,6 @@ const processOneTimePayment = async () => {
 		};
 	} = {
 		amount: amount.value * 100,
-		currency: currency.value,
 		useCheckout: props.useCheckout,
 	};
 
@@ -346,7 +336,6 @@ const processOneTimePayment = async () => {
 	const paymentParams = new URLSearchParams({
 		client_secret: intentResponse.clientSecret,
 		amount: (amount.value * 100).toString(),
-		currency: currency.value,
 		description: description.value || '',
 		first_name: billingInfo.value.firstName || '',
 		last_name: billingInfo.value.lastName || '',

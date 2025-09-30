@@ -37,14 +37,14 @@ export class DownloadService {
 	}
 
 	@bindThis
-	public async downloadUrl(url: string, path: string, errorCode: boolean = false): Promise<{
+	public async downloadUrl(url: string, path: string, errorCode: boolean = false, allowLargeFile: boolean = false, longTimeout: boolean = false): Promise<{
 		filename: string;
 	}> {
 		this.logger.info(`Downloading ${chalk.cyan(url)} to ${chalk.cyanBright(path)} ...`);
 
-		const timeout = 30 * 1000;
-		const operationTimeout = 60 * 1000;
-		const maxSize = this.config.maxFileSize;
+		const timeout = longTimeout ? 12 * 3600 * 1000 : 30 * 1000; // 12 hours vs 30 seconds
+		const operationTimeout = longTimeout ? 48 * 3600 * 1000 : 60 * 1000; // 48 hours vs 1 minute
+		const maxSize = allowLargeFile ? 1024 * 1024 * 1024 * 1024 : this.config.maxFileSize; // 1TB when allowLargeFile is true
 
 		const urlObj = new URL(url);
 		let filename = urlObj.pathname.split('/').pop() ?? 'untitled';
@@ -52,6 +52,7 @@ export class DownloadService {
 		const req = got.stream(url, {
 			headers: {
 				'User-Agent': this.config.userAgent,
+				'Accept-Encoding': 'identity',
 			},
 			timeout: {
 				lookup: timeout,
@@ -72,19 +73,11 @@ export class DownloadService {
 			},
 			enableUnixSockets: false,
 			followRedirect: true,
+			decompress: false,
 		}).on('response', async (res: Got.Response) => {
 			if (errorCode && (res.statusCode.toString().startsWith("4")) || res.statusCode.toString().startsWith("5")) {
 				this.logger.error("Download failed. The status code is " + res.statusCode.toString());
 				return;
-			}
-
-			const fileInfo = await FileType(path);
-			if (fileInfo?.mime === 'application/zip') {
-				const check = await this.securityCoreService.checkZip(path);
-				if (!check.result) {
-					this.logger.error(`Failed to check zip: ${check.reason}`);
-					return;
-				}
 			}
 
 			const contentLength = res.headers['content-length'];
@@ -116,6 +109,15 @@ export class DownloadService {
 
 		try {
 			await stream.pipeline(req, fs.createWriteStream(path));
+
+			const fileInfo = await FileType(path);
+			if (fileInfo?.mime === 'application/zip') {
+				const check = await this.securityCoreService.checkZip(path);
+				if (!check.result) {
+					this.logger.error(`Failed to check zip: ${check.reason}`);
+					throw new Error(`Zip file security check failed: ${check.reason}`);
+				}
+			}
 		} catch (e) {
 			if (e instanceof Got.HTTPError) {
 				throw new StatusError(`${e.response.statusCode} ${e.response.statusMessage}`, e.response.statusCode, e.response.statusMessage);

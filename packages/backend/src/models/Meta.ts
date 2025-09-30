@@ -915,6 +915,12 @@ export class MiMeta {
 		nullable: true,
 	})
 	public stripePaymentMethodConfiguration: string | null;
+
+	@Column('varchar', {
+		length: 3,
+		default: 'USD',
+	})
+	public stripeCurrency: string;
 }
 
 export type SoftwareSuspension = {

@@ -6,6 +6,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { In } from 'typeorm';
 import { DI } from '@/di-symbols.js';
+import type { Config } from '@/config.js';
 import type { MiNoteDraft, NoteDraftsRepository, MiNote, MiDriveFile, MiChannel, UsersRepository, DriveFilesRepository, NotesRepository, BlockingsRepository, ChannelsRepository } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { RoleService } from '@/core/RoleService.js';
@@ -15,12 +16,16 @@ import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { isRenote, isQuote } from '@/misc/is-renote.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { QueueService } from '@/core/QueueService.js';
+import { OfflineGeocodingService } from '@/core/OfflineGeocodingService.js';
 
 export type NoteDraftOptions = Omit<MiNoteDraft, 'id' | 'userId' | 'user' | 'reply' | 'renote' | 'channel'>;
 
 @Injectable()
 export class NoteDraftService {
 	constructor(
+		@Inject(DI.config)
+		private config: Config,
+
 		@Inject(DI.blockingsRepository)
 		private blockingsRepository: BlockingsRepository,
 
@@ -43,6 +48,7 @@ export class NoteDraftService {
 		private idService: IdService,
 		private noteEntityService: NoteEntityService,
 		private queueService: QueueService,
+		private offlineGeocodingService: OfflineGeocodingService,
 	) {
 	}
 
@@ -88,7 +94,37 @@ export class NoteDraftService {
 		};
 
 		if (data.geojson) {
-			const geoJsonData = data.geojson as any;
+			let geoJsonData = data.geojson as any;
+
+			if (this.config.offlineGeocoding &&
+				(this.config.offlineGeocoding.downloadFullGeoNames ||
+				 this.config.offlineGeocoding.includeAlternateNames ||
+				 this.config.offlineGeocoding.downloadOSM) &&
+				geoJsonData.type === 'FeatureCollection' &&
+				geoJsonData.features &&
+				geoJsonData.features.length === 1) {
+				const firstFeature = geoJsonData.features[0];
+
+				if (firstFeature.geometry &&
+					firstFeature.geometry.type === 'Point' &&
+					firstFeature.geometry.coordinates &&
+					firstFeature.properties &&
+					Object.keys(firstFeature.properties).length === 0) {
+					const [lon, lat] = firstFeature.geometry.coordinates;
+
+					try {
+						const geocodedResult = await this.offlineGeocodingService.reverseGeocode(lat, lon);
+						if (geocodedResult && geocodedResult.features && geocodedResult.features.length > 0) {
+							geoJsonData = geocodedResult;
+						}
+					} catch (error) {
+						console.error('Offline geocoding failed:', error);
+					}
+				}
+			}
+
+			insertData.geojson = geoJsonData;
+
 			if (geoJsonData.features && geoJsonData.features.length > 0) {
 				const firstFeature = geoJsonData.features[0];
 				if (firstFeature.geometry && firstFeature.geometry.type === 'Point' && firstFeature.geometry.coordinates) {
@@ -137,7 +173,37 @@ export class NoteDraftService {
 		const updateData: any = { ...data };
 
 		if (data.geojson) {
-			const geoJsonData = data.geojson as any;
+			let geoJsonData = data.geojson as any;
+
+			if (this.config.offlineGeocoding &&
+				(this.config.offlineGeocoding.downloadFullGeoNames ||
+				 this.config.offlineGeocoding.includeAlternateNames ||
+				 this.config.offlineGeocoding.downloadOSM) &&
+				geoJsonData.type === 'FeatureCollection' &&
+				geoJsonData.features &&
+				geoJsonData.features.length === 1) {
+				const firstFeature = geoJsonData.features[0];
+
+				if (firstFeature.geometry &&
+					firstFeature.geometry.type === 'Point' &&
+					firstFeature.geometry.coordinates &&
+					firstFeature.properties &&
+					Object.keys(firstFeature.properties).length === 0) {
+					const [lon, lat] = firstFeature.geometry.coordinates;
+
+					try {
+						const geocodedResult = await this.offlineGeocodingService.reverseGeocode(lat, lon);
+						if (geocodedResult && geocodedResult.features && geocodedResult.features.length > 0) {
+							geoJsonData = geocodedResult;
+						}
+					} catch (error) {
+						console.error('Offline geocoding failed:', error);
+					}
+				}
+			}
+
+			updateData.geojson = geoJsonData;
+
 			if (geoJsonData.features && geoJsonData.features.length > 0) {
 				const firstFeature = geoJsonData.features[0];
 				if (firstFeature.geometry && firstFeature.geometry.type === 'Point' && firstFeature.geometry.coordinates) {

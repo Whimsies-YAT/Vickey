@@ -255,6 +255,7 @@ export const paramDef = {
 		stripeSecretKey: { type: 'string', nullable: true },
 		stripeWebhookSecret: { type: 'string', nullable: true },
 		stripePaymentMethodConfiguration: { type: 'string', nullable: true },
+		stripeCurrency: { type: 'string', enum: ['USD', 'EUR', 'CNY', 'JPY', 'GBP', 'CHF', 'CAD', 'AUD', 'SGD', 'HKD'] },
 	},
 	required: [],
 } as const;
@@ -1023,6 +1024,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				} else {
 					set.stripePaymentMethodConfiguration = ps.stripePaymentMethodConfiguration;
 				}
+			}
+
+			if (ps.stripeCurrency !== undefined) {
+				set.stripeCurrency = ps.stripeCurrency;
 			}
 
 			const before = await this.metaService.fetch(true);

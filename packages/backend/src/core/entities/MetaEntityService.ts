@@ -147,6 +147,7 @@ export class MetaEntityService {
 			visibleRecipient: instance.visibleRecipient && instance.visibleRecipient.trim() !== '' ? instance.visibleRecipient : instance.maintainerEmail,
 			enableStripe: instance.enableStripe,
 			stripePublicKey: instance.stripePublicKey,
+			stripeCurrency: instance.stripeCurrency,
 		};
 
 		return packed;

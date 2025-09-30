@@ -35,7 +35,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 								:class="['amount-btn', { active: selectedAmount === amount }]"
 								@click="selectAmount(amount)"
 							>
-								${{ amount }}
+								{{ currencySymbol }}{{ amount }}
 							</button>
 							<button
 								:class="['amount-btn', 'custom-btn', { active: isCustomAmount }]"
@@ -53,7 +53,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 								:placeholder="i18n.ts._donation.enterAmount"
 								@input="onCustomAmountChange"
 							>
-								<template #prefix>$</template>
+								<template #prefix>{{ currencySymbol }}</template>
 							</MkInput>
 						</div>
 					</div>
@@ -102,7 +102,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						>
 							<i v-if="!processing" class="ti ti-heart"></i>
 							{{ processing ? i18n.ts._donation.processing : i18n.ts._donation.donateButton }}
-							<span v-if="finalAmount > 0" class="amount-display">${{ finalAmount }}</span>
+							<span v-if="finalAmount > 0" class="amount-display">{{ currencySymbol }}{{ finalAmount }}</span>
 						</MkButton>
 						<p class="secure-payment">
 							<i class="ti ti-shield-check"></i>
@@ -172,6 +172,8 @@ import { $i } from '@/i.js';
 const loading = ref(true);
 const processing = ref(false);
 const paymentEnabled = ref(false);
+const currency = ref('USD');
+const currencySymbol = ref('$');
 
 const selectedAmount = ref<number | null>(null);
 const customAmountValue = ref<number | null>(null);
@@ -179,7 +181,7 @@ const isCustomAmount = ref(false);
 const paymentType = ref<'one-time' | 'monthly'>('one-time');
 const donationNote = ref('');
 
-const quickAmounts = [5, 10, 25, 50, 100];
+const quickAmounts = ref<number[]>([5, 10, 25, 50, 100]);
 
 const headerActions = computed(() => []);
 const headerTabs = computed(() => []);
@@ -244,7 +246,6 @@ const processDonation = async () => {
 
 		const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkPaymentDialog.vue').then(x => x.default), {
 			amount: finalAmount.value,
-			currency: 'usd',
 			description: donationNote.value || i18n.tsx._donation.description({ instanceName }),
 			subscription: paymentType.value === 'monthly',
 			subscriptionPlans: subscriptionPlans,
@@ -270,10 +271,55 @@ const processDonation = async () => {
 	}
 };
 
+const getCurrencySymbol = (curr: string): string => {
+	const symbols: Record<string, string> = {
+		'USD': '$',
+		'EUR': '€',
+		'CNY': '¥',
+		'JPY': '¥',
+		'GBP': '£',
+		'CHF': 'CHF',
+		'CAD': 'CA$',
+		'AUD': 'A$',
+		'SGD': 'S$',
+		'HKD': 'HK$',
+	};
+	return symbols[curr.toUpperCase()] || curr;
+};
+
+const getQuickAmounts = (curr: string): number[] => {
+	const currUpper = curr.toUpperCase();
+	switch (currUpper) {
+		case 'JPY':
+			return [500, 1000, 2500, 5000, 10000];
+		case 'CNY':
+			return [30, 68, 168, 328, 648];
+		case 'EUR':
+		case 'GBP':
+		case 'CHF':
+		case 'CAD':
+		case 'AUD':
+		case 'SGD':
+			return [5, 10, 25, 50, 100];
+		case 'HKD':
+			return [50, 100, 200, 500, 1000];
+		case 'USD':
+		default:
+			return [5, 10, 25, 50, 100];
+	}
+};
+
 const checkPaymentConfig = async () => {
 	try {
 		const config = await misskeyApi('payment/get-config', {}) as { enabled: boolean };
 		paymentEnabled.value = config.enabled;
+
+		const meta = await misskeyApi('meta', { detail: false }) as any;
+		if (meta.stripeCurrency) {
+			currency.value = meta.stripeCurrency.toUpperCase();
+			currencySymbol.value = getCurrencySymbol(currency.value);
+			quickAmounts.value = getQuickAmounts(currency.value);
+		}
 	} catch (error) {
 		console.error('Failed to check payment config:', error);
 		paymentEnabled.value = false;
@@ -282,9 +328,11 @@ const checkPaymentConfig = async () => {
 	}
 };
 
-onMounted(() => {
-	checkPaymentConfig();
-	selectAmount(10);
+onMounted(async () => {
+	await checkPaymentConfig();
+	if (quickAmounts.value.length > 1) {
+		selectAmount(quickAmounts.value[1]);
+	}
 });
 
 definePage(() => ({

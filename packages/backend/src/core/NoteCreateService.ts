@@ -58,6 +58,7 @@ import { CollapsedQueue } from '@/misc/collapsed-queue.js';
 import { CacheService } from '@/core/CacheService.js';
 import { UserRiskScoreService } from '@/core/UserRiskScoreService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
+import { OfflineGeocodingService } from '@/core/OfflineGeocodingService.js';
 
 type NotificationType = 'reply' | 'renote' | 'quote' | 'mention';
 
@@ -227,6 +228,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 		private userBlockingService: UserBlockingService,
 		private cacheService: CacheService,
 		private userRiskScoreService: UserRiskScoreService,
+		private offlineGeocodingService: OfflineGeocodingService,
 	) {
 		this.updateNotesCountQueue = new CollapsedQueue(process.env.NODE_ENV !== 'test' ? 60 * 1000 * 5 : 0, this.collapseNotesCount, this.performUpdateNotesCount);
 	}
@@ -688,9 +690,37 @@ export class NoteCreateService implements OnApplicationShutdown {
 		if (data.url != null) insert.url = data.url;
 
 		if (data.geoJson != null) {
-			insert.geojson = data.geoJson;
+			let geoJsonData = data.geoJson as any;
 
-			const geoJsonData = data.geoJson as any;
+			if (this.config.offlineGeocoding &&
+				(this.config.offlineGeocoding.downloadFullGeoNames ||
+				 this.config.offlineGeocoding.includeAlternateNames ||
+				 this.config.offlineGeocoding.downloadOSM) &&
+				geoJsonData.type === 'FeatureCollection' &&
+				geoJsonData.features &&
+				geoJsonData.features.length === 1) {
+				const firstFeature = geoJsonData.features[0];
+
+				if (firstFeature.geometry &&
+					firstFeature.geometry.type === 'Point' &&
+					firstFeature.geometry.coordinates &&
+					firstFeature.properties &&
+					Object.keys(firstFeature.properties).length === 0) {
+					const [lon, lat] = firstFeature.geometry.coordinates;
+
+					try {
+						const geocodedResult = await this.offlineGeocodingService.reverseGeocode(lat, lon);
+						if (geocodedResult && geocodedResult.features && geocodedResult.features.length > 0) {
+							geoJsonData = geocodedResult;
+						}
+					} catch (error) {
+						console.error('Offline geocoding failed:', error);
+					}
+				}
+			}
+
+			insert.geojson = geoJsonData;
+
 			if (geoJsonData.features && geoJsonData.features.length > 0) {
 				const firstFeature = geoJsonData.features[0];
 				if (firstFeature.geometry && firstFeature.geometry.type === 'Point' && firstFeature.geometry.coordinates) {

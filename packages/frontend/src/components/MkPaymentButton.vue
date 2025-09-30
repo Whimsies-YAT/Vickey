@@ -35,7 +35,6 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
 	amount: 10,
-	currency: 'usd',
 	description: '',
 	buttonText: '',
 	subscription: false,
@@ -74,7 +73,6 @@ const openPaymentDialog = async () => {
 			import('@/components/MkPaymentDialog.vue').then(x => x.default),
 			{
 				amount: props.amount,
-				currency: props.currency,
 				description: props.description,
 				subscription: props.subscription,
 				priceId: props.priceId,

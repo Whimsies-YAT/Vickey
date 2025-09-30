@@ -32,7 +32,6 @@
 		"@twemoji/parser": "16.0.0",
 		"@vitejs/plugin-vue": "6.0.1",
 		"@vue/compiler-sfc": "3.5.21",
-		"@vuepic/vue-datepicker": "11.0.2",
 		"aiscript-vscode": "github:aiscript-dev/aiscript-vscode#v0.1.15",
 		"analytics": "0.8.19",
 		"astring": "1.9.0",
