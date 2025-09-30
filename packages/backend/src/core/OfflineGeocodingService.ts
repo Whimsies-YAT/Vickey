@@ -1752,6 +1752,11 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 		await this.initialize();
 
+		if (this.syncInProgress) {
+			this.logger.debug('Geocoding query blocked during synchronization');
+			return this.createEmptyGeoJson(lat, lon);
+		}
+
 		if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
 			return this.createEmptyGeoJson(lat, lon);
 		}
