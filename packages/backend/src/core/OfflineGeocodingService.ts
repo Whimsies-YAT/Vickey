@@ -3,25 +3,25 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import {Inject, Injectable, OnApplicationBootstrap, OnApplicationShutdown} from '@nestjs/common';
-import {DI} from '@/di-symbols.js';
-import type {Config} from '@/config.js';
-import {bindThis} from '@/decorators.js';
-import {Client as ElasticSearch} from '@elastic/elasticsearch';
+import { Inject, Injectable, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common';
+import { DI } from '@/di-symbols.js';
+import type { Config } from '@/config.js';
+import { bindThis } from '@/decorators.js';
+import { Client as ElasticSearch } from '@elastic/elasticsearch';
 import * as fs from 'node:fs/promises';
-import {stat} from 'node:fs/promises';
+import { stat } from 'node:fs/promises';
 import * as path from 'node:path';
-import {createHash} from 'node:crypto';
-import {Worker} from 'node:worker_threads';
-import {LoggerService} from '@/core/LoggerService.js';
-import {HttpRequestService} from '@/core/HttpRequestService.js';
-import {DownloadService} from '@/core/DownloadService.js';
-import {createReadStream} from 'node:fs';
-import {EventEmitter} from 'node:events';
-import {clearInterval, clearTimeout, setInterval, setTimeout} from 'node:timers';
+import { createHash } from 'node:crypto';
+import { Worker } from 'node:worker_threads';
+import { LoggerService } from '@/core/LoggerService.js';
+import { HttpRequestService } from '@/core/HttpRequestService.js';
+import { DownloadService } from '@/core/DownloadService.js';
+import { createReadStream } from 'node:fs';
+import { EventEmitter } from 'node:events';
+import { clearInterval, clearTimeout, setInterval, setTimeout } from 'node:timers';
 import * as os from "os";
-import {ZipReader} from 'slacc';
-import {createOSMStream} from 'osm-pbf-parser-node';
+import { ZipReader } from 'slacc';
+import { createOSMStream } from 'osm-pbf-parser-node';
 
 interface OSMNode {
 	id: number;
