@@ -23,6 +23,8 @@ interface VoiceCallSession {
 	status: 'ringing' | 'connecting' | 'connected' | 'ended';
 	createdAt: number;
 	connectedAt?: number;
+	appId?: string;
+	appSecret?: string;
 }
 
 @Injectable()
@@ -75,7 +77,7 @@ export class VoiceCallService {
 	public async initiateCall(
 		callerId: MiUser['id'],
 		recipientId: MiUser['id'],
-	): Promise<{ callId: string; iceServers: RTCIceServer[] } | null> {
+	): Promise<{ callId: string; iceServers: RTCIceServer[]; callerSessionId?: string; sessionDescription?: RTCSessionDescriptionInit } | null> {
 		if (!this.isEnabled()) {
 			return null;
 		}
@@ -86,12 +88,27 @@ export class VoiceCallService {
 
 		const callId = this.idService.gen();
 
+		const appCreds = await this.cloudflareCallsService.getAppCredentials();
+
+		let callerSessionId: string | undefined;
+		let sessionDescription: RTCSessionDescriptionInit | undefined;
+		if (appCreds) {
+			const callerSession = await this.cloudflareCallsService.createSession(appCreds.appId, appCreds.appSecret);
+			if (callerSession) {
+				callerSessionId = callerSession.sessionId;
+				sessionDescription = callerSession.sessionDescription;
+			}
+		}
+
 		const session: VoiceCallSession = {
 			callId,
 			callerId,
 			recipientId,
 			status: 'ringing',
 			createdAt: Date.now(),
+			appId: appCreds?.appId,
+			appSecret: appCreds?.appSecret,
+			callerSessionId,
 		};
 
 		this.notificationService.createNotification(recipientId, 'voiceCall', {}, callerId);
@@ -107,14 +124,27 @@ export class VoiceCallService {
 		return {
 			callId,
 			iceServers: this.cloudflareCallsService.getIceServers(),
+			callerSessionId,
+			sessionDescription,
 		};
 	}
 
 	@bindThis
-	public async answerCall(callId: string, userId: MiUser['id']): Promise<{ iceServers: RTCIceServer[] } | null> {
+	public async answerCall(callId: string, userId: MiUser['id']): Promise<{ iceServers: RTCIceServer[]; recipientSessionId?: string; sessionDescription?: RTCSessionDescriptionInit } | null> {
 		const session = await this.getSession(callId);
 		if (!session || session.recipientId !== userId) {
 			return null;
+		}
+
+		let recipientSessionId: string | undefined;
+		let sessionDescription: RTCSessionDescriptionInit | undefined;
+		if (session.appId && session.appSecret) {
+			const recipientSession = await this.cloudflareCallsService.createSession(session.appId, session.appSecret);
+			if (recipientSession) {
+				recipientSessionId = recipientSession.sessionId;
+				sessionDescription = recipientSession.sessionDescription;
+				session.recipientSessionId = recipientSessionId;
+			}
 		}
 
 		session.status = 'connecting';
@@ -128,6 +158,8 @@ export class VoiceCallService {
 
 		return {
 			iceServers: this.cloudflareCallsService.getIceServers(),
+			recipientSessionId,
+			sessionDescription,
 		};
 	}
 

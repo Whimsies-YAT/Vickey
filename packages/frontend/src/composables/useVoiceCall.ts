@@ -256,10 +256,21 @@ export function useVoiceCall() {
 		}
 
 		if (signalType === 'offer') {
+			console.log('Processing offer SDP:', signalData);
 			await peerConnection.value.setRemoteDescription(signalData);
 
 			const answer = await peerConnection.value.createAnswer();
+			console.log('Created answer SDP:', answer);
 			await peerConnection.value.setLocalDescription(answer);
+
+			const transceivers = peerConnection.value.getTransceivers();
+			console.log('Transceivers after answer:', transceivers.map(t => ({
+				mid: t.mid,
+				direction: t.direction,
+				currentDirection: t.currentDirection,
+				sender: t.sender.track?.kind,
+				receiver: t.receiver.track?.kind,
+			})));
 
 			mainChannel.send('voiceCall:signal', {
 				callId: currentCall.value.callId,
@@ -270,7 +281,18 @@ export function useVoiceCall() {
 			currentCall.value.state = 'connected';
 			startCallDurationTimer();
 		} else if (signalType === 'answer') {
+			console.log('Processing answer SDP:', signalData);
 			await peerConnection.value.setRemoteDescription(signalData);
+
+			const transceivers = peerConnection.value.getTransceivers();
+			console.log('Transceivers after answer:', transceivers.map(t => ({
+				mid: t.mid,
+				direction: t.direction,
+				currentDirection: t.currentDirection,
+				sender: t.sender.track?.kind,
+				receiver: t.receiver.track?.kind,
+			})));
+
 			if (currentCall.value) {
 				currentCall.value.state = 'connected';
 				startCallDurationTimer();
@@ -306,14 +328,29 @@ export function useVoiceCall() {
 				currentCall.value.callId = data.callId;
 				await initPeerConnection(data.iceServers);
 
-				const offer = await peerConnection.value!.createOffer();
-				await peerConnection.value!.setLocalDescription(offer);
+				if (data.sessionDescription) {
+					console.log('Using SFU sessionDescription as remote:', data.sessionDescription);
+					await peerConnection.value!.setRemoteDescription(data.sessionDescription);
 
-				mainChannel.send('voiceCall:signal', {
-					callId: currentCall.value.callId,
-					signalType: 'offer',
-					signalData: peerConnection.value!.localDescription,
-				});
+					const answer = await peerConnection.value!.createAnswer();
+					console.log('Created answer for SFU:', answer);
+					await peerConnection.value!.setLocalDescription(answer);
+
+					mainChannel.send('voiceCall:signal', {
+						callId: currentCall.value.callId,
+						signalType: 'answer',
+						signalData: peerConnection.value!.localDescription,
+					});
+				} else {
+					const offer = await peerConnection.value!.createOffer();
+					await peerConnection.value!.setLocalDescription(offer);
+
+					mainChannel.send('voiceCall:signal', {
+						callId: currentCall.value.callId,
+						signalType: 'offer',
+						signalData: peerConnection.value!.localDescription,
+					});
+				}
 				break;
 			}
 
@@ -328,6 +365,21 @@ export function useVoiceCall() {
 				if (!currentCall.value || !data.callId || !data.iceServers) return;
 				if (data.callId === currentCall.value.callId) {
 					await initPeerConnection(data.iceServers);
+
+					if (data.sessionDescription) {
+						console.log('Using SFU sessionDescription as remote:', data.sessionDescription);
+						await peerConnection.value!.setRemoteDescription(data.sessionDescription);
+
+						const answer = await peerConnection.value!.createAnswer();
+						console.log('Created answer for SFU:', answer);
+						await peerConnection.value!.setLocalDescription(answer);
+
+						mainChannel.send('voiceCall:signal', {
+							callId: currentCall.value.callId,
+							signalType: 'answer',
+							signalData: peerConnection.value!.localDescription,
+						});
+					}
 				}
 				break;
 			}

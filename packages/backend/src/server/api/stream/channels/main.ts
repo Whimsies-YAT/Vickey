@@ -100,8 +100,6 @@ class MainChannel extends Channel {
 
 	@bindThis
 	private async handleVoiceCallInitiate(body: { recipientId: string }) {
-		// appId and appSecret are managed server-side in meta config
-		// Frontend should never know or send these credentials
 		const result = await this.voiceCallService.initiateCall(
 			this.user!.id,
 			body.recipientId,
@@ -117,6 +115,8 @@ class MainChannel extends Channel {
 					username: server.username,
 					credential: server.credential,
 				})),
+				sessionId: result.callerSessionId,
+				sessionDescription: result.sessionDescription,
 			});
 		} else {
 			this.send('voiceCall', {
@@ -140,6 +140,8 @@ class MainChannel extends Channel {
 					username: server.username,
 					credential: server.credential,
 				})),
+				sessionId: result.recipientSessionId,
+				sessionDescription: result.sessionDescription,
 			});
 		}
 	}

@@ -75,6 +75,8 @@ export type Channels = {
 				callId?: string;
 				from?: string;
 				iceServers?: IceServer[];
+				sessionId?: string;
+				sessionDescription?: RTCSessionDescriptionInit;
 				signalType?: string;
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				signalData?: any;
