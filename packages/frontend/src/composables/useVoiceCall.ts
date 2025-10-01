@@ -23,15 +23,13 @@ export function useVoiceCall() {
 	const peerConnection = shallowRef<RTCPeerConnection | null>(null);
 	const localStream = shallowRef<MediaStream | null>(null);
 	const remoteStream = shallowRef<MediaStream | null>(null);
-	const pendingSignals = ref<Array<{ signalType: string; signalData: any }>>([]);
 	const connectionState = ref<RTCPeerConnectionState>('new');
 	const callDuration = ref(0);
 	let callDurationInterval: number | null = null;
-	let isInitializingPeerConnection = false;
+	let sessionId: string | null = null;
 
-	async function initPeerConnection(iceServers: RTCIceServer[]) {
-		console.log('Initializing peer connection with ICE servers:', iceServers);
-		isInitializingPeerConnection = true;
+	async function initPeerConnection(iceServers: RTCIceServer[], sessionIdFromServer: string) {
+		sessionId = sessionIdFromServer;
 
 		peerConnection.value = new RTCPeerConnection({
 			iceServers,
@@ -52,45 +50,15 @@ export function useVoiceCall() {
 		};
 
 		peerConnection.value.ontrack = (event) => {
-			console.log('Received remote track:', event.streams[0]);
-			console.log('Track details:', {
-				kind: event.track.kind,
-				enabled: event.track.enabled,
-				muted: event.track.muted,
-				readyState: event.track.readyState,
-			});
-
 			const stream = event.streams[0];
-			const audioTracks = stream.getAudioTracks();
-			console.log('Audio tracks:', audioTracks.length, audioTracks.map(t => ({
-				id: t.id,
-				enabled: t.enabled,
-				muted: t.muted,
-				readyState: t.readyState,
-				label: t.label,
-			})));
-
-			audioTracks.forEach(track => {
-				if (!track.enabled) {
-					console.warn('Audio track is disabled, enabling it');
-					track.enabled = true;
-				}
-			});
-
 			remoteStream.value = stream;
-
-			event.track.onmute = () => console.log('Remote track muted');
-			event.track.onunmute = () => console.log('Remote track unmuted');
-			event.track.onended = () => console.log('Remote track ended');
 		};
 
 		peerConnection.value.onconnectionstatechange = () => {
 			if (peerConnection.value) {
 				connectionState.value = peerConnection.value.connectionState;
-				console.log('Connection state changed:', connectionState.value);
 
 				if (connectionState.value === 'disconnected' || connectionState.value === 'failed' || connectionState.value === 'closed') {
-					console.log('Connection lost, cleaning up...');
 					cleanup();
 				}
 			}
@@ -99,47 +67,42 @@ export function useVoiceCall() {
 		peerConnection.value.oniceconnectionstatechange = () => {
 			if (peerConnection.value) {
 				const iceState = peerConnection.value.iceConnectionState;
-				const iceGatheringState = peerConnection.value.iceGatheringState;
-				console.log('ICE connection state:', iceState, 'ICE gathering state:', iceGatheringState);
 
-				if (iceState === 'connected' || iceState === 'completed') {
-					console.log('ICE connection established successfully');
-					peerConnection.value.getStats().then(stats => {
-						stats.forEach(report => {
-							if (report.type === 'candidate-pair' && report.state === 'succeeded') {
-								console.log('Active ICE candidate pair:', report);
-							}
-						});
-					}).catch(err => console.error('Failed to get stats:', err));
-				}
-
-				if (peerConnection.value.iceConnectionState === 'disconnected' ||
-					peerConnection.value.iceConnectionState === 'failed' ||
-					peerConnection.value.iceConnectionState === 'closed') {
-					console.log('ICE connection lost, cleaning up...');
+				if (iceState === 'disconnected' || iceState === 'failed' || iceState === 'closed') {
 					cleanup();
 				}
 			}
 		};
 
 		if (localStream.value) {
-			console.log('Adding local stream tracks to peer connection');
 			localStream.value.getTracks().forEach(track => {
-				console.log('Adding track:', track.kind, track.id);
 				peerConnection.value!.addTrack(track, localStream.value!);
 			});
 		}
+	}
 
-		isInitializingPeerConnection = false;
-		console.log('Peer connection initialized, processing', pendingSignals.value.length, 'pending signals');
+	async function pushLocalTracks() {
+		if (!peerConnection.value || !currentCall.value) return;
 
-		while (pendingSignals.value.length > 0) {
-			const signal = pendingSignals.value.shift();
-			if (signal) {
-				console.log('Processing queued signal:', signal.signalType);
-				await processSignal(signal.signalType, signal.signalData);
-			}
-		}
+		const offer = await peerConnection.value.createOffer();
+		await peerConnection.value.setLocalDescription(offer);
+
+		const transceivers = peerConnection.value.getTransceivers();
+		const tracks = transceivers
+			.filter(t => t.sender.track)
+			.map(t => ({
+				mid: t.mid!,
+				trackName: t.sender.track!.kind,
+			}));
+
+		mainChannel.send('voiceCall:pushTracks', {
+			callId: currentCall.value.callId,
+			offer: {
+				type: offer.type,
+				sdp: offer.sdp,
+			},
+			tracks,
+		});
 	}
 
 	async function call(recipientId: string) {
@@ -231,8 +194,6 @@ export function useVoiceCall() {
 	}
 
 	function cleanup() {
-		console.log('Cleaning up voice call...');
-
 		if (peerConnection.value) {
 			peerConnection.value.close();
 			peerConnection.value = null;
@@ -246,68 +207,8 @@ export function useVoiceCall() {
 		stopCallDurationTimer();
 		remoteStream.value = null;
 		currentCall.value = null;
-		pendingSignals.value = [];
 		connectionState.value = 'new';
-	}
-
-	async function processSignal(signalType: string, signalData: any) {
-		if (!peerConnection.value || !currentCall.value) {
-			return;
-		}
-
-		if (signalType === 'offer') {
-			console.log('Processing offer SDP:', signalData);
-			await peerConnection.value.setRemoteDescription(signalData);
-
-			const answer = await peerConnection.value.createAnswer();
-			console.log('Created answer SDP:', answer);
-			await peerConnection.value.setLocalDescription(answer);
-
-			const transceivers = peerConnection.value.getTransceivers();
-			console.log('Transceivers after answer:', transceivers.map(t => ({
-				mid: t.mid,
-				direction: t.direction,
-				currentDirection: t.currentDirection,
-				sender: t.sender.track?.kind,
-				receiver: t.receiver.track?.kind,
-			})));
-
-			mainChannel.send('voiceCall:signal', {
-				callId: currentCall.value.callId,
-				signalType: 'answer',
-				signalData: peerConnection.value.localDescription,
-			});
-
-			currentCall.value.state = 'connected';
-			startCallDurationTimer();
-		} else if (signalType === 'answer') {
-			console.log('Processing answer SDP:', signalData);
-			await peerConnection.value.setRemoteDescription(signalData);
-
-			const transceivers = peerConnection.value.getTransceivers();
-			console.log('Transceivers after answer:', transceivers.map(t => ({
-				mid: t.mid,
-				direction: t.direction,
-				currentDirection: t.currentDirection,
-				sender: t.sender.track?.kind,
-				receiver: t.receiver.track?.kind,
-			})));
-
-			if (currentCall.value) {
-				currentCall.value.state = 'connected';
-				startCallDurationTimer();
-			}
-		} else if (signalType === 'iceCandidate') {
-			if (signalData && signalData.candidate) {
-				await peerConnection.value.addIceCandidate(
-					new RTCIceCandidate({
-						candidate: signalData.candidate,
-						sdpMLineIndex: signalData.sdpMLineIndex,
-						sdpMid: signalData.sdpMid,
-					}),
-				);
-			}
-		}
+		sessionId = null;
 	}
 
 	mainChannel.on('voiceCall', async (data) => {
@@ -324,33 +225,10 @@ export function useVoiceCall() {
 			}
 
 			case 'initiated': {
-				if (!currentCall.value || !data.callId || !data.iceServers) return;
+				if (!currentCall.value || !data.callId || !data.iceServers || !data.sessionId) return;
 				currentCall.value.callId = data.callId;
-				await initPeerConnection(data.iceServers);
-
-				if (data.sessionDescription) {
-					console.log('Using SFU sessionDescription as remote:', data.sessionDescription);
-					await peerConnection.value!.setRemoteDescription(data.sessionDescription);
-
-					const answer = await peerConnection.value!.createAnswer();
-					console.log('Created answer for SFU:', answer);
-					await peerConnection.value!.setLocalDescription(answer);
-
-					mainChannel.send('voiceCall:signal', {
-						callId: currentCall.value.callId,
-						signalType: 'answer',
-						signalData: peerConnection.value!.localDescription,
-					});
-				} else {
-					const offer = await peerConnection.value!.createOffer();
-					await peerConnection.value!.setLocalDescription(offer);
-
-					mainChannel.send('voiceCall:signal', {
-						callId: currentCall.value.callId,
-						signalType: 'offer',
-						signalData: peerConnection.value!.localDescription,
-					});
-				}
+				await initPeerConnection(data.iceServers, data.sessionId);
+				await pushLocalTracks();
 				break;
 			}
 
@@ -362,25 +240,53 @@ export function useVoiceCall() {
 			}
 
 			case 'ready': {
-				if (!currentCall.value || !data.callId || !data.iceServers) return;
+				if (!currentCall.value || !data.callId || !data.iceServers || !data.sessionId) return;
 				if (data.callId === currentCall.value.callId) {
-					await initPeerConnection(data.iceServers);
-
-					if (data.sessionDescription) {
-						console.log('Using SFU sessionDescription as remote:', data.sessionDescription);
-						await peerConnection.value!.setRemoteDescription(data.sessionDescription);
-
-						const answer = await peerConnection.value!.createAnswer();
-						console.log('Created answer for SFU:', answer);
-						await peerConnection.value!.setLocalDescription(answer);
-
-						mainChannel.send('voiceCall:signal', {
-							callId: currentCall.value.callId,
-							signalType: 'answer',
-							signalData: peerConnection.value!.localDescription,
-						});
-					}
+					await initPeerConnection(data.iceServers, data.sessionId);
+					await pushLocalTracks();
 				}
+				break;
+			}
+
+			case 'tracksAnswered': {
+				if (!currentCall.value || !peerConnection.value || !data.answer) return;
+				if (data.callId !== currentCall.value.callId) return;
+
+				await peerConnection.value.setRemoteDescription(data.answer);
+
+				if (data.requiresPull) {
+					mainChannel.send('voiceCall:pullTracks', {
+						callId: currentCall.value.callId,
+					});
+				}
+				break;
+			}
+
+			case 'pullOffer': {
+				if (!currentCall.value || !peerConnection.value || !data.offer) return;
+				if (data.callId !== currentCall.value.callId) return;
+
+				await peerConnection.value.setRemoteDescription(data.offer);
+
+				const answer = await peerConnection.value.createAnswer();
+				await peerConnection.value.setLocalDescription(answer);
+
+				mainChannel.send('voiceCall:answerPull', {
+					callId: currentCall.value.callId,
+					answer: {
+						type: answer.type,
+						sdp: answer.sdp,
+					},
+				});
+				break;
+			}
+
+			case 'pullCompleted': {
+				if (!currentCall.value) return;
+				if (data.callId !== currentCall.value.callId) return;
+
+				currentCall.value.state = 'connected';
+				startCallDurationTimer();
 				break;
 			}
 
@@ -400,21 +306,20 @@ export function useVoiceCall() {
 
 			case 'signal': {
 				if (!currentCall.value || !data.callId || !data.signalType) return;
-				if (data.callId !== currentCall.value.callId) {
-					return;
-				}
+				if (data.callId !== currentCall.value.callId) return;
+				if (!peerConnection.value) return;
 
-				if (!peerConnection.value || isInitializingPeerConnection) {
-					console.log('Queueing signal until PeerConnection is initialized:', data.signalType);
-					pendingSignals.value.push({
-						signalType: data.signalType,
-						signalData: data.signalData,
-					});
-					return;
+				if (data.signalType === 'iceCandidate') {
+					if (data.signalData && data.signalData.candidate) {
+						await peerConnection.value.addIceCandidate(
+							new RTCIceCandidate({
+								candidate: data.signalData.candidate,
+								sdpMLineIndex: data.signalData.sdpMLineIndex,
+								sdpMid: data.signalData.sdpMid,
+							}),
+						);
+					}
 				}
-
-				console.log('Processing signal immediately:', data.signalType);
-				await processSignal(data.signalType, data.signalData);
 				break;
 			}
 

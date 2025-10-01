@@ -77,7 +77,7 @@ export class VoiceCallService {
 	public async initiateCall(
 		callerId: MiUser['id'],
 		recipientId: MiUser['id'],
-	): Promise<{ callId: string; iceServers: RTCIceServer[]; callerSessionId?: string; sessionDescription?: RTCSessionDescriptionInit } | null> {
+	): Promise<{ callId: string; iceServers: RTCIceServer[]; callerSessionId?: string } | null> {
 		if (!this.isEnabled()) {
 			return null;
 		}
@@ -91,12 +91,10 @@ export class VoiceCallService {
 		const appCreds = await this.cloudflareCallsService.getAppCredentials();
 
 		let callerSessionId: string | undefined;
-		let sessionDescription: RTCSessionDescriptionInit | undefined;
 		if (appCreds) {
 			const callerSession = await this.cloudflareCallsService.createSession(appCreds.appId, appCreds.appSecret);
 			if (callerSession) {
 				callerSessionId = callerSession.sessionId;
-				sessionDescription = callerSession.sessionDescription;
 			}
 		}
 
@@ -125,24 +123,21 @@ export class VoiceCallService {
 			callId,
 			iceServers: this.cloudflareCallsService.getIceServers(),
 			callerSessionId,
-			sessionDescription,
 		};
 	}
 
 	@bindThis
-	public async answerCall(callId: string, userId: MiUser['id']): Promise<{ iceServers: RTCIceServer[]; recipientSessionId?: string; sessionDescription?: RTCSessionDescriptionInit } | null> {
+	public async answerCall(callId: string, userId: MiUser['id']): Promise<{ iceServers: RTCIceServer[]; recipientSessionId?: string } | null> {
 		const session = await this.getSession(callId);
 		if (!session || session.recipientId !== userId) {
 			return null;
 		}
 
 		let recipientSessionId: string | undefined;
-		let sessionDescription: RTCSessionDescriptionInit | undefined;
 		if (session.appId && session.appSecret) {
 			const recipientSession = await this.cloudflareCallsService.createSession(session.appId, session.appSecret);
 			if (recipientSession) {
 				recipientSessionId = recipientSession.sessionId;
-				sessionDescription = recipientSession.sessionDescription;
 				session.recipientSessionId = recipientSessionId;
 			}
 		}
@@ -159,7 +154,6 @@ export class VoiceCallService {
 		return {
 			iceServers: this.cloudflareCallsService.getIceServers(),
 			recipientSessionId,
-			sessionDescription,
 		};
 	}
 
@@ -205,62 +199,134 @@ export class VoiceCallService {
 	}
 
 	@bindThis
+	public async pushTracks(
+		callId: string,
+		userId: MiUser['id'],
+		offer: RTCSessionDescriptionInit,
+		tracks: Array<{ mid: string; trackName: string }>,
+	): Promise<{ answer: RTCSessionDescriptionInit; requiresPull?: boolean } | null> {
+		const session = await this.getSession(callId);
+		if (!session || (session.callerId !== userId && session.recipientId !== userId)) {
+			return null;
+		}
+
+		if (!session.appId || !session.appSecret) {
+			return null;
+		}
+
+		const userSessionId = userId === session.callerId ? session.callerSessionId : session.recipientSessionId;
+		if (!userSessionId) {
+			return null;
+		}
+
+		const result = await this.cloudflareCallsService.addTrack(
+			session.appId,
+			session.appSecret,
+			userSessionId,
+			offer,
+			tracks.map(t => ({ location: 'local', mid: t.mid, trackName: t.trackName })),
+		);
+
+		if (!result) {
+			return null;
+		}
+
+		const otherSessionId = userId === session.callerId ? session.recipientSessionId : session.callerSessionId;
+
+		return {
+			answer: result.sessionDescription,
+			requiresPull: !!otherSessionId,
+		};
+	}
+
+	@bindThis
+	public async pullTracks(
+		callId: string,
+		userId: MiUser['id'],
+	): Promise<{ offer: RTCSessionDescriptionInit; tracks: Array<{ mid: string; trackName: string; sessionId: string }> } | null> {
+		const session = await this.getSession(callId);
+		if (!session || (session.callerId !== userId && session.recipientId !== userId)) {
+			return null;
+		}
+
+		if (!session.appId || !session.appSecret) {
+			return null;
+		}
+
+		const userSessionId = userId === session.callerId ? session.callerSessionId : session.recipientSessionId;
+		const otherSessionId = userId === session.callerId ? session.recipientSessionId : session.callerSessionId;
+
+		if (!userSessionId || !otherSessionId) {
+			return null;
+		}
+
+		const result = await this.cloudflareCallsService.addTrack(
+			session.appId,
+			session.appSecret,
+			userSessionId,
+			{ type: 'offer', sdp: '' },
+			[{ location: 'remote', trackName: 'audio', sessionId: otherSessionId }],
+		);
+
+		if (!result) {
+			return null;
+		}
+
+		return {
+			offer: result.sessionDescription,
+			tracks: result.tracks.map(t => ({
+				mid: t.mid || '',
+				trackName: t.trackName,
+				sessionId: otherSessionId,
+			})),
+		};
+	}
+
+	@bindThis
+	public async answerPull(
+		callId: string,
+		userId: MiUser['id'],
+		answer: RTCSessionDescriptionInit,
+	): Promise<boolean> {
+		const session = await this.getSession(callId);
+		if (!session || (session.callerId !== userId && session.recipientId !== userId)) {
+			return false;
+		}
+
+		if (!session.appId || !session.appSecret) {
+			return false;
+		}
+
+		const userSessionId = userId === session.callerId ? session.callerSessionId : session.recipientSessionId;
+		if (!userSessionId) {
+			return false;
+		}
+
+		const result = await this.cloudflareCallsService.renegotiateSession(
+			session.appId,
+			session.appSecret,
+			userSessionId,
+			answer,
+		);
+
+		if (result && session.status === 'connecting') {
+			session.status = 'connected';
+			session.connectedAt = Date.now();
+			await this.setSession(session);
+		}
+
+		return !!result;
+	}
+
+	@bindThis
 	public async relaySignaling(
 		callId: string,
 		userId: MiUser['id'],
-		signalType: 'offer' | 'answer' | 'iceCandidate',
+		signalType: 'iceCandidate',
 		signalData: any,
-	): Promise<{ peerReady?: boolean } | void> {
+	): Promise<void> {
 		const session = await this.getSession(callId);
 		if (!session || (session.callerId !== userId && session.recipientId !== userId)) {
-			return;
-		}
-
-		if (signalType === 'answer' && session.appId && session.appSecret) {
-			const userSessionId = userId === session.callerId ? session.callerSessionId : session.recipientSessionId;
-
-			if (userSessionId) {
-				console.log(`Sending answer to SFU for session ${userSessionId}`);
-				const result = await this.cloudflareCallsService.renegotiateSession(
-					session.appId,
-					session.appSecret,
-					userSessionId,
-					signalData,
-				);
-
-				if (result) {
-					console.log('Answer sent to SFU successfully');
-
-					const otherUserId = userId === session.callerId ? session.recipientId : session.callerId;
-					const otherSessionId = userId === session.callerId ? session.recipientSessionId : session.callerSessionId;
-
-					await this.cloudflareCallsService.addTrack(
-						session.appId,
-						session.appSecret,
-						userSessionId,
-						signalData,
-						[{ location: 'local', trackName: 'audio' }],
-					);
-
-					if (otherSessionId) {
-						await this.cloudflareCallsService.addTrack(
-							session.appId,
-							session.appSecret,
-							userSessionId,
-							signalData,
-							[{ location: 'remote', trackName: 'audio', sessionId: otherSessionId }],
-						);
-					}
-
-					if (session.status === 'connecting') {
-						session.status = 'connected';
-						session.connectedAt = Date.now();
-						await this.setSession(session);
-					}
-
-					return { peerReady: true };
-				}
-			}
 			return;
 		}
 
@@ -273,11 +339,5 @@ export class VoiceCallService {
 			signalData,
 			from: userId,
 		});
-
-		if (signalType === 'answer' && session.status === 'connecting') {
-			session.status = 'connected';
-			session.connectedAt = Date.now();
-			await this.setSession(session);
-		}
 	}
 }

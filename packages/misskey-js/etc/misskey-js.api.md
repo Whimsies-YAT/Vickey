@@ -803,12 +803,15 @@ export type Channels = {
             receiveFollowRequest: (payload: User) => void;
             announcementCreated: (payload: AnnouncementCreated) => void;
             voiceCall: (payload: {
-                type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error';
+                type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'pullOffer' | 'pullCompleted';
                 callId?: string;
                 from?: string;
                 iceServers?: IceServer[];
                 sessionId?: string;
-                sessionDescription?: RTCSessionDescriptionInit;
+                answer?: any;
+                offer?: any;
+                requiresPull?: boolean;
+                tracks?: any[];
                 signalType?: string;
                 signalData?: any;
                 message?: string;
@@ -826,6 +829,18 @@ export type Channels = {
             };
             'voiceCall:end': {
                 callId: string;
+            };
+            'voiceCall:pushTracks': {
+                callId: string;
+                offer: any;
+                tracks: any[];
+            };
+            'voiceCall:pullTracks': {
+                callId: string;
+            };
+            'voiceCall:answerPull': {
+                callId: string;
+                answer: any;
             };
             'voiceCall:signal': {
                 callId: string;
@@ -4174,8 +4189,8 @@ type VerifyEmailRequest = operations['verify-email']['requestBody']['content']['
 // src/entities.ts:55:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
 // src/streaming.ts:57:3 - (ae-forgotten-export) The symbol "ReconnectingWebSocket" needs to be exported by the entry point index.d.ts
 // src/streaming.types.ts:77:5 - (ae-forgotten-export) The symbol "IceServer" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:263:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:273:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:284:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:294:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

@@ -146,8 +146,6 @@ export class CloudflareCallsService {
 	@bindThis
 	public async createSession(appId: string, appSecret: string): Promise<{
 		sessionId: string;
-		sessionDescription: RTCSessionDescriptionInit;
-		iceServers: RTCIceServer[];
 	} | null> {
 		if (!this.isEnabled()) {
 			return null;
@@ -160,17 +158,13 @@ export class CloudflareCallsService {
 				method: 'POST',
 				headers: {
 					'Authorization': `Bearer ${appSecret}`,
-					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({}),
 			});
 
 			const data = await response.json() as any;
 
 			return {
 				sessionId: data.sessionId,
-				sessionDescription: data.sessionDescription,
-				iceServers: this.getIceServers(),
 			};
 		} catch (error) {
 			console.error('Failed to create Cloudflare Calls session:', error);
@@ -188,7 +182,7 @@ export class CloudflareCallsService {
 		appSecret: string,
 		sessionId: string,
 		sessionDescription: RTCSessionDescriptionInit,
-		tracks: Array<{ location: 'local' | 'remote'; trackName: string; sessionId?: string }>,
+		tracks: Array<{ location: 'local' | 'remote'; mid?: string; trackName: string; sessionId?: string }>,
 	): Promise<{
 		sessionDescription: RTCSessionDescriptionInit;
 		tracks: Array<{ trackName: string; mid?: string; sessionId?: string }>;

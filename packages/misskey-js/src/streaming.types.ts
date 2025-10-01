@@ -71,12 +71,18 @@ export type Channels = {
 			receiveFollowRequest: (payload: User) => void;
 			announcementCreated: (payload: AnnouncementCreated) => void;
 			voiceCall: (payload: {
-				type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error';
+				type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'pullOffer' | 'pullCompleted';
 				callId?: string;
 				from?: string;
 				iceServers?: IceServer[];
 				sessionId?: string;
-				sessionDescription?: RTCSessionDescriptionInit;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				answer?: any;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				offer?: any;
+				requiresPull?: boolean;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				tracks?: any[];
 				signalType?: string;
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				signalData?: any;
@@ -96,10 +102,25 @@ export type Channels = {
 			'voiceCall:end': {
 				callId: string;
 			};
+			'voiceCall:pushTracks': {
+				callId: string;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				offer: any;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				tracks: any[];
+			};
+			'voiceCall:pullTracks': {
+				callId: string;
+			};
+			'voiceCall:answerPull': {
+				callId: string;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				answer: any;
+			};
 			'voiceCall:signal': {
 				callId: string;
 				signalType: string;
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				// eslint-disable-next-line @typescript-explicitany
 				signalData: any;
 			};
 		};

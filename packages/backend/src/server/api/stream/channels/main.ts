@@ -92,6 +92,15 @@ class MainChannel extends Channel {
 			case 'voiceCall:end':
 				await this.handleVoiceCallEnd(body);
 				break;
+			case 'voiceCall:pushTracks':
+				await this.handleVoiceCallPushTracks(body);
+				break;
+			case 'voiceCall:pullTracks':
+				await this.handleVoiceCallPullTracks(body);
+				break;
+			case 'voiceCall:answerPull':
+				await this.handleVoiceCallAnswerPull(body);
+				break;
 			case 'voiceCall:signal':
 				await this.handleVoiceCallSignal(body);
 				break;
@@ -116,10 +125,6 @@ class MainChannel extends Channel {
 					credential: server.credential,
 				})),
 				sessionId: result.callerSessionId,
-				sessionDescription: result.sessionDescription ? {
-					type: result.sessionDescription.type,
-					sdp: result.sessionDescription.sdp,
-				} : undefined,
 			});
 		} else {
 			this.send('voiceCall', {
@@ -144,10 +149,6 @@ class MainChannel extends Channel {
 					credential: server.credential,
 				})),
 				sessionId: result.recipientSessionId,
-				sessionDescription: result.sessionDescription ? {
-					type: result.sessionDescription.type,
-					sdp: result.sessionDescription.sdp,
-				} : undefined,
 			});
 		}
 	}
@@ -165,20 +166,71 @@ class MainChannel extends Channel {
 	}
 
 	@bindThis
-	private async handleVoiceCallSignal(body: { callId: string; signalType: 'offer' | 'answer' | 'iceCandidate'; signalData: any }) {
-		const result = await this.voiceCallService.relaySignaling(
+	private async handleVoiceCallPushTracks(body: { callId: string; offer: any; tracks: Array<{ mid: string; trackName: string }> }) {
+		const result = await this.voiceCallService.pushTracks(
+			body.callId,
+			this.user!.id,
+			body.offer,
+			body.tracks,
+		);
+
+		if (result) {
+			this.send('voiceCall', {
+				type: 'tracksAnswered',
+				callId: body.callId,
+				answer: {
+					type: result.answer.type,
+					sdp: result.answer.sdp,
+				},
+				requiresPull: result.requiresPull,
+			});
+		}
+	}
+
+	@bindThis
+	private async handleVoiceCallPullTracks(body: { callId: string }) {
+		const result = await this.voiceCallService.pullTracks(
+			body.callId,
+			this.user!.id,
+		);
+
+		if (result) {
+			this.send('voiceCall', {
+				type: 'pullOffer',
+				callId: body.callId,
+				offer: {
+					type: result.offer.type,
+					sdp: result.offer.sdp,
+				},
+				tracks: result.tracks,
+			});
+		}
+	}
+
+	@bindThis
+	private async handleVoiceCallAnswerPull(body: { callId: string; answer: any }) {
+		const success = await this.voiceCallService.answerPull(
+			body.callId,
+			this.user!.id,
+			body.answer,
+		);
+
+		if (success) {
+			this.send('voiceCall', {
+				type: 'pullCompleted',
+				callId: body.callId,
+			});
+		}
+	}
+
+	@bindThis
+	private async handleVoiceCallSignal(body: { callId: string; signalType: 'iceCandidate'; signalData: any }) {
+		await this.voiceCallService.relaySignaling(
 			body.callId,
 			this.user!.id,
 			body.signalType,
 			body.signalData,
 		);
-
-		if (result !== undefined && typeof result === 'object') {
-			const signalResult = result as { peerReady?: boolean };
-			if (signalResult.peerReady) {
-				console.log('SFU connection established for call:', body.callId);
-			}
-		}
 	}
 }
 
