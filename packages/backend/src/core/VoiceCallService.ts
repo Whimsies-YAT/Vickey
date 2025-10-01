@@ -210,9 +210,57 @@ export class VoiceCallService {
 		userId: MiUser['id'],
 		signalType: 'offer' | 'answer' | 'iceCandidate',
 		signalData: any,
-	): Promise<void> {
+	): Promise<{ peerReady?: boolean } | void> {
 		const session = await this.getSession(callId);
 		if (!session || (session.callerId !== userId && session.recipientId !== userId)) {
+			return;
+		}
+
+		if (signalType === 'answer' && session.appId && session.appSecret) {
+			const userSessionId = userId === session.callerId ? session.callerSessionId : session.recipientSessionId;
+
+			if (userSessionId) {
+				console.log(`Sending answer to SFU for session ${userSessionId}`);
+				const result = await this.cloudflareCallsService.renegotiateSession(
+					session.appId,
+					session.appSecret,
+					userSessionId,
+					signalData,
+				);
+
+				if (result) {
+					console.log('Answer sent to SFU successfully');
+
+					const otherUserId = userId === session.callerId ? session.recipientId : session.callerId;
+					const otherSessionId = userId === session.callerId ? session.recipientSessionId : session.callerSessionId;
+
+					await this.cloudflareCallsService.addTrack(
+						session.appId,
+						session.appSecret,
+						userSessionId,
+						signalData,
+						[{ location: 'local', trackName: 'audio' }],
+					);
+
+					if (otherSessionId) {
+						await this.cloudflareCallsService.addTrack(
+							session.appId,
+							session.appSecret,
+							userSessionId,
+							signalData,
+							[{ location: 'remote', trackName: 'audio', sessionId: otherSessionId }],
+						);
+					}
+
+					if (session.status === 'connecting') {
+						session.status = 'connected';
+						session.connectedAt = Date.now();
+						await this.setSession(session);
+					}
+
+					return { peerReady: true };
+				}
+			}
 			return;
 		}
 

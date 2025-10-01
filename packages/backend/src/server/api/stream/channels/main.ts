@@ -116,7 +116,10 @@ class MainChannel extends Channel {
 					credential: server.credential,
 				})),
 				sessionId: result.callerSessionId,
-				sessionDescription: result.sessionDescription,
+				sessionDescription: result.sessionDescription ? {
+					type: result.sessionDescription.type,
+					sdp: result.sessionDescription.sdp,
+				} : undefined,
 			});
 		} else {
 			this.send('voiceCall', {
@@ -141,7 +144,10 @@ class MainChannel extends Channel {
 					credential: server.credential,
 				})),
 				sessionId: result.recipientSessionId,
-				sessionDescription: result.sessionDescription,
+				sessionDescription: result.sessionDescription ? {
+					type: result.sessionDescription.type,
+					sdp: result.sessionDescription.sdp,
+				} : undefined,
 			});
 		}
 	}
@@ -160,12 +166,19 @@ class MainChannel extends Channel {
 
 	@bindThis
 	private async handleVoiceCallSignal(body: { callId: string; signalType: 'offer' | 'answer' | 'iceCandidate'; signalData: any }) {
-		await this.voiceCallService.relaySignaling(
+		const result = await this.voiceCallService.relaySignaling(
 			body.callId,
 			this.user!.id,
 			body.signalType,
 			body.signalData,
 		);
+
+		if (result !== undefined && typeof result === 'object') {
+			const signalResult = result as { peerReady?: boolean };
+			if (signalResult.peerReady) {
+				console.log('SFU connection established for call:', body.callId);
+			}
+		}
 	}
 }
 
