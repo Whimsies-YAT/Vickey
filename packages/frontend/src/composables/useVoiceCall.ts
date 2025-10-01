@@ -59,15 +59,29 @@ export function useVoiceCall() {
 				muted: event.track.muted,
 				readyState: event.track.readyState,
 			});
-			remoteStream.value = event.streams[0];
 
-			const audioTracks = event.streams[0].getAudioTracks();
+			const stream = event.streams[0];
+			const audioTracks = stream.getAudioTracks();
 			console.log('Audio tracks:', audioTracks.length, audioTracks.map(t => ({
 				id: t.id,
 				enabled: t.enabled,
 				muted: t.muted,
 				readyState: t.readyState,
+				label: t.label,
 			})));
+
+			audioTracks.forEach(track => {
+				if (!track.enabled) {
+					console.warn('Audio track is disabled, enabling it');
+					track.enabled = true;
+				}
+			});
+
+			remoteStream.value = stream;
+
+			event.track.onmute = () => console.log('Remote track muted');
+			event.track.onunmute = () => console.log('Remote track unmuted');
+			event.track.onended = () => console.log('Remote track ended');
 		};
 
 		peerConnection.value.onconnectionstatechange = () => {
@@ -84,7 +98,20 @@ export function useVoiceCall() {
 
 		peerConnection.value.oniceconnectionstatechange = () => {
 			if (peerConnection.value) {
-				console.log('ICE connection state:', peerConnection.value.iceConnectionState);
+				const iceState = peerConnection.value.iceConnectionState;
+				const iceGatheringState = peerConnection.value.iceGatheringState;
+				console.log('ICE connection state:', iceState, 'ICE gathering state:', iceGatheringState);
+
+				if (iceState === 'connected' || iceState === 'completed') {
+					console.log('ICE connection established successfully');
+					peerConnection.value.getStats().then(stats => {
+						stats.forEach(report => {
+							if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+								console.log('Active ICE candidate pair:', report);
+							}
+						});
+					}).catch(err => console.error('Failed to get stats:', err));
+				}
 
 				if (peerConnection.value.iceConnectionState === 'disconnected' ||
 					peerConnection.value.iceConnectionState === 'failed' ||

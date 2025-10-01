@@ -120,7 +120,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<XForm v-if="initialized" :user="user" :room="room" :class="$style.form"/>
 			</div>
 		</div>
-		<audio ref="remoteAudioEl" autoplay playsinline style="display: none;"></audio>
+		<audio ref="remoteAudioEl" autoplay playsinline muted="false" style="display: none;"></audio>
 	</template>
 </PageWithHeader>
 </template>
@@ -580,17 +580,53 @@ watch(() => voiceCall.currentCall.value, (call, oldCall) => {
 	}
 }, { deep: true });
 
-watch(() => voiceCall.remoteStream.value, (stream) => {
+watch(() => voiceCall.remoteStream.value, async (stream) => {
 	console.log('Remote stream changed:', stream);
 	if (stream && remoteAudioEl.value) {
 		console.log('Setting remote audio stream');
-		remoteAudioEl.value.srcObject = stream;
-		remoteAudioEl.value.volume = 1.0;
-		remoteAudioEl.value.play().then(() => {
-			console.log('Remote audio playing successfully');
-		}).catch(error => {
-			console.error('Failed to play remote audio:', error);
+
+		const audioEl = remoteAudioEl.value;
+		audioEl.srcObject = stream;
+		audioEl.volume = 1.0;
+		audioEl.muted = false;
+
+		const audioTracks = stream.getAudioTracks();
+		console.log('Stream audio tracks:', audioTracks.length);
+		audioTracks.forEach((track, index) => {
+			console.log(`Track ${index}:`, {
+				id: track.id,
+				label: track.label,
+				enabled: track.enabled,
+				muted: track.muted,
+				readyState: track.readyState,
+			});
 		});
+
+		await new Promise(resolve => window.setTimeout(resolve, 100));
+
+		try {
+			await audioEl.play();
+			console.log('Remote audio playing successfully');
+
+			console.log('Audio element state:', {
+				paused: audioEl.paused,
+				muted: audioEl.muted,
+				volume: audioEl.volume,
+				readyState: audioEl.readyState,
+			});
+		} catch (error) {
+			console.error('Failed to play remote audio:', error);
+
+			const playAudio = () => {
+				audioEl.play()
+					.then(() => {
+						console.log('Audio playing after user interaction');
+						window.document.removeEventListener('click', playAudio);
+					})
+					.catch(err => console.error('Still failed to play:', err));
+			};
+			window.document.addEventListener('click', playAudio, { once: true });
+		}
 	}
 }, { immediate: true });
 
