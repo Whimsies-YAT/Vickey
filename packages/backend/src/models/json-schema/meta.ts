@@ -352,6 +352,11 @@ export const packedMetaLiteSchema = {
 			optional: false, nullable: false,
 			default: 'USD',
 		},
+		enableCloudflareSfu: {
+			type: 'boolean',
+			optional: false, nullable: false,
+			default: false,
+		},
 	},
 } as const;
 

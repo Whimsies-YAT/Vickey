@@ -73,6 +73,43 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<template #footer>
 		<div v-if="tab === 'chat'" :class="$style.footer">
 			<div class="_gaps">
+				<!-- Voice Call Status Banner -->
+				<Transition name="fade">
+					<div v-if="voiceCall.currentCall.value" :class="$style.voiceCallBanner">
+						<div :class="$style.voiceCallContent">
+							<div :class="$style.voiceCallIcon">
+								<i v-if="voiceCall.currentCall.value.state === 'calling'" class="ti ti-phone-calling"></i>
+								<i v-else-if="voiceCall.currentCall.value.state === 'ringing'" class="ti ti-phone-incoming"></i>
+								<i v-else-if="voiceCall.currentCall.value.state === 'connecting'" class="ti ti-loader-2"></i>
+								<i v-else-if="voiceCall.currentCall.value.state === 'connected'" class="ti ti-phone"></i>
+							</div>
+							<div :class="$style.voiceCallInfo">
+								<div :class="$style.voiceCallState">
+									<template v-if="voiceCall.currentCall.value.state === 'calling'">
+										{{ i18n.ts._chat.calling }}...
+									</template>
+									<template v-else-if="voiceCall.currentCall.value.state === 'ringing'">
+										{{ i18n.ts._chat.incomingCall }}
+									</template>
+									<template v-else-if="voiceCall.currentCall.value.state === 'connecting'">
+										{{ i18n.ts._chat.connecting }}...
+									</template>
+									<template v-else-if="voiceCall.currentCall.value.state === 'connected'">
+										<i class="ti ti-point-filled" :class="[$style.statusDot, voiceCall.connectionState.value === 'connected' ? $style.statusConnected : $style.statusConnecting]"></i>
+										{{ formatCallDuration(voiceCall.callDuration.value) }}
+									</template>
+								</div>
+								<div v-if="user" :class="$style.voiceCallUser">
+									{{ user.name || user.username }}
+								</div>
+							</div>
+							<button class="_button" :class="$style.voiceCallEndButton" @click="endVoiceCall">
+								<i class="ti ti-phone-off"></i>
+							</button>
+						</div>
+					</div>
+				</Transition>
+
 				<Transition name="fade">
 					<div v-show="showIndicator" :class="$style.new">
 						<button class="_buttonPrimary" :class="$style.newButton" @click="onIndicatorClick">
@@ -83,12 +120,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<XForm v-if="initialized" :user="user" :room="room" :class="$style.form"/>
 			</div>
 		</div>
+		<audio ref="remoteAudioEl" autoplay playsinline style="display: none;"></audio>
 	</template>
 </PageWithHeader>
 </template>
 
 <script lang="ts" setup>
-import { ref, useTemplateRef, computed, onMounted, onBeforeUnmount, onDeactivated, onActivated } from 'vue';
+import { ref, useTemplateRef, computed, onMounted, onBeforeUnmount, onDeactivated, onActivated, watch } from 'vue';
 import * as Misskey from 'misskey-js';
 import { getScrollContainer } from '@@/js/scroll.js';
 import XMessage from './XMessage.vue';
@@ -103,6 +141,7 @@ import { useStream } from '@/stream.js';
 import * as sound from '@/utility/sound.js';
 import { i18n } from '@/i18n.js';
 import { ensureSignin } from '@/i.js';
+import { instance } from '@/instance.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { definePage } from '@/page.js';
 import { prefer } from '@/preferences.js';
@@ -111,6 +150,7 @@ import { useRouter } from '@/router.js';
 import { useMutationObserver } from '@/composables/use-mutation-observer.js';
 import MkInfo from '@/components/MkInfo.vue';
 import { makeDateSeparatedTimelineComputedRef } from '@/utility/timeline-date-separate.js';
+import { useVoiceCall } from '@/composables/useVoiceCall.js';
 
 const $i = ensureSignin();
 const router = useRouter();
@@ -445,11 +485,207 @@ const headerTabs = computed(() => room.value ? [{
 	icon: 'ti ti-search',
 }]);
 
-const headerActions = computed<PageHeaderItem[]>(() => [{
-	icon: 'ti ti-dots',
-	text: '',
-	handler: showMenu,
-}]);
+const voiceCall = useVoiceCall();
+const isVoiceCallDialogOpen = ref(false);
+const remoteAudioEl = useTemplateRef<HTMLAudioElement>('remoteAudioEl');
+let incomingCallDialog: { close: () => void } | null = null;
+let voiceCallNotificationId: Notification | null = null;
+const ringtoneAudio = new Audio('/client-assets/sounds/vickey/phone-ring.wav');
+ringtoneAudio.loop = true;
+
+function playRingtone() {
+	ringtoneAudio.currentTime = 0;
+	ringtoneAudio.play().catch(console.error);
+}
+
+function stopRingtone() {
+	ringtoneAudio.pause();
+	ringtoneAudio.currentTime = 0;
+}
+
+function showVoiceCallNotification(state: string, userName: string) {
+	if (voiceCallNotificationId) {
+		voiceCallNotificationId.close();
+		voiceCallNotificationId = null;
+	}
+
+	let message = '';
+
+	switch (state) {
+		case 'ringing':
+			message = i18n.tsx._chat.incomingCallFrom({ name: userName });
+			break;
+		case 'calling':
+			message = `${i18n.ts._chat.calling} ${userName}...`;
+			break;
+		case 'connecting':
+			message = `${i18n.ts._chat.connecting} ${userName}...`;
+			break;
+		case 'connected':
+			message = `${i18n.ts._chat.voiceCallInProgress} - ${userName}`;
+			break;
+	}
+
+	if (window.Notification && Notification.permission === 'granted') {
+		voiceCallNotificationId = new Notification(i18n.ts._chat.incomingCall, {
+			body: message,
+			icon: '/apple-touch-icon.png',
+			tag: 'voice-call',
+		});
+	} else {
+		os.toast(message);
+	}
+}
+
+function closeVoiceCallNotification() {
+	if (voiceCallNotificationId) {
+		voiceCallNotificationId.close();
+		voiceCallNotificationId = null;
+	}
+	stopRingtone();
+}
+
+watch(() => voiceCall.currentCall.value, (call, oldCall) => {
+	const userName = user.value?.name ?? user.value?.username ?? i18n.ts.unknown;
+
+	if (call) {
+		showVoiceCallNotification(call.state, userName);
+
+		if (call.state === 'ringing' && call.isIncoming) {
+			playRingtone();
+		} else if (call.state === 'calling' && !call.isIncoming) {
+			playRingtone();
+		} else {
+			stopRingtone();
+		}
+
+		if (call.isIncoming && call.state === 'ringing' && (!oldCall || oldCall.callId !== call.callId)) {
+			handleIncomingCall(call);
+		}
+	}
+	if (oldCall && !call) {
+		isVoiceCallDialogOpen.value = false;
+		closeVoiceCallNotification();
+
+		const duration = voiceCall.callDuration.value;
+		if (duration > 0) {
+			const durationText = formatCallDuration(duration);
+			os.toast(i18n.tsx._chat.callDuration({ duration: durationText }));
+		}
+
+		if (incomingCallDialog) {
+			incomingCallDialog.close();
+			incomingCallDialog = null;
+		}
+	}
+}, { deep: true });
+
+watch(() => voiceCall.remoteStream.value, (stream) => {
+	console.log('Remote stream changed:', stream);
+	if (stream && remoteAudioEl.value) {
+		console.log('Setting remote audio stream');
+		remoteAudioEl.value.srcObject = stream;
+		remoteAudioEl.value.volume = 1.0;
+		remoteAudioEl.value.play().then(() => {
+			console.log('Remote audio playing successfully');
+		}).catch(error => {
+			console.error('Failed to play remote audio:', error);
+		});
+	}
+}, { immediate: true });
+
+async function handleIncomingCall(call: any) {
+	const userName = user.value?.name ?? user.value?.username ?? i18n.ts.unknown;
+	const dialogPromise = os.confirmAdvanced({
+		type: 'question',
+		title: i18n.ts._chat.incomingCall,
+		text: i18n.tsx._chat.incomingCallFrom({ name: userName }),
+	});
+
+	incomingCallDialog = dialogPromise;
+	const { canceled } = await dialogPromise;
+	incomingCallDialog = null;
+
+	if (canceled) {
+		voiceCall.reject();
+	} else {
+		isVoiceCallDialogOpen.value = true;
+		await voiceCall.answer();
+	}
+}
+
+async function startVoiceCall() {
+	if (!user.value) return;
+	if (!instance.enableCloudflareSfu) {
+		os.alert({
+			type: 'error',
+			text: i18n.ts._chat.voiceCallNotEnabled,
+		});
+		return;
+	}
+
+	isVoiceCallDialogOpen.value = true;
+
+	try {
+		await voiceCall.call(user.value.id);
+	} catch (error) {
+		os.alert({
+			type: 'error',
+			text: i18n.ts._chat.failedToStartVoiceCall,
+		});
+		isVoiceCallDialogOpen.value = false;
+	}
+}
+
+function endVoiceCall() {
+	voiceCall.end();
+	isVoiceCallDialogOpen.value = false;
+}
+
+function formatCallDuration(seconds: number): string {
+	const mins = Math.floor(seconds / 60);
+	const secs = seconds % 60;
+	return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+onMounted(() => {
+	console.log('Remote audio element ready');
+	if (voiceCall.remoteStream.value && remoteAudioEl.value) {
+		console.log('Connecting existing remote stream');
+		remoteAudioEl.value.srcObject = voiceCall.remoteStream.value;
+		remoteAudioEl.value.volume = 1.0;
+		remoteAudioEl.value.play().catch(console.error);
+	}
+});
+
+onBeforeUnmount(() => {
+	if (voiceCall.currentCall.value) {
+		voiceCall.end();
+	}
+	if (remoteAudioEl.value) {
+		remoteAudioEl.value.srcObject = null;
+	}
+});
+
+const headerActions = computed<PageHeaderItem[]>(() => {
+	const actions: PageHeaderItem[] = [];
+
+	if (user.value && instance.enableCloudflareSfu) {
+		actions.push({
+			icon: voiceCall.currentCall.value ? 'ti ti-phone-off' : 'ti ti-phone',
+			text: voiceCall.currentCall.value ? i18n.ts._chat.endCall : i18n.ts._chat.startVoiceCall,
+			handler: voiceCall.currentCall.value ? endVoiceCall : startVoiceCall,
+		});
+	}
+
+	actions.push({
+		icon: 'ti ti-dots',
+		text: '',
+		handler: showMenu,
+	});
+
+	return actions;
+});
 
 definePage(computed(() => {
 	if (initialized.value) {
@@ -492,9 +728,6 @@ definePage(computed(() => {
 	position: absolute;
 }
 
-.root {
-}
-
 .more {
 	margin: 0 auto;
 }
@@ -524,10 +757,6 @@ definePage(computed(() => {
 	margin-right: 8px;
 }
 
-.footer {
-
-}
-
 .form {
 	margin: 0 auto;
 	width: 100%;
@@ -555,5 +784,124 @@ definePage(computed(() => {
 	width: fit-content;
 	padding: 0.5em 1em;
 	margin: 0 auto;
+}
+
+.voiceCallBanner {
+	width: 100%;
+	background: linear-gradient(135deg, var(--MI_THEME-accent) 0%, color-mix(in srgb, var(--MI_THEME-accent) 80%, black) 100%);
+	color: var(--MI_THEME-fgOnAccent);
+	border-radius: 6px;
+	padding: 6px 10px;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+	backdrop-filter: blur(10px);
+}
+
+@keyframes pulse {
+	0%, 100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.9;
+		transform: scale(0.98);
+	}
+}
+
+.voiceCallContent {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.voiceCallIcon {
+	font-size: 20px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	background: rgba(255, 255, 255, 0.15);
+	border-radius: 50%;
+
+	i {
+		display: block;
+		animation: iconPulse 1.5s ease-in-out infinite;
+	}
+}
+
+@keyframes iconPulse {
+	0%, 100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.1);
+	}
+}
+
+.voiceCallInfo {
+	flex: 1;
+	min-width: 0;
+}
+
+.voiceCallState {
+	font-weight: bold;
+	font-size: 14px;
+}
+
+.voiceCallUser {
+	font-size: 12px;
+	opacity: 0.9;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.statusDot {
+	font-size: 12px;
+	margin-right: 4px;
+	vertical-align: middle;
+}
+
+.statusConnected {
+	color: var(--MI_THEME-success);
+	animation: blink 2s ease-in-out infinite;
+}
+
+.statusConnecting {
+	color: var(--MI_THEME-warn);
+	animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes blink {
+	0%, 100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.3;
+	}
+}
+
+.voiceCallEndButton {
+	background: color-mix(in srgb, var(--MI_THEME-error) 90%, transparent);
+	color: var(--MI_THEME-fgOnAccent);
+	border-radius: 50%;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 18px;
+	transition: all 0.2s;
+	box-shadow: 0 2px 8px color-mix(in srgb, var(--MI_THEME-error) 30%, transparent);
+
+	&:hover {
+		background: var(--MI_THEME-error);
+		transform: scale(1.05);
+		box-shadow: 0 4px 12px color-mix(in srgb, var(--MI_THEME-error) 40%, transparent);
+	}
+
+	&:active {
+		transform: scale(0.95);
+	}
 }
 </style>

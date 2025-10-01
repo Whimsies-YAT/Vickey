@@ -11,6 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div v-else-if="notification.type === 'reaction:grouped' && notification.note.reactionAcceptance === 'likeOnly'" :class="[$style.icon, $style.icon_reactionGroupHeart]"><i class="ti ti-heart" style="line-height: 1;"></i></div>
 		<div v-else-if="notification.type === 'reaction:grouped'" :class="[$style.icon, $style.icon_reactionGroup]"><i class="ti ti-plus" style="line-height: 1;"></i></div>
 		<div v-else-if="notification.type === 'renote:grouped'" :class="[$style.icon, $style.icon_renoteGroup]"><i class="ti ti-repeat" style="line-height: 1;"></i></div>
+		<MkAvatar v-else-if="'user' in notification && (notification.type === 'voiceCall' || notification.type === 'voiceCallEnded')" :class="$style.icon" :user="notification.user" link preview/>
 		<MkAvatar v-else-if="'user' in notification" :class="$style.icon" :user="notification.user" link preview/>
 		<img v-else-if="'icon' in notification && notification.icon != null" :class="[$style.icon, $style.icon_app]" :src="notification.icon" alt=""/>
 		<div
@@ -30,6 +31,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 				[$style.t_login]: notification.type === 'login',
 				[$style.t_createToken]: notification.type === 'createToken',
 				[$style.t_chatRoomInvitationReceived]: notification.type === 'chatRoomInvitationReceived',
+				[$style.t_voiceCall]: notification.type === 'voiceCall',
+				[$style.t_voiceCallEnded]: notification.type === 'voiceCallEnded',
 				[$style.t_roleAssigned]: notification.type === 'roleAssigned' && notification.role.iconUrl == null,
 			}]"
 		>
@@ -48,6 +51,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<i v-else-if="notification.type === 'login'" class="ti ti-login-2"></i>
 			<i v-else-if="notification.type === 'createToken'" class="ti ti-key"></i>
 			<i v-else-if="notification.type === 'chatRoomInvitationReceived'" class="ti ti-messages"></i>
+			<i v-else-if="notification.type === 'voiceCall'" class="ti ti-phone"></i>
+			<i v-else-if="notification.type === 'voiceCallEnded'" class="ti ti-phone-off"></i>
 			<template v-else-if="notification.type === 'roleAssigned'">
 				<img v-if="notification.role.iconUrl" style="height: 1.3em; vertical-align: -22%;" :src="notification.role.iconUrl" alt=""/>
 				<i v-else class="ti ti-badges"></i>
@@ -63,7 +68,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</div>
 	<div :class="$style.tail">
 		<header :class="$style.header">
-			<span v-if="notification.type === 'pollEnded'">{{ i18n.ts._notification.pollEnded }}</span>
+			<template v-if="notification.type === 'voiceCallEnded'">
+				<span>{{ i18n.ts._notification.voiceCallEnded }}</span>
+				<span> - </span>
+				<MkA v-user-preview="notification.user.id" :class="$style.headerName" :to="userPage(notification.user)"><MkUserName :user="notification.user"/></MkA>
+			</template>
+			<template v-else-if="notification.type === 'voiceCall'">
+				<span>{{ i18n.ts._notification.voiceCall }}</span>
+				<span> - </span>
+				<MkA v-user-preview="notification.user.id" :class="$style.headerName" :to="userPage(notification.user)"><MkUserName :user="notification.user"/></MkA>
+			</template>
+			<span v-else-if="notification.type === 'pollEnded'">{{ i18n.ts._notification.pollEnded }}</span>
 			<span v-else-if="notification.type === 'scheduledNotePosted'">{{ i18n.ts._notification.scheduledNotePosted }}</span>
 			<span v-else-if="notification.type === 'scheduledNotePostFailed'">{{ i18n.ts._notification.scheduledNotePostFailed }}</span>
 			<span v-else-if="notification.type === 'note'">{{ i18n.ts._notification.newNote }}: <MkUserName :user="notification.note.user"/></span>
@@ -129,6 +144,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<MkA v-else-if="notification.type === 'createToken'" :class="$style.text" to="/settings/apps">
 				<Mfm :text="i18n.tsx._notification.createTokenDescription({ text: i18n.ts.manageAccessTokens })"/>
 			</MkA>
+			<div v-else-if="notification.type === 'voiceCallEnded'" :class="$style.text" style="opacity: 0.6;">
+				{{ formatCallDuration(notification.duration) }}
+			</div>
 			<template v-else-if="notification.type === 'follow'">
 				<span :class="$style.text" style="opacity: 0.6;">{{ i18n.ts.youGotNewFollower }}</span>
 			</template>
@@ -230,6 +248,16 @@ const rejectFollowRequest = () => {
 function getActualReactedUsersCount(notification: Misskey.entities.Notification) {
 	if (notification.type !== 'reaction:grouped') return 0;
 	return new Set(notification.reactions.map((reaction) => reaction.user.id)).size;
+}
+
+function formatCallDuration(seconds: number): string {
+	if (!Number.isFinite(seconds) || seconds < 0) {
+		console.error('Invalid duration:', seconds);
+		return '00:00';
+	}
+	const mins = Math.floor(seconds / 60);
+	const secs = Math.floor(seconds % 60);
+	return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 </script>
 
@@ -386,6 +414,16 @@ function getActualReactedUsersCount(notification: Misskey.entities.Notification)
 }
 
 .t_chatRoomInvitationReceived {
+	background: var(--eventOther);
+	pointer-events: none;
+}
+
+.t_voiceCall {
+	background: var(--eventOther);
+	pointer-events: none;
+}
+
+.t_voiceCallEnded {
 	background: var(--eventOther);
 	pointer-events: none;
 }

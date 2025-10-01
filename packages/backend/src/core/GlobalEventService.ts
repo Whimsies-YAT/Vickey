@@ -102,6 +102,16 @@ export interface MainEventTypes {
 	announcementCreated: {
 		announcement: Packed<'Announcement'>;
 	};
+	voiceCall: {
+		type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error';
+		callId: string;
+		from?: MiUser['id'];
+		by?: MiUser['id'];
+		signalType?: 'offer' | 'answer' | 'iceCandidate';
+		signalData?: any;
+		iceServers?: RTCIceServer[];
+		message?: string;
+	};
 }
 
 export interface DriveEventTypes {

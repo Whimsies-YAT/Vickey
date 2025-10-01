@@ -5926,6 +5926,8 @@ export type components = {
             stripePublicKey: string | null;
             /** @default USD */
             stripeCurrency: string;
+            /** @default false */
+            enableCloudflareSfu: boolean;
         };
         MetaDetailedOnly: {
             features?: {
@@ -10643,6 +10645,11 @@ export interface operations {
                         stripeWebhookSecret: string | null;
                         stripePaymentMethodConfiguration: string | null;
                         stripeCurrency: string;
+                        enableCloudflareSfu: boolean;
+                        cloudflareAccountId: string | null;
+                        cloudflareApiToken: string | null;
+                        cloudflareSfuAppId: string | null;
+                        cloudflareSfuAppSecret: string | null;
                     };
                 };
             };
@@ -14788,6 +14795,11 @@ export interface operations {
                     stripePaymentMethodConfiguration?: string | null;
                     /** @enum {string} */
                     stripeCurrency?: 'USD' | 'EUR' | 'CNY' | 'JPY' | 'GBP' | 'CHF' | 'CAD' | 'AUD' | 'SGD' | 'HKD';
+                    enableCloudflareSfu?: boolean;
+                    cloudflareAccountId?: string | null;
+                    cloudflareApiToken?: string | null;
+                    cloudflareSfuAppId?: string | null;
+                    cloudflareSfuAppSecret?: string | null;
                 };
             };
         };

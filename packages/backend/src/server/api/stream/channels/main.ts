@@ -6,6 +6,7 @@
 import { Injectable } from '@nestjs/common';
 import { isInstanceMuted, isUserFromMutedInstance } from '@/misc/is-instance-muted.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
+import { VoiceCallService } from '@/core/VoiceCallService.js';
 import { bindThis } from '@/decorators.js';
 import type { JsonObject } from '@/misc/json-value.js';
 import Channel, { type MiChannelService } from '../channel.js';
@@ -18,12 +19,15 @@ class MainChannel extends Channel {
 
 	constructor(
 		private noteEntityService: NoteEntityService,
+		private voiceCallService: VoiceCallService,
 
 		id: string,
 		connection: Channel['connection'],
 	) {
 		super(id, connection);
 	}
+
+	private activeCallId: string | null = null;
 
 	@bindThis
 	public async init(params: JsonObject) {
@@ -55,10 +59,103 @@ class MainChannel extends Channel {
 					}
 					break;
 				}
+				case 'voiceCall': {
+					// Voice call events are always sent
+					break;
+				}
 			}
 
 			this.send(data.type, data.body);
 		});
+	}
+
+	@bindThis
+	public dispose() {
+		// End any active voice call when the WebSocket connection is closed
+		if (this.activeCallId) {
+			this.voiceCallService.endCall(this.activeCallId, this.user!.id);
+		}
+	}
+
+	@bindThis
+	public async onMessage(type: string, body: any) {
+		switch (type) {
+			case 'voiceCall:initiate':
+				await this.handleVoiceCallInitiate(body);
+				break;
+			case 'voiceCall:answer':
+				await this.handleVoiceCallAnswer(body);
+				break;
+			case 'voiceCall:reject':
+				await this.handleVoiceCallReject(body);
+				break;
+			case 'voiceCall:end':
+				await this.handleVoiceCallEnd(body);
+				break;
+			case 'voiceCall:signal':
+				await this.handleVoiceCallSignal(body);
+				break;
+		}
+	}
+
+	@bindThis
+	private async handleVoiceCallInitiate(body: { recipientId: string }) {
+		// appId and appSecret are managed server-side in meta config
+		// Frontend should never know or send these credentials
+		const result = await this.voiceCallService.initiateCall(
+			this.user!.id,
+			body.recipientId,
+		);
+
+		if (result) {
+			this.activeCallId = result.callId;
+			this.send('voiceCall', {
+				type: 'initiated',
+				callId: result.callId,
+				iceServers: result.iceServers,
+			});
+		} else {
+			this.send('voiceCall', {
+				type: 'error',
+				message: 'Failed to initiate call',
+			});
+		}
+	}
+
+	@bindThis
+	private async handleVoiceCallAnswer(body: { callId: string }) {
+		const result = await this.voiceCallService.answerCall(body.callId, this.user!.id);
+
+		if (result) {
+			this.activeCallId = body.callId;
+			this.send('voiceCall', {
+				type: 'ready',
+				callId: body.callId,
+				iceServers: result.iceServers,
+			});
+		}
+	}
+
+	@bindThis
+	private async handleVoiceCallReject(body: { callId: string }) {
+		await this.voiceCallService.rejectCall(body.callId, this.user!.id);
+		this.activeCallId = null;
+	}
+
+	@bindThis
+	private async handleVoiceCallEnd(body: { callId: string }) {
+		await this.voiceCallService.endCall(body.callId, this.user!.id);
+		this.activeCallId = null;
+	}
+
+	@bindThis
+	private async handleVoiceCallSignal(body: { callId: string; signalType: 'offer' | 'answer' | 'iceCandidate'; signalData: any }) {
+		await this.voiceCallService.relaySignaling(
+			body.callId,
+			this.user!.id,
+			body.signalType,
+			body.signalData,
+		);
 	}
 }
 
@@ -70,6 +167,7 @@ export class MainChannelService implements MiChannelService<true> {
 
 	constructor(
 		private noteEntityService: NoteEntityService,
+		private voiceCallService: VoiceCallService,
 	) {
 	}
 
@@ -77,6 +175,7 @@ export class MainChannelService implements MiChannelService<true> {
 	public create(id: string, connection: Channel['connection']): MainChannel {
 		return new MainChannel(
 			this.noteEntityService,
+			this.voiceCallService,
 			id,
 			connection,
 		);

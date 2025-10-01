@@ -921,6 +921,35 @@ export class MiMeta {
 		default: 'USD',
 	})
 	public stripeCurrency: string;
+
+	@Column('boolean', {
+		default: false,
+	})
+	public enableCloudflareSfu: boolean;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public cloudflareAccountId: string | null;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public cloudflareApiToken: string | null;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public cloudflareSfuAppId: string | null;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public cloudflareSfuAppSecret: string | null;
 }
 
 export type SoftwareSuspension = {

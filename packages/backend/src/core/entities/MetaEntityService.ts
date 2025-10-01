@@ -3,19 +3,19 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Brackets } from 'typeorm';
-import { Inject, Injectable } from '@nestjs/common';
+import {Brackets} from 'typeorm';
+import {Inject, Injectable} from '@nestjs/common';
 import JSON5 from 'json5';
-import type { Packed } from '@/misc/json-schema.js';
-import type { MiMeta } from '@/models/Meta.js';
-import type { AdsRepository } from '@/models/_.js';
-import { MAX_NOTE_TEXT_LENGTH } from '@/const.js';
-import { bindThis } from '@/decorators.js';
-import { CacheService } from '@/core/CacheService.js';
-import { SystemAccountService } from '@/core/SystemAccountService.js';
-import type { Config } from '@/config.js';
-import { DI } from '@/di-symbols.js';
-import { DEFAULT_POLICIES } from '@/core/RoleService.js';
+import type {Packed} from '@/misc/json-schema.js';
+import type {MiMeta} from '@/models/Meta.js';
+import type {AdsRepository} from '@/models/_.js';
+import {MAX_NOTE_TEXT_LENGTH} from '@/const.js';
+import {bindThis} from '@/decorators.js';
+import {CacheService} from '@/core/CacheService.js';
+import {SystemAccountService} from '@/core/SystemAccountService.js';
+import type {Config} from '@/config.js';
+import {DI} from '@/di-symbols.js';
+import {DEFAULT_POLICIES} from '@/core/RoleService.js';
 
 @Injectable()
 export class MetaEntityService {
@@ -148,6 +148,7 @@ export class MetaEntityService {
 			enableStripe: instance.enableStripe,
 			stripePublicKey: instance.stripePublicKey,
 			stripeCurrency: instance.stripeCurrency,
+			enableCloudflareSfu: instance.enableCloudflareSfu,
 		};
 
 		return packed;
@@ -165,7 +166,7 @@ export class MetaEntityService {
 
 		const proxyAccount = await this.systemAccountService.fetch('proxy');
 
-		const packDetailed: Packed<'MetaDetailed'> = {
+		return {
 			...packed,
 			cacheRemoteFiles: instance.cacheRemoteFiles,
 			cacheRemoteSensitiveFiles: instance.cacheRemoteSensitiveFiles,
@@ -186,8 +187,6 @@ export class MetaEntityService {
 				stripe: instance.enableStripe,
 			},
 		};
-
-		return packDetailed;
 	}
 }
 
