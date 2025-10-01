@@ -32,6 +32,12 @@ type ReversiUpdateSettings<K extends ReversiUpdateKey> = {
 	value: ReversiGameDetailed[K];
 };
 
+type IceServer = {
+	urls: string | string[];
+	username?: string;
+	credential?: string;
+};
+
 export type Channels = {
 	main: {
 		params: null;
@@ -68,7 +74,7 @@ export type Channels = {
 				type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error';
 				callId?: string;
 				from?: string;
-				iceServers?: RTCIceServer[];
+				iceServers?: IceServer[];
 				signalType?: string;
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				signalData?: any;
