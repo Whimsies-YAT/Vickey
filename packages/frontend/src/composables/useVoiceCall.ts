@@ -198,7 +198,7 @@ export function useVoiceCall() {
 
 	function stopCallDurationTimer() {
 		if (callDurationInterval !== null) {
-			clearInterval(callDurationInterval);
+			window.clearInterval(callDurationInterval);
 			callDurationInterval = null;
 			callDuration.value = 0;
 		}
@@ -206,7 +206,7 @@ export function useVoiceCall() {
 
 	function clearConnectionTimeout() {
 		if (connectionTimeoutId !== null) {
-			clearTimeout(connectionTimeoutId);
+			window.clearTimeout(connectionTimeoutId);
 			connectionTimeoutId = null;
 		}
 	}

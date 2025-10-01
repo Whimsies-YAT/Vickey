@@ -3,15 +3,15 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import {Inject, Injectable} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import * as Redis from 'ioredis';
-import {DI} from '@/di-symbols.js';
-import {bindThis} from '@/decorators.js';
-import {GlobalEventService} from '@/core/GlobalEventService.js';
-import {CloudflareCallsService} from '@/core/CloudflareCallsService.js';
-import {NotificationService} from '@/core/NotificationService.js';
-import type {MiMeta, MiUser} from '@/models/_.js';
-import {IdService} from '@/core/IdService.js';
+import { DI } from '@/di-symbols.js';
+import { bindThis } from '@/decorators.js';
+import { GlobalEventService } from '@/core/GlobalEventService.js';
+import { CloudflareCallsService } from '@/core/CloudflareCallsService.js';
+import { NotificationService } from '@/core/NotificationService.js';
+import type { MiMeta, MiUser } from '@/models/_.js';
+import { IdService } from '@/core/IdService.js';
 
 interface VoiceCallSession {
 	callId: string;
