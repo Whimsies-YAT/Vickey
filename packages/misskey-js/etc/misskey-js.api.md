@@ -802,8 +802,35 @@ export type Channels = {
             readAntenna: (payload: Antenna) => void;
             receiveFollowRequest: (payload: User) => void;
             announcementCreated: (payload: AnnouncementCreated) => void;
+            voiceCall: (payload: {
+                type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error';
+                callId?: string;
+                from?: string;
+                iceServers?: RTCIceServer[];
+                signalType?: string;
+                signalData?: any;
+                message?: string;
+            }) => void;
         };
-        receives: null;
+        receives: {
+            'voiceCall:initiate': {
+                recipientId: string;
+            };
+            'voiceCall:answer': {
+                callId: string;
+            };
+            'voiceCall:reject': {
+                callId: string;
+            };
+            'voiceCall:end': {
+                callId: string;
+            };
+            'voiceCall:signal': {
+                callId: string;
+                signalType: string;
+                signalData: any;
+            };
+        };
     };
     homeTimeline: {
         params: {
@@ -4144,8 +4171,8 @@ type VerifyEmailRequest = operations['verify-email']['requestBody']['content']['
 //
 // src/entities.ts:55:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
 // src/streaming.ts:57:3 - (ae-forgotten-export) The symbol "ReconnectingWebSocket" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:226:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:236:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:255:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:265:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

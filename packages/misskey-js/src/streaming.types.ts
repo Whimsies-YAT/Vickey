@@ -64,8 +64,37 @@ export type Channels = {
 			readAntenna: (payload: Antenna) => void;
 			receiveFollowRequest: (payload: User) => void;
 			announcementCreated: (payload: AnnouncementCreated) => void;
+			voiceCall: (payload: {
+				type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error';
+				callId?: string;
+				from?: string;
+				iceServers?: RTCIceServer[];
+				signalType?: string;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				signalData?: any;
+				message?: string;
+			}) => void;
 		};
-		receives: null;
+		receives: {
+			'voiceCall:initiate': {
+				recipientId: string;
+			};
+			'voiceCall:answer': {
+				callId: string;
+			};
+			'voiceCall:reject': {
+				callId: string;
+			};
+			'voiceCall:end': {
+				callId: string;
+			};
+			'voiceCall:signal': {
+				callId: string;
+				signalType: string;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				signalData: any;
+			};
+		};
 	};
 	homeTimeline: {
 		params: {

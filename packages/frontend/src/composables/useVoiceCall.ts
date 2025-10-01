@@ -28,7 +28,6 @@ export function useVoiceCall() {
 	const callDuration = ref(0);
 	let callDurationInterval: number | null = null;
 	let isInitializingPeerConnection = false;
-	let connectionTimeoutId: number | null = null;
 
 	async function initPeerConnection(iceServers: RTCIceServer[]) {
 		console.log('Initializing peer connection with ICE servers:', iceServers);
@@ -204,21 +203,6 @@ export function useVoiceCall() {
 		}
 	}
 
-	function clearConnectionTimeout() {
-		if (connectionTimeoutId !== null) {
-			window.clearTimeout(connectionTimeoutId);
-			connectionTimeoutId = null;
-		}
-	}
-
-	function startConnectionTimeout() {
-		clearConnectionTimeout();
-		connectionTimeoutId = window.setTimeout(() => {
-			console.log('Connection timeout, cleaning up...');
-			cleanup();
-		}, 30000);
-	}
-
 	function cleanup() {
 		console.log('Cleaning up voice call...');
 
@@ -233,7 +217,6 @@ export function useVoiceCall() {
 		}
 
 		stopCallDurationTimer();
-		clearConnectionTimeout();
 		remoteStream.value = null;
 		currentCall.value = null;
 		pendingSignals.value = [];
@@ -281,6 +264,7 @@ export function useVoiceCall() {
 	mainChannel.on('voiceCall', async (data) => {
 		switch (data.type) {
 			case 'incoming': {
+				if (!data.callId || !data.from) return;
 				currentCall.value = {
 					callId: data.callId,
 					peerId: data.from,
@@ -291,19 +275,18 @@ export function useVoiceCall() {
 			}
 
 			case 'initiated': {
-				if (currentCall.value) {
-					currentCall.value.callId = data.callId;
-					await initPeerConnection(data.iceServers);
+				if (!currentCall.value || !data.callId || !data.iceServers) return;
+				currentCall.value.callId = data.callId;
+				await initPeerConnection(data.iceServers);
 
-					const offer = await peerConnection.value!.createOffer();
-					await peerConnection.value!.setLocalDescription(offer);
+				const offer = await peerConnection.value!.createOffer();
+				await peerConnection.value!.setLocalDescription(offer);
 
-					mainChannel.send('voiceCall:signal', {
-						callId: currentCall.value.callId,
-						signalType: 'offer',
-						signalData: peerConnection.value!.localDescription,
-					});
-				}
+				mainChannel.send('voiceCall:signal', {
+					callId: currentCall.value.callId,
+					signalType: 'offer',
+					signalData: peerConnection.value!.localDescription,
+				});
 				break;
 			}
 
@@ -315,7 +298,8 @@ export function useVoiceCall() {
 			}
 
 			case 'ready': {
-				if (currentCall.value && data.callId === currentCall.value.callId) {
+				if (!currentCall.value || !data.callId || !data.iceServers) return;
+				if (data.callId === currentCall.value.callId) {
 					await initPeerConnection(data.iceServers);
 				}
 				break;
@@ -336,7 +320,8 @@ export function useVoiceCall() {
 			}
 
 			case 'signal': {
-				if (!currentCall.value || data.callId !== currentCall.value.callId) {
+				if (!currentCall.value || !data.callId || !data.signalType) return;
+				if (data.callId !== currentCall.value.callId) {
 					return;
 				}
 
