@@ -112,7 +112,11 @@ class MainChannel extends Channel {
 			this.send('voiceCall', {
 				type: 'initiated',
 				callId: result.callId,
-				iceServers: result.iceServers,
+				iceServers: result.iceServers.map(server => ({
+					urls: server.urls,
+					username: server.username,
+					credential: server.credential,
+				})),
 			});
 		} else {
 			this.send('voiceCall', {
@@ -131,7 +135,11 @@ class MainChannel extends Channel {
 			this.send('voiceCall', {
 				type: 'ready',
 				callId: body.callId,
-				iceServers: result.iceServers,
+				iceServers: result.iceServers.map(server => ({
+					urls: server.urls,
+					username: server.username,
+					credential: server.credential,
+				})),
 			});
 		}
 	}

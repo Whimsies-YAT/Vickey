@@ -24,6 +24,8 @@
  * createToken - トークン作成
  * app - アプリ通知
  * test - テスト通知（サーバー側）
+ * voiceCall - 音声通話の着信
+ * voiceCallEnded - 音声通話が終了した
  */
 export const notificationTypes = [
 	'note',
@@ -46,6 +48,8 @@ export const notificationTypes = [
 	'createToken',
 	'app',
 	'test',
+	'voiceCall',
+	'voiceCallEnded',
 ] as const;
 
 export const groupedNotificationTypes = [
