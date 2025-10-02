@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import {ref, shallowRef} from 'vue';
-import {useStream} from '@/stream.js';
+import { ref, shallowRef } from 'vue';
+import { useStream } from '@/stream.js';
 
 export type VoiceCallState = 'idle' | 'calling' | 'ringing' | 'connecting' | 'connected' | 'ended';
 export type VoiceCallMode = 'auto' | 'p2p' | 'sfu';

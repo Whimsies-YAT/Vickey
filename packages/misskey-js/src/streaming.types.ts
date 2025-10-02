@@ -123,7 +123,7 @@ export type Channels = {
 			'voiceCall:signal': {
 				callId: string;
 				signalType: string;
-				// eslint-disable-next-line @typescript-explicitany
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				signalData: any;
 			};
 			'voiceCall:switchToSfu': {
