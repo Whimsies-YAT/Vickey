@@ -153,7 +153,11 @@ export function useVoiceCall() {
 	async function call(recipientId: string, mode: VoiceCallMode = 'auto') {
 		try {
 			localStream.value = await navigator.mediaDevices.getUserMedia({
-				audio: true,
+				audio: {
+					echoCancellation: true,
+					noiseSuppression: true,
+					autoGainControl: true,
+				},
 				video: false,
 			});
 
@@ -184,7 +188,11 @@ export function useVoiceCall() {
 
 		try {
 			localStream.value = await navigator.mediaDevices.getUserMedia({
-				audio: true,
+				audio: {
+					echoCancellation: true,
+					noiseSuppression: true,
+					autoGainControl: true,
+				},
 				video: false,
 			});
 

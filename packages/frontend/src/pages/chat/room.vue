@@ -855,7 +855,7 @@ definePage(computed(() => {
 	background: linear-gradient(135deg, var(--MI_THEME-accent) 0%, color-mix(in srgb, var(--MI_THEME-accent) 80%, black) 100%);
 	color: var(--MI_THEME-fgOnAccent);
 	border-radius: 6px;
-	padding: 6px 10px;
+	padding: 6px 16px;
 	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 	backdrop-filter: blur(10px);
 }
