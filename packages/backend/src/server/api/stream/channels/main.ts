@@ -95,6 +95,9 @@ class MainChannel extends Channel {
 			case 'voiceCall:pushTracks':
 				await this.handleVoiceCallPushTracks(body);
 				break;
+			case 'voiceCall:tracksReady':
+				await this.handleVoiceCallTracksReady(body);
+				break;
 			case 'voiceCall:pullTracks':
 				await this.handleVoiceCallPullTracks(body);
 				break;
@@ -104,14 +107,18 @@ class MainChannel extends Channel {
 			case 'voiceCall:signal':
 				await this.handleVoiceCallSignal(body);
 				break;
+			case 'voiceCall:switchToSfu':
+				await this.handleVoiceCallSwitchToSfu(body);
+				break;
 		}
 	}
 
 	@bindThis
-	private async handleVoiceCallInitiate(body: { recipientId: string }) {
+	private async handleVoiceCallInitiate(body: { recipientId: string; mode?: 'auto' | 'p2p' | 'sfu' }) {
 		const result = await this.voiceCallService.initiateCall(
 			this.user!.id,
 			body.recipientId,
+			body.mode || 'auto',
 		);
 
 		if (result) {
@@ -124,7 +131,9 @@ class MainChannel extends Channel {
 					username: server.username,
 					credential: server.credential,
 				})),
-				sessionId: result.callerSessionId,
+				sessionId: result.sessionId,
+				mode: result.mode,
+				currentMode: result.currentMode,
 			});
 		} else {
 			this.send('voiceCall', {
@@ -148,7 +157,9 @@ class MainChannel extends Channel {
 					username: server.username,
 					credential: server.credential,
 				})),
-				sessionId: result.recipientSessionId,
+				sessionId: result.sessionId,
+				mode: result.mode,
+				currentMode: result.currentMode,
 			});
 		}
 	}
@@ -167,6 +178,24 @@ class MainChannel extends Channel {
 
 	@bindThis
 	private async handleVoiceCallPushTracks(body: { callId: string; offer: any; tracks: Array<{ mid: string; trackName: string }> }) {
+		if (!body?.offer || typeof body.offer !== 'object' || !body.offer.type || !body.offer.sdp) {
+			this.send('voiceCall', {
+				type: 'error',
+				callId: body?.callId,
+				message: 'Invalid offer format',
+			});
+			return;
+		}
+
+		if (!Array.isArray(body.tracks) || body.tracks.length === 0) {
+			this.send('voiceCall', {
+				type: 'error',
+				callId: body.callId,
+				message: 'Invalid tracks array',
+			});
+			return;
+		}
+
 		const result = await this.voiceCallService.pushTracks(
 			body.callId,
 			this.user!.id,
@@ -174,7 +203,7 @@ class MainChannel extends Channel {
 			body.tracks,
 		);
 
-		if (result) {
+		if (result?.answer?.type && result?.answer?.sdp) {
 			this.send('voiceCall', {
 				type: 'tracksAnswered',
 				callId: body.callId,
@@ -182,27 +211,52 @@ class MainChannel extends Channel {
 					type: result.answer.type,
 					sdp: result.answer.sdp,
 				},
-				requiresPull: result.requiresPull,
+			});
+		} else {
+			this.send('voiceCall', {
+				type: 'error',
+				callId: body.callId,
+				message: 'Failed to push tracks',
 			});
 		}
 	}
 
 	@bindThis
-	private async handleVoiceCallPullTracks(body: { callId: string }) {
+	private async handleVoiceCallTracksReady(body: { callId: string }) {
+		await this.voiceCallService.markTracksReady(body.callId, this.user!.id);
+	}
+
+	@bindThis
+	private async handleVoiceCallPullTracks(body: { callId: string; offer: any }) {
+		if (!body?.offer || typeof body.offer !== 'object' || !body.offer.type || !body.offer.sdp) {
+			this.send('voiceCall', {
+				type: 'error',
+				callId: body?.callId,
+				message: 'Invalid offer format',
+			});
+			return;
+		}
+
 		const result = await this.voiceCallService.pullTracks(
 			body.callId,
 			this.user!.id,
+			body.offer,
 		);
 
-		if (result) {
+		if (result?.answer?.type && result?.answer?.sdp) {
 			this.send('voiceCall', {
-				type: 'pullOffer',
+				type: 'pullAnswered',
 				callId: body.callId,
-				offer: {
-					type: result.offer.type,
-					sdp: result.offer.sdp,
+				answer: {
+					type: result.answer.type,
+					sdp: result.answer.sdp,
 				},
-				tracks: result.tracks,
+			});
+		} else {
+			this.send('voiceCall', {
+				type: 'error',
+				callId: body.callId,
+				message: 'Failed to pull tracks',
 			});
 		}
 	}
@@ -231,6 +285,25 @@ class MainChannel extends Channel {
 			body.signalType,
 			body.signalData,
 		);
+	}
+
+	@bindThis
+	private async handleVoiceCallSwitchToSfu(body: { callId: string }) {
+		const result = await this.voiceCallService.switchToSfu(body.callId, this.user!.id);
+
+		if (result) {
+			this.send('voiceCall', {
+				type: 'switchedToSfu',
+				callId: body.callId,
+				sessionId: result.sessionId,
+			});
+		} else {
+			this.send('voiceCall', {
+				type: 'error',
+				callId: body.callId,
+				message: 'Failed to switch to SFU',
+			});
+		}
 	}
 }
 

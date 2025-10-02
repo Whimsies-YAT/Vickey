@@ -71,18 +71,15 @@ export type Channels = {
 			receiveFollowRequest: (payload: User) => void;
 			announcementCreated: (payload: AnnouncementCreated) => void;
 			voiceCall: (payload: {
-				type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'pullOffer' | 'pullCompleted';
+				type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'tracksReady' | 'readyToPull' | 'pullAnswered' | 'pullCompleted' | 'switchToSfu' | 'switchedToSfu';
 				callId?: string;
 				from?: string;
+				mode?: 'auto' | 'p2p' | 'sfu';
+				currentMode?: 'p2p' | 'sfu';
 				iceServers?: IceServer[];
 				sessionId?: string;
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				answer?: any;
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				offer?: any;
-				requiresPull?: boolean;
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				tracks?: any[];
 				signalType?: string;
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				signalData?: any;
@@ -92,6 +89,7 @@ export type Channels = {
 		receives: {
 			'voiceCall:initiate': {
 				recipientId: string;
+				mode?: 'auto' | 'p2p' | 'sfu';
 			};
 			'voiceCall:answer': {
 				callId: string;
@@ -109,8 +107,13 @@ export type Channels = {
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				tracks: any[];
 			};
+			'voiceCall:tracksReady': {
+				callId: string;
+			};
 			'voiceCall:pullTracks': {
 				callId: string;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				offer: any;
 			};
 			'voiceCall:answerPull': {
 				callId: string;
@@ -122,6 +125,9 @@ export type Channels = {
 				signalType: string;
 				// eslint-disable-next-line @typescript-explicitany
 				signalData: any;
+			};
+			'voiceCall:switchToSfu': {
+				callId: string;
 			};
 		};
 	};

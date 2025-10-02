@@ -103,13 +103,17 @@ export interface MainEventTypes {
 		announcement: Packed<'Announcement'>;
 	};
 	voiceCall: {
-		type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error';
-		callId: string;
+		type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'readyToPull' | 'pullAnswered' | 'pullCompleted' | 'switchToSfu';
+		callId?: string;
 		from?: MiUser['id'];
 		by?: MiUser['id'];
-		signalType?: 'offer' | 'answer' | 'iceCandidate';
+		mode?: 'auto' | 'p2p' | 'sfu';
+		currentMode?: 'p2p' | 'sfu';
+		signalType?: 'iceCandidate' | 'offer' | 'answer';
 		signalData?: any;
 		iceServers?: RTCIceServer[];
+		sessionId?: string;
+		answer?: any;
 		message?: string;
 	};
 }

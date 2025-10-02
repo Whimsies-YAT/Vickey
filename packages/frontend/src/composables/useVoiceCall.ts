@@ -3,16 +3,19 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { ref, shallowRef } from 'vue';
-import { useStream } from '@/stream.js';
+import {ref, shallowRef} from 'vue';
+import {useStream} from '@/stream.js';
 
 export type VoiceCallState = 'idle' | 'calling' | 'ringing' | 'connecting' | 'connected' | 'ended';
+export type VoiceCallMode = 'auto' | 'p2p' | 'sfu';
 
 export interface VoiceCall {
 	callId: string;
 	peerId: string;
 	state: VoiceCallState;
 	isIncoming: boolean;
+	mode: VoiceCallMode;
+	currentMode: 'p2p' | 'sfu';
 }
 
 export function useVoiceCall() {
@@ -26,37 +29,62 @@ export function useVoiceCall() {
 	const connectionState = ref<RTCPeerConnectionState>('new');
 	const callDuration = ref(0);
 	let callDurationInterval: number | null = null;
-	let sessionId: string | null = null;
+	const localMuted = ref(false);
+	const remoteVolume = ref(1.0);
 
-	async function initPeerConnection(iceServers: RTCIceServer[], sessionIdFromServer: string) {
-		sessionId = sessionIdFromServer;
+	let pendingTracksReady = false;
+
+	async function initPeerConnection(iceServers: RTCIceServer[]) {
+		pendingTracksReady = false;
 
 		peerConnection.value = new RTCPeerConnection({
 			iceServers,
+			iceTransportPolicy: 'all',
+			bundlePolicy: 'max-bundle',
+			rtcpMuxPolicy: 'require',
 		});
 
 		peerConnection.value.onicecandidate = (event) => {
 			if (event.candidate && currentCall.value) {
-				mainChannel.send('voiceCall:signal', {
-					callId: currentCall.value.callId,
-					signalType: 'iceCandidate',
-					signalData: {
-						candidate: event.candidate.candidate,
-						sdpMLineIndex: event.candidate.sdpMLineIndex,
-						sdpMid: event.candidate.sdpMid,
-					},
-				});
+				if (currentCall.value.currentMode === 'p2p') {
+					mainChannel.send('voiceCall:signal', {
+						callId: currentCall.value.callId,
+						signalType: 'iceCandidate',
+						signalData: {
+							candidate: event.candidate.candidate,
+							sdpMLineIndex: event.candidate.sdpMLineIndex,
+							sdpMid: event.candidate.sdpMid,
+						},
+					});
+				}
 			}
 		};
 
 		peerConnection.value.ontrack = (event) => {
-			const stream = event.streams[0];
-			remoteStream.value = stream;
+			remoteStream.value = event.streams[0];
 		};
 
 		peerConnection.value.onconnectionstatechange = () => {
 			if (peerConnection.value) {
 				connectionState.value = peerConnection.value.connectionState;
+
+				if (connectionState.value === 'connected') {
+					if (currentCall.value) {
+						// In SFU mode, only mark as connected after pull is done
+						if (currentCall.value.currentMode === 'p2p') {
+							currentCall.value.state = 'connected';
+							startCallDurationTimer();
+						}
+					}
+
+					// Send tracksReady if we've been waiting for connection
+					if (pendingTracksReady && currentCall.value) {
+						pendingTracksReady = false;
+						mainChannel.send('voiceCall:tracksReady', {
+							callId: currentCall.value.callId,
+						});
+					}
+				}
 
 				if (connectionState.value === 'disconnected' || connectionState.value === 'failed' || connectionState.value === 'closed') {
 					cleanup();
@@ -68,7 +96,7 @@ export function useVoiceCall() {
 			if (peerConnection.value) {
 				const iceState = peerConnection.value.iceConnectionState;
 
-				if (iceState === 'disconnected' || iceState === 'failed' || iceState === 'closed') {
+				if (iceState === 'disconnected' || iceState === 'closed') {
 					cleanup();
 				}
 			}
@@ -105,7 +133,24 @@ export function useVoiceCall() {
 		});
 	}
 
-	async function call(recipientId: string) {
+	async function pullRemoteTracks() {
+		if (!peerConnection.value || !currentCall.value) return;
+
+		peerConnection.value.addTransceiver('audio', { direction: 'recvonly' });
+
+		const offer = await peerConnection.value.createOffer();
+		await peerConnection.value.setLocalDescription(offer);
+
+		mainChannel.send('voiceCall:pullTracks', {
+			callId: currentCall.value.callId,
+			offer: {
+				type: offer.type,
+				sdp: offer.sdp,
+			},
+		});
+	}
+
+	async function call(recipientId: string, mode: VoiceCallMode = 'auto') {
 		try {
 			localStream.value = await navigator.mediaDevices.getUserMedia({
 				audio: true,
@@ -114,6 +159,7 @@ export function useVoiceCall() {
 
 			mainChannel.send('voiceCall:initiate', {
 				recipientId,
+				mode,
 			});
 
 			currentCall.value = {
@@ -121,6 +167,8 @@ export function useVoiceCall() {
 				peerId: recipientId,
 				state: 'calling',
 				isIncoming: false,
+				mode,
+				currentMode: 'p2p',
 			};
 		} catch (error) {
 			console.error('Failed to initiate call:', error);
@@ -193,6 +241,20 @@ export function useVoiceCall() {
 		}
 	}
 
+	function toggleLocalMute() {
+		if (!localStream.value) return;
+
+		const audioTracks = localStream.value.getAudioTracks();
+		audioTracks.forEach(track => {
+			track.enabled = !track.enabled;
+		});
+		localMuted.value = !localMuted.value;
+	}
+
+	function setRemoteVolume(volume: number) {
+		remoteVolume.value = Math.max(0, Math.min(1, volume));
+	}
+
 	function cleanup() {
 		if (peerConnection.value) {
 			peerConnection.value.close();
@@ -208,27 +270,45 @@ export function useVoiceCall() {
 		remoteStream.value = null;
 		currentCall.value = null;
 		connectionState.value = 'new';
-		sessionId = null;
+		localMuted.value = false;
+		remoteVolume.value = 1.0;
 	}
 
 	mainChannel.on('voiceCall', async (data) => {
 		switch (data.type) {
 			case 'incoming': {
-				if (!data.callId || !data.from) return;
+				if (!data.callId || !data.from || !data.mode) return;
 				currentCall.value = {
 					callId: data.callId,
 					peerId: data.from,
 					state: 'ringing',
 					isIncoming: true,
+					mode: data.mode,
+					currentMode: 'p2p',
 				};
 				break;
 			}
 
 			case 'initiated': {
-				if (!currentCall.value || !data.callId || !data.iceServers || !data.sessionId) return;
+				if (!currentCall.value || !data.callId || !data.mode || !data.currentMode) return;
 				currentCall.value.callId = data.callId;
-				await initPeerConnection(data.iceServers, data.sessionId);
-				await pushLocalTracks();
+				currentCall.value.mode = data.mode;
+				currentCall.value.currentMode = data.currentMode;
+
+				if (data.currentMode === 'sfu') {
+					if (!data.sessionId) return;
+					await initPeerConnection([{ urls: ['stun:stun.cloudflare.com:3478'] }]);
+					await pushLocalTracks();
+				} else {
+					await initPeerConnection(data.iceServers || []);
+					const offer = await peerConnection.value!.createOffer();
+					await peerConnection.value!.setLocalDescription(offer);
+					mainChannel.send('voiceCall:signal', {
+						callId: currentCall.value.callId,
+						signalType: 'offer',
+						signalData: { type: offer.type, sdp: offer.sdp },
+					});
+				}
 				break;
 			}
 
@@ -240,10 +320,18 @@ export function useVoiceCall() {
 			}
 
 			case 'ready': {
-				if (!currentCall.value || !data.callId || !data.iceServers || !data.sessionId) return;
+				if (!currentCall.value || !data.callId || !data.mode || !data.currentMode) return;
 				if (data.callId === currentCall.value.callId) {
-					await initPeerConnection(data.iceServers, data.sessionId);
-					await pushLocalTracks();
+					currentCall.value.mode = data.mode;
+					currentCall.value.currentMode = data.currentMode;
+
+					if (data.currentMode === 'sfu') {
+						if (!data.sessionId) return;
+						await initPeerConnection([{ urls: ['stun:stun.cloudflare.com:3478'] }]);
+						await pushLocalTracks();
+					} else {
+						await initPeerConnection(data.iceServers || []);
+					}
 				}
 				break;
 			}
@@ -254,30 +342,34 @@ export function useVoiceCall() {
 
 				await peerConnection.value.setRemoteDescription(data.answer);
 
-				if (data.requiresPull) {
-					mainChannel.send('voiceCall:pullTracks', {
+				if (peerConnection.value.connectionState === 'connected') {
+					mainChannel.send('voiceCall:tracksReady', {
 						callId: currentCall.value.callId,
 					});
+				} else {
+					pendingTracksReady = true;
 				}
 				break;
 			}
 
-			case 'pullOffer': {
-				if (!currentCall.value || !peerConnection.value || !data.offer) return;
+			case 'readyToPull': {
+				if (!currentCall.value) return;
 				if (data.callId !== currentCall.value.callId) return;
 
-				await peerConnection.value.setRemoteDescription(data.offer);
+				await pullRemoteTracks();
+				break;
+			}
 
-				const answer = await peerConnection.value.createAnswer();
-				await peerConnection.value.setLocalDescription(answer);
+			case 'pullAnswered': {
+				if (!currentCall.value || !peerConnection.value || !data.answer) return;
+				if (data.callId !== currentCall.value.callId) return;
 
-				mainChannel.send('voiceCall:answerPull', {
-					callId: currentCall.value.callId,
-					answer: {
-						type: answer.type,
-						sdp: answer.sdp,
-					},
-				});
+				await peerConnection.value.setRemoteDescription(data.answer);
+
+				if (currentCall.value.state !== 'connected') {
+					currentCall.value.state = 'connected';
+					startCallDurationTimer();
+				}
 				break;
 			}
 
@@ -285,8 +377,10 @@ export function useVoiceCall() {
 				if (!currentCall.value) return;
 				if (data.callId !== currentCall.value.callId) return;
 
-				currentCall.value.state = 'connected';
-				startCallDurationTimer();
+				if (currentCall.value.state !== 'connected') {
+					currentCall.value.state = 'connected';
+					startCallDurationTimer();
+				}
 				break;
 			}
 
@@ -319,7 +413,41 @@ export function useVoiceCall() {
 							}),
 						);
 					}
+				} else if (data.signalType === 'offer') {
+					await peerConnection.value.setRemoteDescription(new RTCSessionDescription(data.signalData));
+					const answer = await peerConnection.value.createAnswer();
+					await peerConnection.value.setLocalDescription(answer);
+					mainChannel.send('voiceCall:signal', {
+						callId: currentCall.value.callId,
+						signalType: 'answer',
+						signalData: { type: answer.type, sdp: answer.sdp },
+					});
+					currentCall.value.state = 'connected';
+					startCallDurationTimer();
+				} else if (data.signalType === 'answer') {
+					await peerConnection.value.setRemoteDescription(new RTCSessionDescription(data.signalData));
+					currentCall.value.state = 'connected';
+					startCallDurationTimer();
 				}
+				break;
+			}
+
+			case 'switchToSfu': {
+				if (!currentCall.value || !data.callId) return;
+				if (data.callId !== currentCall.value.callId) return;
+				currentCall.value.currentMode = 'sfu';
+				if (peerConnection.value) {
+					peerConnection.value.close();
+					peerConnection.value = null;
+				}
+				break;
+			}
+
+			case 'switchedToSfu': {
+				if (!currentCall.value || !data.callId || !data.sessionId) return;
+				if (data.callId !== currentCall.value.callId) return;
+				await initPeerConnection([{ urls: ['stun:stun.cloudflare.com:3478'] }]);
+				await pushLocalTracks();
 				break;
 			}
 
@@ -337,9 +465,13 @@ export function useVoiceCall() {
 		remoteStream,
 		connectionState,
 		callDuration,
+		localMuted,
+		remoteVolume,
 		call,
 		answer,
 		reject,
 		end,
+		toggleLocalMute,
+		setRemoteVolume,
 	};
 }

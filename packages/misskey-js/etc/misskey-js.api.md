@@ -803,15 +803,14 @@ export type Channels = {
             receiveFollowRequest: (payload: User) => void;
             announcementCreated: (payload: AnnouncementCreated) => void;
             voiceCall: (payload: {
-                type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'pullOffer' | 'pullCompleted';
+                type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'tracksReady' | 'readyToPull' | 'pullAnswered' | 'pullCompleted' | 'switchToSfu' | 'switchedToSfu';
                 callId?: string;
                 from?: string;
+                mode?: 'auto' | 'p2p' | 'sfu';
+                currentMode?: 'p2p' | 'sfu';
                 iceServers?: IceServer[];
                 sessionId?: string;
                 answer?: any;
-                offer?: any;
-                requiresPull?: boolean;
-                tracks?: any[];
                 signalType?: string;
                 signalData?: any;
                 message?: string;
@@ -820,6 +819,7 @@ export type Channels = {
         receives: {
             'voiceCall:initiate': {
                 recipientId: string;
+                mode?: 'auto' | 'p2p' | 'sfu';
             };
             'voiceCall:answer': {
                 callId: string;
@@ -835,8 +835,12 @@ export type Channels = {
                 offer: any;
                 tracks: any[];
             };
+            'voiceCall:tracksReady': {
+                callId: string;
+            };
             'voiceCall:pullTracks': {
                 callId: string;
+                offer: any;
             };
             'voiceCall:answerPull': {
                 callId: string;
@@ -846,6 +850,9 @@ export type Channels = {
                 callId: string;
                 signalType: string;
                 signalData: any;
+            };
+            'voiceCall:switchToSfu': {
+                callId: string;
             };
         };
     };
@@ -4188,9 +4195,9 @@ type VerifyEmailRequest = operations['verify-email']['requestBody']['content']['
 //
 // src/entities.ts:55:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
 // src/streaming.ts:57:3 - (ae-forgotten-export) The symbol "ReconnectingWebSocket" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:77:5 - (ae-forgotten-export) The symbol "IceServer" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:284:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:294:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:79:5 - (ae-forgotten-export) The symbol "IceServer" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:290:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:300:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

@@ -103,6 +103,22 @@ SPDX-License-Identifier: AGPL-3.0-only
 									{{ user.name || user.username }}
 								</div>
 							</div>
+							<div v-if="voiceCall.currentCall.value.state === 'connected'" :class="$style.voiceCallControls">
+								<button class="_button" :class="$style.voiceCallControlButton" @click="toggleMute">
+									<i :class="voiceCall.localMuted.value ? 'ti ti-microphone-off' : 'ti ti-microphone'"></i>
+								</button>
+								<div :class="$style.volumeControl">
+									<i class="ti ti-volume"></i>
+									<input
+										type="range"
+										min="0"
+										max="100"
+										:value="voiceCall.remoteVolume.value * 100"
+										:class="$style.volumeSlider"
+										@input="onVolumeChange"
+									/>
+								</div>
+							</div>
 							<button class="_button" :class="$style.voiceCallEndButton" @click="endVoiceCall">
 								<i class="ti ti-phone-off"></i>
 							</button>
@@ -529,7 +545,6 @@ function showVoiceCallNotification(state: string, userName: string) {
 	if (window.Notification && Notification.permission === 'granted') {
 		voiceCallNotificationId = new Notification(i18n.ts._chat.incomingCall, {
 			body: message,
-			icon: '/apple-touch-icon.png',
 			tag: 'voice-call',
 		});
 	} else {
@@ -663,7 +678,7 @@ async function startVoiceCall() {
 	isVoiceCallDialogOpen.value = true;
 
 	try {
-		await voiceCall.call(user.value.id);
+		await voiceCall.call(user.value.id, 'sfu');
 	} catch (error) {
 		os.alert({
 			type: 'error',
@@ -682,6 +697,19 @@ function formatCallDuration(seconds: number): string {
 	const mins = Math.floor(seconds / 60);
 	const secs = seconds % 60;
 	return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+function toggleMute() {
+	voiceCall.toggleLocalMute();
+}
+
+function onVolumeChange(event: Event) {
+	const target = event.target as HTMLInputElement;
+	const volume = parseInt(target.value) / 100;
+	voiceCall.setRemoteVolume(volume);
+	if (remoteAudioEl.value) {
+		remoteAudioEl.value.volume = volume;
+	}
 }
 
 onMounted(() => {
@@ -914,6 +942,80 @@ definePage(computed(() => {
 	}
 	50% {
 		opacity: 0.3;
+	}
+}
+
+.voiceCallControls {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.voiceCallControlButton {
+	background: rgba(255, 255, 255, 0.15);
+	color: var(--MI_THEME-fgOnAccent);
+	border-radius: 50%;
+	width: 36px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 16px;
+	transition: all 0.2s;
+
+	&:hover {
+		background: rgba(255, 255, 255, 0.25);
+		transform: scale(1.05);
+	}
+
+	&:active {
+		transform: scale(0.95);
+	}
+}
+
+.volumeControl {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 14px;
+}
+
+.volumeSlider {
+	width: 80px;
+	height: 4px;
+	-webkit-appearance: none;
+	appearance: none;
+	background: rgba(255, 255, 255, 0.3);
+	border-radius: 2px;
+	outline: none;
+
+	&::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 14px;
+		height: 14px;
+		background: var(--MI_THEME-fgOnAccent);
+		border-radius: 50%;
+		cursor: pointer;
+		transition: all 0.2s;
+
+		&:hover {
+			transform: scale(1.2);
+		}
+	}
+
+	&::-moz-range-thumb {
+		width: 14px;
+		height: 14px;
+		background: var(--MI_THEME-fgOnAccent);
+		border-radius: 50%;
+		cursor: pointer;
+		border: none;
+		transition: all 0.2s;
+
+		&:hover {
+			transform: scale(1.2);
+		}
 	}
 }
 

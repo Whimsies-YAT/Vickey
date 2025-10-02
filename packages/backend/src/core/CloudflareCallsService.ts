@@ -191,6 +191,16 @@ export class CloudflareCallsService {
 			return null;
 		}
 
+		if (!sessionDescription || !sessionDescription.type || !sessionDescription.sdp) {
+			console.error('Invalid session description:', sessionDescription);
+			return null;
+		}
+
+		if (!Array.isArray(tracks) || tracks.length === 0) {
+			console.error('Invalid tracks array:', tracks);
+			return null;
+		}
+
 		try {
 			const url = `${this.getBaseUrl(appId)}/sessions/${sessionId}/tracks/new`;
 
@@ -204,13 +214,27 @@ export class CloudflareCallsService {
 					sessionDescription,
 					tracks,
 				}),
+				timeout: 30000,
 			});
 
 			const data = await response.json() as any;
 
+			if (data?.tracks && Array.isArray(data.tracks)) {
+				const tracksWithErrors = data.tracks.filter((t: any) => t.errorCode);
+				if (tracksWithErrors.length > 0) {
+					console.error('Cloudflare Calls track errors:', JSON.stringify(tracksWithErrors, null, 2));
+					return null;
+				}
+			}
+
+			if (!data?.sessionDescription?.type || !data?.sessionDescription?.sdp) {
+				console.error('Invalid response from Cloudflare Calls:', JSON.stringify(data, null, 2));
+				return null;
+			}
+
 			return {
 				sessionDescription: data.sessionDescription,
-				tracks: data.tracks,
+				tracks: data.tracks || [],
 			};
 		} catch (error) {
 			console.error('Failed to add track to Cloudflare Calls session:', error);

@@ -13,6 +13,8 @@ import { NotificationService } from '@/core/NotificationService.js';
 import type { MiMeta, MiUser } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
 
+type VoiceCallMode = 'auto' | 'p2p' | 'sfu';
+
 interface VoiceCallSession {
 	callId: string;
 	callerId: MiUser['id'];
@@ -21,10 +23,14 @@ interface VoiceCallSession {
 	recipientSessionId?: string;
 	notificationId?: string;
 	status: 'ringing' | 'connecting' | 'connected' | 'ended';
+	mode: VoiceCallMode;
+	currentMode: 'p2p' | 'sfu';
 	createdAt: number;
 	connectedAt?: number;
 	appId?: string;
 	appSecret?: string;
+	callerPushed?: boolean;
+	recipientPushed?: boolean;
 }
 
 @Injectable()
@@ -77,69 +83,90 @@ export class VoiceCallService {
 	public async initiateCall(
 		callerId: MiUser['id'],
 		recipientId: MiUser['id'],
-	): Promise<{ callId: string; iceServers: RTCIceServer[]; callerSessionId?: string } | null> {
-		if (!this.isEnabled()) {
-			return null;
-		}
-
+		mode: VoiceCallMode = 'auto',
+	): Promise<{ callId: string; iceServers: RTCIceServer[]; mode: VoiceCallMode; currentMode: 'p2p' | 'sfu'; sessionId?: string } | null> {
 		if (callerId === recipientId) {
 			return null;
 		}
 
 		const callId = this.idService.gen();
 
-		const appCreds = await this.cloudflareCallsService.getAppCredentials();
-
+		let currentMode: 'p2p' | 'sfu';
+		let appId: string | undefined;
+		let appSecret: string | undefined;
 		let callerSessionId: string | undefined;
-		if (appCreds) {
-			const callerSession = await this.cloudflareCallsService.createSession(appCreds.appId, appCreds.appSecret);
-			if (callerSession) {
-				callerSessionId = callerSession.sessionId;
+
+		if (mode === 'sfu') {
+			currentMode = 'sfu';
+			if (!this.isEnabled()) {
+				return null;
 			}
+			const appCreds = await this.cloudflareCallsService.getAppCredentials();
+			if (!appCreds) {
+				return null;
+			}
+			const session = await this.cloudflareCallsService.createSession(appCreds.appId, appCreds.appSecret);
+			if (!session) {
+				return null;
+			}
+			appId = appCreds.appId;
+			appSecret = appCreds.appSecret;
+			callerSessionId = session.sessionId;
+		} else {
+			currentMode = 'p2p';
 		}
 
-		const session: VoiceCallSession = {
+		const voiceSession: VoiceCallSession = {
 			callId,
 			callerId,
 			recipientId,
 			status: 'ringing',
+			mode,
+			currentMode,
 			createdAt: Date.now(),
-			appId: appCreds?.appId,
-			appSecret: appCreds?.appSecret,
+			appId,
+			appSecret,
 			callerSessionId,
 		};
 
 		this.notificationService.createNotification(recipientId, 'voiceCall', {}, callerId);
 
-		await this.setSession(session);
+		await this.setSession(voiceSession);
 
 		this.globalEventService.publishMainStream(recipientId, 'voiceCall', {
 			type: 'incoming',
 			callId,
 			from: callerId,
+			mode,
 		});
 
 		return {
 			callId,
-			iceServers: this.cloudflareCallsService.getIceServers(),
-			callerSessionId,
+			iceServers: currentMode === 'p2p' ? this.cloudflareCallsService.getIceServers() : [],
+			mode,
+			currentMode,
+			sessionId: callerSessionId,
 		};
 	}
 
 	@bindThis
-	public async answerCall(callId: string, userId: MiUser['id']): Promise<{ iceServers: RTCIceServer[]; recipientSessionId?: string } | null> {
+	public async answerCall(callId: string, userId: MiUser['id']): Promise<{ iceServers: RTCIceServer[]; mode: VoiceCallMode; currentMode: 'p2p' | 'sfu'; sessionId?: string } | null> {
 		const session = await this.getSession(callId);
 		if (!session || session.recipientId !== userId) {
 			return null;
 		}
 
 		let recipientSessionId: string | undefined;
-		if (session.appId && session.appSecret) {
-			const recipientSession = await this.cloudflareCallsService.createSession(session.appId, session.appSecret);
-			if (recipientSession) {
-				recipientSessionId = recipientSession.sessionId;
-				session.recipientSessionId = recipientSessionId;
+		if (session.currentMode === 'sfu') {
+			if (!session.appId || !session.appSecret) {
+				return null;
 			}
+			const recipientSession = await this.cloudflareCallsService.createSession(session.appId, session.appSecret);
+			if (!recipientSession) {
+				return null;
+			}
+			recipientSessionId = recipientSession.sessionId;
+			session.recipientSessionId = recipientSessionId;
 		}
 
 		session.status = 'connecting';
@@ -152,8 +179,10 @@ export class VoiceCallService {
 		});
 
 		return {
-			iceServers: this.cloudflareCallsService.getIceServers(),
-			recipientSessionId,
+			iceServers: session.currentMode === 'p2p' ? this.cloudflareCallsService.getIceServers() : [],
+			mode: session.mode,
+			currentMode: session.currentMode,
+			sessionId: recipientSessionId,
 		};
 	}
 
@@ -204,7 +233,7 @@ export class VoiceCallService {
 		userId: MiUser['id'],
 		offer: RTCSessionDescriptionInit,
 		tracks: Array<{ mid: string; trackName: string }>,
-	): Promise<{ answer: RTCSessionDescriptionInit; requiresPull?: boolean } | null> {
+	): Promise<{ answer: RTCSessionDescriptionInit } | null> {
 		const session = await this.getSession(callId);
 		if (!session || (session.callerId !== userId && session.recipientId !== userId)) {
 			return null;
@@ -231,19 +260,49 @@ export class VoiceCallService {
 			return null;
 		}
 
-		const otherSessionId = userId === session.callerId ? session.recipientSessionId : session.callerSessionId;
+		await this.setSession(session);
 
 		return {
 			answer: result.sessionDescription,
-			requiresPull: !!otherSessionId,
 		};
+	}
+
+	@bindThis
+	public async markTracksReady(callId: string, userId: MiUser['id']): Promise<void> {
+		const session = await this.getSession(callId);
+		if (!session || (session.callerId !== userId && session.recipientId !== userId)) {
+			return;
+		}
+
+		const isCaller = userId === session.callerId;
+		if (isCaller) {
+			session.callerPushed = true;
+		} else {
+			session.recipientPushed = true;
+		}
+		await this.setSession(session);
+
+		const otherUserId = isCaller ? session.recipientId : session.callerId;
+		const otherPushed = isCaller ? session.recipientPushed : session.callerPushed;
+
+		if (otherPushed) {
+			this.globalEventService.publishMainStream(otherUserId, 'voiceCall', {
+				type: 'readyToPull',
+				callId,
+			});
+			this.globalEventService.publishMainStream(userId, 'voiceCall', {
+				type: 'readyToPull',
+				callId,
+			});
+		}
 	}
 
 	@bindThis
 	public async pullTracks(
 		callId: string,
 		userId: MiUser['id'],
-	): Promise<{ offer: RTCSessionDescriptionInit; tracks: Array<{ mid: string; trackName: string; sessionId: string }> } | null> {
+		offer: RTCSessionDescriptionInit,
+	): Promise<{ answer: RTCSessionDescriptionInit } | null> {
 		const session = await this.getSession(callId);
 		if (!session || (session.callerId !== userId && session.recipientId !== userId)) {
 			return null;
@@ -260,11 +319,29 @@ export class VoiceCallService {
 			return null;
 		}
 
+		const isCaller = userId === session.callerId;
+		let currentSession = session;
+		let otherPushed = isCaller ? currentSession.recipientPushed : currentSession.callerPushed;
+
+		for (let waitAttempt = 0; waitAttempt < 20 && !otherPushed; waitAttempt++) {
+			if (waitAttempt > 0) {
+				await new Promise(resolve => setTimeout(resolve, 500));
+			}
+			currentSession = await this.getSession(callId) ?? currentSession;
+			otherPushed = isCaller ? currentSession.recipientPushed : currentSession.callerPushed;
+		}
+
+		if (!otherPushed) {
+			return null;
+		}
+
+		await new Promise(resolve => setTimeout(resolve, 3000));
+
 		const result = await this.cloudflareCallsService.addTrack(
-			session.appId,
-			session.appSecret,
+			currentSession.appId!,
+			currentSession.appSecret!,
 			userSessionId,
-			{ type: 'offer', sdp: '' },
+			offer,
 			[{ location: 'remote', trackName: 'audio', sessionId: otherSessionId }],
 		);
 
@@ -272,13 +349,14 @@ export class VoiceCallService {
 			return null;
 		}
 
+		if (currentSession.status === 'connecting') {
+			currentSession.status = 'connected';
+			currentSession.connectedAt = Date.now();
+			await this.setSession(currentSession);
+		}
+
 		return {
-			offer: result.sessionDescription,
-			tracks: result.tracks.map(t => ({
-				mid: t.mid || '',
-				trackName: t.trackName,
-				sessionId: otherSessionId,
-			})),
+			answer: result.sessionDescription,
 		};
 	}
 
@@ -322,11 +400,15 @@ export class VoiceCallService {
 	public async relaySignaling(
 		callId: string,
 		userId: MiUser['id'],
-		signalType: 'iceCandidate',
+		signalType: 'iceCandidate' | 'offer' | 'answer',
 		signalData: any,
 	): Promise<void> {
 		const session = await this.getSession(callId);
 		if (!session || (session.callerId !== userId && session.recipientId !== userId)) {
+			return;
+		}
+
+		if (session.currentMode !== 'p2p') {
 			return;
 		}
 
@@ -339,5 +421,63 @@ export class VoiceCallService {
 			signalData,
 			from: userId,
 		});
+	}
+
+	/**
+	 * Switch call from P2P to SFU mode (only allowed in 'auto' mode)
+	 * Called when P2P connection fails or times out
+	 */
+	@bindThis
+	public async switchToSfu(callId: string, userId: MiUser['id']): Promise<{ sessionId: string } | null> {
+		if (!this.isEnabled()) {
+			return null;
+		}
+
+		const session = await this.getSession(callId);
+		if (!session || (session.callerId !== userId && session.recipientId !== userId)) {
+			return null;
+		}
+
+		if (session.mode !== 'auto') {
+			return null;
+		}
+
+		if (session.currentMode === 'sfu') {
+			return null;
+		}
+
+		if (!session.appId || !session.appSecret) {
+			const appCreds = await this.cloudflareCallsService.getAppCredentials();
+			if (!appCreds) {
+				return null;
+			}
+			session.appId = appCreds.appId;
+			session.appSecret = appCreds.appSecret;
+		}
+
+		const userSession = await this.cloudflareCallsService.createSession(session.appId, session.appSecret);
+		if (!userSession) {
+			return null;
+		}
+
+		const isCaller = userId === session.callerId;
+		if (isCaller) {
+			session.callerSessionId = userSession.sessionId;
+		} else {
+			session.recipientSessionId = userSession.sessionId;
+		}
+
+		session.currentMode = 'sfu';
+		await this.setSession(session);
+
+		const otherUserId = isCaller ? session.recipientId : session.callerId;
+		this.globalEventService.publishMainStream(otherUserId, 'voiceCall', {
+			type: 'switchToSfu',
+			callId,
+		});
+
+		return {
+			sessionId: userSession.sessionId,
+		};
 	}
 }
