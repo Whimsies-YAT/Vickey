@@ -5,6 +5,7 @@
 
 import { ref, shallowRef } from 'vue';
 import { useStream } from '@/stream.js';
+import { AudioProcessor } from './audio-processor';
 
 export type VoiceCallState = 'idle' | 'calling' | 'ringing' | 'connecting' | 'connected' | 'ended';
 export type VoiceCallMode = 'auto' | 'p2p' | 'sfu';
@@ -31,6 +32,8 @@ export function useVoiceCall() {
 	let callDurationInterval: number | null = null;
 	const localMuted = ref(false);
 	const remoteVolume = ref(1.0);
+	let audioProcessor: AudioProcessor | null = null;
+	let rawMicStream: MediaStream | null = null;
 
 	let pendingTracksReady = false;
 
@@ -151,8 +154,12 @@ export function useVoiceCall() {
 	}
 
 	async function call(recipientId: string, mode: VoiceCallMode = 'auto') {
+		if (currentCall.value) {
+			throw new Error('Already in a call');
+		}
+
 		try {
-			localStream.value = await navigator.mediaDevices.getUserMedia({
+			rawMicStream = await navigator.mediaDevices.getUserMedia({
 				audio: {
 					echoCancellation: true,
 					noiseSuppression: true,
@@ -160,6 +167,9 @@ export function useVoiceCall() {
 				},
 				video: false,
 			});
+
+			audioProcessor = new AudioProcessor();
+			localStream.value = await audioProcessor.initialize(rawMicStream);
 
 			mainChannel.send('voiceCall:initiate', {
 				recipientId,
@@ -187,7 +197,7 @@ export function useVoiceCall() {
 		}
 
 		try {
-			localStream.value = await navigator.mediaDevices.getUserMedia({
+			rawMicStream = await navigator.mediaDevices.getUserMedia({
 				audio: {
 					echoCancellation: true,
 					noiseSuppression: true,
@@ -195,6 +205,9 @@ export function useVoiceCall() {
 				},
 				video: false,
 			});
+
+			audioProcessor = new AudioProcessor();
+			localStream.value = await audioProcessor.initialize(rawMicStream);
 
 			currentCall.value.state = 'connecting';
 
@@ -269,9 +282,19 @@ export function useVoiceCall() {
 			peerConnection.value = null;
 		}
 
+		if (audioProcessor) {
+			audioProcessor.cleanup();
+			audioProcessor = null;
+		}
+
 		if (localStream.value) {
 			localStream.value.getTracks().forEach(track => track.stop());
 			localStream.value = null;
+		}
+
+		if (rawMicStream) {
+			rawMicStream.getTracks().forEach(track => track.stop());
+			rawMicStream = null;
 		}
 
 		stopCallDurationTimer();
@@ -293,6 +316,19 @@ export function useVoiceCall() {
 					isIncoming: true,
 					mode: data.mode,
 					currentMode: 'p2p',
+				};
+				break;
+			}
+
+			case 'restored': {
+				if (!data.callId || !data.peerId) return;
+				currentCall.value = {
+					callId: data.callId,
+					peerId: data.peerId,
+					state: data.state || 'ringing',
+					isIncoming: data.isIncoming || false,
+					mode: data.mode || 'auto',
+					currentMode: data.currentMode || 'p2p',
 				};
 				break;
 			}

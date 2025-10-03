@@ -3795,6 +3795,14 @@ export interface Locale extends ILocale {
          */
         "callDuration": ParameterizedString<"duration">;
         /**
+         * Answer
+         */
+        "answer": string;
+        /**
+         * Reject
+         */
+        "reject": string;
+        /**
          * メッセージ
          */
         "messages": string;

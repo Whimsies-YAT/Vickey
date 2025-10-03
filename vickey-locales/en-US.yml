@@ -595,6 +595,8 @@ _chat:
   voiceCallInProgress: "Voice call in progress"
   callEnded: "Call ended"
   callDuration: "Call duration: {duration}"
+  answer: "Answer"
+  reject: "Reject"
 _admin:
   _payments:
     title: "Payment Management"

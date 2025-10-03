@@ -808,6 +808,9 @@ importers:
       '@sentry/vue':
         specifier: 10.10.0
         version: 10.10.0(vue@3.5.21(typescript@5.9.2))
+      '@shiguredo/rnnoise-wasm':
+        specifier: 2025.1.5
+        version: 2025.1.5
       '@stripe/stripe-js':
         specifier: 7.9.0
         version: 7.9.0
@@ -4059,6 +4062,10 @@ packages:
     peerDependenciesMeta:
       pinia:
         optional: true
+
+  '@shiguredo/rnnoise-wasm@2025.1.5':
+    resolution: {integrity: sha512-9YJxzzHftlW936E5z9aEKK2CrPfUgc3HgZ2keyQ5e2Pb5bx+6tykYQ2Gyudvxd7Sxmlnar7SemDMFfx0OuVuGA==}
+    engines: {node: '>=20', pnpm: '>=10'}
 
   '@shikijs/core@3.12.2':
     resolution: {integrity: sha512-L1Safnhra3tX/oJK5kYHaWmLEBJi1irASwewzY3taX5ibyXyMkkSDZlq01qigjryOBwrXSdFgTiZ3ryzSNeu7Q==}
@@ -15316,6 +15323,8 @@ snapshots:
       '@sentry/browser': 9.46.0
       '@sentry/core': 9.46.0
       vue: 3.5.21(typescript@5.9.2)
+
+  '@shiguredo/rnnoise-wasm@2025.1.5': {}
 
   '@shikijs/core@3.12.2':
     dependencies:

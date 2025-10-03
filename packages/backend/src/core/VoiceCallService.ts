@@ -31,6 +31,7 @@ interface VoiceCallSession {
 	appSecret?: string;
 	callerPushed?: boolean;
 	recipientPushed?: boolean;
+	answeredBy?: MiUser['id'];
 }
 
 @Injectable()
@@ -80,12 +81,51 @@ export class VoiceCallService {
 	}
 
 	@bindThis
+	private async getUserActiveCall(userId: MiUser['id']): Promise<string | null> {
+		return await this.redisClient.get(`voicecall:user:${userId}`);
+	}
+
+	@bindThis
+	private async setUserActiveCall(userId: MiUser['id'], callId: string): Promise<void> {
+		await this.redisClient.setex(`voicecall:user:${userId}`, 3600, callId);
+	}
+
+	@bindThis
+	private async deleteUserActiveCall(userId: MiUser['id']): Promise<void> {
+		await this.redisClient.del(`voicecall:user:${userId}`);
+	}
+
+	@bindThis
+	public async getCurrentCall(userId: MiUser['id']): Promise<VoiceCallSession | null> {
+		const callId = await this.getUserActiveCall(userId);
+		if (!callId) return null;
+
+		const session = await this.getSession(callId);
+		if (!session || session.status === 'ended') {
+			await this.deleteUserActiveCall(userId);
+			return null;
+		}
+
+		return session;
+	}
+
+	@bindThis
 	public async initiateCall(
 		callerId: MiUser['id'],
 		recipientId: MiUser['id'],
 		mode: VoiceCallMode = 'auto',
 	): Promise<{ callId: string; iceServers: RTCIceServer[]; mode: VoiceCallMode; currentMode: 'p2p' | 'sfu'; sessionId?: string } | null> {
 		if (callerId === recipientId) {
+			return null;
+		}
+
+		const callerActiveCall = await this.getUserActiveCall(callerId);
+		if (callerActiveCall) {
+			return null;
+		}
+
+		const recipientActiveCall = await this.getUserActiveCall(recipientId);
+		if (recipientActiveCall) {
 			return null;
 		}
 
@@ -132,6 +172,8 @@ export class VoiceCallService {
 		this.notificationService.createNotification(recipientId, 'voiceCall', {}, callerId);
 
 		await this.setSession(voiceSession);
+		await this.setUserActiveCall(callerId, callId);
+		await this.setUserActiveCall(recipientId, callId);
 
 		this.globalEventService.publishMainStream(recipientId, 'voiceCall', {
 			type: 'incoming',
@@ -154,6 +196,14 @@ export class VoiceCallService {
 		const session = await this.getSession(callId);
 		if (!session || session.recipientId !== userId) {
 			return null;
+		}
+
+		if (session.answeredBy && session.answeredBy !== userId) {
+			return null;
+		}
+
+		if (!session.answeredBy) {
+			session.answeredBy = userId;
 		}
 
 		let recipientSessionId: string | undefined;
@@ -200,6 +250,8 @@ export class VoiceCallService {
 		});
 
 		await this.deleteSession(callId);
+		await this.deleteUserActiveCall(session.callerId);
+		await this.deleteUserActiveCall(session.recipientId);
 	}
 
 	@bindThis
@@ -225,6 +277,8 @@ export class VoiceCallService {
 		});
 
 		await this.deleteSession(callId);
+		await this.deleteUserActiveCall(session.callerId);
+		await this.deleteUserActiveCall(session.recipientId);
 	}
 
 	@bindThis

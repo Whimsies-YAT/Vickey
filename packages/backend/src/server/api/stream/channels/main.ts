@@ -31,6 +31,33 @@ class MainChannel extends Channel {
 
 	@bindThis
 	public async init(params: JsonObject) {
+		const currentCall = await this.voiceCallService.getCurrentCall(this.user!.id);
+		if (currentCall) {
+			this.activeCallId = currentCall.callId;
+
+			if (currentCall.recipientId === this.user!.id && currentCall.status === 'ringing') {
+				this.send('voiceCall', {
+					type: 'incoming',
+					callId: currentCall.callId,
+					from: currentCall.callerId,
+					mode: currentCall.mode,
+				});
+			} else if (currentCall.status === 'connecting' || currentCall.status === 'connected') {
+				const peerId = currentCall.callerId === this.user!.id ? currentCall.recipientId : currentCall.callerId;
+				const isIncoming = currentCall.recipientId === this.user!.id;
+
+				this.send('voiceCall', {
+					type: 'restored',
+					callId: currentCall.callId,
+					peerId,
+					isIncoming,
+					state: currentCall.status,
+					mode: currentCall.mode,
+					currentMode: currentCall.currentMode,
+				});
+			}
+		}
+
 		// Subscribe main stream channel
 		this.subscriber.on(`mainStream:${this.user!.id}`, async data => {
 			switch (data.type) {

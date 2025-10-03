@@ -71,9 +71,12 @@ export type Channels = {
 			receiveFollowRequest: (payload: User) => void;
 			announcementCreated: (payload: AnnouncementCreated) => void;
 			voiceCall: (payload: {
-				type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'tracksReady' | 'readyToPull' | 'pullAnswered' | 'pullCompleted' | 'switchToSfu' | 'switchedToSfu';
+				type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'tracksReady' | 'readyToPull' | 'pullAnswered' | 'pullCompleted' | 'switchToSfu' | 'switchedToSfu' | 'restored';
 				callId?: string;
 				from?: string;
+				peerId?: string;
+				isIncoming?: boolean;
+				state?: 'ringing' | 'connecting' | 'connected';
 				mode?: 'auto' | 'p2p' | 'sfu';
 				currentMode?: 'p2p' | 'sfu';
 				iceServers?: IceServer[];

@@ -103,7 +103,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 									{{ user.name || user.username }}
 								</div>
 							</div>
-							<div v-if="voiceCall.currentCall.value.state === 'connected'" :class="$style.voiceCallControls">
+							<div v-if="voiceCall.currentCall.value.state === 'ringing' && voiceCall.currentCall.value.isIncoming" :class="$style.voiceCallControls">
+								<button class="_button" :class="$style.voiceCallAnswerButton" @click="answerVoiceCall">
+									<i class="ti ti-phone"></i>
+									{{ i18n.ts._chat.answer }}
+								</button>
+								<button class="_button" :class="$style.voiceCallEndButton" @click="rejectVoiceCall">
+									<i class="ti ti-phone-off"></i>
+									{{ i18n.ts._chat.reject }}
+								</button>
+							</div>
+							<div v-else-if="voiceCall.currentCall.value.state === 'connected'" :class="$style.voiceCallControls">
 								<button class="_button" :class="$style.voiceCallControlButton" @click="toggleMute">
 									<i :class="voiceCall.localMuted.value ? 'ti ti-microphone-off' : 'ti ti-microphone'"></i>
 								</button>
@@ -118,10 +128,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 										@input="onVolumeChange"
 									/>
 								</div>
+								<button class="_button" :class="$style.voiceCallEndButton" @click="endVoiceCall">
+									<i class="ti ti-phone-off"></i>
+								</button>
 							</div>
-							<button class="_button" :class="$style.voiceCallEndButton" @click="endVoiceCall">
-								<i class="ti ti-phone-off"></i>
-							</button>
+							<div v-else :class="$style.voiceCallControls">
+								<button class="_button" :class="$style.voiceCallEndButton" @click="endVoiceCall">
+									<i class="ti ti-phone-off"></i>
+								</button>
+							</div>
 						</div>
 					</div>
 				</Transition>
@@ -508,13 +523,19 @@ let incomingCallDialog: { close: () => void } | null = null;
 let voiceCallNotificationId: Notification | null = null;
 const ringtoneAudio = new Audio('/client-assets/sounds/vickey/phone-ring.wav');
 ringtoneAudio.loop = true;
+let isRingtonePlaying = false;
+let lastHandledCallId: string | null = null;
 
 function playRingtone() {
+	if (isRingtonePlaying) return;
+	isRingtonePlaying = true;
 	ringtoneAudio.currentTime = 0;
 	ringtoneAudio.play().catch(console.error);
 }
 
 function stopRingtone() {
+	if (!isRingtonePlaying) return;
+	isRingtonePlaying = false;
 	ringtoneAudio.pause();
 	ringtoneAudio.currentTime = 0;
 }
@@ -568,17 +589,19 @@ watch(() => voiceCall.currentCall.value, (call, oldCall) => {
 
 		if (call.state === 'ringing' && call.isIncoming) {
 			playRingtone();
+
+			if (call.callId !== lastHandledCallId) {
+				lastHandledCallId = call.callId;
+				handleIncomingCall(call);
+			}
 		} else if (call.state === 'calling' && !call.isIncoming) {
 			playRingtone();
 		} else {
 			stopRingtone();
 		}
-
-		if (call.isIncoming && call.state === 'ringing' && (!oldCall || oldCall.callId !== call.callId)) {
-			handleIncomingCall(call);
-		}
 	}
 	if (oldCall && !call) {
+		lastHandledCallId = null;
 		isVoiceCallDialogOpen.value = false;
 		closeVoiceCallNotification();
 
@@ -691,6 +714,23 @@ async function startVoiceCall() {
 function endVoiceCall() {
 	voiceCall.end();
 	isVoiceCallDialogOpen.value = false;
+}
+
+async function answerVoiceCall() {
+	if (incomingCallDialog) {
+		incomingCallDialog.close();
+		incomingCallDialog = null;
+	}
+	isVoiceCallDialogOpen.value = true;
+	await voiceCall.answer();
+}
+
+function rejectVoiceCall() {
+	if (incomingCallDialog) {
+		incomingCallDialog.close();
+		incomingCallDialog = null;
+	}
+	voiceCall.reject();
 }
 
 function formatCallDuration(seconds: number): string {
@@ -1016,6 +1056,31 @@ definePage(computed(() => {
 		&:hover {
 			transform: scale(1.2);
 		}
+	}
+}
+
+.voiceCallAnswerButton {
+	background: color-mix(in srgb, var(--MI_THEME-success) 90%, transparent);
+	color: var(--MI_THEME-fgOnAccent);
+	border-radius: 20px;
+	padding: 8px 16px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	font-size: 14px;
+	font-weight: bold;
+	transition: all 0.2s;
+	box-shadow: 0 2px 8px color-mix(in srgb, var(--MI_THEME-success) 30%, transparent);
+
+	&:hover {
+		background: var(--MI_THEME-success);
+		transform: scale(1.05);
+		box-shadow: 0 4px 12px color-mix(in srgb, var(--MI_THEME-success) 40%, transparent);
+	}
+
+	&:active {
+		transform: scale(0.95);
 	}
 }
 
