@@ -594,8 +594,6 @@ watch(() => voiceCall.currentCall.value, (call, oldCall) => {
 				lastHandledCallId = call.callId;
 				handleIncomingCall(call);
 			}
-		} else if (call.state === 'calling' && !call.isIncoming) {
-			playRingtone();
 		} else {
 			stopRingtone();
 		}

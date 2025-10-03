@@ -70,11 +70,12 @@ export class AudioProcessor {
 						if (denoisedEnergy > 1e-10) {
 							const energyRatio = Math.sqrt(originalEnergy / denoisedEnergy);
 							const gainFactor = vad > 0.5 ? 1.0 : 0.7;
-							gain = Math.min(energyRatio * gainFactor, 1.8);
+							gain = Math.min(energyRatio * gainFactor, 1.2);
 						}
 
 						for (let i = 0; i < frame.length; i++) {
 							frame[i] = frame[i] * gain * denoisedRatio + original[i] * (1 - denoisedRatio);
+							frame[i] = Math.max(-0.95, Math.min(0.95, frame[i]));
 						}
 
 						this.workletNode?.port.postMessage({
