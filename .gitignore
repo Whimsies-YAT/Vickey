@@ -103,3 +103,6 @@ vite.config.local-dev.ts.timestamp-*
 **/*.dylib
 **/*.dll
 **/deps/
+
+# If using Claude
+CLAUDE.local.md
