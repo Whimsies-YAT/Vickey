@@ -358,6 +358,9 @@ export function getNoteMenu(props: {
 
 				const audioBlob = new Blob(chunks, { type: 'audio/flac' });
 
+				if (props.convert.value) {
+					URL.revokeObjectURL(props.convert.value);
+				}
 				props.convert.value = URL.createObjectURL(audioBlob);
 			} else {
 				console.error('Response body is not a ReadableStream');
