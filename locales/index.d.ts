@@ -9928,6 +9928,10 @@ export interface Locale extends ILocale {
      * 予約
      */
     "scheduled": string;
+    /**
+     * ウィジェット
+     */
+    "widgets": string;
     "_compression": {
         "_quality": {
             /**
