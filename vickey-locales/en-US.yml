@@ -215,6 +215,9 @@ _aboutVickey:
   about: "Vickey is a soft fork of Misskey."
   translation: "Translate Vickey"
   donate: "Donate to Vickey"
+  source: "Source code"
+  original: "original"
+  thisIsModifiedVersionVK: "{name} uses a modified version of the original Vickey."
 _donation:
   title: "Support this Instance"
   description: "Help us keep {instanceName} running and growing!"

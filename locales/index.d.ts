@@ -1806,6 +1806,18 @@ export interface Locale extends ILocale {
          * Donate to Vickey
          */
         "donate": string;
+        /**
+         * Source code
+         */
+        "source": string;
+        /**
+         * original
+         */
+        "original": string;
+        /**
+         * {name} uses a modified version of the original Vickey.
+         */
+        "thisIsModifiedVersionVK": ParameterizedString<"name">;
     };
     "_donation": {
         /**
