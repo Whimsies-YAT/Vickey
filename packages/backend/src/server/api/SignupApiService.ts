@@ -441,7 +441,7 @@ export class SignupApiService {
 				return { pendingApproval: true };
 			}
 
-			const { account, _ } = await this.signupService.signup({
+			const { account } = await this.signupService.signup({
 				username: pendingUser.username,
 				passwordHash: pendingUser.password,
 				reason: pendingUser.reason,
