@@ -1806,6 +1806,18 @@ export interface Locale extends ILocale {
          * Donate to Vickey
          */
         "donate": string;
+        /**
+         * Source code
+         */
+        "source": string;
+        /**
+         * original
+         */
+        "original": string;
+        /**
+         * {name} uses a modified version of the original Vickey.
+         */
+        "thisIsModifiedVersionVK": ParameterizedString<"name">;
     };
     "_donation": {
         /**
@@ -3749,6 +3761,251 @@ export interface Locale extends ILocale {
          */
         "securityWarning": string;
     };
+    "_chat": {
+        /**
+         * Incoming call
+         */
+        "incomingCall": string;
+        /**
+         * Incoming call from {name}
+         */
+        "incomingCallFrom": ParameterizedString<"name">;
+        /**
+         * Voice call is not enabled on this instance
+         */
+        "voiceCallNotEnabled": string;
+        /**
+         * Failed to start voice call
+         */
+        "failedToStartVoiceCall": string;
+        /**
+         * Start voice call
+         */
+        "startVoiceCall": string;
+        /**
+         * End call
+         */
+        "endCall": string;
+        /**
+         * Calling
+         */
+        "calling": string;
+        /**
+         * Connecting
+         */
+        "connecting": string;
+        /**
+         * Voice call in progress
+         */
+        "voiceCallInProgress": string;
+        /**
+         * Call ended
+         */
+        "callEnded": string;
+        /**
+         * Call duration: {duration}
+         */
+        "callDuration": ParameterizedString<"duration">;
+        /**
+         * Answer
+         */
+        "answer": string;
+        /**
+         * Reject
+         */
+        "reject": string;
+        /**
+         * メッセージ
+         */
+        "messages": string;
+        /**
+         * まだメッセージはありません
+         */
+        "noMessagesYet": string;
+        /**
+         * 新しいメッセージ
+         */
+        "newMessage": string;
+        /**
+         * 個別
+         */
+        "individualChat": string;
+        /**
+         * 特定ユーザーと個別にメッセージのやりとりができます。
+         */
+        "individualChat_description": string;
+        /**
+         * グループ
+         */
+        "roomChat": string;
+        /**
+         * 複数人でメッセージのやりとりができます。
+         * また、個別のメッセージを許可していないユーザーとでも、相手が受け入れればやりとりできます。
+         */
+        "roomChat_description": string;
+        /**
+         * グループを作成
+         */
+        "createRoom": string;
+        /**
+         * ユーザーを招待してメッセージを送信しましょう
+         */
+        "inviteUserToChat": string;
+        /**
+         * 作成したグループ
+         */
+        "yourRooms": string;
+        /**
+         * 参加中のグループ
+         */
+        "joiningRooms": string;
+        /**
+         * 招待
+         */
+        "invitations": string;
+        /**
+         * 招待はありません
+         */
+        "noInvitations": string;
+        /**
+         * 履歴
+         */
+        "history": string;
+        /**
+         * 履歴はありません
+         */
+        "noHistory": string;
+        /**
+         * グループはありません
+         */
+        "noRooms": string;
+        /**
+         * ユーザーを招待
+         */
+        "inviteUser": string;
+        /**
+         * 送信した招待
+         */
+        "sentInvitations": string;
+        /**
+         * 参加
+         */
+        "join": string;
+        /**
+         * 無視
+         */
+        "ignore": string;
+        /**
+         * グループから退出
+         */
+        "leave": string;
+        /**
+         * メンバー
+         */
+        "members": string;
+        /**
+         * メッセージを検索
+         */
+        "searchMessages": string;
+        /**
+         * ホーム
+         */
+        "home": string;
+        /**
+         * 送信
+         */
+        "send": string;
+        /**
+         * 改行
+         */
+        "newline": string;
+        /**
+         * このグループをミュート
+         */
+        "muteThisRoom": string;
+        /**
+         * グループを削除
+         */
+        "deleteRoom": string;
+        /**
+         * このサーバー、またはこのアカウントでダイレクトメッセージは有効化されていません。
+         */
+        "chatNotAvailableForThisAccountOrServer": string;
+        /**
+         * このサーバー、またはこのアカウントでダイレクトメッセージは読み取り専用となっています。新たに書き込んだり、グループを作成・参加したりすることはできません。
+         */
+        "chatIsReadOnlyForThisAccountOrServer": string;
+        /**
+         * 相手のアカウントでダイレクトメッセージが使えない状態になっています。
+         */
+        "chatNotAvailableInOtherAccount": string;
+        /**
+         * このユーザーとのダイレクトメッセージを開始できません
+         */
+        "cannotChatWithTheUser": string;
+        /**
+         * ダイレクトメッセージが使えない状態になっているか、相手がダイレクトメッセージを開放していません。
+         */
+        "cannotChatWithTheUser_description": string;
+        /**
+         * あなたはこのグループの参加者ではありませんが、招待が届いています。参加するには、招待を承認してください。
+         */
+        "youAreNotAMemberOfThisRoomButInvited": string;
+        /**
+         * 招待を承認しますか？
+         */
+        "doYouAcceptInvitation": string;
+        /**
+         * ダイレクトメッセージ
+         */
+        "chatWithThisUser": string;
+        /**
+         * このユーザーはフォロワーからのみメッセージを受け付けています。
+         */
+        "thisUserAllowsChatOnlyFromFollowers": string;
+        /**
+         * このユーザーは、このユーザーがフォローしているユーザーからのみメッセージを受け付けています。
+         */
+        "thisUserAllowsChatOnlyFromFollowing": string;
+        /**
+         * このユーザーは相互フォローのユーザーからのみメッセージを受け付けています。
+         */
+        "thisUserAllowsChatOnlyFromMutualFollowing": string;
+        /**
+         * このユーザーは誰からもメッセージを受け付けていません。
+         */
+        "thisUserNotAllowedChatAnyone": string;
+        /**
+         * メッセージを許可する相手
+         */
+        "chatAllowedUsers": string;
+        /**
+         * 自分からメッセージを送った相手とはこの設定に関わらずメッセージの送受信が可能です。
+         */
+        "chatAllowedUsers_note": string;
+        "_chatAllowedUsers": {
+            /**
+             * 誰でも
+             */
+            "everyone": string;
+            /**
+             * 自分のフォロワーのみ
+             */
+            "followers": string;
+            /**
+             * 自分がフォローしているユーザーのみ
+             */
+            "following": string;
+            /**
+             * 相互フォローのユーザーのみ
+             */
+            "mutual": string;
+            /**
+             * 誰も許可しない
+             */
+            "none": string;
+        };
+    };
     "_admin": {
         "_payments": {
             /**
@@ -3915,6 +4172,236 @@ export interface Locale extends ILocale {
              * Payment Intent
              */
             "paymentIntent": string;
+        };
+    };
+    "_notification": {
+        /**
+         * Incoming voice call
+         */
+        "voiceCall": string;
+        /**
+         * Voice call ended
+         */
+        "voiceCallEnded": string;
+        "_types": {
+            /**
+             * Voice call
+             */
+            "voiceCall": string;
+            /**
+             * Voice call ended
+             */
+            "voiceCallEnded": string;
+            /**
+             * すべて
+             */
+            "all": string;
+            /**
+             * ユーザーの新規投稿
+             */
+            "note": string;
+            /**
+             * フォロー
+             */
+            "follow": string;
+            /**
+             * メンション
+             */
+            "mention": string;
+            /**
+             * リプライ
+             */
+            "reply": string;
+            /**
+             * リノート
+             */
+            "renote": string;
+            /**
+             * 引用
+             */
+            "quote": string;
+            /**
+             * リアクション
+             */
+            "reaction": string;
+            /**
+             * アンケートが終了
+             */
+            "pollEnded": string;
+            /**
+             * フォロー申請を受け取った
+             */
+            "receiveFollowRequest": string;
+            /**
+             * フォローが受理された
+             */
+            "followRequestAccepted": string;
+            /**
+             * ロールが付与された
+             */
+            "roleAssigned": string;
+            /**
+             * ダイレクトメッセージのグループへ招待された
+             */
+            "chatRoomInvitationReceived": string;
+            /**
+             * 実績の獲得
+             */
+            "achievementEarned": string;
+            /**
+             * エクスポートが完了した
+             */
+            "exportCompleted": string;
+            /**
+             * ログイン
+             */
+            "login": string;
+            /**
+             * アクセストークンの作成
+             */
+            "createToken": string;
+            /**
+             * 通知のテスト
+             */
+            "test": string;
+            /**
+             * 連携アプリからの通知
+             */
+            "app": string;
+        };
+        /**
+         * ファイルがアップロードされました
+         */
+        "fileUploaded": string;
+        /**
+         * {name}からのメンション
+         */
+        "youGotMention": ParameterizedString<"name">;
+        /**
+         * {name}からのリプライ
+         */
+        "youGotReply": ParameterizedString<"name">;
+        /**
+         * {name}による引用
+         */
+        "youGotQuote": ParameterizedString<"name">;
+        /**
+         * {name}がリノートしました
+         */
+        "youRenoted": ParameterizedString<"name">;
+        /**
+         * フォローされました
+         */
+        "youWereFollowed": string;
+        /**
+         * フォローリクエストが来ました
+         */
+        "youReceivedFollowRequest": string;
+        /**
+         * フォローリクエストが承認されました
+         */
+        "yourFollowRequestAccepted": string;
+        /**
+         * アンケートの結果が出ました
+         */
+        "pollEnded": string;
+        /**
+         * 予約ノートが投稿されました
+         */
+        "scheduledNotePosted": string;
+        /**
+         * 予約ノートの投稿に失敗しました
+         */
+        "scheduledNotePostFailed": string;
+        /**
+         * 新しい投稿
+         */
+        "newNote": string;
+        /**
+         * アンテナ {name}
+         */
+        "unreadAntennaNote": ParameterizedString<"name">;
+        /**
+         * ロールが付与されました
+         */
+        "roleAssigned": string;
+        /**
+         * ダイレクトメッセージのグループへ招待されました
+         */
+        "chatRoomInvitationReceived": string;
+        /**
+         * プッシュ通知の更新をしました
+         */
+        "emptyPushNotificationMessage": string;
+        /**
+         * 実績を獲得
+         */
+        "achievementEarned": string;
+        /**
+         * 通知テスト
+         */
+        "testNotification": string;
+        /**
+         * 通知の表示を確かめる
+         */
+        "checkNotificationBehavior": string;
+        /**
+         * テスト通知を送信する
+         */
+        "sendTestNotification": string;
+        /**
+         * 通知はこのように表示されます
+         */
+        "notificationWillBeDisplayedLikeThis": string;
+        /**
+         * {n}人がリアクションしました
+         */
+        "reactedBySomeUsers": ParameterizedString<"n">;
+        /**
+         * {n}人がいいねしました
+         */
+        "likedBySomeUsers": ParameterizedString<"n">;
+        /**
+         * {n}人がリノートしました
+         */
+        "renotedBySomeUsers": ParameterizedString<"n">;
+        /**
+         * {n}人にフォローされました
+         */
+        "followedBySomeUsers": ParameterizedString<"n">;
+        /**
+         * 通知の履歴をリセットする
+         */
+        "flushNotification": string;
+        /**
+         * {x}のエクスポートが完了しました
+         */
+        "exportOfXCompleted": ParameterizedString<"x">;
+        /**
+         * ログインがありました
+         */
+        "login": string;
+        /**
+         * アクセストークンが作成されました
+         */
+        "createToken": string;
+        /**
+         * 心当たりがない場合は「{text}」を通じてアクセストークンを削除してください。
+         */
+        "createTokenDescription": ParameterizedString<"text">;
+        "_actions": {
+            /**
+             * フォローバック
+             */
+            "followBack": string;
+            /**
+             * 返信
+             */
+            "reply": string;
+            /**
+             * リノート
+             */
+            "renote": string;
         };
     };
     /**
@@ -9453,6 +9940,10 @@ export interface Locale extends ILocale {
      * 予約
      */
     "scheduled": string;
+    /**
+     * ウィジェット
+     */
+    "widgets": string;
     "_compression": {
         "_quality": {
             /**
@@ -9492,199 +9983,6 @@ export interface Locale extends ILocale {
          * 古い順
          */
         "oldest": string;
-    };
-    "_chat": {
-        /**
-         * メッセージ
-         */
-        "messages": string;
-        /**
-         * まだメッセージはありません
-         */
-        "noMessagesYet": string;
-        /**
-         * 新しいメッセージ
-         */
-        "newMessage": string;
-        /**
-         * 個別
-         */
-        "individualChat": string;
-        /**
-         * 特定ユーザーと個別にメッセージのやりとりができます。
-         */
-        "individualChat_description": string;
-        /**
-         * グループ
-         */
-        "roomChat": string;
-        /**
-         * 複数人でメッセージのやりとりができます。
-         * また、個別のメッセージを許可していないユーザーとでも、相手が受け入れればやりとりできます。
-         */
-        "roomChat_description": string;
-        /**
-         * グループを作成
-         */
-        "createRoom": string;
-        /**
-         * ユーザーを招待してメッセージを送信しましょう
-         */
-        "inviteUserToChat": string;
-        /**
-         * 作成したグループ
-         */
-        "yourRooms": string;
-        /**
-         * 参加中のグループ
-         */
-        "joiningRooms": string;
-        /**
-         * 招待
-         */
-        "invitations": string;
-        /**
-         * 招待はありません
-         */
-        "noInvitations": string;
-        /**
-         * 履歴
-         */
-        "history": string;
-        /**
-         * 履歴はありません
-         */
-        "noHistory": string;
-        /**
-         * グループはありません
-         */
-        "noRooms": string;
-        /**
-         * ユーザーを招待
-         */
-        "inviteUser": string;
-        /**
-         * 送信した招待
-         */
-        "sentInvitations": string;
-        /**
-         * 参加
-         */
-        "join": string;
-        /**
-         * 無視
-         */
-        "ignore": string;
-        /**
-         * グループから退出
-         */
-        "leave": string;
-        /**
-         * メンバー
-         */
-        "members": string;
-        /**
-         * メッセージを検索
-         */
-        "searchMessages": string;
-        /**
-         * ホーム
-         */
-        "home": string;
-        /**
-         * 送信
-         */
-        "send": string;
-        /**
-         * 改行
-         */
-        "newline": string;
-        /**
-         * このグループをミュート
-         */
-        "muteThisRoom": string;
-        /**
-         * グループを削除
-         */
-        "deleteRoom": string;
-        /**
-         * このサーバー、またはこのアカウントでダイレクトメッセージは有効化されていません。
-         */
-        "chatNotAvailableForThisAccountOrServer": string;
-        /**
-         * このサーバー、またはこのアカウントでダイレクトメッセージは読み取り専用となっています。新たに書き込んだり、グループを作成・参加したりすることはできません。
-         */
-        "chatIsReadOnlyForThisAccountOrServer": string;
-        /**
-         * 相手のアカウントでダイレクトメッセージが使えない状態になっています。
-         */
-        "chatNotAvailableInOtherAccount": string;
-        /**
-         * このユーザーとのダイレクトメッセージを開始できません
-         */
-        "cannotChatWithTheUser": string;
-        /**
-         * ダイレクトメッセージが使えない状態になっているか、相手がダイレクトメッセージを開放していません。
-         */
-        "cannotChatWithTheUser_description": string;
-        /**
-         * あなたはこのグループの参加者ではありませんが、招待が届いています。参加するには、招待を承認してください。
-         */
-        "youAreNotAMemberOfThisRoomButInvited": string;
-        /**
-         * 招待を承認しますか？
-         */
-        "doYouAcceptInvitation": string;
-        /**
-         * ダイレクトメッセージ
-         */
-        "chatWithThisUser": string;
-        /**
-         * このユーザーはフォロワーからのみメッセージを受け付けています。
-         */
-        "thisUserAllowsChatOnlyFromFollowers": string;
-        /**
-         * このユーザーは、このユーザーがフォローしているユーザーからのみメッセージを受け付けています。
-         */
-        "thisUserAllowsChatOnlyFromFollowing": string;
-        /**
-         * このユーザーは相互フォローのユーザーからのみメッセージを受け付けています。
-         */
-        "thisUserAllowsChatOnlyFromMutualFollowing": string;
-        /**
-         * このユーザーは誰からもメッセージを受け付けていません。
-         */
-        "thisUserNotAllowedChatAnyone": string;
-        /**
-         * メッセージを許可する相手
-         */
-        "chatAllowedUsers": string;
-        /**
-         * 自分からメッセージを送った相手とはこの設定に関わらずメッセージの送受信が可能です。
-         */
-        "chatAllowedUsers_note": string;
-        "_chatAllowedUsers": {
-            /**
-             * 誰でも
-             */
-            "everyone": string;
-            /**
-             * 自分のフォロワーのみ
-             */
-            "followers": string;
-            /**
-             * 自分がフォローしているユーザーのみ
-             */
-            "following": string;
-            /**
-             * 相互フォローのユーザーのみ
-             */
-            "mutual": string;
-            /**
-             * 誰も許可しない
-             */
-            "none": string;
-        };
     };
     "_emojiPalette": {
         /**
@@ -13070,220 +13368,6 @@ export interface Locale extends ILocale {
          * 拒否済み
          */
         "rejected": string;
-    };
-    "_notification": {
-        /**
-         * ファイルがアップロードされました
-         */
-        "fileUploaded": string;
-        /**
-         * {name}からのメンション
-         */
-        "youGotMention": ParameterizedString<"name">;
-        /**
-         * {name}からのリプライ
-         */
-        "youGotReply": ParameterizedString<"name">;
-        /**
-         * {name}による引用
-         */
-        "youGotQuote": ParameterizedString<"name">;
-        /**
-         * {name}がリノートしました
-         */
-        "youRenoted": ParameterizedString<"name">;
-        /**
-         * フォローされました
-         */
-        "youWereFollowed": string;
-        /**
-         * フォローリクエストが来ました
-         */
-        "youReceivedFollowRequest": string;
-        /**
-         * フォローリクエストが承認されました
-         */
-        "yourFollowRequestAccepted": string;
-        /**
-         * アンケートの結果が出ました
-         */
-        "pollEnded": string;
-        /**
-         * 予約ノートが投稿されました
-         */
-        "scheduledNotePosted": string;
-        /**
-         * 予約ノートの投稿に失敗しました
-         */
-        "scheduledNotePostFailed": string;
-        /**
-         * 新しい投稿
-         */
-        "newNote": string;
-        /**
-         * アンテナ {name}
-         */
-        "unreadAntennaNote": ParameterizedString<"name">;
-        /**
-         * ロールが付与されました
-         */
-        "roleAssigned": string;
-        /**
-         * ダイレクトメッセージのグループへ招待されました
-         */
-        "chatRoomInvitationReceived": string;
-        /**
-         * プッシュ通知の更新をしました
-         */
-        "emptyPushNotificationMessage": string;
-        /**
-         * 実績を獲得
-         */
-        "achievementEarned": string;
-        /**
-         * 通知テスト
-         */
-        "testNotification": string;
-        /**
-         * 通知の表示を確かめる
-         */
-        "checkNotificationBehavior": string;
-        /**
-         * テスト通知を送信する
-         */
-        "sendTestNotification": string;
-        /**
-         * 通知はこのように表示されます
-         */
-        "notificationWillBeDisplayedLikeThis": string;
-        /**
-         * {n}人がリアクションしました
-         */
-        "reactedBySomeUsers": ParameterizedString<"n">;
-        /**
-         * {n}人がいいねしました
-         */
-        "likedBySomeUsers": ParameterizedString<"n">;
-        /**
-         * {n}人がリノートしました
-         */
-        "renotedBySomeUsers": ParameterizedString<"n">;
-        /**
-         * {n}人にフォローされました
-         */
-        "followedBySomeUsers": ParameterizedString<"n">;
-        /**
-         * 通知の履歴をリセットする
-         */
-        "flushNotification": string;
-        /**
-         * {x}のエクスポートが完了しました
-         */
-        "exportOfXCompleted": ParameterizedString<"x">;
-        /**
-         * ログインがありました
-         */
-        "login": string;
-        /**
-         * アクセストークンが作成されました
-         */
-        "createToken": string;
-        /**
-         * 心当たりがない場合は「{text}」を通じてアクセストークンを削除してください。
-         */
-        "createTokenDescription": ParameterizedString<"text">;
-        "_types": {
-            /**
-             * すべて
-             */
-            "all": string;
-            /**
-             * ユーザーの新規投稿
-             */
-            "note": string;
-            /**
-             * フォロー
-             */
-            "follow": string;
-            /**
-             * メンション
-             */
-            "mention": string;
-            /**
-             * リプライ
-             */
-            "reply": string;
-            /**
-             * リノート
-             */
-            "renote": string;
-            /**
-             * 引用
-             */
-            "quote": string;
-            /**
-             * リアクション
-             */
-            "reaction": string;
-            /**
-             * アンケートが終了
-             */
-            "pollEnded": string;
-            /**
-             * フォロー申請を受け取った
-             */
-            "receiveFollowRequest": string;
-            /**
-             * フォローが受理された
-             */
-            "followRequestAccepted": string;
-            /**
-             * ロールが付与された
-             */
-            "roleAssigned": string;
-            /**
-             * ダイレクトメッセージのグループへ招待された
-             */
-            "chatRoomInvitationReceived": string;
-            /**
-             * 実績の獲得
-             */
-            "achievementEarned": string;
-            /**
-             * エクスポートが完了した
-             */
-            "exportCompleted": string;
-            /**
-             * ログイン
-             */
-            "login": string;
-            /**
-             * アクセストークンの作成
-             */
-            "createToken": string;
-            /**
-             * 通知のテスト
-             */
-            "test": string;
-            /**
-             * 連携アプリからの通知
-             */
-            "app": string;
-        };
-        "_actions": {
-            /**
-             * フォローバック
-             */
-            "followBack": string;
-            /**
-             * 返信
-             */
-            "reply": string;
-            /**
-             * リノート
-             */
-            "renote": string;
-        };
     };
     "_deck": {
         /**

@@ -5161,6 +5161,27 @@ export type components = {
             /** Format: date-time */
             createdAt: string;
             /** @enum {string} */
+            type: 'voiceCall';
+            user: components['schemas']['UserLite'];
+            /** Format: id */
+            userId: string;
+        } | {
+            /** Format: id */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
+            type: 'voiceCallEnded';
+            user: components['schemas']['UserLite'];
+            /** Format: id */
+            userId: string;
+            duration: number;
+        } | {
+            /** Format: id */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
             type: 'test';
         };
         DriveFile: {
@@ -5926,6 +5947,8 @@ export type components = {
             stripePublicKey: string | null;
             /** @default USD */
             stripeCurrency: string;
+            /** @default false */
+            enableCloudflareSfu: boolean;
         };
         MetaDetailedOnly: {
             features?: {
@@ -10643,6 +10666,11 @@ export interface operations {
                         stripeWebhookSecret: string | null;
                         stripePaymentMethodConfiguration: string | null;
                         stripeCurrency: string;
+                        enableCloudflareSfu: boolean;
+                        cloudflareAccountId: string | null;
+                        cloudflareApiToken: string | null;
+                        cloudflareSfuAppId: string | null;
+                        cloudflareSfuAppSecret: string | null;
                     };
                 };
             };
@@ -14788,6 +14816,11 @@ export interface operations {
                     stripePaymentMethodConfiguration?: string | null;
                     /** @enum {string} */
                     stripeCurrency?: 'USD' | 'EUR' | 'CNY' | 'JPY' | 'GBP' | 'CHF' | 'CAD' | 'AUD' | 'SGD' | 'HKD';
+                    enableCloudflareSfu?: boolean;
+                    cloudflareAccountId?: string | null;
+                    cloudflareApiToken?: string | null;
+                    cloudflareSfuAppId?: string | null;
+                    cloudflareSfuAppSecret?: string | null;
                 };
             };
         };
@@ -28652,8 +28685,8 @@ export interface operations {
                     untilDate?: number;
                     /** @default true */
                     markAsRead?: boolean;
-                    includeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'scheduledNotePosted' | 'scheduledNotePostFailed' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'pollVote' | 'groupInvited')[];
-                    excludeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'scheduledNotePosted' | 'scheduledNotePostFailed' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'pollVote' | 'groupInvited')[];
+                    includeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'scheduledNotePosted' | 'scheduledNotePostFailed' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'voiceCall' | 'voiceCallEnded' | 'pollVote' | 'groupInvited')[];
+                    excludeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'scheduledNotePosted' | 'scheduledNotePostFailed' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'voiceCall' | 'voiceCallEnded' | 'pollVote' | 'groupInvited')[];
                 };
             };
         };
@@ -28737,8 +28770,8 @@ export interface operations {
                     untilDate?: number;
                     /** @default true */
                     markAsRead?: boolean;
-                    includeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'scheduledNotePosted' | 'scheduledNotePostFailed' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'pollVote' | 'groupInvited')[];
-                    excludeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'scheduledNotePosted' | 'scheduledNotePostFailed' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'pollVote' | 'groupInvited')[];
+                    includeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'scheduledNotePosted' | 'scheduledNotePostFailed' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'voiceCall' | 'voiceCallEnded' | 'pollVote' | 'groupInvited')[];
+                    excludeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'scheduledNotePosted' | 'scheduledNotePostFailed' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'voiceCall' | 'voiceCallEnded' | 'pollVote' | 'groupInvited')[];
                 };
             };
         };

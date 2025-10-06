@@ -802,8 +802,62 @@ export type Channels = {
             readAntenna: (payload: Antenna) => void;
             receiveFollowRequest: (payload: User) => void;
             announcementCreated: (payload: AnnouncementCreated) => void;
+            voiceCall: (payload: {
+                type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'tracksReady' | 'readyToPull' | 'pullAnswered' | 'pullCompleted' | 'switchToSfu' | 'switchedToSfu' | 'restored';
+                callId?: string;
+                from?: string;
+                peerId?: string;
+                isIncoming?: boolean;
+                state?: 'ringing' | 'connecting' | 'connected';
+                mode?: 'auto' | 'p2p' | 'sfu';
+                currentMode?: 'p2p' | 'sfu';
+                iceServers?: IceServer[];
+                sessionId?: string;
+                answer?: any;
+                signalType?: string;
+                signalData?: any;
+                message?: string;
+            }) => void;
         };
-        receives: null;
+        receives: {
+            'voiceCall:initiate': {
+                recipientId: string;
+                mode?: 'auto' | 'p2p' | 'sfu';
+            };
+            'voiceCall:answer': {
+                callId: string;
+            };
+            'voiceCall:reject': {
+                callId: string;
+            };
+            'voiceCall:end': {
+                callId: string;
+            };
+            'voiceCall:pushTracks': {
+                callId: string;
+                offer: any;
+                tracks: any[];
+            };
+            'voiceCall:tracksReady': {
+                callId: string;
+            };
+            'voiceCall:pullTracks': {
+                callId: string;
+                offer: any;
+            };
+            'voiceCall:answerPull': {
+                callId: string;
+                answer: any;
+            };
+            'voiceCall:signal': {
+                callId: string;
+                signalType: string;
+                signalData: any;
+            };
+            'voiceCall:switchToSfu': {
+                callId: string;
+            };
+        };
     };
     homeTimeline: {
         params: {
@@ -3475,7 +3529,7 @@ type Notification_2 = components['schemas']['Notification'];
 type NotificationsCreateRequest = operations['notifications___create']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-export const notificationTypes: readonly ["note", "follow", "mention", "reply", "renote", "quote", "reaction", "pollEnded", "scheduledNotePosted", "scheduledNotePostFailed", "receiveFollowRequest", "followRequestAccepted", "groupInvited", "app", "roleAssigned", "chatRoomInvitationReceived", "achievementEarned", "exportCompleted", "test", "login", "createToken"];
+export const notificationTypes: readonly ["note", "follow", "mention", "reply", "renote", "quote", "reaction", "pollEnded", "scheduledNotePosted", "scheduledNotePostFailed", "receiveFollowRequest", "followRequestAccepted", "groupInvited", "app", "roleAssigned", "chatRoomInvitationReceived", "achievementEarned", "exportCompleted", "test", "login", "createToken", "voiceCall", "voiceCallEnded"];
 
 // @public (undocumented)
 export function nyaize(text: string): string;
@@ -4144,8 +4198,9 @@ type VerifyEmailRequest = operations['verify-email']['requestBody']['content']['
 //
 // src/entities.ts:55:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
 // src/streaming.ts:57:3 - (ae-forgotten-export) The symbol "ReconnectingWebSocket" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:226:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:236:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:82:5 - (ae-forgotten-export) The symbol "IceServer" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:293:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:303:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

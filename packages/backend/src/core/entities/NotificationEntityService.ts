@@ -189,6 +189,9 @@ export class NotificationEntityService implements OnModuleInit {
 				exportedEntity: notification.exportedEntity,
 				fileId: notification.fileId,
 			} : {}),
+			...(notification.type === 'voiceCallEnded' ? {
+				duration: notification.duration,
+			} : {}),
 			...(notification.type === 'app' ? {
 				body: notification.customBody,
 				header: notification.customHeader,

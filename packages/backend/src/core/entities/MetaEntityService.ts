@@ -148,6 +148,7 @@ export class MetaEntityService {
 			enableStripe: instance.enableStripe,
 			stripePublicKey: instance.stripePublicKey,
 			stripeCurrency: instance.stripeCurrency,
+			enableCloudflareSfu: instance.enableCloudflareSfu,
 		};
 
 		return packed;
@@ -165,7 +166,7 @@ export class MetaEntityService {
 
 		const proxyAccount = await this.systemAccountService.fetch('proxy');
 
-		const packDetailed: Packed<'MetaDetailed'> = {
+		return {
 			...packed,
 			cacheRemoteFiles: instance.cacheRemoteFiles,
 			cacheRemoteSensitiveFiles: instance.cacheRemoteSensitiveFiles,
@@ -186,8 +187,6 @@ export class MetaEntityService {
 				stripe: instance.enableStripe,
 			},
 		};
-
-		return packDetailed;
 	}
 }
 

@@ -256,6 +256,11 @@ export const paramDef = {
 		stripeWebhookSecret: { type: 'string', nullable: true },
 		stripePaymentMethodConfiguration: { type: 'string', nullable: true },
 		stripeCurrency: { type: 'string', enum: ['USD', 'EUR', 'CNY', 'JPY', 'GBP', 'CHF', 'CAD', 'AUD', 'SGD', 'HKD'] },
+		enableCloudflareSfu: { type: 'boolean' },
+		cloudflareAccountId: { type: 'string', nullable: true },
+		cloudflareApiToken: { type: 'string', nullable: true },
+		cloudflareSfuAppId: { type: 'string', nullable: true },
+		cloudflareSfuAppSecret: { type: 'string', nullable: true },
 	},
 	required: [],
 } as const;
@@ -1028,6 +1033,42 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (ps.stripeCurrency !== undefined) {
 				set.stripeCurrency = ps.stripeCurrency;
+			}
+
+			if (ps.enableCloudflareSfu !== undefined) {
+				set.enableCloudflareSfu = ps.enableCloudflareSfu;
+			}
+
+			if (ps.cloudflareAccountId !== undefined) {
+				if (ps.cloudflareAccountId === '') {
+					set.cloudflareAccountId = null;
+				} else {
+					set.cloudflareAccountId = ps.cloudflareAccountId;
+				}
+			}
+
+			if (ps.cloudflareApiToken !== undefined) {
+				if (ps.cloudflareApiToken === '') {
+					set.cloudflareApiToken = null;
+				} else {
+					set.cloudflareApiToken = ps.cloudflareApiToken;
+				}
+			}
+
+			if (ps.cloudflareSfuAppId !== undefined) {
+				if (ps.cloudflareSfuAppId === '') {
+					set.cloudflareSfuAppId = null;
+				} else {
+					set.cloudflareSfuAppId = ps.cloudflareSfuAppId;
+				}
+			}
+
+			if (ps.cloudflareSfuAppSecret !== undefined) {
+				if (ps.cloudflareSfuAppSecret === '') {
+					set.cloudflareSfuAppSecret = null;
+				} else {
+					set.cloudflareSfuAppSecret = ps.cloudflareSfuAppSecret;
+				}
 			}
 
 			const before = await this.metaService.fetch(true);

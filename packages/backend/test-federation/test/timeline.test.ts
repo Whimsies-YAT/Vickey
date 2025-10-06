@@ -64,7 +64,8 @@ describe('Timeline', () => {
 
 		await sleep();
 		const notes = await (bob.client.request as Request)(endpoint, params);
-		const noteInB = notes.filter(({ uri }) => uri === `https://a.test/notes/${note!.id}`).pop();
+		const notesArray = Array.isArray(notes) ? notes : [];
+		const noteInB = notesArray.filter(({ uri }: { uri?: string }) => uri === `https://a.test/notes/${note!.id}`).pop();
 		const endpointFired = noteInB != null;
 		strictEqual(endpointFired, expect);
 
@@ -79,7 +80,8 @@ describe('Timeline', () => {
 
 			await sleep();
 			const notes = await (bob.client.request as Request)(endpoint, params);
-			const endpointFired = notes.every(({ uri }) => uri !== `https://a.test/notes/${note!.id}`);
+			const notesArray2 = Array.isArray(notes) ? notes : [];
+			const endpointFired = notesArray2.every(({ uri }: { uri?: string }) => uri !== `https://a.test/notes/${note!.id}`);
 			strictEqual(endpointFired, true);
 		}
 	}

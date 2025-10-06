@@ -48,6 +48,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</MkFolder>
 				</SearchMarker>
 			</div>
+
 			<MkFolder>
 				<template #label><SearchLabel>Text-To-Speech</SearchLabel></template>
 				<div class="_gaps_m">
@@ -139,6 +140,38 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkButton primary @click="save_pd">Save</MkButton>
 				</div>
 			</MkFolder>
+
+			<MkFolder>
+				<template #label><SearchLabel>Cloudflare SFU (WebRTC Voice Call)</SearchLabel></template>
+
+				<div class="_gaps_m">
+					<MkSwitch v-model="enableCloudflareSfu">
+						<template #label><SearchLabel>Enable Cloudflare SFU</SearchLabel></template>
+					</MkSwitch>
+
+					<MkInput v-model="cloudflareAccountId">
+						<template #prefix><i class="ti ti-user"></i></template>
+						<template #label><SearchLabel>Cloudflare Account ID</SearchLabel></template>
+					</MkInput>
+
+					<MkInput v-model="cloudflareApiToken" type="password">
+						<template #prefix><i class="ti ti-key"></i></template>
+						<template #label><SearchLabel>Cloudflare API Token</SearchLabel></template>
+					</MkInput>
+
+					<MkInput v-model="cloudflareSfuAppId">
+						<template #prefix><i class="ti ti-app-window"></i></template>
+						<template #label><SearchLabel>Cloudflare SFU App ID</SearchLabel></template>
+					</MkInput>
+
+					<MkInput v-model="cloudflareSfuAppSecret" type="password">
+						<template #prefix><i class="ti ti-lock"></i></template>
+						<template #label><SearchLabel>Cloudflare SFU App Secret</SearchLabel></template>
+					</MkInput>
+
+					<MkButton primary @click="save_cloudflare">Save</MkButton>
+				</div>
+			</MkFolder>
 		</SearchMarker>
 	</div>
 </PageWithHeader>
@@ -183,6 +216,11 @@ const banCountry = ref(meta.banCountry ?? '');
 const exemptIP = ref(meta.exemptIP ?? '');
 const ip2lProxyAuthKey = ref(meta.ip2lProxyAuthKey ?? '');
 const ip2lProxyIsPro = ref(meta.ip2lProxyIsPro ?? false);
+const enableCloudflareSfu = ref(meta.enableCloudflareSfu ?? false);
+const cloudflareAccountId = ref(meta.cloudflareAccountId ?? '');
+const cloudflareApiToken = ref(meta.cloudflareApiToken ?? '');
+const cloudflareSfuAppId = ref(meta.cloudflareSfuAppId ?? '');
+const cloudflareSfuAppSecret = ref(meta.cloudflareSfuAppSecret ?? '');
 
 const hfexampleLangOptions = [
 	{ value: '', label: ' ', type: 'option' as const },
@@ -280,6 +318,18 @@ function addRestrictedArea() {
 	const newArea = gdprRegions.join('\n') + '\n';
 
 	banCountry.value = newArea + banCountry.value;
+}
+
+function save_cloudflare() {
+	os.apiWithDialog('admin/update-meta', {
+		enableCloudflareSfu: enableCloudflareSfu.value,
+		cloudflareAccountId: cloudflareAccountId.value || null,
+		cloudflareApiToken: cloudflareApiToken.value || null,
+		cloudflareSfuAppId: cloudflareSfuAppId.value || null,
+		cloudflareSfuAppSecret: cloudflareSfuAppSecret.value || null,
+	}).then(() => {
+		fetchInstance(true);
+	});
 }
 
 const headerActions = computed(() => []);

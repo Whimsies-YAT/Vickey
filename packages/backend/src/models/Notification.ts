@@ -142,6 +142,17 @@ export type MiNotification = {
 	type: 'test';
 	id: string;
 	createdAt: string;
+} | {
+	type: 'voiceCall';
+	id: string;
+	createdAt: string;
+	notifierId: MiUser['id'];
+} | {
+	type: 'voiceCallEnded';
+	id: string;
+	createdAt: string;
+	notifierId: MiUser['id'];
+	duration: number;
 };
 
 export type MiGroupedNotification = MiNotification | {

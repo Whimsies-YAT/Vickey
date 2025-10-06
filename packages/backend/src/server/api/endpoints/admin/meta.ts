@@ -744,6 +744,26 @@ export const meta = {
 			stripeCurrency: {
 				type: 'string',
 				optional: false, nullable: false,
+			},
+			enableCloudflareSfu: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			cloudflareAccountId: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			cloudflareApiToken: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			cloudflareSfuAppId: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			cloudflareSfuAppSecret: {
+				type: 'string',
+				optional: false, nullable: true,
 			}
 		},
 	},
@@ -937,6 +957,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				stripeWebhookSecret: instance.stripeWebhookSecret,
 				stripePaymentMethodConfiguration: instance.stripePaymentMethodConfiguration,
 				stripeCurrency: instance.stripeCurrency,
+				enableCloudflareSfu: instance.enableCloudflareSfu,
+				cloudflareAccountId: instance.cloudflareAccountId,
+				cloudflareApiToken: instance.cloudflareApiToken,
+				cloudflareSfuAppId: instance.cloudflareSfuAppId,
+				cloudflareSfuAppSecret: instance.cloudflareSfuAppSecret,
 			};
 		});
 	}

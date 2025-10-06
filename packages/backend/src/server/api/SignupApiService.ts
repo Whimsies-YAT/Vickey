@@ -364,6 +364,14 @@ export class SignupApiService {
 
 		try {
 			const pendingUser = await this.userPendingsRepository.findOneByOrFail({ code });
+            
+			if (pendingUser.isProcessed) {
+				throw new FastifyReplyError(400, 'ALREADY_PROCESSED');
+			}
+
+			if (pendingUser.emailVerified) {
+				throw new FastifyReplyError(400, 'ALREADY_VERIFIED');
+			}
 
 			if (this.idService.parse(pendingUser.id).date.getTime() + (1000 * 60 * 30) < Date.now() && !pendingUser.emailVerified) {
 				try {
@@ -433,7 +441,7 @@ export class SignupApiService {
 				return { pendingApproval: true };
 			}
 
-			const { account, secret } = await this.signupService.signup({
+			const { account, _ } = await this.signupService.signup({
 				username: pendingUser.username,
 				passwordHash: pendingUser.password,
 				reason: pendingUser.reason,
