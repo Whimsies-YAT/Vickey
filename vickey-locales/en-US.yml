@@ -225,6 +225,9 @@ _aboutVickey:
   about: "Vickey is a soft fork of Misskey."
   translation: "Translate Vickey"
   donate: "Donate to Vickey"
+  source: "Source code"
+  original: "original"
+  thisIsModifiedVersionVK: "{name} uses a modified version of the original Vickey."
 _donation:
   title: "Support this Instance"
   description: "Help us keep {instanceName} running and growing!"
@@ -593,6 +596,20 @@ _stripe:
   currencySGD: "Singapore Dollar"
   currencyHKD: "Hong Kong Dollar"
   securityWarning: "⚠️ Important: Keep your secret keys secure and never share them. The webhook secret is required for payment verification."
+_chat:
+  incomingCall: "Incoming call"
+  incomingCallFrom: "Incoming call from {name}"
+  voiceCallNotEnabled: "Voice call is not enabled on this instance"
+  failedToStartVoiceCall: "Failed to start voice call"
+  startVoiceCall: "Start voice call"
+  endCall: "End call"
+  calling: "Calling"
+  connecting: "Connecting"
+  voiceCallInProgress: "Voice call in progress"
+  callEnded: "Call ended"
+  callDuration: "Call duration: {duration}"
+  answer: "Answer"
+  reject: "Reject"
 _admin:
   _payments:
     title: "Payment Management"
@@ -636,3 +653,9 @@ _admin:
     checkoutSession: "Checkout Session"
     paymentMode: "Payment Mode"
     paymentIntent: "Payment Intent"
+_notification:
+  voiceCall: "Incoming voice call"
+  voiceCallEnded: "Voice call ended"
+  _types:
+    voiceCall: "Voice call"
+    voiceCallEnded: "Voice call ended"
