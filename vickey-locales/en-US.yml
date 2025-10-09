@@ -595,7 +595,7 @@ _stripe:
   currencyAUD: "Australian Dollar"
   currencySGD: "Singapore Dollar"
   currencyHKD: "Hong Kong Dollar"
-  securityWarning: "Important: Keep your secret keys secure and never share them. The webhook secret is required for payment verification."
+  securityWarning: "⚠️ Important: Keep your secret keys secure and never share them. The webhook secret is required for payment verification."
 _chat:
   incomingCall: "Incoming call"
   incomingCallFrom: "Incoming call from {name}"
