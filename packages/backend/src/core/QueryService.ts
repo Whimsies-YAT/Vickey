@@ -101,6 +101,8 @@ export class QueryService {
 			excludeAuthor?: boolean,
 		} = {},
 	): void {
+		this.generateSoftDeletedNoteQuery(query);
+
 		this.generateBlockedHostQueryForNote(query, excludeAuthor);
 		this.generateSuspendedUserQueryForNote(query, excludeAuthor);
 		if (me) {
@@ -375,5 +377,28 @@ export class QueryService {
 				.andWhere(brakets('replyUser'))
 				.andWhere(brakets('renoteUser'));
 		}
+	}
+
+	@bindThis
+	public generateSoftDeletedNoteQuery(
+		q: SelectQueryBuilder<any>,
+		{
+			noteColumn = 'note',
+		}: {
+			noteColumn?: string,
+		} = {},
+	): void {
+		q
+			.andWhere(`${noteColumn}.isDeleted = FALSE`)
+			.andWhere(new Brackets(qb => {
+				qb
+					.where(`${noteColumn}.replyId IS NULL`)
+					.orWhere('reply.isDeleted = FALSE');
+			}))
+			.andWhere(new Brackets(qb => {
+				qb
+					.where(`${noteColumn}.renoteId IS NULL`)
+					.orWhere('renote.isDeleted = FALSE');
+			}));
 	}
 }

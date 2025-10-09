@@ -46,6 +46,7 @@ const base: MiNote = {
 	renoteUserHost: null,
 	geojson: null,
 	location: null,
+	isDeleted: false,
 };
 
 describe('misc:is-renote', () => {

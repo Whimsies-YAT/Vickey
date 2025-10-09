@@ -19,6 +19,7 @@ import { isQuote, isRenote } from '@/misc/is-renote.js';
 import { CacheService } from '@/core/CacheService.js';
 import { isReply } from '@/misc/is-reply.js';
 import { isInstanceMuted } from '@/misc/is-instance-muted.js';
+import { QueryService } from '@/core/QueryService.js';
 
 type NoteFilter = (note: MiNote) => boolean;
 
@@ -55,6 +56,7 @@ export class FanoutTimelineEndpointService {
 		private cacheService: CacheService,
 		private fanoutTimelineService: FanoutTimelineService,
 		private utilityService: UtilityService,
+		private queryService: QueryService,
 	) {
 	}
 
@@ -208,10 +210,60 @@ export class FanoutTimelineEndpointService {
 			.leftJoinAndSelect('renote.user', 'renoteUser')
 			.leftJoinAndSelect('note.channel', 'channel');
 
+		this.queryService.generateSoftDeletedNoteQuery(query);
+
 		const notes = (await query.getMany()).filter(noteFilter);
+		const validNoteIds = new Set(notes.map(note => note.id));
+
+		const invalidIds = noteIds.filter(id => !validNoteIds.has(id));
+		if (invalidIds.length > 0) {
+			this.cleanupInvalidCacheEntries(invalidIds).catch(err => {
+				console.error('Failed to cleanup invalid cache entries:', err);
+			});
+		}
 
 		notes.sort((a, b) => idCompare(a.id, b.id));
 
 		return notes;
+	}
+
+	private async cleanupInvalidCacheEntries(invalidIds: string[]): Promise<void> {
+		const timelinePatterns = [
+			'localTimeline',
+			'localTimelineWithFiles',
+			'localTimelineWithReplies',
+		];
+
+		for (const noteId of invalidIds) {
+			try {
+				const deletedNote = await this.notesRepository.findOne({
+					where: { id: noteId },
+					select: ['id', 'userId', 'channelId'],
+				});
+
+				if (deletedNote) {
+					const userTimelines = [
+						`userTimeline:${deletedNote.userId}`,
+						`userTimelineWithFiles:${deletedNote.userId}`,
+						`userTimelineWithReplies:${deletedNote.userId}`,
+						`homeTimeline:${deletedNote.userId}`,
+						`homeTimelineWithFiles:${deletedNote.userId}`,
+					];
+
+					if (deletedNote.channelId) {
+						userTimelines.push(`channelTimeline:${deletedNote.channelId}`);
+						userTimelines.push(`userTimelineWithChannel:${deletedNote.userId}`);
+					}
+
+					timelinePatterns.push(...userTimelines);
+				}
+
+				for (const timeline of timelinePatterns) {
+					await this.fanoutTimelineService.remove(timeline as any, noteId);
+				}
+			} catch (error) {
+				console.error(`Failed to cleanup invalid note ${noteId}:`, error);
+			}
+		}
 	}
 }

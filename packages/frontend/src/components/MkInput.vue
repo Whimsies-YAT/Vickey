@@ -6,7 +6,28 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <div class="_selectable">
 	<div :class="$style.label" @click="focus"><slot name="label"></slot></div>
-	<div :class="[$style.input, { [$style.inline]: inline, [$style.disabled]: disabled, [$style.focused]: focused }]">
+
+	<div v-if="isDateTimeType" :class="$style.dateTimeWrapper">
+		<MkDateTimePicker
+			v-model="dateTimeValue"
+			:placeholder="placeholder"
+			:disabled="disabled"
+			:required="required"
+			:readonly="readonly"
+			:timeOnly="type === 'time'"
+			:dateOnly="type === 'date'"
+			:enableSeconds="false"
+			@focus="focused = true"
+			@blur="focused = false"
+			@update:modelValue="onDateTimeUpdate"
+		>
+			<template v-if="$slots.prefix" #prefix>
+				<slot name="prefix"></slot>
+			</template>
+		</MkDateTimePicker>
+	</div>
+
+	<div v-else :class="[$style.input, { [$style.inline]: inline, [$style.disabled]: disabled, [$style.focused]: focused }]">
 		<div ref="prefixEl" :class="$style.prefix"><slot name="prefix"></slot></div>
 		<input
 			ref="inputEl"
@@ -61,6 +82,7 @@ import MkButton from '@/components/MkButton.vue';
 import { i18n } from '@/i18n.js';
 import { Autocomplete } from '@/utility/autocomplete.js';
 import { genId } from '@/utility/id.js';
+import MkDateTimePicker from "./MkDateTimePicker.vue";
 
 const props = defineProps<{
 	modelValue: ModelValueType<T> | null;
@@ -96,6 +118,7 @@ const emit = defineEmits<{
 
 const { modelValue } = toRefs(props);
 const v = ref<ModelValueType<T> | null>(modelValue.value);
+const dateTimeValue = ref<string | Date | null | undefined>(modelValue.value);
 const id = genId();
 const focused = ref(false);
 const changed = ref(false);
@@ -109,6 +132,31 @@ const height =
 	props.large ? 39 :
 	36;
 let autocompleteWorker: Autocomplete | null = null;
+
+const isDateTimeType = computed(() => {
+	return props.type === 'date' || props.type === 'time' || props.type === 'datetime-local';
+});
+
+const onDateTimeUpdate = (value: string | Date | null) => {
+	let formattedValue: string = '';
+
+	if (value) {
+		if (typeof value === 'string') {
+			formattedValue = value;
+		} else {
+			if (props.type === 'date') {
+				formattedValue = `${value.getFullYear()}-${(value.getMonth() + 1).toString().padStart(2, '0')}-${value.getDate().toString().padStart(2, '0')}`;
+			} else if (props.type === 'time') {
+				formattedValue = `${value.getHours().toString().padStart(2, '0')}:${value.getMinutes().toString().padStart(2, '0')}:${value.getSeconds().toString().padStart(2, '0')}`;
+			} else if (props.type === 'datetime-local') {
+				formattedValue = `${value.getFullYear()}-${(value.getMonth() + 1).toString().padStart(2, '0')}-${value.getDate().toString().padStart(2, '0')}T${value.getHours().toString().padStart(2, '0')}:${value.getMinutes().toString().padStart(2, '0')}:${value.getSeconds().toString().padStart(2, '0')}`;
+			}
+		}
+	}
+
+	v.value = formattedValue as ModelValueType<T>;
+	changed.value = true;
+};
 
 const focus = () => inputEl.value?.focus();
 const onInput = (event: Event) => {
@@ -139,6 +187,7 @@ const debouncedUpdated = debounce(1000, updated);
 
 watch(modelValue, newValue => {
 	v.value = newValue;
+	dateTimeValue.value = newValue;
 });
 
 watch(v, () => {
@@ -151,26 +200,6 @@ watch(v, () => {
 	}
 
 	invalid.value = inputEl.value?.validity.badInput ?? true;
-});
-
-// このコンポーネントが作成された時、非表示状態である場合がある
-// 非表示状態だと要素の幅などは0になってしまうので、定期的に計算する
-useInterval(() => {
-	if (inputEl.value == null) return;
-
-	if (prefixEl.value) {
-		if (prefixEl.value.offsetWidth) {
-			inputEl.value.style.paddingLeft = prefixEl.value.offsetWidth + 'px';
-		}
-	}
-	if (suffixEl.value) {
-		if (suffixEl.value.offsetWidth) {
-			inputEl.value.style.paddingRight = suffixEl.value.offsetWidth + 'px';
-		}
-	}
-}, 100, {
-	immediate: true,
-	afterMounted: true,
 });
 
 onMounted(() => {
@@ -267,6 +296,14 @@ defineExpose({
 	}
 }
 
+.input:has(.prefix:not(:empty)) .inputCore {
+	padding-left: 40px;
+}
+
+.input:has(.suffix:not(:empty)) .inputCore {
+	padding-right: 40px;
+}
+
 .inputCore[type="range"] {
 	padding: 0;
 	background: transparent;
@@ -317,6 +354,31 @@ defineExpose({
 	}
 }
 
+.inputCore[type="date"],
+.inputCore[type="time"],
+.inputCore[type="datetime-local"] {
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: textfield;
+	color: var(--MI_THEME-fg) !important;
+	background: var(--MI_THEME-panel) !important;
+	border: solid 1px var(--MI_THEME-panel) !important;
+	font-family: inherit !important;
+	font-size: 1em !important;
+
+	&:hover {
+		border-color: var(--MI_THEME-inputBorderHover) !important;
+	}
+
+	&:focus {
+		border-color: var(--MI_THEME-accent) !important;
+	}
+
+	&:invalid {
+		border-color: var(--MI_THEME-error) !important;
+	}
+}
+
 .prefix,
 .suffix {
 	display: flex;
@@ -351,5 +413,12 @@ defineExpose({
 }
 .save {
 	margin: 8px 0 0 0;
+}
+
+.dateTimeWrapper {
+	position: relative;
+	display: block;
+	width: 100%;
+	z-index: 1;
 }
 </style>

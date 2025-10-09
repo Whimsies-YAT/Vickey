@@ -1,12 +1,13 @@
 <div align="center">
-<!--<a href="#">
-	<img src="./assets/title_float.svg" alt="Vickey logo" style="border-radius:50%" width="300"/>
-</a>-->
-<b>(Coming soon...)</b>
+<a href="#">
+	<img src="./assets/title_vk.png" alt="Vickey logo" style="border-radius:50%" width="170"/>
+</a>
 
-**🌎 **Vickey** Is Not Just Key, It's Yours!**
+**🌎 Vickey Inspires Connection, Keeping Everyone Yours!**
 
-~~[Learn more](#)~~ (Coming soon...)
+<small>Vickey is a social platform built for freedom, creativity, and real connection — open source and here to stay.</small>
+
+~~[Learn more](https://vickeyhub.com)~~ (Coming soon...)
 
 ---
 

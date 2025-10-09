@@ -102,6 +102,20 @@ export interface MainEventTypes {
 	announcementCreated: {
 		announcement: Packed<'Announcement'>;
 	};
+	voiceCall: {
+		type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'readyToPull' | 'pullAnswered' | 'pullCompleted' | 'switchToSfu';
+		callId?: string;
+		from?: MiUser['id'];
+		by?: MiUser['id'];
+		mode?: 'auto' | 'p2p' | 'sfu';
+		currentMode?: 'p2p' | 'sfu';
+		signalType?: 'iceCandidate' | 'offer' | 'answer';
+		signalData?: any;
+		iceServers?: RTCIceServer[];
+		sessionId?: string;
+		answer?: any;
+		message?: string;
+	};
 }
 
 export interface DriveEventTypes {

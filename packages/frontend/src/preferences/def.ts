@@ -442,6 +442,9 @@ export const PREF_DEF = definePreferences({
 	defaultImageCompressionLevel: {
 		default: 2 as 0 | 1 | 2 | 3,
 	},
+	defaultVideoCompressionLevel: {
+		default: 2 as 0 | 1 | 2 | 3,
+	},
 
 	'sound.masterVolume': {
 		default: 0.5,
@@ -511,9 +514,12 @@ export const PREF_DEF = definePreferences({
 		default: false,
 	},
 	'experimental.enableFolderPageView': {
-		default: true,
+		default: false,
 	},
 	'experimental.enableHapticFeedback': {
+		default: false,
+	},
+	'experimental.enableWebTranslatorApi': {
 		default: false,
 	},
 });

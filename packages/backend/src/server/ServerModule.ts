@@ -31,6 +31,7 @@ import { ClientLoggerService } from './web/ClientLoggerService.js';
 import { OAuth2ProviderService } from './oauth/OAuth2ProviderService.js';
 import { OAuthAppServerService } from './oauth/OAuthAppServerService.js';
 import { IconService } from './IconService.js';
+import { StripeWebhookServerService } from './StripeWebhookServerService.js';
 
 import { MainChannelService } from './api/stream/channels/main.js';
 import { AdminChannelService } from './api/stream/channels/admin.js';
@@ -104,6 +105,7 @@ import { SigninWithPasskeyApiService } from './api/SigninWithPasskeyApiService.j
 		OAuth2ProviderService,
 		OAuthAppServerService,
 		IconService,
+		StripeWebhookServerService,
 	],
 	exports: [
 		ServerService,

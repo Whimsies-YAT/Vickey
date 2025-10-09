@@ -28,6 +28,8 @@ import { fileTypeFromFile as FileType } from "file-type";
 export type FileInfo = {
 	size: number;
 	md5: string;
+	sha256: string;
+	fingerprint: string;
 	type: {
 		mime: string;
 		ext: string | null;
@@ -87,6 +89,8 @@ export class FileInfoService {
 
 		const size = await this.getFileSize(path);
 		const md5 = await this.calcHash(path);
+		const sha256 = await this.calcSha256Hash(path);
+		const fingerprint = this.generateFingerprint(md5, sha256, size);
 
 		let type = await this.detectType(path);
 
@@ -188,6 +192,8 @@ export class FileInfoService {
 		return {
 			size,
 			md5,
+			sha256,
+			fingerprint,
 			type,
 			width,
 			height,
@@ -495,6 +501,18 @@ export class FileInfoService {
 		const hash = crypto.createHash('md5').setEncoding('hex');
 		await stream.pipeline(fs.createReadStream(path), hash);
 		return hash.read();
+	}
+
+	@bindThis
+	private async calcSha256Hash(path: string): Promise<string> {
+		const hash = crypto.createHash('sha256').setEncoding('hex');
+		await stream.pipeline(fs.createReadStream(path), hash);
+		return hash.read();
+	}
+
+	@bindThis
+	private generateFingerprint(md5: string, sha256: string, size: number): string {
+		return `${md5}:${sha256}:${size}`;
 	}
 
 	/**

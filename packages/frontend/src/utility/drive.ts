@@ -139,7 +139,6 @@ export function uploadFile(file: File | Blob, options: {
 
 		const formData = new FormData();
 		formData.append('i', $i.token);
-		formData.append('force', 'true');
 		formData.append('file', file);
 		formData.append('name', options.name ?? (file instanceof File ? file.name : 'untitled'));
 		formData.append('isSensitive', options.isSensitive ? 'true' : 'false');

@@ -182,9 +182,15 @@ import { ApQuestionService } from './activitypub/models/ApQuestionService.js';
 import { QueueModule } from './QueueModule.js';
 import { QueueService } from './QueueService.js';
 import { LoggerService } from './LoggerService.js';
+import { LogObserverService } from './LogObserverService.js';
+import { StripeService } from './StripeService.js';
+import { StripeSubscriptionService } from './StripeSubscriptionService.js';
+import { StripeWebhookService } from './StripeWebhookService.js';
+import { CloudflareCallsService } from './CloudflareCallsService.js';
+import { VoiceCallService } from './VoiceCallService.js';
 
 const serviceClasses = [
-	LoggerService, AbuseReportService, AbuseReportNotificationService, AccountMoveService,
+	LoggerService, LogObserverService, AbuseReportService, AbuseReportNotificationService, AccountMoveService,
 	AccountUpdateService, AiService, AnnouncementService, AntennaService, AppLockService,
 	AchievementService, AvatarDecorationService, CaptchaService, CheckSecurityUpdateService,
 	CustomEmojiService, DeleteAccountService, DownloadService, DriveService, EmailService,
@@ -221,7 +227,8 @@ const serviceClasses = [
 	ApAudienceService, ApDbResolverService, ApDeliverManagerService, ApInboxService, ApLoggerService,
 	ApMfmService, ApRendererService, ApRequestService, ApResolverService, JsonLdService,
 	RemoteLoggerService, RemoteUserResolveService, WebfingerService, ApImageService, ApMentionService,
-	ApNoteService, ApPersonService, ApQuestionService, QueueService
+	ApNoteService, ApPersonService, ApQuestionService, QueueService, StripeService, StripeSubscriptionService,
+	StripeWebhookService, CloudflareCallsService, VoiceCallService
 ];
 
 const stringProviders: Provider[] = serviceClasses.map(ServiceClass => ({

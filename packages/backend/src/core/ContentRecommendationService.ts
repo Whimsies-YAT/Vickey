@@ -303,7 +303,7 @@ export class ContentRecommendationService {
 	): Promise<Array<{ note: MiNote; score: number; factors: Record<string, number> }>> {
 		return await Promise.all(notes.map(async (note) => {
 			const factors = await this.calculateNoteFactors(user, note, profile, context);
-			const score = this.calculateFinalScore(factors, profile);
+			const score = this.calculateFinalScore(factors, profile, note);
 			return { note, score, factors };
 		}));
 	}
@@ -346,7 +346,7 @@ export class ContentRecommendationService {
 	}
 
 	@bindThis
-	private calculateFinalScore(factors: Record<string, number>, profile: UserProfile): number {
+	private calculateFinalScore(factors: Record<string, number>, profile: UserProfile, note?: MiNote): number {
 		const baseWeights = {
 			contentRelevance: 0.15,
 			topicMatch: 0.12,
@@ -397,6 +397,10 @@ export class ContentRecommendationService {
 		const qualityGate = factors.contentQuality ?? 0.5;
 		if (qualityGate < profile.qualityPreference) {
 			score *= 0.7;
+		}
+
+		if (note && (note as any).isDeleted) {
+			score *= 0.3;
 		}
 
 		return Math.min(1, Math.max(0, score + explorationBonus));
@@ -1550,13 +1554,13 @@ export class ContentRecommendationService {
 		const alignmentScore = await this.calculateUserAlignment(note, profile);
 		const freshnessScore = this.calculateFreshnessScore(note, options.freshnessWeight);
 		const socialScore = await this.calculateSocialProof(note, user);
-		
+
 		let finalScore = alignmentScore * 0.4 + freshnessScore * options.freshnessWeight + socialScore * 0.3;
-		
+
 		if (options.algorithm === 'discovery') {
 			finalScore += 0.2;
 		}
-		
+
 		return Math.min(1, finalScore);
 	}
 
@@ -1569,7 +1573,7 @@ export class ContentRecommendationService {
 
 		for (let i = 0; i < noteIds.length; i += batchSize) {
 			const batch = noteIds.slice(i, i + batchSize);
-			
+
 			const notes = await this.notesRepository.createQueryBuilder('note')
 				.leftJoinAndSelect('note.user', 'user')
 				.leftJoinAndSelect('note.reply', 'reply', 'reply.visibility = :publicVisibility', { publicVisibility: 'public' })
@@ -1580,7 +1584,7 @@ export class ContentRecommendationService {
 				.andWhere('user.isSuspended = false')
 				.andWhere('user.isDeleted = false')
 				.getMany();
-				
+
 			allNotes.push(...notes);
 		}
 

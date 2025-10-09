@@ -130,6 +130,34 @@ export interface Locale extends ILocale {
      */
     "aboutVickey": string;
     /**
+     * System Logs
+     */
+    "systemLogs": string;
+    /**
+     * Total Logs
+     */
+    "totalLogs": string;
+    /**
+     * Max Entries
+     */
+    "maxEntries": string;
+    /**
+     * No logs available
+     */
+    "noLogs": string;
+    /**
+     * Are you sure you want to clear all logs?
+     */
+    "clearLogsConfirm": string;
+    /**
+     * Start Auto Refresh
+     */
+    "startAutoRefresh": string;
+    /**
+     * Stop Auto Refresh
+     */
+    "stopAutoRefresh": string;
+    /**
      * This page has been deprecated and may be removed in the future.
      */
     "pageDeprecated": string;
@@ -153,6 +181,10 @@ export interface Locale extends ILocale {
      * updated
      */
     "updated": string;
+    /**
+     * Updated
+     */
+    "updatedAlt": string;
     /**
      * Not Available
      */
@@ -178,6 +210,114 @@ export interface Locale extends ILocale {
      */
     "externalLink": string;
     /**
+     * Sun
+     */
+    "sunday": string;
+    /**
+     * Mon
+     */
+    "monday": string;
+    /**
+     * Tue
+     */
+    "tuesday": string;
+    /**
+     * Wed
+     */
+    "wednesday": string;
+    /**
+     * Thu
+     */
+    "thursday": string;
+    /**
+     * Fri
+     */
+    "friday": string;
+    /**
+     * Sat
+     */
+    "saturday": string;
+    /**
+     * Jan
+     */
+    "january": string;
+    /**
+     * Feb
+     */
+    "february": string;
+    /**
+     * Mar
+     */
+    "march": string;
+    /**
+     * Apr
+     */
+    "april": string;
+    /**
+     * May
+     */
+    "may": string;
+    /**
+     * Jun
+     */
+    "june": string;
+    /**
+     * Jul
+     */
+    "july": string;
+    /**
+     * Aug
+     */
+    "august": string;
+    /**
+     * Sep
+     */
+    "september": string;
+    /**
+     * Oct
+     */
+    "october": string;
+    /**
+     * Nov
+     */
+    "november": string;
+    /**
+     * Dec
+     */
+    "december": string;
+    /**
+     * Hour
+     */
+    "hour": string;
+    /**
+     * Minute
+     */
+    "minute": string;
+    /**
+     * Second
+     */
+    "second": string;
+    /**
+     * Now
+     */
+    "now": string;
+    /**
+     * キャンセル
+     */
+    "cancel": string;
+    /**
+     * OK
+     */
+    "ok": string;
+    /**
+     * Date
+     */
+    "date": string;
+    /**
+     * Time
+     */
+    "time": string;
+    /**
      * You are about to visit an external website:
      *
      * <b>{url}</b>
@@ -189,6 +329,14 @@ export interface Locale extends ILocale {
      * Refresh
      */
     "refresh": string;
+    /**
+     * Scheduled time
+     */
+    "scheduledTime": string;
+    /**
+     * The scheduled time is in the past
+     */
+    "scheduledTimeIsInThePast": string;
     /**
      * User Id
      */
@@ -273,6 +421,174 @@ export interface Locale extends ILocale {
      * Pause
      */
     "pause": string;
+    /**
+     * Deleted Notes
+     */
+    "deletedNotes": string;
+    /**
+     * View and manage soft-deleted notes for administrative purposes
+     */
+    "deletedNotesDescription": string;
+    /**
+     * View Deleted Note
+     */
+    "viewDeletedNote": string;
+    /**
+     * List Deleted Notes
+     */
+    "listDeletedNotes": string;
+    /**
+     * Deleted Note Details
+     */
+    "deletedNoteDetails": string;
+    /**
+     * No deleted notes found
+     */
+    "noDeletedNotesFound": string;
+    /**
+     * Soft-deleted Note
+     */
+    "softDeletedNote": string;
+    /**
+     * Hard-deleted Note
+     */
+    "hardDeletedNote": string;
+    /**
+     * Note deleted at
+     */
+    "noteDeletedAt": string;
+    /**
+     * Note created at
+     */
+    "noteCreatedAt": string;
+    /**
+     * Note ID
+     */
+    "noteId": string;
+    /**
+     * Note author
+     */
+    "noteAuthor": string;
+    /**
+     * Note content
+     */
+    "noteContent": string;
+    /**
+     * Deleted note access logged for audit trail
+     */
+    "deletedNoteAuditLog": string;
+    /**
+     * View deleted notes (Admin/Moderator only)
+     */
+    "viewDeletedNotePermission": string;
+    /**
+     * Search deleted notes
+     */
+    "searchDeletedNotes": string;
+    /**
+     * Filter by user
+     */
+    "filterByUser": string;
+    /**
+     * Filter by date range
+     */
+    "filterByDateRange": string;
+    /**
+     * Deleted after
+     */
+    "deletedAfter": string;
+    /**
+     * Deleted before
+     */
+    "deletedBefore": string;
+    /**
+     * Load more deleted notes
+     */
+    "loadMoreDeletedNotes": string;
+    /**
+     * Refresh deleted notes
+     */
+    "refreshDeletedNotes": string;
+    /**
+     * Clear filters
+     */
+    "clearFilters": string;
+    /**
+     * Export deleted notes
+     */
+    "exportDeletedNotes": string;
+    /**
+     * Deleted Note Details
+     */
+    "deletedNoteDetailsTitle": string;
+    /**
+     * エラー
+     */
+    "error": string;
+    /**
+     * Failed to load note details
+     */
+    "failedToLoadNoteDetails": string;
+    /**
+     * No text content
+     */
+    "noTextContent": string;
+    /**
+     * はい
+     */
+    "yes": string;
+    /**
+     * いいえ
+     */
+    "no": string;
+    /**
+     * ユーザー
+     */
+    "user": string;
+    /**
+     * ID
+     */
+    "id": string;
+    /**
+     * Created
+     */
+    "created": string;
+    /**
+     * Deleted
+     */
+    "deleted": string;
+    /**
+     * CW
+     */
+    "cw": string;
+    /**
+     * もっと見る
+     */
+    "loadMore": string;
+    /**
+     * ファイル
+     */
+    "files": string;
+    /**
+     * Failed to load deleted notes
+     */
+    "failedToLoadDeletedNotes": string;
+    /**
+     * User ID (optional)
+     */
+    "userIdOptionalPlaceholder": string;
+    /**
+     * Deleted after
+     */
+    "deletedAfterPlaceholder": string;
+    /**
+     * Deleted before
+     */
+    "deletedBeforePlaceholder": string;
+    /**
+     * Status
+     */
+    "status": string;
     "_oauthAppVK": {
         /**
          * OAuth Application
@@ -504,6 +820,10 @@ export interface Locale extends ILocale {
              */
             "maxFileSize": string;
             /**
+             * リバースプロキシやCDNなど、前段で別の設定値が存在する場合があります。
+             */
+            "maxFileSize_caption": string;
+            /**
              * ファイルにNSFWを常に付与
              */
             "alwaysMarkNsfw": string;
@@ -611,6 +931,10 @@ export interface Locale extends ILocale {
              * サーバーサイドのノートの下書きの作成可能数
              */
             "noteDraftLimit": string;
+            /**
+             * 予約投稿の同時作成可能数
+             */
+            "scheduledNoteLimit": string;
             /**
              * ウォーターマーク機能の使用可否
              */
@@ -1261,6 +1585,18 @@ export interface Locale extends ILocale {
          */
         "decline": string;
         /**
+         * Viewed deleted note
+         */
+        "viewDeletedNote": string;
+        /**
+         * Listed deleted notes
+         */
+        "listDeletedNotes": string;
+        /**
+         * Hard deleted note
+         */
+        "hardDeleteNote": string;
+        /**
          * ロールを作成
          */
         "createRole": string;
@@ -1474,6 +1810,124 @@ export interface Locale extends ILocale {
          * Donate to Vickey
          */
         "donate": string;
+        /**
+         * Source code
+         */
+        "source": string;
+        /**
+         * original
+         */
+        "original": string;
+        /**
+         * {name} uses a modified version of the original Vickey.
+         */
+        "thisIsModifiedVersionVK": ParameterizedString<"name">;
+    };
+    "_donation": {
+        /**
+         * Support this Instance
+         */
+        "title": string;
+        /**
+         * Help us keep {instanceName} running and growing!
+         */
+        "description": ParameterizedString<"instanceName">;
+        /**
+         * Support this Instance
+         */
+        "supportProject": string;
+        /**
+         * Donation Amount
+         */
+        "donateAmount": string;
+        /**
+         * Enter amount
+         */
+        "enterAmount": string;
+        /**
+         * Custom amount
+         */
+        "customAmount": string;
+        /**
+         * One-time
+         */
+        "oneTime": string;
+        /**
+         * Monthly
+         */
+        "monthly": string;
+        /**
+         * Donate
+         */
+        "donateButton": string;
+        /**
+         * Processing...
+         */
+        "processing": string;
+        /**
+         * Thank you for your support!
+         */
+        "thankYou": string;
+        /**
+         * Your donation helps us maintain and improve this instance.
+         */
+        "helpMaintain": string;
+        /**
+         * Secure payment powered by Stripe
+         */
+        "securePayment": string;
+        /**
+         * Why donate?
+         */
+        "whyDonate": string;
+        /**
+         * Server hosting and maintenance costs
+         */
+        "serverCosts": string;
+        /**
+         * Continued development and improvements
+         */
+        "development": string;
+        /**
+         * Supporting the open-source community
+         */
+        "community": string;
+        /**
+         * Optional
+         */
+        "optional": string;
+        /**
+         * Note
+         */
+        "note": string;
+        /**
+         * Thank you for this great instance!
+         */
+        "noteExample": string;
+        /**
+         * Payment Error
+         */
+        "error": string;
+        /**
+         * Failed to process donation. Please try again.
+         */
+        "errorText": string;
+        /**
+         * Payment Currently Unavailable
+         */
+        "paymentUnavailable": string;
+        /**
+         * Payment processing is currently disabled on this instance.
+         */
+        "paymentDisabled": string;
+        /**
+         * Payment Type
+         */
+        "paymentType": string;
+        /**
+         * ${amount} monthly donation
+         */
+        "monthlyDonation": ParameterizedString<"amount">;
         /**
          * {name} uses a modified version of the original Vickey.
          */
@@ -3067,6 +3521,901 @@ export interface Locale extends ILocale {
          */
         "clear": string;
     };
+    "_payment": {
+        /**
+         * Payment
+         */
+        "title": string;
+        /**
+         * Payment is disabled
+         */
+        "disabled": string;
+        /**
+         * Amount
+         */
+        "amount": string;
+        /**
+         * Currency
+         */
+        "currency": string;
+        /**
+         * e.g. usd, eur, jpy
+         */
+        "currencyPlaceholder": string;
+        /**
+         * Description
+         */
+        "description": string;
+        /**
+         * Payment description (optional)
+         */
+        "descriptionPlaceholder": string;
+        /**
+         * Payment Method
+         */
+        "paymentMethod": string;
+        /**
+         * Pay Now
+         */
+        "payNow": string;
+        /**
+         * Subscribe
+         */
+        "subscribe": string;
+        /**
+         * Subscription
+         */
+        "subscription": string;
+        /**
+         * Create Subscription
+         */
+        "subscriptionTitle": string;
+        /**
+         * Make Payment
+         */
+        "paymentTitle": string;
+        /**
+         * Subscription Plan
+         */
+        "subscriptionPlan": string;
+        /**
+         * Processing...
+         */
+        "processing": string;
+        /**
+         * Payment successful!
+         */
+        "success": string;
+        /**
+         * Enter amount
+         */
+        "enterAmount": string;
+        /**
+         * Failed to initialize payment system
+         */
+        "initializationError": string;
+        /**
+         * Payment system not loaded
+         */
+        "stripeNotLoaded": string;
+        /**
+         * Payment processing error
+         */
+        "processingError": string;
+        /**
+         * Payment failed
+         */
+        "paymentFailed": string;
+        /**
+         * Subscription creation failed
+         */
+        "subscriptionFailed": string;
+        /**
+         * Billing Information
+         */
+        "billingInformation": string;
+        /**
+         * First Name
+         */
+        "firstName": string;
+        /**
+         * Last Name
+         */
+        "lastName": string;
+        /**
+         * Email
+         */
+        "email": string;
+        /**
+         * Billing information is only stored by Stripe for payment processing and tax compliance.
+         */
+        "billingPrivacyNote": string;
+        /**
+         * Payment options will be displayed after clicking the pay button
+         */
+        "paymentOptionsPlaceholder": string;
+        /**
+         * Supports credit cards, PayPal, Alipay, WeChat Pay, and other payment methods
+         */
+        "multiplePaymentMethods": string;
+        /**
+         * Secure Payment
+         */
+        "securePayment": string;
+        /**
+         * Loading payment methods...
+         */
+        "loadingPaymentMethods": string;
+        /**
+         * Pay ${amount}
+         */
+        "payAmount": ParameterizedString<"amount">;
+        /**
+         * Your payment is processed securely by Stripe
+         */
+        "securePaymentNote": string;
+        /**
+         * optional
+         */
+        "optional": string;
+        /**
+         * Vickey Checkout
+         */
+        "checkoutTitle": string;
+    };
+    "_stripe": {
+        /**
+         * Stripe Settings
+         */
+        "settings": string;
+        /**
+         * Enable Stripe
+         */
+        "enable": string;
+        /**
+         * Enable Stripe payment processing for your instance
+         */
+        "enableDescription": string;
+        /**
+         * Configure your Stripe account settings below. You can find these values in your Stripe Dashboard.
+         */
+        "configurationInfo": string;
+        /**
+         * Publishable Key
+         */
+        "publicKey": string;
+        /**
+         * Your Stripe publishable key (starts with pk_). This is safe to expose in client-side code.
+         */
+        "publicKeyDescription": string;
+        /**
+         * Secret Key
+         */
+        "secretKey": string;
+        /**
+         * Your Stripe secret key (starts with sk_). Keep this confidential and secure.
+         */
+        "secretKeyDescription": string;
+        /**
+         * Webhook Endpoint Secret
+         */
+        "webhookSecret": string;
+        /**
+         * The signing secret for your webhook endpoint. Used to verify webhook authenticity.
+         */
+        "webhookSecretDescription": string;
+        /**
+         * Payment Method Configuration
+         */
+        "paymentMethodConfiguration": string;
+        /**
+         * Optional Stripe Payment Method Configuration ID to customize available payment methods and options.
+         */
+        "paymentMethodConfigurationDescription": string;
+        /**
+         * Currency
+         */
+        "currency": string;
+        /**
+         * Default currency for Stripe payments
+         */
+        "currencyDescription": string;
+        /**
+         * US Dollar
+         */
+        "currencyUSD": string;
+        /**
+         * Euro
+         */
+        "currencyEUR": string;
+        /**
+         * Chinese Yuan
+         */
+        "currencyCNY": string;
+        /**
+         * Japanese Yen
+         */
+        "currencyJPY": string;
+        /**
+         * British Pound
+         */
+        "currencyGBP": string;
+        /**
+         * Swiss Franc
+         */
+        "currencyCHF": string;
+        /**
+         * Canadian Dollar
+         */
+        "currencyCAD": string;
+        /**
+         * Australian Dollar
+         */
+        "currencyAUD": string;
+        /**
+         * Singapore Dollar
+         */
+        "currencySGD": string;
+        /**
+         * Hong Kong Dollar
+         */
+        "currencyHKD": string;
+        /**
+         * Important: Keep your secret keys secure and never share them. The webhook secret is required for payment verification.
+         */
+        "securityWarning": string;
+    };
+    "_chat": {
+        /**
+         * Incoming call
+         */
+        "incomingCall": string;
+        /**
+         * Incoming call from {name}
+         */
+        "incomingCallFrom": ParameterizedString<"name">;
+        /**
+         * Voice call is not enabled on this instance
+         */
+        "voiceCallNotEnabled": string;
+        /**
+         * Failed to start voice call
+         */
+        "failedToStartVoiceCall": string;
+        /**
+         * Start voice call
+         */
+        "startVoiceCall": string;
+        /**
+         * End call
+         */
+        "endCall": string;
+        /**
+         * Calling
+         */
+        "calling": string;
+        /**
+         * Connecting
+         */
+        "connecting": string;
+        /**
+         * Voice call in progress
+         */
+        "voiceCallInProgress": string;
+        /**
+         * Call ended
+         */
+        "callEnded": string;
+        /**
+         * Call duration: {duration}
+         */
+        "callDuration": ParameterizedString<"duration">;
+        /**
+         * Answer
+         */
+        "answer": string;
+        /**
+         * Reject
+         */
+        "reject": string;
+        /**
+         * メッセージ
+         */
+        "messages": string;
+        /**
+         * まだメッセージはありません
+         */
+        "noMessagesYet": string;
+        /**
+         * 新しいメッセージ
+         */
+        "newMessage": string;
+        /**
+         * 個別
+         */
+        "individualChat": string;
+        /**
+         * 特定ユーザーと個別にメッセージのやりとりができます。
+         */
+        "individualChat_description": string;
+        /**
+         * グループ
+         */
+        "roomChat": string;
+        /**
+         * 複数人でメッセージのやりとりができます。
+         * また、個別のメッセージを許可していないユーザーとでも、相手が受け入れればやりとりできます。
+         */
+        "roomChat_description": string;
+        /**
+         * グループを作成
+         */
+        "createRoom": string;
+        /**
+         * ユーザーを招待してメッセージを送信しましょう
+         */
+        "inviteUserToChat": string;
+        /**
+         * 作成したグループ
+         */
+        "yourRooms": string;
+        /**
+         * 参加中のグループ
+         */
+        "joiningRooms": string;
+        /**
+         * 招待
+         */
+        "invitations": string;
+        /**
+         * 招待はありません
+         */
+        "noInvitations": string;
+        /**
+         * 履歴
+         */
+        "history": string;
+        /**
+         * 履歴はありません
+         */
+        "noHistory": string;
+        /**
+         * グループはありません
+         */
+        "noRooms": string;
+        /**
+         * ユーザーを招待
+         */
+        "inviteUser": string;
+        /**
+         * 送信した招待
+         */
+        "sentInvitations": string;
+        /**
+         * 参加
+         */
+        "join": string;
+        /**
+         * 無視
+         */
+        "ignore": string;
+        /**
+         * グループから退出
+         */
+        "leave": string;
+        /**
+         * メンバー
+         */
+        "members": string;
+        /**
+         * メッセージを検索
+         */
+        "searchMessages": string;
+        /**
+         * ホーム
+         */
+        "home": string;
+        /**
+         * 送信
+         */
+        "send": string;
+        /**
+         * 改行
+         */
+        "newline": string;
+        /**
+         * このグループをミュート
+         */
+        "muteThisRoom": string;
+        /**
+         * グループを削除
+         */
+        "deleteRoom": string;
+        /**
+         * このサーバー、またはこのアカウントでダイレクトメッセージは有効化されていません。
+         */
+        "chatNotAvailableForThisAccountOrServer": string;
+        /**
+         * このサーバー、またはこのアカウントでダイレクトメッセージは読み取り専用となっています。新たに書き込んだり、グループを作成・参加したりすることはできません。
+         */
+        "chatIsReadOnlyForThisAccountOrServer": string;
+        /**
+         * 相手のアカウントでダイレクトメッセージが使えない状態になっています。
+         */
+        "chatNotAvailableInOtherAccount": string;
+        /**
+         * このユーザーとのダイレクトメッセージを開始できません
+         */
+        "cannotChatWithTheUser": string;
+        /**
+         * ダイレクトメッセージが使えない状態になっているか、相手がダイレクトメッセージを開放していません。
+         */
+        "cannotChatWithTheUser_description": string;
+        /**
+         * あなたはこのグループの参加者ではありませんが、招待が届いています。参加するには、招待を承認してください。
+         */
+        "youAreNotAMemberOfThisRoomButInvited": string;
+        /**
+         * 招待を承認しますか？
+         */
+        "doYouAcceptInvitation": string;
+        /**
+         * ダイレクトメッセージ
+         */
+        "chatWithThisUser": string;
+        /**
+         * このユーザーはフォロワーからのみメッセージを受け付けています。
+         */
+        "thisUserAllowsChatOnlyFromFollowers": string;
+        /**
+         * このユーザーは、このユーザーがフォローしているユーザーからのみメッセージを受け付けています。
+         */
+        "thisUserAllowsChatOnlyFromFollowing": string;
+        /**
+         * このユーザーは相互フォローのユーザーからのみメッセージを受け付けています。
+         */
+        "thisUserAllowsChatOnlyFromMutualFollowing": string;
+        /**
+         * このユーザーは誰からもメッセージを受け付けていません。
+         */
+        "thisUserNotAllowedChatAnyone": string;
+        /**
+         * メッセージを許可する相手
+         */
+        "chatAllowedUsers": string;
+        /**
+         * 自分からメッセージを送った相手とはこの設定に関わらずメッセージの送受信が可能です。
+         */
+        "chatAllowedUsers_note": string;
+        "_chatAllowedUsers": {
+            /**
+             * 誰でも
+             */
+            "everyone": string;
+            /**
+             * 自分のフォロワーのみ
+             */
+            "followers": string;
+            /**
+             * 自分がフォローしているユーザーのみ
+             */
+            "following": string;
+            /**
+             * 相互フォローのユーザーのみ
+             */
+            "mutual": string;
+            /**
+             * 誰も許可しない
+             */
+            "none": string;
+        };
+    };
+    "_admin": {
+        "_payments": {
+            /**
+             * Payment Management
+             */
+            "title": string;
+            /**
+             * Stripe is not enabled. Please configure Stripe settings first.
+             */
+            "stripeNotEnabled": string;
+            /**
+             * Total Payments
+             */
+            "totalPayments": string;
+            /**
+             * Total Revenue
+             */
+            "totalRevenue": string;
+            /**
+             * Recent Payments
+             */
+            "recentPayments": string;
+            /**
+             * Successful Payments
+             */
+            "successfulPayments": string;
+            /**
+             * Filter by User ID
+             */
+            "filterByUser": string;
+            /**
+             * Status
+             */
+            "status": string;
+            /**
+             * All Statuses
+             */
+            "allStatuses": string;
+            /**
+             * Succeeded
+             */
+            "succeeded": string;
+            /**
+             * Pending
+             */
+            "pending": string;
+            /**
+             * Failed
+             */
+            "failed": string;
+            /**
+             * Canceled
+             */
+            "canceled": string;
+            /**
+             * No payments found
+             */
+            "noPayments": string;
+            /**
+             * Payment ID
+             */
+            "paymentId": string;
+            /**
+             * User
+             */
+            "user": string;
+            /**
+             * Amount
+             */
+            "amount": string;
+            /**
+             * Description
+             */
+            "description": string;
+            /**
+             * No description
+             */
+            "noDescription": string;
+            /**
+             * Created At
+             */
+            "createdAt": string;
+            /**
+             * Updated At
+             */
+            "updatedAt": string;
+            /**
+             * Actions
+             */
+            "actions": string;
+            /**
+             * View Details
+             */
+            "viewDetails": string;
+            /**
+             * Unknown User
+             */
+            "unknownUser": string;
+            /**
+             * Failed to load payments
+             */
+            "loadError": string;
+            /**
+             * Failed to load payment details
+             */
+            "loadDetailError": string;
+            /**
+             * Payment Details
+             */
+            "paymentDetails": string;
+            /**
+             * Basic Information
+             */
+            "basicInfo": string;
+            /**
+             * User Information
+             */
+            "userInfo": string;
+            /**
+             * Metadata
+             */
+            "metadata": string;
+            /**
+             * Stripe Details
+             */
+            "stripeDetails": string;
+            /**
+             * Charge ID
+             */
+            "chargeId": string;
+            /**
+             * Customer ID
+             */
+            "customerId": string;
+            /**
+             * Receipt
+             */
+            "receipt": string;
+            /**
+             * View Receipt
+             */
+            "viewReceipt": string;
+            /**
+             * Payment Method
+             */
+            "paymentMethod": string;
+            /**
+             * Raw Stripe Data
+             */
+            "rawStripeData": string;
+            /**
+             * Unknown ID
+             */
+            "unknownId": string;
+            /**
+             * Checkout Session
+             */
+            "checkoutSession": string;
+            /**
+             * Payment Mode
+             */
+            "paymentMode": string;
+            /**
+             * Payment Intent
+             */
+            "paymentIntent": string;
+        };
+    };
+    "_notification": {
+        /**
+         * Incoming voice call
+         */
+        "voiceCall": string;
+        /**
+         * Voice call ended
+         */
+        "voiceCallEnded": string;
+        "_types": {
+            /**
+             * Voice call
+             */
+            "voiceCall": string;
+            /**
+             * Voice call ended
+             */
+            "voiceCallEnded": string;
+            /**
+             * すべて
+             */
+            "all": string;
+            /**
+             * ユーザーの新規投稿
+             */
+            "note": string;
+            /**
+             * フォロー
+             */
+            "follow": string;
+            /**
+             * メンション
+             */
+            "mention": string;
+            /**
+             * リプライ
+             */
+            "reply": string;
+            /**
+             * リノート
+             */
+            "renote": string;
+            /**
+             * 引用
+             */
+            "quote": string;
+            /**
+             * リアクション
+             */
+            "reaction": string;
+            /**
+             * アンケートが終了
+             */
+            "pollEnded": string;
+            /**
+             * 予約投稿が成功した
+             */
+            "scheduledNotePosted": string;
+            /**
+             * 予約投稿が失敗した
+             */
+            "scheduledNotePostFailed": string;
+            /**
+             * フォロー申請を受け取った
+             */
+            "receiveFollowRequest": string;
+            /**
+             * フォローが受理された
+             */
+            "followRequestAccepted": string;
+            /**
+             * ロールが付与された
+             */
+            "roleAssigned": string;
+            /**
+             * ダイレクトメッセージのグループへ招待された
+             */
+            "chatRoomInvitationReceived": string;
+            /**
+             * 実績の獲得
+             */
+            "achievementEarned": string;
+            /**
+             * エクスポートが完了した
+             */
+            "exportCompleted": string;
+            /**
+             * ログイン
+             */
+            "login": string;
+            /**
+             * アクセストークンの作成
+             */
+            "createToken": string;
+            /**
+             * 通知のテスト
+             */
+            "test": string;
+            /**
+             * 連携アプリからの通知
+             */
+            "app": string;
+        };
+        /**
+         * ファイルがアップロードされました
+         */
+        "fileUploaded": string;
+        /**
+         * {name}からのメンション
+         */
+        "youGotMention": ParameterizedString<"name">;
+        /**
+         * {name}からのリプライ
+         */
+        "youGotReply": ParameterizedString<"name">;
+        /**
+         * {name}による引用
+         */
+        "youGotQuote": ParameterizedString<"name">;
+        /**
+         * {name}がリノートしました
+         */
+        "youRenoted": ParameterizedString<"name">;
+        /**
+         * フォローされました
+         */
+        "youWereFollowed": string;
+        /**
+         * フォローリクエストが来ました
+         */
+        "youReceivedFollowRequest": string;
+        /**
+         * フォローリクエストが承認されました
+         */
+        "yourFollowRequestAccepted": string;
+        /**
+         * アンケートの結果が出ました
+         */
+        "pollEnded": string;
+        /**
+         * 予約ノートが投稿されました
+         */
+        "scheduledNotePosted": string;
+        /**
+         * 予約ノートの投稿に失敗しました
+         */
+        "scheduledNotePostFailed": string;
+        /**
+         * 新しい投稿
+         */
+        "newNote": string;
+        /**
+         * アンテナ {name}
+         */
+        "unreadAntennaNote": ParameterizedString<"name">;
+        /**
+         * ロールが付与されました
+         */
+        "roleAssigned": string;
+        /**
+         * ダイレクトメッセージのグループへ招待されました
+         */
+        "chatRoomInvitationReceived": string;
+        /**
+         * プッシュ通知の更新をしました
+         */
+        "emptyPushNotificationMessage": string;
+        /**
+         * 実績を獲得
+         */
+        "achievementEarned": string;
+        /**
+         * 通知テスト
+         */
+        "testNotification": string;
+        /**
+         * 通知の表示を確かめる
+         */
+        "checkNotificationBehavior": string;
+        /**
+         * テスト通知を送信する
+         */
+        "sendTestNotification": string;
+        /**
+         * 通知はこのように表示されます
+         */
+        "notificationWillBeDisplayedLikeThis": string;
+        /**
+         * {n}人がリアクションしました
+         */
+        "reactedBySomeUsers": ParameterizedString<"n">;
+        /**
+         * {n}人がいいねしました
+         */
+        "likedBySomeUsers": ParameterizedString<"n">;
+        /**
+         * {n}人がリノートしました
+         */
+        "renotedBySomeUsers": ParameterizedString<"n">;
+        /**
+         * {n}人にフォローされました
+         */
+        "followedBySomeUsers": ParameterizedString<"n">;
+        /**
+         * 通知の履歴をリセットする
+         */
+        "flushNotification": string;
+        /**
+         * {x}のエクスポートが完了しました
+         */
+        "exportOfXCompleted": ParameterizedString<"x">;
+        /**
+         * ログインがありました
+         */
+        "login": string;
+        /**
+         * アクセストークンが作成されました
+         */
+        "createToken": string;
+        /**
+         * 心当たりがない場合は「{text}」を通じてアクセストークンを削除してください。
+         */
+        "createTokenDescription": ParameterizedString<"text">;
+        "_actions": {
+            /**
+             * フォローバック
+             */
+            "followBack": string;
+            /**
+             * 返信
+             */
+            "reply": string;
+            /**
+             * リノート
+             */
+            "renote": string;
+        };
+    };
     /**
      * ノートでつながるネットワーク
      */
@@ -3129,17 +4478,9 @@ export interface Locale extends ILocale {
      */
     "fetchingAsApObject": string;
     /**
-     * OK
-     */
-    "ok": string;
-    /**
      * わかった
      */
     "gotIt": string;
-    /**
-     * キャンセル
-     */
-    "cancel": string;
     /**
      * やめておく
      */
@@ -3343,10 +4684,6 @@ export interface Locale extends ILocale {
     /**
      * もっと見る
      */
-    "loadMore": string;
-    /**
-     * もっと見る
-     */
     "showMore": string;
     /**
      * 閉じる
@@ -3388,10 +4725,6 @@ export interface Locale extends ILocale {
      * エクスポート
      */
     "export": string;
-    /**
-     * ファイル
-     */
-    "files": string;
     /**
      * ダウンロード
      */
@@ -3448,10 +4781,6 @@ export interface Locale extends ILocale {
      * リストの管理
      */
     "manageLists": string;
-    /**
-     * エラー
-     */
-    "error": string;
     /**
      * 問題が発生しました
      */
@@ -4085,6 +5414,10 @@ export interface Locale extends ILocale {
      */
     "processing": string;
     /**
+     * 準備中
+     */
+    "preprocessing": string;
+    /**
      * プレビュー
      */
     "preview": string;
@@ -4405,6 +5738,10 @@ export interface Locale extends ILocale {
      */
     "selectFolder": string;
     /**
+     * フォルダーの選択を解除
+     */
+    "unselectFolder": string;
+    /**
      * フォルダーを選択
      */
     "selectFolders": string;
@@ -4452,6 +5789,10 @@ export interface Locale extends ILocale {
      * フォルダーは空です
      */
     "emptyFolder": string;
+    /**
+     * ここにファイルをドロップしてアップロード
+     */
+    "dropHereToUpload": string;
     /**
      * 削除できません
      */
@@ -6125,14 +7466,6 @@ export interface Locale extends ILocale {
      */
     "pollVotedCount": string;
     /**
-     * はい
-     */
-    "yes": string;
-    /**
-     * いいえ
-     */
-    "no": string;
-    /**
      * ドライブのファイル数
      */
     "driveFilesCount": string;
@@ -6520,10 +7853,6 @@ export interface Locale extends ILocale {
      * クイックアクション
      */
     "quickAction": string;
-    /**
-     * ユーザー
-     */
-    "user": string;
     /**
      * 管理
      */
@@ -8341,6 +9670,10 @@ export interface Locale extends ILocale {
      */
     "draft": string;
     /**
+     * 下書きと予約投稿
+     */
+    "draftsAndScheduledNotes": string;
+    /**
      * リアクションする際に確認する
      */
     "confirmOnReact": string;
@@ -8568,6 +9901,14 @@ export interface Locale extends ILocale {
      */
     "defaultImageCompressionLevel_description": string;
     /**
+     * デフォルトの圧縮度
+     */
+    "defaultCompressionLevel": string;
+    /**
+     * 低くすると品質を保てますが、ファイルサイズは増加します。<br>高くするとファイルサイズを減らせますが、品質は低下します。
+     */
+    "defaultCompressionLevel_description": string;
+    /**
      * 分
      */
     "inMinutes": string;
@@ -8599,6 +9940,68 @@ export interface Locale extends ILocale {
      * ユーザー指定ノートを作成
      */
     "createUserSpecifiedNote": string;
+    /**
+     * 投稿を予約
+     */
+    "schedulePost": string;
+    /**
+     * {x}に投稿を予約します
+     */
+    "scheduleToPostOnX": ParameterizedString<"x">;
+    /**
+     * {x}に投稿が予約されています
+     */
+    "scheduledToPostOnX": ParameterizedString<"x">;
+    /**
+     * 予約
+     */
+    "schedule": string;
+    /**
+     * 予約
+     */
+    "scheduled": string;
+    /**
+     * ウィジェット
+     */
+    "widgets": string;
+    /**
+     * デバイス情報
+     */
+    "deviceInfo": string;
+    /**
+     * 技術的なお問い合わせの際に、以下の情報を併記すると問題の解決に役立つことがあります。
+     */
+    "deviceInfoDescription": string;
+    "_compression": {
+        "_quality": {
+            /**
+             * 高品質
+             */
+            "high": string;
+            /**
+             * 中品質
+             */
+            "medium": string;
+            /**
+             * 低品質
+             */
+            "low": string;
+        };
+        "_size": {
+            /**
+             * サイズ大
+             */
+            "large": string;
+            /**
+             * サイズ中
+             */
+            "medium": string;
+            /**
+             * サイズ小
+             */
+            "small": string;
+        };
+    };
     "_order": {
         /**
          * 新しい順
@@ -8608,199 +10011,6 @@ export interface Locale extends ILocale {
          * 古い順
          */
         "oldest": string;
-    };
-    "_chat": {
-        /**
-         * メッセージ
-         */
-        "messages": string;
-        /**
-         * まだメッセージはありません
-         */
-        "noMessagesYet": string;
-        /**
-         * 新しいメッセージ
-         */
-        "newMessage": string;
-        /**
-         * 個別
-         */
-        "individualChat": string;
-        /**
-         * 特定ユーザーと個別にメッセージのやりとりができます。
-         */
-        "individualChat_description": string;
-        /**
-         * グループ
-         */
-        "roomChat": string;
-        /**
-         * 複数人でメッセージのやりとりができます。
-         * また、個別のメッセージを許可していないユーザーとでも、相手が受け入れればやりとりできます。
-         */
-        "roomChat_description": string;
-        /**
-         * グループを作成
-         */
-        "createRoom": string;
-        /**
-         * ユーザーを招待してメッセージを送信しましょう
-         */
-        "inviteUserToChat": string;
-        /**
-         * 作成したグループ
-         */
-        "yourRooms": string;
-        /**
-         * 参加中のグループ
-         */
-        "joiningRooms": string;
-        /**
-         * 招待
-         */
-        "invitations": string;
-        /**
-         * 招待はありません
-         */
-        "noInvitations": string;
-        /**
-         * 履歴
-         */
-        "history": string;
-        /**
-         * 履歴はありません
-         */
-        "noHistory": string;
-        /**
-         * グループはありません
-         */
-        "noRooms": string;
-        /**
-         * ユーザーを招待
-         */
-        "inviteUser": string;
-        /**
-         * 送信した招待
-         */
-        "sentInvitations": string;
-        /**
-         * 参加
-         */
-        "join": string;
-        /**
-         * 無視
-         */
-        "ignore": string;
-        /**
-         * グループから退出
-         */
-        "leave": string;
-        /**
-         * メンバー
-         */
-        "members": string;
-        /**
-         * メッセージを検索
-         */
-        "searchMessages": string;
-        /**
-         * ホーム
-         */
-        "home": string;
-        /**
-         * 送信
-         */
-        "send": string;
-        /**
-         * 改行
-         */
-        "newline": string;
-        /**
-         * このグループをミュート
-         */
-        "muteThisRoom": string;
-        /**
-         * グループを削除
-         */
-        "deleteRoom": string;
-        /**
-         * このサーバー、またはこのアカウントでダイレクトメッセージは有効化されていません。
-         */
-        "chatNotAvailableForThisAccountOrServer": string;
-        /**
-         * このサーバー、またはこのアカウントでダイレクトメッセージは読み取り専用となっています。新たに書き込んだり、グループを作成・参加したりすることはできません。
-         */
-        "chatIsReadOnlyForThisAccountOrServer": string;
-        /**
-         * 相手のアカウントでダイレクトメッセージが使えない状態になっています。
-         */
-        "chatNotAvailableInOtherAccount": string;
-        /**
-         * このユーザーとのダイレクトメッセージを開始できません
-         */
-        "cannotChatWithTheUser": string;
-        /**
-         * ダイレクトメッセージが使えない状態になっているか、相手がダイレクトメッセージを開放していません。
-         */
-        "cannotChatWithTheUser_description": string;
-        /**
-         * あなたはこのグループの参加者ではありませんが、招待が届いています。参加するには、招待を承認してください。
-         */
-        "youAreNotAMemberOfThisRoomButInvited": string;
-        /**
-         * 招待を承認しますか？
-         */
-        "doYouAcceptInvitation": string;
-        /**
-         * ダイレクトメッセージ
-         */
-        "chatWithThisUser": string;
-        /**
-         * このユーザーはフォロワーからのみメッセージを受け付けています。
-         */
-        "thisUserAllowsChatOnlyFromFollowers": string;
-        /**
-         * このユーザーは、このユーザーがフォローしているユーザーからのみメッセージを受け付けています。
-         */
-        "thisUserAllowsChatOnlyFromFollowing": string;
-        /**
-         * このユーザーは相互フォローのユーザーからのみメッセージを受け付けています。
-         */
-        "thisUserAllowsChatOnlyFromMutualFollowing": string;
-        /**
-         * このユーザーは誰からもメッセージを受け付けていません。
-         */
-        "thisUserNotAllowedChatAnyone": string;
-        /**
-         * メッセージを許可する相手
-         */
-        "chatAllowedUsers": string;
-        /**
-         * 自分からメッセージを送った相手とはこの設定に関わらずメッセージの送受信が可能です。
-         */
-        "chatAllowedUsers_note": string;
-        "_chatAllowedUsers": {
-            /**
-             * 誰でも
-             */
-            "everyone": string;
-            /**
-             * 自分のフォロワーのみ
-             */
-            "followers": string;
-            /**
-             * 自分がフォローしているユーザーのみ
-             */
-            "following": string;
-            /**
-             * 相互フォローのユーザーのみ
-             */
-            "mutual": string;
-            /**
-             * 誰も許可しない
-             */
-            "none": string;
-        };
     };
     "_emojiPalette": {
         /**
@@ -11342,6 +12552,10 @@ export interface Locale extends ILocale {
          * アクセスを許可すると、自動で以下のURLに遷移します
          */
         "byClickingYouWillBeRedirectedToThisUrl": string;
+        /**
+         * このアプリケーションは既にアクセスが許可されています。
+         */
+        "alreadyAuthorized": string;
     };
     "_antennaSources": {
         /**
@@ -12186,212 +13400,6 @@ export interface Locale extends ILocale {
          * 拒否済み
          */
         "rejected": string;
-    };
-    "_notification": {
-        /**
-         * ファイルがアップロードされました
-         */
-        "fileUploaded": string;
-        /**
-         * {name}からのメンション
-         */
-        "youGotMention": ParameterizedString<"name">;
-        /**
-         * {name}からのリプライ
-         */
-        "youGotReply": ParameterizedString<"name">;
-        /**
-         * {name}による引用
-         */
-        "youGotQuote": ParameterizedString<"name">;
-        /**
-         * {name}がリノートしました
-         */
-        "youRenoted": ParameterizedString<"name">;
-        /**
-         * フォローされました
-         */
-        "youWereFollowed": string;
-        /**
-         * フォローリクエストが来ました
-         */
-        "youReceivedFollowRequest": string;
-        /**
-         * フォローリクエストが承認されました
-         */
-        "yourFollowRequestAccepted": string;
-        /**
-         * アンケートの結果が出ました
-         */
-        "pollEnded": string;
-        /**
-         * 新しい投稿
-         */
-        "newNote": string;
-        /**
-         * アンテナ {name}
-         */
-        "unreadAntennaNote": ParameterizedString<"name">;
-        /**
-         * ロールが付与されました
-         */
-        "roleAssigned": string;
-        /**
-         * ダイレクトメッセージのグループへ招待されました
-         */
-        "chatRoomInvitationReceived": string;
-        /**
-         * プッシュ通知の更新をしました
-         */
-        "emptyPushNotificationMessage": string;
-        /**
-         * 実績を獲得
-         */
-        "achievementEarned": string;
-        /**
-         * 通知テスト
-         */
-        "testNotification": string;
-        /**
-         * 通知の表示を確かめる
-         */
-        "checkNotificationBehavior": string;
-        /**
-         * テスト通知を送信する
-         */
-        "sendTestNotification": string;
-        /**
-         * 通知はこのように表示されます
-         */
-        "notificationWillBeDisplayedLikeThis": string;
-        /**
-         * {n}人がリアクションしました
-         */
-        "reactedBySomeUsers": ParameterizedString<"n">;
-        /**
-         * {n}人がいいねしました
-         */
-        "likedBySomeUsers": ParameterizedString<"n">;
-        /**
-         * {n}人がリノートしました
-         */
-        "renotedBySomeUsers": ParameterizedString<"n">;
-        /**
-         * {n}人にフォローされました
-         */
-        "followedBySomeUsers": ParameterizedString<"n">;
-        /**
-         * 通知の履歴をリセットする
-         */
-        "flushNotification": string;
-        /**
-         * {x}のエクスポートが完了しました
-         */
-        "exportOfXCompleted": ParameterizedString<"x">;
-        /**
-         * ログインがありました
-         */
-        "login": string;
-        /**
-         * アクセストークンが作成されました
-         */
-        "createToken": string;
-        /**
-         * 心当たりがない場合は「{text}」を通じてアクセストークンを削除してください。
-         */
-        "createTokenDescription": ParameterizedString<"text">;
-        "_types": {
-            /**
-             * すべて
-             */
-            "all": string;
-            /**
-             * ユーザーの新規投稿
-             */
-            "note": string;
-            /**
-             * フォロー
-             */
-            "follow": string;
-            /**
-             * メンション
-             */
-            "mention": string;
-            /**
-             * リプライ
-             */
-            "reply": string;
-            /**
-             * リノート
-             */
-            "renote": string;
-            /**
-             * 引用
-             */
-            "quote": string;
-            /**
-             * リアクション
-             */
-            "reaction": string;
-            /**
-             * アンケートが終了
-             */
-            "pollEnded": string;
-            /**
-             * フォロー申請を受け取った
-             */
-            "receiveFollowRequest": string;
-            /**
-             * フォローが受理された
-             */
-            "followRequestAccepted": string;
-            /**
-             * ロールが付与された
-             */
-            "roleAssigned": string;
-            /**
-             * ダイレクトメッセージのグループへ招待された
-             */
-            "chatRoomInvitationReceived": string;
-            /**
-             * 実績の獲得
-             */
-            "achievementEarned": string;
-            /**
-             * エクスポートが完了した
-             */
-            "exportCompleted": string;
-            /**
-             * ログイン
-             */
-            "login": string;
-            /**
-             * アクセストークンの作成
-             */
-            "createToken": string;
-            /**
-             * 通知のテスト
-             */
-            "test": string;
-            /**
-             * 連携アプリからの通知
-             */
-            "app": string;
-        };
-        "_actions": {
-            /**
-             * フォローバック
-             */
-            "followBack": string;
-            /**
-             * 返信
-             */
-            "reply": string;
-            /**
-             * リノート
-             */
-            "renote": string;
-        };
     };
     "_deck": {
         /**
@@ -13947,6 +14955,14 @@ export interface Locale extends ILocale {
              */
             "grayscale": string;
             /**
+             * ぼかし
+             */
+            "blur": string;
+            /**
+             * モザイク
+             */
+            "pixelate": string;
+            /**
              * 色調補正
              */
             "colorAdjust": string;
@@ -13991,9 +15007,9 @@ export interface Locale extends ILocale {
              */
             "tearing": string;
             /**
-             * 塗りつぶし(四角)
+             * 塗りつぶし
              */
-            "fillSquare": string;
+            "fill": string;
         };
         "_fxProps": {
             /**
@@ -14008,6 +15024,14 @@ export interface Locale extends ILocale {
              * サイズ
              */
             "size": string;
+            /**
+             * 半径
+             */
+            "radius": string;
+            /**
+             * サンプル数
+             */
+            "samples": string;
             /**
              * 位置
              */
@@ -14124,6 +15148,10 @@ export interface Locale extends ILocale {
              * 黒色にする
              */
             "zoomLinesBlack": string;
+            /**
+             * 円形
+             */
+            "circle": string;
         };
     };
     /**
@@ -14183,6 +15211,18 @@ export interface Locale extends ILocale {
          * 下書き一覧
          */
         "listDrafts": string;
+        /**
+         * 投稿予約
+         */
+        "schedule": string;
+        /**
+         * 予約投稿一覧
+         */
+        "listScheduledNotes": string;
+        /**
+         * 予約解除
+         */
+        "cancelSchedule": string;
     };
     /**
      * 二次元コード

@@ -31,22 +31,35 @@ export class GetterService {
 	 * Get note for API processing
 	 */
 	@bindThis
-	public async getNote(noteId: MiNote['id']) {
+	public async getNote(noteId: MiNote['id'], allowSoftDeleted: boolean = false) {
 		const isIgnored = await this.cacheService.abuseAutoIgnoreCache.fetch('abuseAutoIgnore');
 		if (isIgnored.has(noteId)) throw new IdentifiableError('9725d0ce-ba28-4dde-95a7-2cbb2c15de24', 'This note is invisible.');
 
-		const note = await this.notesRepository.findOneBy({ id: noteId });
+		const whereCondition: any = { id: noteId };
+		if (!allowSoftDeleted) {
+			whereCondition.isDeleted = false;
+		}
+
+		const note = await this.notesRepository.findOneBy(whereCondition);
 		if (!note) throw new IdentifiableError('9725d0ce-ba28-4dde-95a7-2cbb2c15de24', 'No such note.');
 
 		return note;
 	}
 
 	@bindThis
-	public async getNoteWithRelations(noteId: MiNote['id']) {
+	public async getNoteWithRelations(noteId: MiNote['id'], allowSoftDeleted: boolean = false) {
 		const isIgnored = await this.cacheService.abuseAutoIgnoreCache.fetch('abuseAutoIgnore');
 		if (isIgnored.has(noteId)) throw new IdentifiableError('9725d0ce-ba28-4dde-95a7-2cbb2c15de24', 'This note is invisible.');
 
-		const note = await this.notesRepository.findOne({ where: { id: noteId }, relations: ['user', 'reply', 'renote', 'reply.user', 'renote.user'] });
+		const whereCondition: any = { id: noteId };
+		if (!allowSoftDeleted) {
+			whereCondition.isDeleted = false;
+		}
+
+		const note = await this.notesRepository.findOne({
+			where: whereCondition,
+			relations: ['user', 'reply', 'renote', 'reply.user', 'renote.user']
+		});
 
 		if (note == null) {
 			throw new IdentifiableError('9725d0ce-ba28-4dde-95a7-2cbb2c15de24', 'No such note.');

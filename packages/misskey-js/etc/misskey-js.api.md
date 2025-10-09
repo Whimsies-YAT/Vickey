@@ -279,7 +279,52 @@ type AdminInviteListRequest = operations['admin___invite___list']['requestBody']
 type AdminInviteListResponse = operations['admin___invite___list']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type AdminLogsClearResponse = operations['admin___logs___clear']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AdminLogsConfigRequest = operations['admin___logs___config']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminLogsConfigResponse = operations['admin___logs___config']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AdminLogsShowRequest = operations['admin___logs___show']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminLogsShowResponse = operations['admin___logs___show']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type AdminMetaResponse = operations['admin___meta']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AdminNotesListDeletedRequest = operations['admin___notes___list-deleted']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminNotesListDeletedResponse = operations['admin___notes___list-deleted']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AdminNotesShowDeletedRequest = operations['admin___notes___show-deleted']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminNotesShowDeletedResponse = operations['admin___notes___show-deleted']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AdminPaymentsListRequest = operations['admin___payments___list']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminPaymentsListResponse = operations['admin___payments___list']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AdminPaymentsShowRequest = operations['admin___payments___show']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminPaymentsShowResponse = operations['admin___payments___show']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AdminPaymentsStatsRequest = operations['admin___payments___stats']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminPaymentsStatsResponse = operations['admin___payments___stats']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type AdminPromoCreateRequest = operations['admin___promo___create']['requestBody']['content']['application/json'];
@@ -757,8 +802,62 @@ export type Channels = {
             readAntenna: (payload: Antenna) => void;
             receiveFollowRequest: (payload: User) => void;
             announcementCreated: (payload: AnnouncementCreated) => void;
+            voiceCall: (payload: {
+                type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'tracksReady' | 'readyToPull' | 'pullAnswered' | 'pullCompleted' | 'switchToSfu' | 'switchedToSfu' | 'restored';
+                callId?: string;
+                from?: string;
+                peerId?: string;
+                isIncoming?: boolean;
+                state?: 'ringing' | 'connecting' | 'connected';
+                mode?: 'auto' | 'p2p' | 'sfu';
+                currentMode?: 'p2p' | 'sfu';
+                iceServers?: IceServer[];
+                sessionId?: string;
+                answer?: any;
+                signalType?: string;
+                signalData?: any;
+                message?: string;
+            }) => void;
         };
-        receives: null;
+        receives: {
+            'voiceCall:initiate': {
+                recipientId: string;
+                mode?: 'auto' | 'p2p' | 'sfu';
+            };
+            'voiceCall:answer': {
+                callId: string;
+            };
+            'voiceCall:reject': {
+                callId: string;
+            };
+            'voiceCall:end': {
+                callId: string;
+            };
+            'voiceCall:pushTracks': {
+                callId: string;
+                offer: any;
+                tracks: any[];
+            };
+            'voiceCall:tracksReady': {
+                callId: string;
+            };
+            'voiceCall:pullTracks': {
+                callId: string;
+                offer: any;
+            };
+            'voiceCall:answerPull': {
+                callId: string;
+                answer: any;
+            };
+            'voiceCall:signal': {
+                callId: string;
+                signalType: string;
+                signalData: any;
+            };
+            'voiceCall:switchToSfu': {
+                callId: string;
+            };
+        };
     };
     homeTimeline: {
         params: {
@@ -1657,7 +1756,22 @@ declare namespace entities {
         AdminInviteCreateResponse,
         AdminInviteListRequest,
         AdminInviteListResponse,
+        AdminLogsClearResponse,
+        AdminLogsConfigRequest,
+        AdminLogsConfigResponse,
+        AdminLogsShowRequest,
+        AdminLogsShowResponse,
         AdminMetaResponse,
+        AdminNotesListDeletedRequest,
+        AdminNotesListDeletedResponse,
+        AdminNotesShowDeletedRequest,
+        AdminNotesShowDeletedResponse,
+        AdminPaymentsListRequest,
+        AdminPaymentsListResponse,
+        AdminPaymentsShowRequest,
+        AdminPaymentsShowResponse,
+        AdminPaymentsStatsRequest,
+        AdminPaymentsStatsResponse,
         AdminPromoCreateRequest,
         AdminQueueClearRequest,
         AdminQueueDeliverDelayedResponse,
@@ -2181,6 +2295,15 @@ declare namespace entities {
         PagesShowResponse,
         PagesUnlikeRequest,
         PagesUpdateRequest,
+        PaymentCancelSubscriptionRequest,
+        PaymentCancelSubscriptionResponse,
+        PaymentConfirmIntentRequest,
+        PaymentConfirmIntentResponse,
+        PaymentCreateIntentRequest,
+        PaymentCreateIntentResponse,
+        PaymentCreateSubscriptionRequest,
+        PaymentCreateSubscriptionResponse,
+        PaymentGetConfigResponse,
         PingResponse,
         PinnedUsersResponse,
         PromoReadRequest,
@@ -3406,7 +3529,7 @@ type Notification_2 = components['schemas']['Notification'];
 type NotificationsCreateRequest = operations['notifications___create']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-export const notificationTypes: readonly ["note", "follow", "mention", "reply", "renote", "quote", "reaction", "pollEnded", "receiveFollowRequest", "followRequestAccepted", "groupInvited", "app", "roleAssigned", "chatRoomInvitationReceived", "achievementEarned", "exportCompleted", "test", "login", "createToken"];
+export const notificationTypes: readonly ["note", "follow", "mention", "reply", "renote", "quote", "reaction", "pollEnded", "scheduledNotePosted", "scheduledNotePostFailed", "receiveFollowRequest", "followRequestAccepted", "app", "roleAssigned", "chatRoomInvitationReceived", "achievementEarned", "exportCompleted", "test", "login", "createToken", "voiceCall", "voiceCallEnded"];
 
 // @public (undocumented)
 export function nyaize(text: string): string;
@@ -3487,6 +3610,33 @@ type PartialRolePolicyOverride = Partial<{
 }>;
 
 // @public (undocumented)
+type PaymentCancelSubscriptionRequest = operations['payment___cancel-subscription']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type PaymentCancelSubscriptionResponse = operations['payment___cancel-subscription']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type PaymentConfirmIntentRequest = operations['payment___confirm-intent']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type PaymentConfirmIntentResponse = operations['payment___confirm-intent']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type PaymentCreateIntentRequest = operations['payment___create-intent']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type PaymentCreateIntentResponse = operations['payment___create-intent']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type PaymentCreateSubscriptionRequest = operations['payment___create-subscription']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type PaymentCreateSubscriptionResponse = operations['payment___create-subscription']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type PaymentGetConfigResponse = operations['payment___get-config']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 export const permissions: readonly ["read:account", "write:account", "read:blocks", "write:blocks", "read:drive", "write:drive", "read:favorites", "write:favorites", "read:following", "write:following", "read:messaging", "write:messaging", "read:mutes", "write:mutes", "write:notes", "read:notifications", "write:notifications", "read:reactions", "write:reactions", "write:votes", "read:pages", "write:pages", "write:page-likes", "read:page-likes", "read:user-groups", "write:user-groups", "read:channels", "write:channels", "read:gallery", "write:gallery", "read:gallery-likes", "write:gallery-likes", "read:flash", "write:flash", "read:flash-likes", "write:flash-likes", "read:admin:abuse-user-reports", "read:admin:abuse-report:auto-processed", "write:admin:delete-account", "write:admin:delete-all-files-of-a-user", "write:admin:approve-account", "write:admin:decline-account", "read:admin:index-stats", "read:admin:table-stats", "read:admin:user-ips", "read:admin:meta", "write:admin:reset-password", "write:admin:resolve-abuse-user-report", "write:admin:send-email", "read:admin:server-info", "read:admin:show-moderation-log", "read:admin:show-pending", "read:admin:show-pendings", "read:admin:show-user", "write:admin:suspend-user", "write:admin:unset-user-avatar", "write:admin:unset-user-banner", "write:admin:unsuspend-user", "write:admin:meta", "write:admin:user-note", "write:admin:roles", "read:admin:roles", "write:admin:relays", "read:admin:relays", "write:admin:invite-codes", "read:admin:invite-codes", "write:admin:announcements", "read:admin:announcements", "write:admin:avatar-decorations", "read:admin:avatar-decorations", "write:admin:federation", "write:admin:account", "read:admin:account", "write:admin:email-templates", "read:admin:email-templates", "write:admin:emoji", "read:admin:emoji", "write:admin:queue", "read:admin:queue", "write:admin:promo", "write:admin:drive", "read:admin:drive", "write:admin:ad", "read:admin:ad", "write:invite-codes", "read:invite-codes", "write:clip-favorite", "read:clip-favorite", "read:federation", "write:report-abuse", "write:chat", "read:chat"];
 
 // @public (undocumented)
@@ -3537,7 +3687,7 @@ type QueueStats = {
 type QueueStatsLog = QueueStats[];
 
 // @public (undocumented)
-export const queueTypes: readonly ["system", "endedPollNotification", "deliver", "inbox", "db", "relationship", "objectStorage", "userWebhookDeliver", "systemWebhookDeliver"];
+export const queueTypes: readonly ["system", "endedPollNotification", "postScheduledNote", "deliver", "inbox", "db", "relationship", "objectStorage", "userWebhookDeliver", "systemWebhookDeliver"];
 
 // @public (undocumented)
 type RenoteMuteCreateRequest = operations['renote-mute___create']['requestBody']['content']['application/json'];
@@ -3639,7 +3789,7 @@ type RoleLite = components['schemas']['RoleLite'];
 type RolePolicies = components['schemas']['RolePolicies'];
 
 // @public (undocumented)
-export const rolePolicies: readonly ["gtlAvailable", "ltlAvailable", "canPublicNote", "mentionLimit", "canInvite", "inviteLimit", "inviteLimitCycle", "inviteExpirationTime", "canManageCustomEmojis", "canManageAvatarDecorations", "canSearchNotes", "canSearchUsers", "canUseTranslator", "canHideAds", "driveCapacityMb", "maxFileSizeMb", "alwaysMarkNsfw", "canUpdateBioMedia", "pinLimit", "antennaLimit", "wordMuteLimit", "webhookLimit", "clipLimit", "noteEachClipsLimit", "userListLimit", "userEachUserListsLimit", "rateLimitFactor", "avatarDecorationLimit", "canImportAntennas", "canImportBlocking", "canImportFollowing", "canImportMuting", "canImportUserLists", "chatAvailability", "uploadableFileTypes", "noteDraftLimit", "watermarkAvailable"];
+export const rolePolicies: readonly ["gtlAvailable", "ltlAvailable", "canPublicNote", "mentionLimit", "canInvite", "inviteLimit", "inviteLimitCycle", "inviteExpirationTime", "canManageCustomEmojis", "canManageAvatarDecorations", "canSearchNotes", "canSearchUsers", "canUseTranslator", "canHideAds", "driveCapacityMb", "maxFileSizeMb", "alwaysMarkNsfw", "canUpdateBioMedia", "pinLimit", "antennaLimit", "wordMuteLimit", "webhookLimit", "clipLimit", "noteEachClipsLimit", "userListLimit", "userEachUserListsLimit", "rateLimitFactor", "avatarDecorationLimit", "canImportAntennas", "canImportBlocking", "canImportFollowing", "canImportMuting", "canImportUserLists", "chatAvailability", "uploadableFileTypes", "noteDraftLimit", "scheduledNoteLimit", "watermarkAvailable"];
 
 // @public (undocumented)
 type RolesListResponse = operations['roles___list']['responses']['200']['content']['application/json'];
@@ -4048,8 +4198,9 @@ type VerifyEmailRequest = operations['verify-email']['requestBody']['content']['
 //
 // src/entities.ts:55:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
 // src/streaming.ts:57:3 - (ae-forgotten-export) The symbol "ReconnectingWebSocket" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:226:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:236:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:82:5 - (ae-forgotten-export) The symbol "IceServer" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:293:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:303:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

@@ -32,7 +32,7 @@ export const paramDef = {
 	properties: {
 		limit: { type: 'integer', minimum: 1, maximum: 100, default: 30 },
 		offset: { type: 'integer', default: 0 },
-		type: { type: 'string', enum: ['unused', 'used', 'expired', 'all'], default: 'all' },
+		type: { type: 'string', enum: ['unused', 'used', 'pending', 'expired', 'all'], default: 'all' },
 		sort: { type: 'string', enum: ['+createdAt', '-createdAt', '+usedAt', '-usedAt'] },
 	},
 	required: [],
@@ -52,8 +52,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				.leftJoinAndSelect('ticket.usedBy', 'usedBy');
 
 			switch (ps.type) {
-				case 'unused': query.andWhere('ticket.usedBy IS NULL'); break;
+				case 'unused': query.andWhere('ticket.usedBy IS NULL AND ticket.pendingUserId IS NULL'); break;
 				case 'used': query.andWhere('ticket.usedBy IS NOT NULL'); break;
+				case 'pending': query.andWhere('ticket.usedBy IS NULL AND ticket.pendingUserId IS NOT NULL'); break;
 				case 'expired': query.andWhere('ticket.expiresAt < :now', { now: new Date() }); break;
 			}
 

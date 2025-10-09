@@ -720,6 +720,50 @@ export const meta = {
 			visibleRecipient: {
 				type: 'string',
 				optional: false, nullable: true,
+			},
+			enableStripe: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			stripePublicKey: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			stripeSecretKey: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			stripeWebhookSecret: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			stripePaymentMethodConfiguration: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			stripeCurrency: {
+				type: 'string',
+				optional: false, nullable: false,
+			},
+			enableCloudflareSfu: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			cloudflareAccountId: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			cloudflareApiToken: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			cloudflareSfuAppId: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			cloudflareSfuAppSecret: {
+				type: 'string',
+				optional: false, nullable: true,
 			}
 		},
 	},
@@ -907,6 +951,17 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				enableBcc: instance.enableBcc,
 				bccLimit: instance.bccLimit,
 				visibleRecipient: instance.visibleRecipient && instance.visibleRecipient.trim() !== '' ? instance.visibleRecipient : instance.maintainerEmail,
+				enableStripe: instance.enableStripe,
+				stripePublicKey: instance.stripePublicKey,
+				stripeSecretKey: instance.stripeSecretKey,
+				stripeWebhookSecret: instance.stripeWebhookSecret,
+				stripePaymentMethodConfiguration: instance.stripePaymentMethodConfiguration,
+				stripeCurrency: instance.stripeCurrency,
+				enableCloudflareSfu: instance.enableCloudflareSfu,
+				cloudflareAccountId: instance.cloudflareAccountId,
+				cloudflareApiToken: instance.cloudflareApiToken,
+				cloudflareSfuAppId: instance.cloudflareSfuAppId,
+				cloudflareSfuAppSecret: instance.cloudflareSfuAppSecret,
 			};
 		});
 	}

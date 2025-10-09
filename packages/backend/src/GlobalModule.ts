@@ -15,6 +15,7 @@ import { createPostgresDataSource } from './postgres.js';
 import { RepositoryModule } from './models/RepositoryModule.js';
 import { allSettled } from './misc/promise-tracker.js';
 import { GlobalEvents } from './core/GlobalEventService.js';
+import { LogObserverService } from './core/LogObserverService.js';
 import type { Provider, OnApplicationShutdown } from '@nestjs/common';
 
 const $config: Provider = {
@@ -181,8 +182,8 @@ const $meta: Provider = {
 @Global()
 @Module({
 	imports: [RepositoryModule],
-	providers: [$config, $db, $meta, $meilisearch, $elasticsearch, $redis, $redisForPub, $redisForSub, $redisForTimelines, $redisForReactions],
-	exports: [$config, $db, $meta, $meilisearch, $elasticsearch, $redis, $redisForPub, $redisForSub, $redisForTimelines, $redisForReactions, RepositoryModule],
+	providers: [$config, $db, $meta, $meilisearch, $elasticsearch, $redis, $redisForPub, $redisForSub, $redisForTimelines, $redisForReactions, LogObserverService],
+	exports: [$config, $db, $meta, $meilisearch, $elasticsearch, $redis, $redisForPub, $redisForSub, $redisForTimelines, $redisForReactions, RepositoryModule, LogObserverService],
 })
 export class GlobalModule implements OnApplicationShutdown {
 	private disposed = false;
@@ -194,7 +195,11 @@ export class GlobalModule implements OnApplicationShutdown {
 		@Inject(DI.redisForSub) private redisForSub: Redis.Redis,
 		@Inject(DI.redisForTimelines) private redisForTimelines: Redis.Redis,
 		@Inject(DI.redisForReactions) private redisForReactions: Redis.Redis,
-	) { }
+		private logObserverService: LogObserverService,
+	) {
+		// LogObserverService is automatically initialized and starts observing
+		// when it's injected, so no additional setup needed
+	}
 
 	public async dispose(): Promise<void> {
 		if (this.disposed) return;

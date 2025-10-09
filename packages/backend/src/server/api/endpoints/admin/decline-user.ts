@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from "@nestjs/common";
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { UserPendingsRepository, UsersRepository } from '@/models/_.js';
+import type { UserPendingsRepository, UsersRepository, RegistrationTicketsRepository } from '@/models/_.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { DI } from '@/di-symbols.js';
 import { EmailService } from '@/core/EmailService.js';
@@ -35,6 +35,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		@Inject(DI.userPendingsRepository)
 		private userPendingsRepository: UserPendingsRepository,
+
+		@Inject(DI.registrationTicketsRepository)
+		private registrationTicketsRepository: RegistrationTicketsRepository,
 
 		private moderationLogService: ModerationLogService,
 		private emailService: EmailService,
@@ -80,6 +83,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			const log_reason = reason ? reason : 'Reason not provided';
 
 			this.userPendingsRepository.update({ id: pendingUser.id }, { isProcessed: true, result: `Declined (${ log_reason })` });
+
+			const inviteCode = await this.registrationTicketsRepository.findOneBy({ pendingUserId: pendingUser.id });
+			if (inviteCode) {
+				await this.registrationTicketsRepository.update({ id: inviteCode.id }, {
+					pendingUserId: null,
+				});
+			}
 
 			this.moderationLogService.log(me, 'decline', {
 				userId: pendingUser.id,
