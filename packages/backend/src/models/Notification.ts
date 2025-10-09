@@ -9,6 +9,7 @@ import { MiNote } from './Note.js';
 import { MiAccessToken } from './AccessToken.js';
 import { MiRole } from './Role.js';
 import { MiDriveFile } from './DriveFile.js';
+import { MiNoteDraft } from './NoteDraft.js';
 
 // misskey-js の notificationTypes と同期すべし
 export type MiNotification = {
@@ -60,6 +61,16 @@ export type MiNotification = {
 	createdAt: string;
 	notifierId: MiUser['id'];
 	noteId: MiNote['id'];
+} | {
+	type: 'scheduledNotePosted';
+	id: string;
+	createdAt: string;
+	noteId: MiNote['id'];
+} | {
+	type: 'scheduledNotePostFailed';
+	id: string;
+	createdAt: string;
+	noteDraftId: MiNoteDraft['id'];
 } | {
 	type: 'receiveFollowRequest';
 	id: string;
@@ -131,6 +142,17 @@ export type MiNotification = {
 	type: 'test';
 	id: string;
 	createdAt: string;
+} | {
+	type: 'voiceCall';
+	id: string;
+	createdAt: string;
+	notifierId: MiUser['id'];
+} | {
+	type: 'voiceCallEnded';
+	id: string;
+	createdAt: string;
+	notifierId: MiUser['id'];
+	duration: number;
 };
 
 export type MiGroupedNotification = MiNotification | {

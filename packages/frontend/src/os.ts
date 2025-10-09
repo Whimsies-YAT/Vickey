@@ -14,6 +14,7 @@ import type { Form, GetFormResultType } from '@/utility/form.js';
 import type { MenuItem } from '@/types/menu.js';
 import type { PostFormProps } from '@/types/post-form.js';
 import type { UploaderFeatures } from '@/composables/use-uploader.js';
+import type { MkSelectItem, OptionValue } from '@/components/MkSelect.vue';
 import type MkRoleSelectDialog_TypeReferenceOnly from '@/components/MkRoleSelectDialog.vue';
 import type MkEmojiPickerDialog_TypeReferenceOnly from '@/components/MkEmojiPickerDialog.vue';
 import { misskeyApi } from '@/utility/misskey-api.js';
@@ -35,9 +36,9 @@ import { focusParent } from '@/utility/focus.js';
 export const openingWindowsCount = ref(0);
 
 export type ApiWithDialogCustomErrors = Record<string, { title?: string; text: string; }>;
-export const apiWithDialog = (<E extends keyof Misskey.Endpoints, P extends Misskey.Endpoints[E]['req'] = Misskey.Endpoints[E]['req']>(
+export const apiWithDialog = (<E extends keyof Misskey.Endpoints>(
 	endpoint: E,
-	data: P,
+	data: Misskey.Endpoints[E]['req'],
 	token?: string | null | undefined,
 	customErrors?: ApiWithDialogCustomErrors,
 ) => {
@@ -75,7 +76,7 @@ export const apiWithDialog = (<E extends keyof Misskey.Endpoints, P extends Miss
 		} else if (err.code === 'ROLE_PERMISSION_DENIED') {
 			title = i18n.ts.permissionDeniedError;
 			text = i18n.ts.permissionDeniedErrorDescription;
-		} else if (err.code.startsWith('TOO_MANY')) {
+		} else if (err.code.startsWith('TOO_MANY')) { // TODO: バックエンドに kind: client/contentsLimitExceeded みたいな感じで送るように統一してもらってそれで判定する
 			title = i18n.ts.youCannotCreateAnymore;
 			text = `${i18n.ts.error}: ${err.id}`;
 		} else if (err.message.startsWith('Unexpected token')) {
@@ -499,7 +500,7 @@ export function inputNumber(props: {
 	});
 }
 
-export function inputDate(props: {
+export function inputDatetime(props: {
 	title?: string;
 	text?: string;
 	placeholder?: string | null;
@@ -514,13 +515,39 @@ export function inputDate(props: {
 			title: props.title,
 			text: props.text,
 			input: {
-				type: 'date',
+				type: 'datetime-local',
 				placeholder: props.placeholder,
 				default: props.default ?? null,
 			},
 		}, {
 			done: result => {
-				resolve(result ? { result: new Date(result.result), canceled: false } : { result: undefined, canceled: true });
+				if (result != null && result.result != null) {
+					let date: Date;
+					if (typeof result.result === 'string') {
+						if (result.result.includes('T')) {
+							const [datePart, timePart] = result.result.split('T');
+							const [year, month, day] = datePart.split('-').map(Number);
+							const [hour, minute, second] = timePart.split(':').map(Number);
+							date = new Date(year, month - 1, day, hour || 0, minute || 0, second || 0, 0);
+						} else {
+							const parsed = new Date(result.result);
+							date = new Date(
+								parsed.getFullYear(),
+								parsed.getMonth(),
+								parsed.getDate(),
+								parsed.getHours(),
+								parsed.getMinutes(),
+								parsed.getSeconds(),
+								0
+							);
+						}
+					} else {
+						date = result.result;
+					}
+					resolve({ result: date, canceled: false });
+				} else {
+					resolve({ result: undefined, canceled: true });
+				}
 			},
 			closed: () => dispose(),
 		});
@@ -542,50 +569,15 @@ export function authenticateDialog(): Promise<{
 	});
 }
 
-type SelectItem<C> = {
-	value: C;
-	text: string;
-};
-
-// default が指定されていたら result は null になり得ないことを保証する overload function
-export function select<C = unknown>(props: {
+export function select<C extends OptionValue, D extends C | null = null>(props: {
 	title?: string;
 	text?: string;
-	default: string;
-	items: (SelectItem<C> | {
-		sectionTitle: string;
-		items: SelectItem<C>[];
-	} | undefined)[];
+	default?: D;
+	items: (MkSelectItem<C> | undefined)[];
 }): Promise<{
 	canceled: true; result: undefined;
 } | {
-	canceled: false; result: C;
-}>;
-export function select<C = unknown>(props: {
-	title?: string;
-	text?: string;
-	default?: string | null;
-	items: (SelectItem<C> | {
-		sectionTitle: string;
-		items: SelectItem<C>[];
-	} | undefined)[];
-}): Promise<{
-	canceled: true; result: undefined;
-} | {
-	canceled: false; result: C | null;
-}>;
-export function select<C = unknown>(props: {
-	title?: string;
-	text?: string;
-	default?: string | null;
-	items: (SelectItem<C> | {
-		sectionTitle: string;
-		items: SelectItem<C>[];
-	} | undefined)[];
-}): Promise<{
-	canceled: true; result: undefined;
-} | {
-	canceled: false; result: C | null;
+	canceled: false; result: Exclude<D, undefined> extends null ? C | null : C;
 }> {
 	return new Promise(resolve => {
 		const { dispose } = popup(MkDialog, {

@@ -22,6 +22,8 @@ import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
 import { SearchService } from '@/core/SearchService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
+import { NotificationService } from '@/core/NotificationService.js';
+import { FanoutTimelineService } from '@/core/FanoutTimelineService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
 
 @Injectable()
@@ -50,6 +52,8 @@ export class NoteDeleteService {
 		private apDeliverManagerService: ApDeliverManagerService,
 		private searchService: SearchService,
 		private moderationLogService: ModerationLogService,
+		private notificationService: NotificationService,
+		private fanoutTimelineService: FanoutTimelineService,
 		private notesChart: NotesChart,
 		private perUserNotesChart: PerUserNotesChart,
 		private instanceChart: InstanceChart,
@@ -110,9 +114,15 @@ export class NoteDeleteService {
 
 		this.searchService.unindexNote(note);
 
-		await this.notesRepository.delete({
+		await this.cleanupNotificationsForNote(note);
+
+		await this.cleanupTimelineCaches(user, note);
+
+		await this.notesRepository.update({
 			id: note.id,
 			userId: user.id,
+		}, {
+			isDeleted: true,
 		});
 
 		if (deleter && (note.userId !== deleter.id)) {
@@ -124,6 +134,192 @@ export class NoteDeleteService {
 				noteUserHost: user.host,
 				note: note,
 			});
+		}
+	}
+
+	async hardDelete(user: { id: MiUser['id']; uri: MiUser['uri']; host: MiUser['host']; isBot: MiUser['isBot']; }, note: MiNote, quiet = false, deleter?: MiUser) {
+		const deletedAt = new Date();
+
+		if (note.replyId) {
+			await this.notesRepository.decrement({ id: note.replyId }, 'repliesCount', 1);
+		}
+
+		if (!quiet) {
+			this.globalEventService.publishNoteStream(note.id, 'deleted', {
+				deletedAt: deletedAt,
+			});
+
+			//#region ローカルの投稿なら削除アクティビティを配送
+			if (this.userEntityService.isLocalUser(user) && !note.localOnly) {
+				let renote: MiNote | null = null;
+
+				if (isRenote(note) && !isQuote(note)) {
+					renote = await this.notesRepository.findOneBy({
+						id: note.renoteId,
+					});
+				}
+
+				const content = this.apRendererService.addContext(renote
+					? this.apRendererService.renderUndo(this.apRendererService.renderAnnounce(renote.uri ?? `${this.config.url}/notes/${renote.id}`, note), user)
+					: this.apRendererService.renderDelete(this.apRendererService.renderTombstone(`${this.config.url}/notes/${note.id}`), user));
+
+				this.deliverToConcerned(user, note, content);
+			}
+			//#endregion
+
+			this.notesChart.update(note, false);
+			if (this.meta.enableChartsForRemoteUser || (user.host == null)) {
+				this.perUserNotesChart.update(user, note, false);
+			}
+
+			if (this.meta.enableStatsForFederatedInstances) {
+				if (this.userEntityService.isRemoteUser(user)) {
+					this.federatedInstanceService.fetchOrRegister(user.host).then(async i => {
+						this.instancesRepository.decrement({ id: i.id }, 'notesCount', 1);
+						if (this.meta.enableChartsForFederatedInstances) {
+							this.instanceChart.updateNote(i.host, note, false);
+						}
+					});
+				}
+			}
+		}
+
+		this.searchService.unindexNote(note);
+
+		await this.cleanupNotificationsForNote(note);
+
+		await this.notesRepository.delete({
+			id: note.id,
+			userId: user.id,
+		});
+
+		if (deleter && (note.userId !== deleter.id)) {
+			const user = await this.usersRepository.findOneByOrFail({ id: note.userId });
+			this.moderationLogService.log(deleter, 'hardDeleteNote', {
+				noteId: note.id,
+				noteUserId: note.userId,
+				noteUserUsername: user.username,
+				noteUserHost: user.host,
+				note: note,
+			});
+		}
+	}
+
+	@bindThis
+	private async cleanupTimelineCaches(user: { id: MiUser['id']; host: MiUser['host'] }, note: MiNote) {
+		const timelines: string[] = [];
+
+		if (note.channelId) {
+			timelines.push(`channelTimeline:${note.channelId}`);
+			timelines.push(`userTimelineWithChannel:${user.id}`);
+		} else {
+			if (note.replyId) {
+				timelines.push(`userTimelineWithReplies:${user.id}`);
+				if (user.host == null) {
+					timelines.push('localTimelineWithReplies');
+					if (note.replyUserId) {
+						timelines.push(`localTimelineWithReplyTo:${note.replyUserId}`);
+					}
+				}
+			} else {
+				timelines.push(`userTimeline:${user.id}`);
+				if (note.fileIds && note.fileIds.length > 0) {
+					timelines.push(`userTimelineWithFiles:${user.id}`);
+				}
+
+				if (user.host == null) {
+					timelines.push('localTimeline');
+					if (note.fileIds && note.fileIds.length > 0) {
+						timelines.push('localTimelineWithFiles');
+					}
+				}
+			}
+
+			try {
+				const followers = await this.usersRepository
+					.createQueryBuilder('user')
+					.innerJoin('following', 'following', 'following.followeeId = :userId AND following.followerId = user.id', { userId: user.id })
+					.select('user.id')
+					.getMany();
+
+				for (const follower of followers) {
+					timelines.push(`homeTimeline:${follower.id}`);
+					if (note.fileIds && note.fileIds.length > 0) {
+						timelines.push(`homeTimelineWithFiles:${follower.id}`);
+					}
+				}
+
+				const userListMemberships = await this.usersRepository
+					.createQueryBuilder('user')
+					.innerJoin('user_list_membership', 'membership', 'membership.userId = :userId', { userId: user.id })
+					.select('membership.userListId', 'userListId')
+					.getRawMany();
+
+				for (const membership of userListMemberships) {
+					timelines.push(`userListTimeline:${membership.userListId}`);
+					if (note.fileIds && note.fileIds.length > 0) {
+						timelines.push(`userListTimelineWithFiles:${membership.userListId}`);
+					}
+				}
+
+				timelines.push(`homeTimeline:${user.id}`);
+				if (note.fileIds && note.fileIds.length > 0) {
+					timelines.push(`homeTimelineWithFiles:${user.id}`);
+				}
+			} catch (error) {
+				console.error('Failed to cleanup some timeline caches:', error);
+			}
+		}
+
+		if (timelines.length > 0) {
+			for (const timeline of timelines) {
+				await this.fanoutTimelineService.remove(timeline as any, note.id);
+			}
+		}
+	}
+
+	@bindThis
+	private async cleanupNotificationsForNote(note: MiNote) {
+		const potentialNotificationUsers: string[] = [];
+
+		if (note.userId) {
+			potentialNotificationUsers.push(note.userId);
+		}
+
+		if (note.mentionedRemoteUsers && note.mentionedRemoteUsers.length > 0) {
+			const mentionedUsers = JSON.parse(note.mentionedRemoteUsers) as IMentionedRemoteUsers;
+			const localMentioned = await this.usersRepository.find({
+				where: { uri: In(mentionedUsers.map(x => x.uri)) },
+				select: ['id']
+			});
+			potentialNotificationUsers.push(...localMentioned.map(u => u.id));
+		}
+
+		if (note.replyId) {
+			const repliedNote = await this.notesRepository.findOneBy({ id: note.replyId });
+			if (repliedNote) {
+				potentialNotificationUsers.push(repliedNote.userId);
+			}
+		}
+
+		if (note.renoteId) {
+			const renotedNote = await this.notesRepository.findOneBy({ id: note.renoteId });
+			if (renotedNote) {
+				potentialNotificationUsers.push(renotedNote.userId);
+			}
+		}
+
+		const uniqueUsers = [...new Set(potentialNotificationUsers.filter(Boolean))];
+
+		for (const userId of uniqueUsers) {
+			const notifications = await this.notificationService.getAllNotifications(userId);
+			for (const notification of notifications) {
+				if (notification.data &&
+					((notification.data.noteId === note.id) ||
+					 (notification.data.targetNoteId === note.id))) {
+					await this.notificationService.deleteNotification(userId, notification.redisId);
+				}
+			}
 		}
 	}
 

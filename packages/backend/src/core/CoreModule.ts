@@ -63,6 +63,7 @@ import { NoteDeleteService } from './NoteDeleteService.js';
 import { NotePiningService } from './NotePiningService.js';
 import { NoteDraftService } from './NoteDraftService.js';
 import { NotificationService } from './NotificationService.js';
+import { PdqService } from './PdqService.js';
 import { PollService } from './PollService.js';
 import { PushNotificationService } from './PushNotificationService.js';
 import { QueryService } from './QueryService.js';
@@ -181,9 +182,15 @@ import { ApQuestionService } from './activitypub/models/ApQuestionService.js';
 import { QueueModule } from './QueueModule.js';
 import { QueueService } from './QueueService.js';
 import { LoggerService } from './LoggerService.js';
+import { LogObserverService } from './LogObserverService.js';
+import { StripeService } from './StripeService.js';
+import { StripeSubscriptionService } from './StripeSubscriptionService.js';
+import { StripeWebhookService } from './StripeWebhookService.js';
+import { CloudflareCallsService } from './CloudflareCallsService.js';
+import { VoiceCallService } from './VoiceCallService.js';
 
 const serviceClasses = [
-	LoggerService, AbuseReportService, AbuseReportNotificationService, AccountMoveService,
+	LoggerService, LogObserverService, AbuseReportService, AbuseReportNotificationService, AccountMoveService,
 	AccountUpdateService, AiService, AnnouncementService, AntennaService, AppLockService,
 	AchievementService, AvatarDecorationService, CaptchaService, CheckSecurityUpdateService,
 	CustomEmojiService, DeleteAccountService, DownloadService, DriveService, EmailService,
@@ -193,7 +200,7 @@ const serviceClasses = [
 	RiskScoreAlgorithmsService, RiskScoreCacheService, RiskScoreRehabilitationService,
 	MultiAccountDetectionService, RiskEventLogService, SessionRiskAnalysisService,
 	MetaService, MfmService, MLReportService, ModerationLogService, NoteCreateService,
-	NoteDeleteService, NotePiningService, NoteDraftService, NotificationService, PollService,
+	NoteDeleteService, NotePiningService, NoteDraftService, NotificationService, PdqService, PollService,
 	SystemAccountService, PushNotificationService, QueryService, ReactionService,
 	ReactionsBufferingService, RelayService, RoleService, S3Service, SecurityCoreService,
 	SignupService, WebAuthnService, UserBlockingService, CacheService, UserService,
@@ -220,7 +227,8 @@ const serviceClasses = [
 	ApAudienceService, ApDbResolverService, ApDeliverManagerService, ApInboxService, ApLoggerService,
 	ApMfmService, ApRendererService, ApRequestService, ApResolverService, JsonLdService,
 	RemoteLoggerService, RemoteUserResolveService, WebfingerService, ApImageService, ApMentionService,
-	ApNoteService, ApPersonService, ApQuestionService, QueueService
+	ApNoteService, ApPersonService, ApQuestionService, QueueService, StripeService, StripeSubscriptionService,
+	StripeWebhookService, CloudflareCallsService, VoiceCallService
 ];
 
 const stringProviders: Provider[] = serviceClasses.map(ServiceClass => ({

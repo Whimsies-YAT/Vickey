@@ -121,6 +121,7 @@ export class MetaEntityService {
 				ratio: ad.ratio,
 				imageUrl: ad.imageUrl,
 				dayOfWeek: ad.dayOfWeek,
+				isSensitive: ad.isSensitive ? true : undefined,
 			})),
 			notesPerOneAd: instance.notesPerOneAd,
 			enableEmail: instance.enableEmail,
@@ -141,14 +142,13 @@ export class MetaEntityService {
 			maxFileSize: this.config.maxFileSize,
 			security: secData.security,
 			federation: this.meta.federation,
-			abuseMLCheck: this.meta.abuseMLCheck,
-			abuseReportMLAction: this.meta.abuseReportMLAction,
-			abuseMLInfoUrl: this.meta.abuseMLInfoUrl,
-			abuseMLInfoToken: this.meta.abuseMLInfoToken,
-			abuseMLInfoScore: this.meta.abuseMLInfoScore,
 			enableBcc: instance.enableBcc,
 			bccLimit: instance.bccLimit,
 			visibleRecipient: instance.visibleRecipient && instance.visibleRecipient.trim() !== '' ? instance.visibleRecipient : instance.maintainerEmail,
+			enableStripe: instance.enableStripe,
+			stripePublicKey: instance.stripePublicKey,
+			stripeCurrency: instance.stripeCurrency,
+			enableCloudflareSfu: instance.enableCloudflareSfu,
 		};
 
 		return packed;
@@ -166,7 +166,7 @@ export class MetaEntityService {
 
 		const proxyAccount = await this.systemAccountService.fetch('proxy');
 
-		const packDetailed: Packed<'MetaDetailed'> = {
+		return {
 			...packed,
 			cacheRemoteFiles: instance.cacheRemoteFiles,
 			cacheRemoteSensitiveFiles: instance.cacheRemoteSensitiveFiles,
@@ -184,10 +184,9 @@ export class MetaEntityService {
 				objectStorage: instance.useObjectStorage,
 				serviceWorker: instance.enableServiceWorker,
 				miauth: true,
+				stripe: instance.enableStripe,
 			},
 		};
-
-		return packDetailed;
 	}
 }
 

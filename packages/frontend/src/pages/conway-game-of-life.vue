@@ -28,34 +28,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<div class="_gaps" style="padding: 16px;">
 							<div class="_gaps_s">
 								<div style="font-weight: bold;">{{ i18n.ts._conway.gridSize }}</div>
-								<MkSelect v-model="gridSize">
-									<option value="32">{{ i18n.ts.small }} (32×32)</option>
-									<option value="64">{{ i18n.ts.medium }} (64×64)</option>
-									<option value="128">{{ i18n.ts.large }} (128×128)</option>
-									<option value="256">{{ i18n.ts._conway.xLarge }} (256×256)</option>
-								</MkSelect>
+								<MkSelect v-model="gridSize" :items="gridSizeOptions"></MkSelect>
 							</div>
 							<div class="_gaps_s">
 								<div style="font-weight: bold;">{{ i18n.ts._conway.startingPattern }}</div>
-								<MkSelect v-model="startingPattern">
-									<option value="random">{{ i18n.ts._conway.random }}</option>
-									<option value="glider">{{ i18n.ts._conway.glider }}</option>
-									<option value="blinker">{{ i18n.ts._conway.blinker }}</option>
-									<option value="toad">{{ i18n.ts._conway.toad }}</option>
-									<option value="beacon">{{ i18n.ts._conway.beacon }}</option>
-									<option value="pulsar">{{ i18n.ts._conway.pulsar }}</option>
-									<option value="pentadecathlon">{{ i18n.ts._conway.pentadecathlon }}</option>
-									<option value="empty">{{ i18n.ts._conway.empty }}</option>
-								</MkSelect>
+								<MkSelect v-model="startingPattern" :items="startingPatternOptions"></MkSelect>
 							</div>
 							<div class="_gaps_s">
 								<div style="font-weight: bold;">{{ i18n.ts.speed }}</div>
-								<MkSelect v-model="gameSpeed">
-									<option value="slow">{{ i18n.ts._conway.slow }}</option>
-									<option value="normal">{{ i18n.ts._conway.normal }}</option>
-									<option value="fast">{{ i18n.ts._conway.fast }}</option>
-									<option value="ultra">{{ i18n.ts._conway.ultra }}</option>
-								</MkSelect>
+								<MkSelect v-model="gameSpeed" :items="gameSpeedOptions"></MkSelect>
 							</div>
 							<MkButton primary gradate large rounded inline @click="start">{{ i18n.ts.start }}</MkButton>
 						</div>
@@ -116,6 +97,31 @@ const gridSize = ref<string>('64');
 const startingPattern = ref<string>('random');
 const gameSpeed = ref<string>('normal');
 const gameStarted = ref(false);
+
+const gridSizeOptions = [
+	{ value: '32', label: `${i18n.ts.small} (32×32)` },
+	{ value: '64', label: `${i18n.ts.medium} (64×64)` },
+	{ value: '128', label: `${i18n.ts.large} (128×128)` },
+	{ value: '256', label: `${i18n.ts._conway.xLarge} (256×256)` },
+];
+
+const startingPatternOptions = [
+	{ value: 'random', label: i18n.ts._conway.random },
+	{ value: 'glider', label: i18n.ts._conway.glider },
+	{ value: 'blinker', label: i18n.ts._conway.blinker },
+	{ value: 'toad', label: i18n.ts._conway.toad },
+	{ value: 'beacon', label: i18n.ts._conway.beacon },
+	{ value: 'pulsar', label: i18n.ts._conway.pulsar },
+	{ value: 'pentadecathlon', label: i18n.ts._conway.pentadecathlon },
+	{ value: 'empty', label: i18n.ts._conway.empty },
+];
+
+const gameSpeedOptions = [
+	{ value: 'slow', label: i18n.ts._conway.slow },
+	{ value: 'normal', label: i18n.ts._conway.normal },
+	{ value: 'fast', label: i18n.ts._conway.fast },
+	{ value: 'ultra', label: i18n.ts._conway.ultra },
+];
 
 async function start() {
 	gameStarted.value = true;

@@ -886,6 +886,70 @@ export class MiMeta {
 		default: { },
 	})
 	public clientOptions: Record<string, any>;
+
+	@Column('boolean', {
+		default: false,
+	})
+	public enableStripe: boolean;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public stripePublicKey: string | null;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public stripeSecretKey: string | null;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public stripeWebhookSecret: string | null;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public stripePaymentMethodConfiguration: string | null;
+
+	@Column('varchar', {
+		length: 3,
+		default: 'USD',
+	})
+	public stripeCurrency: string;
+
+	@Column('boolean', {
+		default: false,
+	})
+	public enableCloudflareSfu: boolean;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public cloudflareAccountId: string | null;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public cloudflareApiToken: string | null;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public cloudflareSfuAppId: string | null;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public cloudflareSfuAppSecret: string | null;
 }
 
 export type SoftwareSuspension = {

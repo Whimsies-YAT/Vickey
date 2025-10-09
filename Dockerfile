@@ -109,6 +109,7 @@ COPY --chown=misskey:misskey --from=native-builder /misskey/packages/misskey-js/
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/misskey-reversi/built ./packages/misskey-reversi/built
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/misskey-bubble-game/built ./packages/misskey-bubble-game/built
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/built ./packages/backend/built
+COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/lib ./packages/backend/lib
 COPY --chown=misskey:misskey --from=native-builder /misskey/fluent-emojis /misskey/fluent-emojis
 COPY --chown=misskey:misskey . ./
 

@@ -12,6 +12,8 @@
  * quote - 投稿が引用Renoteされた
  * reaction - 投稿にリアクションされた
  * pollEnded - 自分のアンケートもしくは自分が投票したアンケートが終了した
+ * scheduledNotePosted - 予約したノートが投稿された
+ * scheduledNotePostFailed - 予約したノートの投稿に失敗した
  * receiveFollowRequest - フォローリクエストされた
  * followRequestAccepted - 自分の送ったフォローリクエストが承認された
  * roleAssigned - ロールが付与された
@@ -22,6 +24,8 @@
  * createToken - トークン作成
  * app - アプリ通知
  * test - テスト通知（サーバー側）
+ * voiceCall - 音声通話の着信
+ * voiceCallEnded - 音声通話が終了した
  */
 export const notificationTypes = [
 	'note',
@@ -32,6 +36,8 @@ export const notificationTypes = [
 	'quote',
 	'reaction',
 	'pollEnded',
+	'scheduledNotePosted',
+	'scheduledNotePostFailed',
 	'receiveFollowRequest',
 	'followRequestAccepted',
 	'roleAssigned',
@@ -42,6 +48,8 @@ export const notificationTypes = [
 	'createToken',
 	'app',
 	'test',
+	'voiceCall',
+	'voiceCallEnded',
 ] as const;
 
 export const groupedNotificationTypes = [
@@ -130,6 +138,9 @@ export const moderationLogTypes = [
 	'deleteGalleryPost',
 	'deleteChatRoom',
 	'updateProxyAccountDescription',
+	'hardDeleteNote',
+	'viewDeletedNote',
+	'listDeletedNotes',
 ] as const;
 
 export type ModerationLogPayloads = {
@@ -400,6 +411,26 @@ export type ModerationLogPayloads = {
 	updateProxyAccountDescription: {
 		before: string | null;
 		after: string | null;
+	};
+	hardDeleteNote: {
+		noteId: string;
+		noteUserId: string;
+		noteUserUsername: string;
+		noteUserHost: string | null;
+		note: any;
+	};
+	viewDeletedNote: {
+		noteId: string;
+		noteUserId: string;
+		noteText: string;
+		isDeleted: boolean;
+	};
+	listDeletedNotes: {
+		count: number;
+		limit: number;
+		userId: string | null;
+		deletedAfter: string | null;
+		deletedBefore: string | null;
 	};
 };
 

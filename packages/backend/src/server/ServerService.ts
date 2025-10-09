@@ -31,9 +31,12 @@ import { FileServerService } from './FileServerService.js';
 import { HealthServerService } from './HealthServerService.js';
 import { ClientServerService } from './web/ClientServerService.js';
 import { OpenApiServerService } from './api/openapi/OpenApiServerService.js';
+import { RateLimiterService } from './api/RateLimiterService.js';
 import { OAuth2ProviderService } from './oauth/OAuth2ProviderService.js';
 import { OAuthAppServerService } from './oauth/OAuthAppServerService.js';
 import { IconService } from './IconService.js';
+import { StripeWebhookServerService } from './StripeWebhookServerService.js';
+import { getIpHash } from '@/misc/get-ip-hash.js';
 
 const _dirname = fileURLToPath(new URL('.', import.meta.url));
 
@@ -71,9 +74,11 @@ export class ServerService implements OnApplicationShutdown {
 		private clientServerService: ClientServerService,
 		private globalEventService: GlobalEventService,
 		private loggerService: LoggerService,
+		private rateLimiterService: RateLimiterService,
 		private oauth2ProviderService: OAuth2ProviderService,
 		private oauthAppServerService: OAuthAppServerService,
 		private iconService: IconService,
+		private stripeWebhookServerService: StripeWebhookServerService,
 	) {
 		this.logger = this.loggerService.getLogger('server', 'gray');
 	}
@@ -81,7 +86,7 @@ export class ServerService implements OnApplicationShutdown {
 	@bindThis
 	public async launch(): Promise<void> {
 		const fastify = Fastify({
-			trustProxy: true,
+			trustProxy: this.config.trustProxy ?? true,
 			logger: false,
 		});
 		this.#fastify = fastify;
@@ -156,8 +161,30 @@ export class ServerService implements OnApplicationShutdown {
 		fastify.register(this.oauthAppServerService.createServer.bind(this.oauthAppServerService));
 		fastify.register(this.oauth2ProviderService.createTokenServer, { prefix: '/oauth/token' });
 		fastify.register(this.oauth2ProviderService.createRevokeServer, { prefix: '/oauth/revoke' });
-		fastify.register(this.oauth2ProviderService.createServer, { prefix: '/oauth' });
+		await fastify.register(async (fastify) => {
+			fastify.addHook('preHandler', async (request, reply) => {
+				const rateLimit = await this.rateLimiterService.limit({
+					key: 'oauth-general',
+					duration: 60 * 60 * 1000,
+					max: 300,
+					minInterval: 250
+				}, getIpHash(request.ip));
+
+				if (rateLimit != null) {
+					reply.code(429);
+					reply.header('Retry-After', Math.round(rateLimit.info.reset / 1000));
+					reply.send({
+						error: 'too_many_requests',
+						error_description: 'Rate limit exceeded for OAuth endpoint. Please try again later.',
+					});
+					return;
+				}
+			});
+
+			await this.oauth2ProviderService.createServer(fastify);
+		}, { prefix: '/oauth' });
 		fastify.register(this.healthServerService.createServer, { prefix: '/healthz' });
+		fastify.register(this.stripeWebhookServerService.createServer);
 
 		fastify.get<{ Params: { path: string }; Querystring: { static?: any; badge?: any; }; }>('/emoji/:path(.*)', async (request, reply) => {
 			const path = request.params.path;

@@ -11,7 +11,8 @@ import rename from 'rename';
 import sharp from 'sharp';
 import { sharpBmp } from '@misskey-dev/sharp-read-bmp';
 import type { Config } from '@/config.js';
-import type { MiDriveFile, DriveFilesRepository } from '@/models/_.js';
+import type { MiDriveFile, DriveFilesRepository, MiMeta, MetasRepository } from '@/models/_.js';
+import { IsNull } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import { createTemp } from '@/misc/create-temp.js';
 import { FILE_TYPE_BROWSERSAFE } from '@/const.js';
@@ -24,6 +25,7 @@ import { InternalStorageService } from '@/core/InternalStorageService.js';
 import { contentDisposition } from '@/misc/content-disposition.js';
 import { FileInfoService } from '@/core/FileInfoService.js';
 import { LoggerService } from '@/core/LoggerService.js';
+import { S3Service } from '@/core/S3Service.js';
 import { bindThis } from '@/decorators.js';
 import { isMimeImage } from '@/misc/is-mime-image.js';
 import { correctFilename } from '@/misc/correct-filename.js';
@@ -46,16 +48,45 @@ export class FileServerService {
 		@Inject(DI.driveFilesRepository)
 		private driveFilesRepository: DriveFilesRepository,
 
+		@Inject(DI.metasRepository)
+		private metasRepository: MetasRepository,
+
 		private fileInfoService: FileInfoService,
 		private downloadService: DownloadService,
 		private imageProcessingService: ImageProcessingService,
 		private videoProcessingService: VideoProcessingService,
 		private internalStorageService: InternalStorageService,
+		private s3Service: S3Service,
 		private loggerService: LoggerService,
 	) {
 		this.logger = this.loggerService.getLogger('server', 'gray');
 
 		//this.createServer = this.createServer.bind(this);
+	}
+
+	@bindThis
+	private handleRangeRequest(
+		filePath: string,
+		fileSize: number,
+		range: string,
+		reply: any
+	): NodeJS.ReadableStream | null {
+		if (!range || fileSize <= 0) return null;
+
+		const parts = range.replace(/bytes=/, '').split('-');
+		const start = parseInt(parts[0], 10);
+		let end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+		if (end > fileSize) {
+			end = fileSize - 1;
+		}
+		const chunksize = end - start + 1;
+
+		reply.header('Content-Range', `bytes ${start}-${end}/${fileSize}`);
+		reply.header('Accept-Ranges', 'bytes');
+		reply.header('Content-Length', chunksize);
+		reply.code(206);
+
+		return fs.createReadStream(filePath, { start, end });
 	}
 
 	@bindThis
@@ -120,7 +151,7 @@ export class FileServerService {
 	@bindThis
 	private async sendDriveFile(request: FastifyRequest<{ Params: { key: string; } }>, reply: FastifyReply) {
 		const key = request.params.key;
-		const file = await this.getFileFromKey(key).then();
+		const file = await this.getFileFromKey(key);
 
 		if (file === '404') {
 			reply.code(404);
@@ -138,17 +169,43 @@ export class FileServerService {
 			if (file.state === 'remote') {
 				let image: IImageStreamable | null = null;
 
-				if (file.fileRole === 'thumbnail') {
-					if (isMimeImage(file.mime, 'sharp-convertible-image-with-bmp')) {
-						reply.header('Cache-Control', 'max-age=31536000, immutable');
+				const isInternalUrlFormat = file.url.startsWith(`${this.config.url}/files/`);
 
-						const url = new URL(`${this.config.mediaProxy}/static.webp`);
-						url.searchParams.set('url', file.url);
-						url.searchParams.set('static', '1');
+				if (!isInternalUrlFormat) {
+					if (file.fileRole === 'thumbnail') {
+						if (isMimeImage(file.mime, 'sharp-convertible-image-with-bmp')) {
+							reply.header('Cache-Control', 'max-age=31536000, immutable');
 
-						file.cleanup();
-						return await reply.redirect(url.toString(), 301);
-					} else if (file.mime.startsWith('video/')) {
+							const url = new URL(`${this.config.mediaProxy}/static.webp`);
+							url.searchParams.set('url', file.url);
+							url.searchParams.set('static', '1');
+
+							file.cleanup();
+							return await reply.redirect(url.toString(), 301);
+						} else if (file.mime.startsWith('video/')) {
+							const externalThumbnail = this.videoProcessingService.getExternalVideoThumbnailUrl(file.url);
+							if (externalThumbnail) {
+								file.cleanup();
+								return await reply.redirect(externalThumbnail, 301);
+							}
+
+							image = await this.videoProcessingService.generateVideoThumbnail(file.path);
+						}
+					}
+
+					if (file.fileRole === 'webpublic') {
+						if (['image/svg+xml'].includes(file.mime)) {
+							reply.header('Cache-Control', 'max-age=31536000, immutable');
+
+							const url = new URL(`${this.config.mediaProxy}/svg.webp`);
+							url.searchParams.set('url', file.url);
+
+							file.cleanup();
+							return await reply.redirect(url.toString(), 301);
+						}
+					}
+				} else {
+					if (file.fileRole === 'thumbnail' && file.mime.startsWith('video/')) {
 						const externalThumbnail = this.videoProcessingService.getExternalVideoThumbnailUrl(file.url);
 						if (externalThumbnail) {
 							file.cleanup();
@@ -159,48 +216,47 @@ export class FileServerService {
 					}
 				}
 
-				if (file.fileRole === 'webpublic') {
-					if (['image/svg+xml'].includes(file.mime)) {
-						reply.header('Cache-Control', 'max-age=31536000, immutable');
-
-						const url = new URL(`${this.config.mediaProxy}/svg.webp`);
-						url.searchParams.set('url', file.url);
-
-						file.cleanup();
-						return await reply.redirect(url.toString(), 301);
-					}
-				}
-
 				if (!image) {
-					if (request.headers.range && file.file.size > 0) {
-						const range = request.headers.range as string;
-						const parts = range.replace(/bytes=/, '').split('-');
-						const start = parseInt(parts[0], 10);
-						let end = parts[1] ? parseInt(parts[1], 10) : file.file.size - 1;
-						if (end > file.file.size) {
-							end = file.file.size - 1;
+					if (file.stream) {
+						image = {
+							data: file.stream as any,
+							ext: file.ext,
+							type: file.mime,
+						};
+					} else if (file.path) {
+						const fileSize = file.size || 0;
+						if (request.headers.range && fileSize > 0) {
+							const range = request.headers.range as string;
+							const parts = range.replace(/bytes=/, '').split('-');
+							const start = parseInt(parts[0], 10);
+							let end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+							if (end > fileSize) {
+								end = fileSize - 1;
+							}
+							const chunksize = end - start + 1;
+
+							image = {
+								data: fs.createReadStream(file.path, {
+									start,
+									end,
+								}),
+								ext: file.ext,
+								type: file.mime,
+							};
+
+							reply.header('Content-Range', `bytes ${start}-${end}/${fileSize}`);
+							reply.header('Accept-Ranges', 'bytes');
+							reply.header('Content-Length', chunksize);
+							reply.code(206);
+						} else {
+							image = {
+								data: fs.createReadStream(file.path),
+								ext: file.ext,
+								type: file.mime,
+							};
 						}
-						const chunksize = end - start + 1;
-
-						image = {
-							data: fs.createReadStream(file.path, {
-								start,
-								end,
-							}),
-							ext: file.ext,
-							type: file.mime,
-						};
-
-						reply.header('Content-Range', `bytes ${start}-${end}/${file.file.size}`);
-						reply.header('Accept-Ranges', 'bytes');
-						reply.header('Content-Length', chunksize);
-						reply.code(206);
 					} else {
-						image = {
-							data: fs.createReadStream(file.path),
-							ext: file.ext,
-							type: file.mime,
-						};
+						throw new Error('No stream or path available for file');
 					}
 				}
 
@@ -214,7 +270,7 @@ export class FileServerService {
 				}
 
 				reply.header('Content-Type', FILE_TYPE_BROWSERSAFE.includes(image.type) ? image.type : 'application/octet-stream');
-				reply.header('Content-Length', file.file.size);
+				reply.header('Content-Length', file.size || 0);
 				reply.header('Cache-Control', 'max-age=31536000, immutable');
 				reply.header('Content-Disposition',
 					contentDisposition(
@@ -235,54 +291,18 @@ export class FileServerService {
 				reply.header('Cache-Control', 'max-age=31536000, immutable');
 				reply.header('Content-Disposition', contentDisposition('inline', filename));
 
-				if (request.headers.range && file.file.size > 0) {
-					const range = request.headers.range as string;
-					const parts = range.replace(/bytes=/, '').split('-');
-					const start = parseInt(parts[0], 10);
-					let end = parts[1] ? parseInt(parts[1], 10) : file.file.size - 1;
-					if (end > file.file.size) {
-						end = file.file.size - 1;
-					}
-					const chunksize = end - start + 1;
-					const fileStream = fs.createReadStream(file.path, {
-						start,
-						end,
-					});
-					reply.header('Content-Range', `bytes ${start}-${end}/${file.file.size}`);
-					reply.header('Accept-Ranges', 'bytes');
-					reply.header('Content-Length', chunksize);
-					reply.code(206);
-					return fileStream;
-				}
-
-				return fs.createReadStream(file.path);
+				const nonOriginalFileSize = file.file?.size || 0;
+				const rangeStream = this.handleRangeRequest(file.path, nonOriginalFileSize, request.headers.range as string, reply);
+				return rangeStream || fs.createReadStream(file.path);
 			} else {
-				reply.header('Content-Type', FILE_TYPE_BROWSERSAFE.includes(file.file.type) ? file.file.type : 'application/octet-stream');
-				reply.header('Content-Length', file.file.size);
+				reply.header('Content-Type', FILE_TYPE_BROWSERSAFE.includes(file.file?.type || '') ? (file.file?.type || 'application/octet-stream') : 'application/octet-stream');
+				reply.header('Content-Length', file.file?.size || 0);
 				reply.header('Cache-Control', 'max-age=31536000, immutable');
 				reply.header('Content-Disposition', contentDisposition('inline', file.filename));
 
-				if (request.headers.range && file.file.size > 0) {
-					const range = request.headers.range as string;
-					const parts = range.replace(/bytes=/, '').split('-');
-					const start = parseInt(parts[0], 10);
-					let end = parts[1] ? parseInt(parts[1], 10) : file.file.size - 1;
-					if (end > file.file.size) {
-						end = file.file.size - 1;
-					}
-					const chunksize = end - start + 1;
-					const fileStream = fs.createReadStream(file.path, {
-						start,
-						end,
-					});
-					reply.header('Content-Range', `bytes ${start}-${end}/${file.file.size}`);
-					reply.header('Accept-Ranges', 'bytes');
-					reply.header('Content-Length', chunksize);
-					reply.code(206);
-					return fileStream;
-				}
-
-				return fs.createReadStream(file.path);
+				const originalFileSize = file.file?.size || 0;
+				const rangeStream = this.handleRangeRequest(file.path, originalFileSize, request.headers.range as string, reply);
+				return rangeStream || fs.createReadStream(file.path);
 			}
 		} catch (e) {
 			if ('cleanup' in file) file.cleanup();
@@ -420,13 +440,14 @@ export class FileServerService {
 			}
 
 			if (!image) {
-				if (request.headers.range && file.file && file.file.size > 0) {
+				const proxyFileSize = file.file?.size || 0;
+				if (request.headers.range && proxyFileSize > 0) {
 					const range = request.headers.range as string;
 					const parts = range.replace(/bytes=/, '').split('-');
 					const start = parseInt(parts[0], 10);
-					let end = parts[1] ? parseInt(parts[1], 10) : file.file.size - 1;
-					if (end > file.file.size) {
-						end = file.file.size - 1;
+					let end = parts[1] ? parseInt(parts[1], 10) : proxyFileSize - 1;
+					if (end > proxyFileSize) {
+						end = proxyFileSize - 1;
 					}
 					const chunksize = end - start + 1;
 
@@ -439,7 +460,7 @@ export class FileServerService {
 						type: file.mime,
 					};
 
-					reply.header('Content-Range', `bytes ${start}-${end}/${file.file.size}`);
+					reply.header('Content-Range', `bytes ${start}-${end}/${proxyFileSize}`);
 					reply.header('Accept-Ranges', 'bytes');
 					reply.header('Content-Length', chunksize);
 					reply.code(206);
@@ -519,7 +540,7 @@ export class FileServerService {
 
 	@bindThis
 	private async getFileFromKey(key: string): Promise<
-		{ state: 'remote'; fileRole: 'thumbnail' | 'webpublic' | 'original'; file: MiDriveFile; filename: string; url: string; mime: string; ext: string | null; path: string; cleanup: () => void; }
+		{ state: 'remote'; fileRole: 'thumbnail' | 'webpublic' | 'original'; file: MiDriveFile; filename: string; url: string; mime: string; ext: string | null; path: string; cleanup: () => void; stream?: NodeJS.ReadableStream; size?: number; }
 		| { state: 'stored_internal'; fileRole: 'thumbnail' | 'webpublic' | 'original'; file: MiDriveFile; filename: string; mime: string; ext: string | null; path: string; }
 		| '404'
 		| '204'
@@ -537,29 +558,69 @@ export class FileServerService {
 		const isWebpublic = file.webpublicAccessKey === key;
 
 		if (!file.storedInternal) {
-			if (!(file.isLink && file.uri)) return '204';
-			const result = await this.downloadAndDetectTypeFromUrl(file.uri);
-			file.size = (await fs.promises.stat(result.path)).size;	// DB file.sizeは正確とは限らないので
-			return {
-				...result,
-				url: file.uri,
-				fileRole: isThumbnail ? 'thumbnail' : isWebpublic ? 'webpublic' : 'original',
-				file,
-				filename: file.name,
-			};
+			if (file.isLink && file.uri) {
+				const result = await this.downloadAndDetectTypeFromUrl(file.uri);
+				file.size = (await fs.promises.stat(result.path)).size;	// DB file.sizeは正確とは限らないので
+				return {
+					...result,
+					url: file.uri,
+					fileRole: isThumbnail ? 'thumbnail' : isWebpublic ? 'webpublic' : 'original',
+					file,
+					filename: file.name,
+				};
+			} else {
+				// Check if physicalKey exists for non-thumbnail/webpublic files
+				if (!isThumbnail && !isWebpublic && !file.physicalKey) {
+					return '404';
+				}
+
+				const result = await this.downloadFromS3(file, key);
+				if (result === '404') return '404';
+				return {
+					...result,
+					fileRole: isThumbnail ? 'thumbnail' : isWebpublic ? 'webpublic' : 'original',
+					file,
+					filename: file.name,
+				};
+			}
 		}
 
-		const path = this.internalStorageService.resolvePath(key);
+		// For deduplicated files, use physicalKey to access the actual file
+		// For original files, physicalKey equals accessKey, so this works for both cases
+		let physicalPath: string;
+
+		if (file.physicalKey && file.physicalKey !== file.accessKey) {
+			const originalFile = await this.driveFilesRepository.createQueryBuilder('file')
+				.where('file.physicalKey = :physicalKey', { physicalKey: file.physicalKey })
+				.orderBy('file.id', 'ASC')
+				.getOne();
+
+			if (originalFile) {
+				if (isThumbnail && originalFile.thumbnailAccessKey) {
+					physicalPath = this.internalStorageService.resolvePath(originalFile.thumbnailAccessKey);
+				} else if (isWebpublic && originalFile.webpublicAccessKey) {
+					physicalPath = this.internalStorageService.resolvePath(originalFile.webpublicAccessKey);
+				} else if (!isThumbnail && !isWebpublic && originalFile.accessKey) {
+					physicalPath = this.internalStorageService.resolvePath(originalFile.accessKey);
+				} else {
+					physicalPath = this.internalStorageService.resolvePath(key);
+				}
+			} else {
+				physicalPath = this.internalStorageService.resolvePath(key);
+			}
+		} else {
+			physicalPath = this.internalStorageService.resolvePath(key);
+		}
 
 		if (isThumbnail || isWebpublic) {
-			const { mime, ext } = await this.fileInfoService.detectType(path);
+			const { mime, ext } = await this.fileInfoService.detectType(physicalPath);
 			return {
 				state: 'stored_internal',
 				fileRole: isThumbnail ? 'thumbnail' : 'webpublic',
 				file,
 				filename: file.name,
 				mime, ext,
-				path,
+				path: physicalPath,
 			};
 		}
 
@@ -571,7 +632,79 @@ export class FileServerService {
 			// 古いファイルは修正前のmimeを持っているのでできるだけ修正してあげる
 			mime: this.fileInfoService.fixMime(file.type),
 			ext: null,
-			path,
+			path: physicalPath,
 		};
+	}
+
+	@bindThis
+	private async downloadFromS3(file: MiDriveFile, key: string): Promise<
+		{ state: 'remote'; mime: string; ext: string | null; path: string; cleanup: () => void; filename: string; url: string; stream?: NodeJS.ReadableStream; size?: number; }
+		| '404'
+	> {
+		try {
+			const meta = await this.metasRepository.findOne({ where: {} });
+			if (!meta || !meta.objectStorageBucket) {
+				return '404';
+			}
+
+			const isThumbnail = file.thumbnailAccessKey === key;
+			const isWebpublic = file.webpublicAccessKey === key;
+
+			let s3Key: string;
+			if (isThumbnail) {
+				s3Key = file.thumbnailPhysicalKey || '';
+				if (!s3Key) {
+					this.logger.warn(`Thumbnail physical key not found for file ${file.id}`);
+					return '404';
+				}
+			} else if (isWebpublic) {
+				s3Key = file.webpublicPhysicalKey || '';
+				if (!s3Key) {
+					this.logger.warn(`Webpublic physical key not found for file ${file.id}`);
+					return '404';
+				}
+			} else {
+				s3Key = file.physicalKey || '';
+				if (!s3Key) {
+					this.logger.warn(`Physical key not found for file ${file.id}`);
+					return '404';
+				}
+			}
+
+			this.logger.debug(`Downloading S3 file: ${s3Key} for file ${file.id} (isThumbnail: ${isThumbnail}, isWebpublic: ${isWebpublic})`);
+
+			this.logger.info(`Attempting to get S3 object: bucket=${meta.objectStorageBucket}, key=${s3Key}`);
+			const s3Object = await this.s3Service.getObjectStream(meta, s3Key);
+			this.logger.info(`Successfully got S3 object: ${s3Key}, contentLength=${s3Object.contentLength}`);
+
+			let mime = file.type;
+			let ext: string | null = null;
+
+			if (s3Object.contentType && s3Object.contentType !== 'application/octet-stream') {
+				mime = s3Object.contentType;
+			}
+
+			const nameMatch = file.name.match(/\.([^.]+)$/);
+			if (nameMatch) {
+				ext = nameMatch[1];
+			} else if (mime.startsWith('image/')) {
+				ext = mime.split('/')[1];
+			}
+
+			return {
+				state: 'remote' as const,
+				mime,
+				ext,
+				path: '',
+				cleanup: () => {},
+				filename: file.name,
+				url: file.url,
+				stream: s3Object.stream,
+				size: s3Object.contentLength || file.size,
+			};
+		} catch (e) {
+			this.logger.warn(`Failed to download S3 file: ${e}`);
+			return '404';
+		}
 	}
 }

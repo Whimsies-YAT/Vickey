@@ -48,6 +48,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</MkFolder>
 				</SearchMarker>
 			</div>
+
 			<MkFolder>
 				<template #label><SearchLabel>Text-To-Speech</SearchLabel></template>
 				<div class="_gaps_m">
@@ -75,48 +76,29 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<template #label>Example Text</template>
 							</MkInput>
 						</div>
-						<MkSelect v-model="hfexampleLang">
+						<MkSelect v-model="hfexampleLang" :items="hfexampleLangOptions">
 							<template #label>Example Language</template>
-							<option value="" disabled> </option>
-							<option value="Chinese">中文</option>
-							<option value="English">English</option>
-							<option value="Japanese">日本語</option>
-							<option value="Yue">中文 (粤语)</option>
-							<option value="Korean">한국어</option>
-							<option value="Chinese-English Mixed">中文 - English</option>
-							<option value="Japanese-English Mixed">日本語 - English</option>
-							<option value="Yue-English Mixed">中文 (粤语) - English</option>
-							<option value="Korean-English Mixed">한국어 - English</option>
-							<option value="Multilingual Mixed">Multilingual Mixed</option>
-							<option value="Multilingual Mixed(Yue)">Multilingual Mixed (Yue)</option>
 						</MkSelect>
 						<br />
 						<MkSwitch v-model="hfdas">
 							<template #label>Whether to directly adjust the speech rate and timebre of the last synthesis result to prevent randomness</template>
 						</MkSwitch>
 						<br />
-						<MkSelect v-model="hfslice">
+						<MkSelect v-model="hfslice" :items="hfsliceOptions">
 							<template #label>Slice</template>
-							<option value="" disabled> </option>
-							<option value="No slice">No slice</option>
-							<option value="Slice once every 4 sentences">Slice once every 4 sentences</option>
-							<option value="Slice per 50 characters">Slice per 50 characters</option>
-							<option value="Slice by Chinese punct">Slice by Chinese punct</option>
-							<option value="Slice by English punct">Slice by English punct</option>
-							<option value="Slice by every punct">Slice by every punct</option>
 						</MkSelect>
-						<MkInput v-model.number="hftopK" type="range" :min="0" :max="100" :step="1">
+						<MkRange v-model="hftopK" :min="0" :max="100" :step="1">
 							<template #label>Set top_k Value: {{ hftopK }}</template>
-						</MkInput>
-						<MkInput v-model.number="hftopP" type="range" :min="0" :max="100" :step="5">
+						</MkRange>
+						<MkRange v-model="hftopP" :min="0" :max="100" :step="5">
 							<template #label>Set top_p Value: {{ hftopP }}</template>
-						</MkInput>
-						<MkInput v-model.number="hfTemperature" type="range" :min="0" :max="100" :step="5">
+						</MkRange>
+						<MkRange v-model="hfTemperature" :min="0" :max="100" :step="5">
 							<template #label>Set Temperature Value: {{ hfTemperature }}</template>
-						</MkInput>
-						<MkInput v-model.number="hfSpeedRate" type="range" :min="60" :max="165" :step="5">
+						</MkRange>
+						<MkRange v-model="hfSpeedRate" :min="60" :max="165" :step="5">
 							<template #label>Set Speed Rate Value: {{ hfSpeedRate }}</template>
-						</MkInput>
+						</MkRange>
 					</div>
 					<MkButton primary @click="save_tts">Save</MkButton>
 				</div>
@@ -158,6 +140,38 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkButton primary @click="save_pd">Save</MkButton>
 				</div>
 			</MkFolder>
+
+			<MkFolder>
+				<template #label><SearchLabel>Cloudflare SFU (WebRTC Voice Call)</SearchLabel></template>
+
+				<div class="_gaps_m">
+					<MkSwitch v-model="enableCloudflareSfu">
+						<template #label><SearchLabel>Enable Cloudflare SFU</SearchLabel></template>
+					</MkSwitch>
+
+					<MkInput v-model="cloudflareAccountId">
+						<template #prefix><i class="ti ti-user"></i></template>
+						<template #label><SearchLabel>Cloudflare Account ID</SearchLabel></template>
+					</MkInput>
+
+					<MkInput v-model="cloudflareApiToken" type="password">
+						<template #prefix><i class="ti ti-key"></i></template>
+						<template #label><SearchLabel>Cloudflare API Token</SearchLabel></template>
+					</MkInput>
+
+					<MkInput v-model="cloudflareSfuAppId">
+						<template #prefix><i class="ti ti-app-window"></i></template>
+						<template #label><SearchLabel>Cloudflare SFU App ID</SearchLabel></template>
+					</MkInput>
+
+					<MkInput v-model="cloudflareSfuAppSecret" type="password">
+						<template #prefix><i class="ti ti-lock"></i></template>
+						<template #label><SearchLabel>Cloudflare SFU App Secret</SearchLabel></template>
+					</MkInput>
+
+					<MkButton primary @click="save_cloudflare">Save</MkButton>
+				</div>
+			</MkFolder>
 		</SearchMarker>
 	</div>
 </PageWithHeader>
@@ -169,6 +183,7 @@ import MkInput from '@/components/MkInput.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
+import MkRange from '@/components/MkRange.vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { fetchInstance } from '@/instance.js';
@@ -201,6 +216,36 @@ const banCountry = ref(meta.banCountry ?? '');
 const exemptIP = ref(meta.exemptIP ?? '');
 const ip2lProxyAuthKey = ref(meta.ip2lProxyAuthKey ?? '');
 const ip2lProxyIsPro = ref(meta.ip2lProxyIsPro ?? false);
+const enableCloudflareSfu = ref(meta.enableCloudflareSfu ?? false);
+const cloudflareAccountId = ref(meta.cloudflareAccountId ?? '');
+const cloudflareApiToken = ref(meta.cloudflareApiToken ?? '');
+const cloudflareSfuAppId = ref(meta.cloudflareSfuAppId ?? '');
+const cloudflareSfuAppSecret = ref(meta.cloudflareSfuAppSecret ?? '');
+
+const hfexampleLangOptions = [
+	{ value: '', label: ' ', type: 'option' as const },
+	{ value: 'Chinese', label: '中文' },
+	{ value: 'English', label: 'English' },
+	{ value: 'Japanese', label: '日本語' },
+	{ value: 'Yue', label: '中文 (粤语)' },
+	{ value: 'Korean', label: '한국어' },
+	{ value: 'Chinese-English Mixed', label: '中文 - English' },
+	{ value: 'Japanese-English Mixed', label: '日本語 - English' },
+	{ value: 'Yue-English Mixed', label: '中文 (粤语) - English' },
+	{ value: 'Korean-English Mixed', label: '한국어 - English' },
+	{ value: 'Multilingual Mixed', label: 'Multilingual Mixed' },
+	{ value: 'Multilingual Mixed(Yue)', label: 'Multilingual Mixed (Yue)' },
+];
+
+const hfsliceOptions = [
+	{ value: '', label: ' ' },
+	{ value: 'No slice', label: 'No slice' },
+	{ value: 'Slice once every 4 sentences', label: 'Slice once every 4 sentences' },
+	{ value: 'Slice per 50 characters', label: 'Slice per 50 characters' },
+	{ value: 'Slice by Chinese punct', label: 'Slice by Chinese punct' },
+	{ value: 'Slice by English punct', label: 'Slice by English punct' },
+	{ value: 'Slice by every punct', label: 'Slice by every punct' },
+];
 
 function save_deepl() {
     os.apiWithDialog('admin/update-meta', {
@@ -273,6 +318,18 @@ function addRestrictedArea() {
 	const newArea = gdprRegions.join('\n') + '\n';
 
 	banCountry.value = newArea + banCountry.value;
+}
+
+function save_cloudflare() {
+	os.apiWithDialog('admin/update-meta', {
+		enableCloudflareSfu: enableCloudflareSfu.value,
+		cloudflareAccountId: cloudflareAccountId.value || null,
+		cloudflareApiToken: cloudflareApiToken.value || null,
+		cloudflareSfuAppId: cloudflareSfuAppId.value || null,
+		cloudflareSfuAppSecret: cloudflareSfuAppSecret.value || null,
+	}).then(() => {
+		fetchInstance(true);
+	});
 }
 
 const headerActions = computed(() => []);

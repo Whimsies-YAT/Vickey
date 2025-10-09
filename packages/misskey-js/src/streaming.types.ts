@@ -32,6 +32,12 @@ type ReversiUpdateSettings<K extends ReversiUpdateKey> = {
 	value: ReversiGameDetailed[K];
 };
 
+type IceServer = {
+	urls: string | string[];
+	username?: string;
+	credential?: string;
+};
+
 export type Channels = {
 	main: {
 		params: null;
@@ -64,8 +70,69 @@ export type Channels = {
 			readAntenna: (payload: Antenna) => void;
 			receiveFollowRequest: (payload: User) => void;
 			announcementCreated: (payload: AnnouncementCreated) => void;
+			voiceCall: (payload: {
+				type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'tracksReady' | 'readyToPull' | 'pullAnswered' | 'pullCompleted' | 'switchToSfu' | 'switchedToSfu' | 'restored';
+				callId?: string;
+				from?: string;
+				peerId?: string;
+				isIncoming?: boolean;
+				state?: 'ringing' | 'connecting' | 'connected';
+				mode?: 'auto' | 'p2p' | 'sfu';
+				currentMode?: 'p2p' | 'sfu';
+				iceServers?: IceServer[];
+				sessionId?: string;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				answer?: any;
+				signalType?: string;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				signalData?: any;
+				message?: string;
+			}) => void;
 		};
-		receives: null;
+		receives: {
+			'voiceCall:initiate': {
+				recipientId: string;
+				mode?: 'auto' | 'p2p' | 'sfu';
+			};
+			'voiceCall:answer': {
+				callId: string;
+			};
+			'voiceCall:reject': {
+				callId: string;
+			};
+			'voiceCall:end': {
+				callId: string;
+			};
+			'voiceCall:pushTracks': {
+				callId: string;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				offer: any;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				tracks: any[];
+			};
+			'voiceCall:tracksReady': {
+				callId: string;
+			};
+			'voiceCall:pullTracks': {
+				callId: string;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				offer: any;
+			};
+			'voiceCall:answerPull': {
+				callId: string;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				answer: any;
+			};
+			'voiceCall:signal': {
+				callId: string;
+				signalType: string;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				signalData: any;
+			};
+			'voiceCall:switchToSfu': {
+				callId: string;
+			};
+		};
 	};
 	homeTimeline: {
 		params: {
@@ -203,6 +270,14 @@ export type Channels = {
 				reporterId: string;
 				comment: string;
 			}
+		};
+		receives: null;
+	};
+	reversi: {
+		params: null;
+		events: {
+			matched: (payload: { game: ReversiGameDetailed }) => void;
+			invited: (payload: { user: User }) => void;
 		};
 		receives: null;
 	};

@@ -364,6 +364,70 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</MkFolder>
 				</SearchMarker>
 
+				<SearchMarker v-slot="slotProps" :keywords="['stripe', 'payment']">
+					<MkFolder :defaultOpen="slotProps.isParentOfTarget">
+						<template #icon><SearchIcon><i class="ti ti-credit-card"></i></SearchIcon></template>
+						<template #label><SearchLabel>{{ i18n.ts._stripe.settings }}</SearchLabel></template>
+						<template v-if="stripeForm.modified.value" #footer>
+							<MkFormFooter :form="stripeForm"/>
+						</template>
+
+						<div class="_gaps">
+							<SearchMarker :keywords="['enable', 'stripe']">
+								<MkSwitch v-model="stripeForm.state.enableStripe">
+									<template #label><SearchLabel>{{ i18n.ts._stripe.enable }}</SearchLabel><span v-if="stripeForm.modifiedStates.enableStripe" class="_modified">{{ i18n.ts.modified }}</span></template>
+									<template #caption><SearchText>{{ i18n.ts._stripe.enableDescription }}</SearchText></template>
+								</MkSwitch>
+							</SearchMarker>
+
+							<template v-if="stripeForm.state.enableStripe">
+								<MkInfo>{{ i18n.ts._stripe.configurationInfo }}</MkInfo>
+
+								<SearchMarker :keywords="['public', 'key']">
+									<MkInput v-model="stripeForm.state.stripePublicKey">
+										<template #label><SearchLabel>{{ i18n.ts._stripe.publicKey }}</SearchLabel><span v-if="stripeForm.modifiedStates.stripePublicKey" class="_modified">{{ i18n.ts.modified }}</span></template>
+										<template #caption><SearchText>{{ i18n.ts._stripe.publicKeyDescription }}</SearchText></template>
+										<template #prefix><i class="ti ti-key"></i></template>
+									</MkInput>
+								</SearchMarker>
+
+								<SearchMarker :keywords="['secret', 'key']">
+									<MkInput v-model="stripeForm.state.stripeSecretKey" type="password">
+										<template #label><SearchLabel>{{ i18n.ts._stripe.secretKey }}</SearchLabel><span v-if="stripeForm.modifiedStates.stripeSecretKey" class="_modified">{{ i18n.ts.modified }}</span></template>
+										<template #caption><SearchText>{{ i18n.ts._stripe.secretKeyDescription }}</SearchText></template>
+										<template #prefix><i class="ti ti-key"></i></template>
+									</MkInput>
+								</SearchMarker>
+
+								<SearchMarker :keywords="['webhook', 'secret']">
+									<MkInput v-model="stripeForm.state.stripeWebhookSecret" type="password">
+										<template #label><SearchLabel>{{ i18n.ts._stripe.webhookSecret }}</SearchLabel><span v-if="stripeForm.modifiedStates.stripeWebhookSecret" class="_modified">{{ i18n.ts.modified }}</span></template>
+										<template #caption><SearchText>{{ i18n.ts._stripe.webhookSecretDescription }}</SearchText></template>
+										<template #prefix><i class="ti ti-webhook"></i></template>
+									</MkInput>
+								</SearchMarker>
+
+								<SearchMarker :keywords="['payment', 'method', 'configuration']">
+									<MkInput v-model="stripeForm.state.stripePaymentMethodConfiguration">
+										<template #label><SearchLabel>{{ i18n.ts._stripe.paymentMethodConfiguration }}</SearchLabel><span v-if="stripeForm.modifiedStates.stripePaymentMethodConfiguration" class="_modified">{{ i18n.ts.modified }}</span></template>
+										<template #caption><SearchText>{{ i18n.ts._stripe.paymentMethodConfigurationDescription }}</SearchText></template>
+										<template #prefix><i class="ti ti-credit-card"></i></template>
+									</MkInput>
+								</SearchMarker>
+
+								<SearchMarker :keywords="['currency', 'payment']">
+									<MkSelect v-model="stripeForm.state.stripeCurrency" :items="currencyOptions">
+										<template #label><SearchLabel>{{ i18n.ts._stripe.currency }}</SearchLabel><span v-if="stripeForm.modifiedStates.stripeCurrency" class="_modified">{{ i18n.ts.modified }}</span></template>
+										<template #caption><SearchText>{{ i18n.ts._stripe.currencyDescription }}</SearchText></template>
+									</MkSelect>
+								</SearchMarker>
+
+								<MkInfo warn>{{ i18n.ts._stripe.securityWarning }}</MkInfo>
+							</template>
+						</div>
+					</MkFolder>
+				</SearchMarker>
+
 				<MkButton primary @click="openSetupWizard">
 					Open setup wizard
 				</MkButton>
@@ -390,6 +454,7 @@ import MkFolder from '@/components/MkFolder.vue';
 import { useForm } from '@/composables/use-form.js';
 import MkFormFooter from '@/components/MkFormFooter.vue';
 import MkRadios from '@/components/MkRadios.vue';
+import MkSelect from '@/components/MkSelect.vue';
 
 const meta = await misskeyApi('admin/meta');
 
@@ -502,6 +567,38 @@ const proxyAccountForm = useForm({
 }, async (state) => {
 	await os.apiWithDialog('admin/update-proxy-account', {
 		description: state.description,
+	});
+	fetchInstance(true);
+});
+
+const currencyOptions = [
+	{ label: `USD - ${i18n.ts._stripe.currencyUSD}`, value: 'USD' },
+	{ label: `EUR - ${i18n.ts._stripe.currencyEUR}`, value: 'EUR' },
+	{ label: `CNY - ${i18n.ts._stripe.currencyCNY}`, value: 'CNY' },
+	{ label: `JPY - ${i18n.ts._stripe.currencyJPY}`, value: 'JPY' },
+	{ label: `GBP - ${i18n.ts._stripe.currencyGBP}`, value: 'GBP' },
+	{ label: `CHF - ${i18n.ts._stripe.currencyCHF}`, value: 'CHF' },
+	{ label: `CAD - ${i18n.ts._stripe.currencyCAD}`, value: 'CAD' },
+	{ label: `AUD - ${i18n.ts._stripe.currencyAUD}`, value: 'AUD' },
+	{ label: `SGD - ${i18n.ts._stripe.currencySGD}`, value: 'SGD' },
+	{ label: `HKD - ${i18n.ts._stripe.currencyHKD}`, value: 'HKD' },
+];
+
+const stripeForm = useForm({
+	enableStripe: meta.enableStripe ?? false,
+	stripePublicKey: meta.stripePublicKey ?? '',
+	stripeSecretKey: meta.stripeSecretKey ?? '',
+	stripeWebhookSecret: meta.stripeWebhookSecret ?? '',
+	stripePaymentMethodConfiguration: meta.stripePaymentMethodConfiguration ?? '',
+	stripeCurrency: meta.stripeCurrency ?? 'USD',
+}, async (state) => {
+	await os.apiWithDialog('admin/update-meta', {
+		enableStripe: state.enableStripe,
+		stripePublicKey: state.stripePublicKey === '' ? null : state.stripePublicKey,
+		stripeSecretKey: state.stripeSecretKey === '' ? null : state.stripeSecretKey,
+		stripeWebhookSecret: state.stripeWebhookSecret === '' ? null : state.stripeWebhookSecret,
+		stripePaymentMethodConfiguration: state.stripePaymentMethodConfiguration === '' ? null : state.stripePaymentMethodConfiguration,
+		stripeCurrency: state.stripeCurrency,
 	});
 	fetchInstance(true);
 });

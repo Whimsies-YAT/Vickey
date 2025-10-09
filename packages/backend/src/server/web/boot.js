@@ -68,7 +68,7 @@
 
 			if (criticalErrors > 1 && !hasRenderedError) {
 				hasRenderedError = true;
-				renderError('SOMETHING_HAPPENED_IN_PROMISE', e);
+				renderError('SOMETHING_HAPPENED_IN_PROMISE', e.reason || e);
 				return;
 			}
 		}

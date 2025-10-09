@@ -46,5 +46,27 @@ export const packedInviteCodeSchema = {
 			type: 'boolean',
 			optional: false, nullable: false,
 		},
+		pendingUser: {
+			type: 'object',
+			optional: false, nullable: true,
+			properties: {
+				username: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
+				emailVerified: {
+					type: 'boolean',
+					optional: false, nullable: false,
+				},
+				isProcessed: {
+					type: 'boolean',
+					optional: false, nullable: false,
+				},
+				result: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
+			},
+		},
 	},
 } as const;

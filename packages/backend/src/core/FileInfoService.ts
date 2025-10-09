@@ -7,10 +7,10 @@ import * as fs from 'node:fs';
 import * as crypto from 'node:crypto';
 import { join } from 'node:path';
 import * as stream from 'node:stream/promises';
+import { spawn } from 'node:child_process';
 import { Injectable } from '@nestjs/common';
 import { FSWatcher } from 'chokidar';
 import * as fileType from 'file-type';
-import FFmpeg from 'fluent-ffmpeg';
 import isSvg from 'is-svg';
 import probeImageSize from 'probe-image-size';
 import { sharpBmp } from '@misskey-dev/sharp-read-bmp';
@@ -28,6 +28,8 @@ import { fileTypeFromFile as FileType } from "file-type";
 export type FileInfo = {
 	size: number;
 	md5: string;
+	sha256: string;
+	fingerprint: string;
 	type: {
 		mime: string;
 		ext: string | null;
@@ -40,6 +42,16 @@ export type FileInfo = {
 	porn: boolean;
 	warnings: string[];
 };
+
+interface FFProbeStream {
+	codec_type: string;
+	[key: string]: any;
+}
+
+interface FFProbeMetadata {
+	streams: FFProbeStream[];
+	[key: string]: any;
+}
 
 const TYPE_OCTET_STREAM = {
 	mime: 'application/octet-stream',
@@ -77,6 +89,8 @@ export class FileInfoService {
 
 		const size = await this.getFileSize(path);
 		const md5 = await this.calcHash(path);
+		const sha256 = await this.calcSha256Hash(path);
+		const fingerprint = this.generateFingerprint(md5, sha256, size);
 
 		let type = await this.detectType(path);
 
@@ -178,6 +192,8 @@ export class FileInfoService {
 		return {
 			size,
 			md5,
+			sha256,
+			fingerprint,
 			type,
 			width,
 			height,
@@ -211,51 +227,28 @@ export class FileInfoService {
 			if (!await this.checkFile(source)) throw new Error("The file is invalid!");
 			const [outDir, disposeOutDir] = await createTempDir();
 			try {
-				const command = FFmpeg()
-					.input(source)
-					.inputOptions([
-						'-skip_frame', 'nokey', // 可能ならキーフレームのみを取得してほしいとする（そうなるとは限らない）
-						'-lowres', '3', // 元の画質でデコードする必要はないので 1/8 画質でデコードしてもよいとする（そうなるとは限らない）
-					])
-					.noAudio()
-					.videoFilters([
-						{
-							filter: 'select', // フレームのフィルタリング
-							options: {
-								e: 'eq(pict_type,PICT_TYPE_I)', // I-Frame のみをフィルタする（VP9 とかはデコードしてみないとわからないっぽい）
-							},
-						},
-						{
-							filter: 'blackframe', // 暗いフレームの検出
-							options: {
-								amount: '0', // 暗さに関わらず全てのフレームで測定値を取る
-							},
-						},
-						{
-							filter: 'metadata',
-							options: {
-								mode: 'select', // フレーム選択モード
-								key: 'lavfi.blackframe.pblack', // フレームにおける暗部の百分率（前のフィルタからのメタデータを参照する）
-								value: '50',
-								function: 'less', // 50% 未満のフレームを選択する（50% 以上暗部があるフレームだと誤検知を招くかもしれないので）
-							},
-						},
-						{
-							filter: 'scale',
-							options: {
-								w: 299,
-								h: 299,
-							},
-						},
-					])
-					.format('image2')
-					.output(join(outDir, '%d.png'))
-					.outputOptions(['-vsync', '0']); // 可変フレームレートにすることで穴埋めをさせない
+				const ffmpegArgs = [
+					'-i', source,
+					'-skip_frame', 'nokey',
+					'-lowres', '3',
+					'-an',
+					'-vf', [
+						'select=eq(pict_type\\,PICT_TYPE_I)',
+						'blackframe=amount=0',
+						'metadata=select:key=lavfi.blackframe.pblack:value=50:function=less',
+						'scale=299:299'
+					].join(','),
+					'-f', 'image2',
+					'-vsync', '0',
+					join(outDir, '%d.png')
+				];
+
 				const results: ReturnType<typeof judgePrediction>[] = [];
 				let frameIndex = 0;
 				let targetIndex = 0;
 				let nextIndex = 1;
-				for await (const path of this.asyncIterateFrames(outDir, command)) {
+
+				for await (const path of this.asyncIterateFrames(outDir, ffmpegArgs)) {
 					try {
 						const index = frameIndex++;
 						if (index !== targetIndex) {
@@ -298,16 +291,26 @@ export class FileInfoService {
 		return [sensitive, porn];
 	}
 
-	private async *asyncIterateFrames(cwd: string, command: FFmpeg.FfmpegCommand): AsyncGenerator<string, void> {
+	private async *asyncIterateFrames(cwd: string, ffmpegArgs: string[]): AsyncGenerator<string, void> {
 		const watcher = new FSWatcher({
 			cwd,
 		});
 		let finished = false;
-		command.once('end', () => {
+
+		const ffmpegProcess = spawn('ffmpeg', ffmpegArgs, {
+			stdio: ['ignore', 'pipe', 'pipe']
+		});
+
+		ffmpegProcess.once('close', () => {
 			finished = true;
 			watcher.close();
 		});
-		command.run();
+
+		ffmpegProcess.once('error', () => {
+			finished = true;
+			watcher.close();
+		});
+
 		for (let i = 1; true; i++) { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 			const current = `${i}.png`;
 			const next = `${i + 1}.png`;
@@ -324,8 +327,8 @@ export class FileInfoService {
 							resolve();
 						}
 					});
-					command.once('end', resolve); // 全てのフレームを処理し終わったなら、最終フレームである現在フレームの書き出しは終わっている
-					command.once('error', reject);
+					ffmpegProcess.once('close', resolve); // 全てのフレームを処理し終わったなら、最終フレームである現在フレームの書き出しは終わっている
+					ffmpegProcess.once('error', reject);
 				});
 				yield framePath;
 			} else if (await this.exists(framePath)) {
@@ -366,15 +369,48 @@ export class FileInfoService {
 		if (!await this.checkFile(path)) throw new Error("The file is invalid!");
 		const sublogger = this.logger.createSubLogger('ffprobe');
 		sublogger.info(`Checking the video file. File path: ${path}`);
+
 		return new Promise((resolve) => {
 			try {
-				FFmpeg.ffprobe(path, (err, metadata) => {
-					if (err) {
-						sublogger.warn(`Could not check the video file. Returns true. File path: ${path}`, err);
+				const ffprobe = spawn('ffprobe', [
+					'-v', 'quiet',
+					'-print_format', 'json',
+					'-show_streams',
+					path
+				], {
+					stdio: ['ignore', 'pipe', 'pipe']
+				});
+
+				let stdout = '';
+				let stderr = '';
+
+				ffprobe.stdout.on('data', (data) => {
+					stdout += data.toString();
+				});
+
+				ffprobe.stderr.on('data', (data) => {
+					stderr += data.toString();
+				});
+
+				ffprobe.on('close', (code) => {
+					if (code !== 0) {
+						sublogger.warn(`Could not check the video file. Returns true. File path: ${path}. ffprobe stderr: ${stderr}`);
 						resolve(true);
 						return;
 					}
-					resolve(metadata.streams.some((stream) => stream.codec_type === 'video'));
+
+					try {
+						const metadata: FFProbeMetadata = JSON.parse(stdout);
+						resolve(metadata.streams.some((stream) => stream.codec_type === 'video'));
+					} catch (parseError) {
+						sublogger.warn(`Could not parse ffprobe output. Returns true. File path: ${path}`, parseError as Error);
+						resolve(true);
+					}
+				});
+
+				ffprobe.on('error', (error) => {
+					sublogger.warn(`Could not check the video file. Returns true. File path: ${path}`, error);
+					resolve(true);
 				});
 			} catch (err) {
 				sublogger.warn(`Could not check the video file. Returns true. File path: ${path}`, err as Error);
@@ -391,7 +427,7 @@ export class FileInfoService {
 		mime: string;
 		ext: string | null;
 	}> {
-	// Check 0 byte
+		// Check 0 byte
 		const fileSize = await this.getFileSize(path);
 		if (fileSize === 0) {
 			return TYPE_OCTET_STREAM;
@@ -400,7 +436,7 @@ export class FileInfoService {
 		const type = await fileType.fileTypeFromFile(path);
 
 		if (type) {
-		// XMLはSVGかもしれない
+			// XMLはSVGかもしれない
 			if (type.mime === 'application/xml' && await this.checkSvg(path)) {
 				return TYPE_SVG;
 			}
@@ -465,6 +501,18 @@ export class FileInfoService {
 		const hash = crypto.createHash('md5').setEncoding('hex');
 		await stream.pipeline(fs.createReadStream(path), hash);
 		return hash.read();
+	}
+
+	@bindThis
+	private async calcSha256Hash(path: string): Promise<string> {
+		const hash = crypto.createHash('sha256').setEncoding('hex');
+		await stream.pipeline(fs.createReadStream(path), hash);
+		return hash.read();
+	}
+
+	@bindThis
+	private generateFingerprint(md5: string, sha256: string, size: number): string {
+		return `${md5}:${sha256}:${size}`;
 	}
 
 	/**

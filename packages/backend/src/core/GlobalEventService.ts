@@ -71,6 +71,14 @@ export interface MainEventTypes {
 	};
 	readAllNotifications: undefined;
 	notificationFlushed: undefined;
+	notificationDeleted: {
+		notificationId: string;
+		type: string;
+		notifierId?: string | null;
+		reaction?: string | null;
+		noteId?: string | null;
+		targetNoteId?: string | null;
+	};
 	unreadNotification: Packed<'Notification'>;
 	unreadAntenna: MiAntenna;
 	newChatMessage: Packed<'ChatMessage'>;
@@ -93,6 +101,20 @@ export interface MainEventTypes {
 	receiveFollowRequest: Packed<'UserLite'>;
 	announcementCreated: {
 		announcement: Packed<'Announcement'>;
+	};
+	voiceCall: {
+		type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'readyToPull' | 'pullAnswered' | 'pullCompleted' | 'switchToSfu';
+		callId?: string;
+		from?: MiUser['id'];
+		by?: MiUser['id'];
+		mode?: 'auto' | 'p2p' | 'sfu';
+		currentMode?: 'p2p' | 'sfu';
+		signalType?: 'iceCandidate' | 'offer' | 'answer';
+		signalData?: any;
+		iceServers?: RTCIceServer[];
+		sessionId?: string;
+		answer?: any;
+		message?: string;
 	};
 }
 

@@ -53,4 +53,9 @@ export class InternalStorageService {
 	public del(key: string) {
 		fs.unlink(this.resolvePath(key), () => {});
 	}
+
+	@bindThis
+	public getFileUrl(key: string) {
+		return `${this.config.url}/files/${key}`;
+	}
 }

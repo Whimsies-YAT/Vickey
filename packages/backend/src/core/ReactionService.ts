@@ -318,6 +318,8 @@ export class ReactionService {
 				.execute();
 		}
 
+		await this.cleanupNotificationsForReaction(note, user.id, exist.reaction);
+
 		this.globalEventService.publishNoteStream(note.id, 'unreacted', {
 			reaction: this.decodeReaction(exist.reaction).reaction,
 			userId: user.id,
@@ -335,6 +337,22 @@ export class ReactionService {
 			trackPromise(dm.execute());
 		}
 		//#endregion
+	}
+
+	@bindThis
+	private async cleanupNotificationsForReaction(note: MiNote, userId: string, reaction: string) {
+		if (note.userHost === null) {
+			const notifications = await this.notificationService.getAllNotifications(note.userId);
+			for (const notification of notifications) {
+				if (notification.data &&
+					notification.data.type === 'reaction' &&
+					notification.data.noteId === note.id &&
+					notification.data.notifierId === userId &&
+					notification.data.reaction === reaction) {
+					await this.notificationService.deleteNotification(note.userId, notification.redisId);
+				}
+			}
+		}
 	}
 
 	/**

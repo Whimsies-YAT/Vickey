@@ -250,6 +250,17 @@ export const paramDef = {
 		enableBcc: { type: 'boolean', nullable: false },
 		bccLimit: { type: 'number', nullable: false },
 		visibleRecipient: { type: 'string', nullable: true },
+		enableStripe: { type: 'boolean' },
+		stripePublicKey: { type: 'string', nullable: true },
+		stripeSecretKey: { type: 'string', nullable: true },
+		stripeWebhookSecret: { type: 'string', nullable: true },
+		stripePaymentMethodConfiguration: { type: 'string', nullable: true },
+		stripeCurrency: { type: 'string', enum: ['USD', 'EUR', 'CNY', 'JPY', 'GBP', 'CHF', 'CAD', 'AUD', 'SGD', 'HKD'] },
+		enableCloudflareSfu: { type: 'boolean' },
+		cloudflareAccountId: { type: 'string', nullable: true },
+		cloudflareApiToken: { type: 'string', nullable: true },
+		cloudflareSfuAppId: { type: 'string', nullable: true },
+		cloudflareSfuAppSecret: { type: 'string', nullable: true },
 	},
 	required: [],
 } as const;
@@ -975,6 +986,88 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					set.visibleRecipient = ps.visibleRecipient;
 				} else {
 					set.visibleRecipient = set.maintainerEmail;
+				}
+			}
+
+			if (ps.enableStripe !== undefined) {
+				set.enableStripe = ps.enableStripe;
+			}
+
+			const hasStripePublicKey = ps.stripePublicKey !== undefined;
+			const hasStripeSecretKey = ps.stripeSecretKey !== undefined;
+
+			if (hasStripePublicKey || hasStripeSecretKey) {
+				const publicKey = ps.stripePublicKey || this.mMeta.stripePublicKey;
+				const secretKey = ps.stripeSecretKey || this.mMeta.stripeSecretKey;
+				const bothEmpty = (!publicKey || publicKey === '') && (!secretKey || secretKey === '');
+				const bothPresent = (publicKey && publicKey !== '') && (secretKey && secretKey !== '');
+
+				if (!bothEmpty && !bothPresent) {
+					throw new Error('Stripe public key and secret key must both be provided or both be empty');
+				}
+
+				if (ps.stripePublicKey !== undefined) {
+					set.stripePublicKey = ps.stripePublicKey === '' ? null : ps.stripePublicKey;
+				}
+
+				if (ps.stripeSecretKey !== undefined) {
+					set.stripeSecretKey = ps.stripeSecretKey === '' ? null : ps.stripeSecretKey;
+				}
+			}
+
+			if (ps.stripeWebhookSecret !== undefined) {
+				if (ps.stripeWebhookSecret === '') {
+					set.stripeWebhookSecret = null;
+				} else {
+					set.stripeWebhookSecret = ps.stripeWebhookSecret;
+				}
+			}
+
+			if (ps.stripePaymentMethodConfiguration !== undefined) {
+				if (ps.stripePaymentMethodConfiguration === '') {
+					set.stripePaymentMethodConfiguration = null;
+				} else {
+					set.stripePaymentMethodConfiguration = ps.stripePaymentMethodConfiguration;
+				}
+			}
+
+			if (ps.stripeCurrency !== undefined) {
+				set.stripeCurrency = ps.stripeCurrency;
+			}
+
+			if (ps.enableCloudflareSfu !== undefined) {
+				set.enableCloudflareSfu = ps.enableCloudflareSfu;
+			}
+
+			if (ps.cloudflareAccountId !== undefined) {
+				if (ps.cloudflareAccountId === '') {
+					set.cloudflareAccountId = null;
+				} else {
+					set.cloudflareAccountId = ps.cloudflareAccountId;
+				}
+			}
+
+			if (ps.cloudflareApiToken !== undefined) {
+				if (ps.cloudflareApiToken === '') {
+					set.cloudflareApiToken = null;
+				} else {
+					set.cloudflareApiToken = ps.cloudflareApiToken;
+				}
+			}
+
+			if (ps.cloudflareSfuAppId !== undefined) {
+				if (ps.cloudflareSfuAppId === '') {
+					set.cloudflareSfuAppId = null;
+				} else {
+					set.cloudflareSfuAppId = ps.cloudflareSfuAppId;
+				}
+			}
+
+			if (ps.cloudflareSfuAppSecret !== undefined) {
+				if (ps.cloudflareSfuAppSecret === '') {
+					set.cloudflareSfuAppSecret = null;
+				} else {
+					set.cloudflareSfuAppSecret = ps.cloudflareSfuAppSecret;
 				}
 			}
 

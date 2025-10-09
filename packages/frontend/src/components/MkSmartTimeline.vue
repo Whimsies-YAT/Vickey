@@ -47,11 +47,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 				tag="div"
 			>
 				<template v-for="note in notes" :key="note.id">
-					<div v-if="showScoreIndicator && scores[note.id]" :class="$style.scoreIndicator">
+					<div v-if="showScoreIndicator" :class="$style.scoreIndicator">
 						<div :class="$style.scoreBar">
-							<div :class="$style.scoreFill" :style="{ width: `${scores[note.id] * 100}%` }"></div>
+							<div
+								:class="scores[note.id] ? $style.scoreFill : $style.scoreUnknown"
+								:style="{ width: scores[note.id] ? `${scores[note.id] * 100}%` : '100%' }"
+							></div>
 						</div>
-						<span :class="$style.scoreText">{{ Math.round(scores[note.id] * 100) }}</span>
+						<span v-if="scores[note.id]" :class="$style.scoreText">{{ Math.round(scores[note.id] * 100) }}</span>
 					</div>
 					<MkNote :class="$style.note" :note="note" :withHardMute="true" :data-scroll-anchor="note.id"/>
 				</template>
@@ -93,6 +96,15 @@ import { $i } from '@/i.js';
 import { i18n } from "../../../frontend-embed/src/i18n";
 import { useStream } from '@/stream.js';
 import { store } from '@/store.js';
+import { useDocumentVisibility } from '@@/js/use-document-visibility.js';
+
+type SmartTimelineResponse =
+	| Misskey.entities.Note[]
+	| { notes: Misskey.entities.Note[]; scores: Record<string, number> };
+
+function isSmartTimelineWithScores(response: SmartTimelineResponse): response is { notes: Misskey.entities.Note[]; scores: Record<string, number> } {
+	return typeof response === 'object' && !Array.isArray(response) && 'notes' in response && Array.isArray(response.notes);
+}
 
 interface SmartTimelineOptions {
 	algorithm?: 'smart' | 'hybrid' | 'social' | 'discovery';
@@ -136,19 +148,34 @@ const noteObserver = ref<IntersectionObserver | null>(null);
 const stream = store.s.realtimeMode ? useStream() : null;
 let connection: Misskey.IChannelConnection<Misskey.Channels['smartTimeline']> | null = null;
 
+let scrollContainer: HTMLElement | null = null;
+const visibility = useDocumentVisibility();
+const isPausingUpdate = ref(false);
+
+function isTop(): boolean {
+	if (scrollContainer == null) return true;
+	if (rootEl.value == null) return true;
+	const scrollTop = scrollContainer.scrollTop;
+	return scrollTop <= 16;
+}
+
 const showModeIndicator = computed(() => props.showModeIndicator && $i);
 const showScoreIndicator = computed(() => props.showScoreIndicator && $i);
 
 function prepend(note: Misskey.entities.Note) {
 	if (!note || notes.value.some(n => n.id === note.id)) return;
 
-	queuedNotes.value.unshift(note);
-
-	if (queuedNotes.value.length > 32) {
-		queuedNotes.value = queuedNotes.value.slice(0, 32);
+	if (isTop() && !isPausingUpdate.value) {
+		notes.value.unshift(note);
+		setupIntersectionObserver();
+	} else {
+		queuedNotes.value.unshift(note);
+		if (queuedNotes.value.length > 32) {
+			queuedNotes.value = queuedNotes.value.slice(0, 32);
+		}
 	}
 
-	recordInteraction(note.id, 'stream_receive', {
+	recordInteraction(note.id, 'view', {
 		source: 'websocket_stream',
 		algorithm: props.algorithm,
 		timestamp: Date.now()
@@ -170,7 +197,6 @@ function connectToStream() {
 		});
 
 		connection.on('note', prepend);
-		console.log('Smart timeline WebSocket connected');
 	} catch (error) {
 		console.error('Failed to connect to smart timeline stream:', error);
 	}
@@ -180,14 +206,13 @@ function disconnectFromStream() {
 	if (connection) {
 		connection.dispose();
 		connection = null;
-		console.log('Smart timeline WebSocket disconnected');
 	}
 }
 
 async function init() {
 	loading.value = true;
 	error.value = false;
-	const isInitialLoad = offset.value === 0;
+	// const isInitialLoad = offset.value === 0;
 	offset.value = 0;
 
 	try {
@@ -198,13 +223,20 @@ async function init() {
 			freshnessWeight: props.freshnessWeight,
 			qualityThreshold: props.qualityThreshold,
 			enableCrossTimelineData: prefer.s.enableCrossTimelineData ?? true,
-		});
+		}) as SmartTimelineResponse;
 
-		notes.value = result;
-		scores.value = {};
+		if (isSmartTimelineWithScores(result)) {
+			notes.value = result.notes;
+			scores.value = result.scores || {};
+			hasMore.value = result.notes.length >= 20;
+			offset.value = result.notes.length;
+		} else {
+			notes.value = result;
+			scores.value = {};
+			hasMore.value = result.length >= 20;
+			offset.value = result.length;
+		}
 		currentMode.value = { type: 'smart', smartRatio: 1.0, reason: i18n.ts._smartTimeline.smartAlgorithmActive };
-		hasMore.value = result.length >= 20;
-		offset.value = result.length;
 
 		setupIntersectionObserver();
 	} catch (err) {
@@ -249,21 +281,16 @@ function setupIntersectionObserver() {
 	}
 }
 
-async function recordDwellTime(noteId: string, dwellTime: number, maxVisibility: number) {
+async function recordDwellTime(noteId: string, dwellTime: number, _maxVisibility: number) {
 	if (!$i) return;
 
 	try {
 		await misskeyApi('notes/interaction', {
-			noteId,
-			interactionType: 'dwell',
+			targetId: noteId,
+			interactionType: 'view',
 			targetType: 'note',
-			context: {
-				dwellTime: Math.round(dwellTime / 1000),
-				maxVisibility: Math.round(maxVisibility * 100),
-				algorithm: props.algorithm,
-				source: 'smart-timeline-component'
-			},
-			implicit: true,
+			duration: Math.round(dwellTime / 1000),
+			source: 'smart-timeline-component',
 		});
 	} catch (err) {
 		console.debug('Failed to record dwell time:', err);
@@ -284,11 +311,19 @@ async function fetchMore() {
 			freshnessWeight: props.freshnessWeight,
 			qualityThreshold: props.qualityThreshold,
 			enableCrossTimelineData: prefer.s.enableCrossTimelineData ?? true,
-		});
+		}) as SmartTimelineResponse;
 
-		notes.value.push(...result);
-		hasMore.value = result.length >= 20;
-		offset.value += result.length;
+		if (isSmartTimelineWithScores(result)) {
+			notes.value.push(...result.notes);
+			Object.assign(scores.value, result.scores || {});
+			hasMore.value = result.notes.length >= 20;
+			offset.value += result.notes.length;
+		} else {
+			// Result is directly an array of notes
+			notes.value.push(...result);
+			hasMore.value = result.length >= 20;
+			offset.value += result.length;
+		}
 
 		setupIntersectionObserver();
 	} catch (err) {
@@ -312,11 +347,10 @@ async function recordInteraction(noteId: string, type: string, context?: any) {
 
 	try {
 		await misskeyApi('notes/interaction', {
-			noteId,
+			targetId: noteId,
 			interactionType: type,
 			targetType: 'note',
-			context: context || {},
-			implicit: type === 'view',
+			source: context?.source || 'smart-timeline',
 		});
 	} catch (err) {
 		console.debug('Failed to record interaction:', err);
@@ -400,7 +434,7 @@ async function openSettings() {
 
 			Object.assign(props, result);
 
-			await reloadTimeline();
+			reloadTimeline();
 
 			os.toast(i18n.ts._smartTimeline.settingsSavedSucc);
 		} catch (err) {
@@ -414,8 +448,21 @@ async function openSettings() {
 
 let refreshInterval: number | null = null;
 
+watch(visibility, () => {
+	if (visibility.value === 'hidden') {
+		isPausingUpdate.value = true;
+	} else {
+		isPausingUpdate.value = false;
+		if (isTop()) {
+			releaseQueue();
+		}
+	}
+});
+
 onMounted(() => {
 	init();
+
+	scrollContainer = window.document.getElementById('misskey_app') || window.document.documentElement;
 
 	if (store.s.realtimeMode) {
 		connectToStream();
@@ -523,6 +570,12 @@ defineExpose({
 .scoreFill {
 	height: 100%;
 	background: linear-gradient(90deg, var(--MI_THEME-warn), var(--MI_THEME-accent), var(--MI_THEME-success));
+	transition: width 0.3s ease;
+}
+
+.scoreUnknown {
+	height: 100%;
+	background: var(--MI_THEME-accent);
 	transition: width 0.3s ease;
 }
 

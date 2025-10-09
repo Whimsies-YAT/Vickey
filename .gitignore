@@ -48,6 +48,12 @@ built
 built-test
 js-built
 /data
+/external/*
+!/external/yume-pdq/
+/packages/backend/lib/*
+!/packages/backend/lib/*.so
+!/packages/backend/lib/*.dylib
+!/packages/backend/lib/*.dll
 /.cache-loader
 /db
 /meili_data
@@ -98,3 +104,6 @@ vite.config.local-dev.ts.timestamp-*
 **/*.dylib
 **/*.dll
 **/deps/
+
+# If using Claude
+CLAUDE.local.md

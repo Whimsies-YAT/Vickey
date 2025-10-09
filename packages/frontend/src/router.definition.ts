@@ -227,6 +227,15 @@ export const ROUTE_DEF = [{
 	path: '/contact',
 	component: page(() => import('@/pages/contact.vue')),
 }, {
+	path: '/payment',
+	component: page(() => import('@/pages/payment.vue')),
+}, {
+	path: '/payment/success',
+	component: page(() => import('@/pages/payment-success.vue')),
+}, {
+	path: '/donate',
+	component: page(() => import('@/pages/donate.vue')),
+}, {
 	path: '/about-misskey',
 	component: page(() => import('@/pages/about-misskey.vue')),
 }, {
@@ -545,6 +554,18 @@ export const ROUTE_DEF = [{
 		name: 'approvals',
 		component: page(() => import('@/pages/admin/approvals.vue')),
 	}, {
+		path: '/deleted-notes',
+		name: 'deleted-notes',
+		component: page(() => import('@/pages/admin/deleted-notes.vue')),
+	}, {
+		path: '/system-logs',
+		name: 'system-logs',
+		component: page(() => import('@/pages/admin/system-logs.vue')),
+	}, {
+		path: '/payments',
+		name: 'payments',
+		component: page(() => import('@/pages/admin/payments.vue')),
+	}, {
 		path: '/',
 		component: page(() => import('@/pages/_empty_.vue')),
 	}],
@@ -632,6 +653,10 @@ export const ROUTE_DEF = [{
 	path: '/conway-game-of-life',
 	component: page(() => import('@/pages/conway-game-of-life.vue')),
 	loginRequired: false,
+}, {
+	path: '/qr',
+	component: page(() => import('@/pages/qr.vue')),
+	loginRequired: true,
 }, {
 	path: '/debug',
 	component: page(() => import('@/pages/debug.vue')),

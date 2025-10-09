@@ -66,7 +66,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			const get = async (id: any) => {
 				i++;
-				const p = await this.notesRepository.findOneBy({ id });
+				const p = await this.notesRepository.findOneBy({ id, isDeleted: false });
 				if (p == null) return;
 
 				if (i > ps.offset!) {

@@ -26,9 +26,10 @@ export const notificationTypes = [
 	'quote',
 	'reaction',
 	'pollEnded',
+	'scheduledNotePosted',
+	'scheduledNotePostFailed',
 	'receiveFollowRequest',
 	'followRequestAccepted',
-	'groupInvited',
 	'app',
 	'roleAssigned',
 	'chatRoomInvitationReceived',
@@ -37,6 +38,8 @@ export const notificationTypes = [
 	'test',
 	'login',
 	'createToken',
+	'voiceCall',
+	'voiceCallEnded',
 ] as const;
 
 export const noteVisibilities = ['public', 'home', 'followers', 'specified'] as const;
@@ -235,12 +238,14 @@ export const rolePolicies = [
 	'chatAvailability',
 	'uploadableFileTypes',
 	'noteDraftLimit',
+	'scheduledNoteLimit',
 	'watermarkAvailable',
 ] as const;
 
 export const queueTypes = [
 	'system',
 	'endedPollNotification',
+	'postScheduledNote',
 	'deliver',
 	'inbox',
 	'db',

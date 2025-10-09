@@ -199,6 +199,10 @@ export const packedMetaLiteSchema = {
 						type: 'integer',
 						optional: false, nullable: false,
 					},
+					isSensitive: {
+						type: 'boolean',
+						optional: true, nullable: false,
+					},
 				},
 			},
 		},
@@ -317,26 +321,6 @@ export const packedMetaLiteSchema = {
 			type: 'boolean',
 			optional: false, nullable: false,
 		},
-		abuseMLCheck: {
-			type: 'boolean',
-			optional: false, nullable: false,
-		},
-		abuseReportMLAction: {
-			type: 'string',
-			optional: false, nullable: false,
-		},
-		abuseMLInfoUrl: {
-			type: 'string',
-			optional: false, nullable: false,
-		},
-		abuseMLInfoToken: {
-			type: 'string',
-			optional: false, nullable: false,
-		},
-		abuseMLInfoScore: {
-			type: 'number',
-			optional: false, nullable: false,
-		},
 		federation: {
 			type: 'string',
 			enum: ['all', 'specified', 'none'],
@@ -353,7 +337,26 @@ export const packedMetaLiteSchema = {
 		visibleRecipient: {
 			type: 'string',
 			optional: false, nullable: true,
-		}
+		},
+		enableStripe: {
+			type: 'boolean',
+			optional: false, nullable: false,
+			default: false,
+		},
+		stripePublicKey: {
+			type: 'string',
+			optional: false, nullable: true,
+		},
+		stripeCurrency: {
+			type: 'string',
+			optional: false, nullable: false,
+			default: 'USD',
+		},
+		enableCloudflareSfu: {
+			type: 'boolean',
+			optional: false, nullable: false,
+			default: false,
+		},
 	},
 } as const;
 
@@ -409,6 +412,11 @@ export const packedMetaDetailedOnlySchema = {
 					type: 'boolean',
 					optional: true, nullable: false,
 					default: true,
+				},
+				stripe: {
+					type: 'boolean',
+					optional: true, nullable: false,
+					default: false,
 				},
 			},
 		},

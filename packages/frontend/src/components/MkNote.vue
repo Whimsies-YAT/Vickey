@@ -84,10 +84,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 						<div v-if="converting || convert" :class="$style.translation">
 							<MkLoading v-if="converting" mini/>
-							<div v-else-if="converturl">
+							<div v-else-if="convert">
 								<!--<b>{{ i18n.tsx.convertedFrom({ x: appearNote.id }) }}: </b>-->
 								<b>{{ 'From ' + appearNote.id }} </b>
-								<MkMediaAudio :audio="converturl"/>
+								<MkMediaAudio :audio="convert"/>
 							</div>
 						</div>
 					</div>
@@ -318,9 +318,8 @@ const translation = ref<Misskey.entities.NotesTranslateResponse | null>(null);
 const translating = ref(false);
 const showTicker = (prefer.s.instanceTicker === 'always') || (prefer.s.instanceTicker === 'remote' && appearNote.user.instance);
 const canRenote = computed(() => ['public', 'home'].includes(appearNote.visibility) || (appearNote.visibility === 'followers' && appearNote.userId === $i?.id));
-const convert = ref<Blob | null>(null);
+const convert = ref<string | null>(null);
 const converting = ref(false);
-const converturl = ref<Misskey.entities.NotesTTSResponse | null>(null);
 const renoteCollapsed = ref(
 	prefer.s.collapseRenotes && isRenote && (
 		($i && ($i.id === note.userId || $i.id === appearNote.userId)) || // `||` must be `||`! See https://github.com/misskey-dev/misskey/issues/13131
@@ -703,22 +702,10 @@ function emitUpdReaction(emoji: string, delta: number) {
 	}
 }
 
-watch(convert, (newBlob) => {
-	try {
-	  	if (newBlob) {
-    		converturl.value = { url: newBlob };
-  		} else {
-    		converturl.value = null;
-  		}
-	} catch (error) {
-  		console.error('Failed to create URL:', error);
-	}
-});
-
 onUnmounted(() => {
-  if (converturl.value && converturl.value.url) {
-    URL.revokeObjectURL(converturl.value.url);
-  }
+	if (convert.value) {
+		URL.revokeObjectURL(convert.value);
+	}
 });
 </script>
 

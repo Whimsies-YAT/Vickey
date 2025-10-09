@@ -543,6 +543,36 @@ export type paths = {
          */
         post: operations['admin___invite___list'];
     };
+    '/admin/logs/clear': {
+        /**
+         * admin/logs/clear
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes*
+         */
+        post: operations['admin___logs___clear'];
+    };
+    '/admin/logs/config': {
+        /**
+         * admin/logs/config
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes*
+         */
+        post: operations['admin___logs___config'];
+    };
+    '/admin/logs/show': {
+        /**
+         * admin/logs/show
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes*
+         */
+        post: operations['admin___logs___show'];
+    };
     '/admin/meta': {
         /**
          * admin/meta
@@ -551,6 +581,56 @@ export type paths = {
          *     **Credential required**: *Yes* / **Permission**: *read:admin:meta*
          */
         post: operations['admin___meta'];
+    };
+    '/admin/notes/list-deleted': {
+        /**
+         * admin/notes/list-deleted
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes*
+         */
+        post: operations['admin___notes___list-deleted'];
+    };
+    '/admin/notes/show-deleted': {
+        /**
+         * admin/notes/show-deleted
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes*
+         */
+        post: operations['admin___notes___show-deleted'];
+    };
+    '/admin/payments/list': {
+        /**
+         * admin/payments/list
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes*
+         */
+        post: operations['admin___payments___list'];
+    };
+    '/admin/payments/show': {
+        /**
+         * admin/payments/show
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes*
+         */
+        post: operations['admin___payments___show'];
+    };
+    '/admin/payments/stats': {
+        /**
+         * admin/payments/stats
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes*
+         */
+        post: operations['admin___payments___stats'];
     };
     '/admin/promo/create': {
         /**
@@ -1024,6 +1104,7 @@ export type paths = {
          * admin/users/get-risk-score
          * @description No description provided.
          *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
          *     **Credential required**: *Yes* / **Permission**: *read:admin:risk-scores*
          */
         post: operations['admin___users___get-risk-score'];
@@ -1033,6 +1114,7 @@ export type paths = {
          * admin/users/list-high-risk-users
          * @description No description provided.
          *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
          *     **Credential required**: *Yes* / **Permission**: *read:admin:risk-scores*
          */
         post: operations['admin___users___list-high-risk-users'];
@@ -1042,6 +1124,7 @@ export type paths = {
          * admin/users/list-risk-events
          * @description No description provided.
          *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
          *     **Credential required**: *Yes* / **Permission**: *read:admin:user-risk-scores*
          */
         post: operations['admin___users___list-risk-events'];
@@ -1051,6 +1134,7 @@ export type paths = {
          * admin/users/manage-account-links
          * @description No description provided.
          *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
          *     **Credential required**: *Yes* / **Permission**: *write:admin:risk-scores*
          */
         post: operations['admin___users___manage-account-links'];
@@ -1060,6 +1144,7 @@ export type paths = {
          * admin/users/risk-score
          * @description No description provided.
          *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
          *     **Credential required**: *Yes* / **Permission**: *read:admin:risk-score*
          */
         post: operations['admin___users___risk-score'];
@@ -3667,6 +3752,55 @@ export type paths = {
          */
         post: operations['pages___update'];
     };
+    '/payment/cancel-subscription': {
+        /**
+         * payment/cancel-subscription
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes*
+         */
+        post: operations['payment___cancel-subscription'];
+    };
+    '/payment/confirm-intent': {
+        /**
+         * payment/confirm-intent
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes*
+         */
+        post: operations['payment___confirm-intent'];
+    };
+    '/payment/create-intent': {
+        /**
+         * payment/create-intent
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes*
+         */
+        post: operations['payment___create-intent'];
+    };
+    '/payment/create-subscription': {
+        /**
+         * payment/create-subscription
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes*
+         */
+        post: operations['payment___create-subscription'];
+    };
+    '/payment/get-config': {
+        /**
+         * payment/get-config
+         * @description No description provided.
+         *
+         *     **Credential required**: *No*
+         */
+        post: operations['payment___get-config'];
+    };
     '/ping': {
         /**
          * ping
@@ -4474,6 +4608,24 @@ export type components = {
                     /** Format: misskey:id */
                     userListId: string;
                 };
+                scheduledNotePosted?: {
+                    /** @enum {string} */
+                    type: 'all' | 'following' | 'follower' | 'mutualFollow' | 'followingOrFollower' | 'never';
+                } | {
+                    /** @enum {string} */
+                    type: 'list';
+                    /** Format: misskey:id */
+                    userListId: string;
+                };
+                scheduledNotePostFailed?: {
+                    /** @enum {string} */
+                    type: 'all' | 'following' | 'follower' | 'mutualFollow' | 'followingOrFollower' | 'never';
+                } | {
+                    /** @enum {string} */
+                    type: 'list';
+                    /** Format: misskey:id */
+                    userListId: string;
+                };
                 receiveFollowRequest?: {
                     /** @enum {string} */
                     type: 'all' | 'following' | 'follower' | 'mutualFollow' | 'followingOrFollower' | 'never';
@@ -4600,6 +4752,7 @@ export type components = {
             imageUrl: string;
             memo: string;
             dayOfWeek: number;
+            isSensitive: boolean;
         };
         Announcement: {
             /**
@@ -4728,42 +4881,31 @@ export type components = {
             /** Format: date-time */
             createdAt: string;
             text: string | null;
-            cw?: string | null;
+            cw: string | null;
             /** Format: id */
             userId: string;
             user: components['schemas']['UserLite'];
-            /**
-             * Format: id
-             * @example xxxxxxxxxx
-             */
-            replyId?: string | null;
-            /**
-             * Format: id
-             * @example xxxxxxxxxx
-             */
-            renoteId?: string | null;
-            /** @description The reply target note contents if exists. If the reply target has been deleted since the draft was created, this will be null while replyId is not null. */
+            /** Format: id */
+            replyId: string | null;
+            /** Format: id */
+            renoteId: string | null;
             reply?: components['schemas']['Note'] | null;
-            /** @description The renote target note contents if exists. If the renote target has been deleted since the draft was created, this will be null while renoteId is not null. */
             renote?: components['schemas']['Note'] | null;
             /** @enum {string} */
             visibility: 'public' | 'home' | 'followers' | 'specified';
-            visibleUserIds?: string[];
-            fileIds?: string[];
+            visibleUserIds: string[];
+            fileIds: string[];
             files?: components['schemas']['DriveFile'][];
-            hashtag?: string;
-            poll?: {
+            hashtag: string | null;
+            poll: {
                 /** Format: date-time */
                 expiresAt?: string | null;
                 expiredAfter?: number | null;
                 multiple: boolean;
                 choices: string[];
             } | null;
-            /**
-             * Format: id
-             * @example xxxxxxxxxx
-             */
-            channelId?: string | null;
+            /** Format: id */
+            channelId: string | null;
             channel?: {
                 id: string;
                 name: string;
@@ -4772,9 +4914,12 @@ export type components = {
                 allowRenoteToExternal: boolean;
                 userId: string | null;
             } | null;
-            localOnly?: boolean;
+            localOnly: boolean;
             /** @enum {string|null} */
             reactionAcceptance: 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote' | null;
+            scheduledAt: number | null;
+            isActuallyScheduled: boolean;
+            geojson: Record<string, never> | null;
         };
         NoteReaction: {
             /** Format: id */
@@ -4889,6 +5034,22 @@ export type components = {
             /** Format: date-time */
             createdAt: string;
             /** @enum {string} */
+            type: 'scheduledNotePosted';
+            note: components['schemas']['Note'];
+        } | {
+            /** Format: id */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
+            type: 'scheduledNotePostFailed';
+            noteDraft: components['schemas']['NoteDraft'];
+        } | {
+            /** Format: id */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
             type: 'follow';
             user: components['schemas']['UserLite'];
             /** Format: id */
@@ -4994,6 +5155,27 @@ export type components = {
             type: 'renote:grouped';
             note: components['schemas']['Note'];
             users: components['schemas']['UserLite'][];
+        } | {
+            /** Format: id */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
+            type: 'voiceCall';
+            user: components['schemas']['UserLite'];
+            /** Format: id */
+            userId: string;
+        } | {
+            /** Format: id */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
+            type: 'voiceCallEnded';
+            user: components['schemas']['UserLite'];
+            /** Format: id */
+            userId: string;
+            duration: number;
         } | {
             /** Format: id */
             id: string;
@@ -5149,6 +5331,12 @@ export type components = {
             /** Format: date-time */
             usedAt: string | null;
             used: boolean;
+            pendingUser: {
+                username: string;
+                emailVerified: boolean;
+                isProcessed: boolean;
+                result: string;
+            } | null;
         };
         Page: {
             /**
@@ -5576,6 +5764,7 @@ export type components = {
             /** @enum {string} */
             chatAvailability: 'available' | 'readonly' | 'unavailable';
             noteDraftLimit: number;
+            scheduledNoteLimit: number;
             watermarkAvailable: boolean;
         };
         ReversiGameLite: {
@@ -5706,6 +5895,7 @@ export type components = {
                 /** Format: url */
                 imageUrl: string;
                 dayOfWeek: number;
+                isSensitive?: boolean;
             }[];
             /** @default 0 */
             notesPerOneAd: number;
@@ -5747,16 +5937,18 @@ export type components = {
             maxFileSize: number;
             security: boolean;
             enableEmailTemplates: boolean;
-            abuseMLCheck: boolean;
-            abuseReportMLAction: string;
-            abuseMLInfoUrl: string;
-            abuseMLInfoToken: string;
-            abuseMLInfoScore: number;
             /** @enum {string} */
             federation: 'all' | 'specified' | 'none';
             enableBcc: boolean;
             bccLimit: number;
             visibleRecipient: string | null;
+            /** @default false */
+            enableStripe: boolean;
+            stripePublicKey: string | null;
+            /** @default USD */
+            stripeCurrency: string;
+            /** @default false */
+            enableCloudflareSfu: boolean;
         };
         MetaDetailedOnly: {
             features?: {
@@ -5772,6 +5964,8 @@ export type components = {
                 serviceWorker: boolean;
                 /** @default true */
                 miauth: boolean;
+                /** @default false */
+                stripe: boolean;
             };
             proxyAccountName: string | null;
             /** @example false */
@@ -6526,7 +6720,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    'application/json': components['schemas']['MeDetailed'];
+                    'application/json': components['schemas']['MeDetailed'] & {
+                        token: string;
+                    };
                 };
             };
             /** @description Client error */
@@ -6717,6 +6913,7 @@ export interface operations {
                     startsAt: number;
                     imageUrl: string;
                     dayOfWeek: number;
+                    isSensitive?: boolean;
                 };
             };
         };
@@ -6929,6 +7126,7 @@ export interface operations {
                     expiresAt?: number;
                     startsAt?: number;
                     dayOfWeek?: number;
+                    isSensitive?: boolean;
                 };
             };
         };
@@ -10011,7 +10209,7 @@ export interface operations {
                      * @default all
                      * @enum {string}
                      */
-                    type?: 'unused' | 'used' | 'expired' | 'all';
+                    type?: 'unused' | 'used' | 'pending' | 'expired' | 'all';
                     /** @enum {string} */
                     sort?: '+createdAt' | '-createdAt' | '+usedAt' | '-usedAt';
                 };
@@ -10025,6 +10223,214 @@ export interface operations {
                 };
                 content: {
                     'application/json': components['schemas']['InviteCode'][];
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    admin___logs___clear: {
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        success: boolean;
+                    };
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    admin___logs___config: {
+        requestBody: {
+            content: {
+                'application/json': {
+                    maxEntries?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        maxEntries: number;
+                    };
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    admin___logs___show: {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** @default 100 */
+                    count?: number;
+                    sinceId?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        logs: {
+                            id: number;
+                            timestamp: string;
+                            /** @enum {string} */
+                            type: 'stdout' | 'stderr';
+                            content: string;
+                        }[];
+                        stats: {
+                            totalCount: number;
+                            maxEntries: number;
+                            oldestId: number;
+                            newestId: number;
+                        };
+                    };
                 };
             };
             /** @description Client error */
@@ -10254,6 +10660,431 @@ export interface operations {
                         enableBcc: boolean;
                         bccLimit: number;
                         visibleRecipient: string | null;
+                        enableStripe: boolean;
+                        stripePublicKey: string | null;
+                        stripeSecretKey: string | null;
+                        stripeWebhookSecret: string | null;
+                        stripePaymentMethodConfiguration: string | null;
+                        stripeCurrency: string;
+                        enableCloudflareSfu: boolean;
+                        cloudflareAccountId: string | null;
+                        cloudflareApiToken: string | null;
+                        cloudflareSfuAppId: string | null;
+                        cloudflareSfuAppSecret: string | null;
+                    };
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'admin___notes___list-deleted': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** @default 20 */
+                    limit?: number;
+                    /** Format: misskey:id */
+                    sinceId?: string;
+                    /** Format: misskey:id */
+                    untilId?: string;
+                    /** Format: misskey:id */
+                    userId?: string | null;
+                    deletedAfter?: string | null;
+                    deletedBefore?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Note'][];
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'admin___notes___show-deleted': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** Format: misskey:id */
+                    noteId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Note'] | null;
+                };
+            };
+            /** @description OK (without any results) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    admin___payments___list: {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** @default 30 */
+                    limit?: number;
+                    /** Format: misskey:id */
+                    sinceId?: string;
+                    /** Format: misskey:id */
+                    untilId?: string;
+                    /** @enum {string|null} */
+                    status?: 'pending' | 'succeeded' | 'failed' | 'canceled' | null;
+                    /** Format: misskey:id */
+                    userId?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        id: string;
+                        paymentIntentId: string | null;
+                        checkoutSessionId: string | null;
+                        stripePaymentIntentId: string | null;
+                        stripeCheckoutSessionId: string | null;
+                        amount: number;
+                        currency: string;
+                        status: string;
+                        description: string | null;
+                        userId: string | null;
+                        user: {
+                            id: string;
+                            username: string;
+                            name: string | null;
+                        } | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                        metadata: Record<string, never> | null;
+                        paymentMode: string;
+                        hasCheckoutSession: boolean;
+                        hasPaymentIntent: boolean;
+                    }[];
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    admin___payments___show: {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** Format: misskey:id */
+                    paymentId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        id: string;
+                        paymentIntentId: string | null;
+                        checkoutSessionId: string | null;
+                        stripePaymentIntentId: string | null;
+                        stripeCheckoutSessionId: string | null;
+                        amount: number;
+                        currency: string;
+                        status: string;
+                        description: string | null;
+                        userId: string | null;
+                        user: {
+                            id: string;
+                            username: string;
+                            name: string | null;
+                            email: string | null;
+                        } | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                        metadata: Record<string, never> | null;
+                        stripeDetails: Record<string, never> | null;
+                        paymentMode: string;
+                        hasCheckoutSession: boolean;
+                        hasPaymentIntent: boolean;
+                        rawData: Record<string, never> | null;
+                    };
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    admin___payments___stats: {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** @default 30 */
+                    days?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        totalPayments: number;
+                        totalAmount: number;
+                        recentPayments: number;
+                        statusBreakdown: {
+                            succeeded: number;
+                            pending: number;
+                            failed: number;
+                            canceled: number;
+                        };
+                        currencyBreakdown: Record<string, never>;
                     };
                 };
             };
@@ -10373,7 +11204,7 @@ export interface operations {
             content: {
                 'application/json': {
                     /** @enum {string} */
-                    queue: 'system' | 'endedPollNotification' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
+                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                     /** @enum {string} */
                     state: '*' | 'completed' | 'wait' | 'active' | 'paused' | 'prioritized' | 'delayed' | 'failed';
                 };
@@ -10560,7 +11391,7 @@ export interface operations {
             content: {
                 'application/json': {
                     /** @enum {string} */
-                    queue: 'system' | 'endedPollNotification' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
+                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                     state: ('active' | 'wait' | 'delayed' | 'completed' | 'failed' | 'paused')[];
                     search?: string;
                 };
@@ -10628,7 +11459,7 @@ export interface operations {
             content: {
                 'application/json': {
                     /** @enum {string} */
-                    queue: 'system' | 'endedPollNotification' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
+                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                 };
             };
         };
@@ -10691,7 +11522,7 @@ export interface operations {
             content: {
                 'application/json': {
                     /** @enum {string} */
-                    queue: 'system' | 'endedPollNotification' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
+                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                 };
             };
         };
@@ -10704,7 +11535,7 @@ export interface operations {
                 content: {
                     'application/json': {
                         /** @enum {string} */
-                        name: 'system' | 'endedPollNotification' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
+                        name: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                         qualifiedName: string;
                         counts: {
                             [key: string]: number;
@@ -10794,7 +11625,7 @@ export interface operations {
                 content: {
                     'application/json': {
                         /** @enum {string} */
-                        name: 'system' | 'endedPollNotification' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
+                        name: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                         counts: {
                             [key: string]: number;
                         };
@@ -10858,7 +11689,7 @@ export interface operations {
             content: {
                 'application/json': {
                     /** @enum {string} */
-                    queue: 'system' | 'endedPollNotification' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
+                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                     jobId: string;
                 };
             };
@@ -10922,7 +11753,7 @@ export interface operations {
             content: {
                 'application/json': {
                     /** @enum {string} */
-                    queue: 'system' | 'endedPollNotification' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
+                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                     jobId: string;
                 };
             };
@@ -10986,7 +11817,7 @@ export interface operations {
             content: {
                 'application/json': {
                     /** @enum {string} */
-                    queue: 'system' | 'endedPollNotification' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
+                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                     jobId: string;
                 };
             };
@@ -11053,7 +11884,7 @@ export interface operations {
             content: {
                 'application/json': {
                     /** @enum {string} */
-                    queue: 'system' | 'endedPollNotification' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
+                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                     jobId: string;
                 };
             };
@@ -12778,6 +13609,24 @@ export interface operations {
                                 /** Format: misskey:id */
                                 userListId: string;
                             };
+                            scheduledNotePosted?: {
+                                /** @enum {string} */
+                                type: 'all' | 'following' | 'follower' | 'mutualFollow' | 'followingOrFollower' | 'never';
+                            } | {
+                                /** @enum {string} */
+                                type: 'list';
+                                /** Format: misskey:id */
+                                userListId: string;
+                            };
+                            scheduledNotePostFailed?: {
+                                /** @enum {string} */
+                                type: 'all' | 'following' | 'follower' | 'mutualFollow' | 'followingOrFollower' | 'never';
+                            } | {
+                                /** @enum {string} */
+                                type: 'list';
+                                /** Format: misskey:id */
+                                userListId: string;
+                            };
                             receiveFollowRequest?: {
                                 /** @enum {string} */
                                 type: 'all' | 'following' | 'follower' | 'mutualFollow' | 'followingOrFollower' | 'never';
@@ -13960,6 +14809,18 @@ export interface operations {
                     enableBcc?: boolean;
                     bccLimit?: number;
                     visibleRecipient?: string | null;
+                    enableStripe?: boolean;
+                    stripePublicKey?: string | null;
+                    stripeSecretKey?: string | null;
+                    stripeWebhookSecret?: string | null;
+                    stripePaymentMethodConfiguration?: string | null;
+                    /** @enum {string} */
+                    stripeCurrency?: 'USD' | 'EUR' | 'CNY' | 'JPY' | 'GBP' | 'CHF' | 'CAD' | 'AUD' | 'SGD' | 'HKD';
+                    enableCloudflareSfu?: boolean;
+                    cloudflareAccountId?: string | null;
+                    cloudflareApiToken?: string | null;
+                    cloudflareSfuAppId?: string | null;
+                    cloudflareSfuAppSecret?: string | null;
                 };
             };
         };
@@ -27824,8 +28685,8 @@ export interface operations {
                     untilDate?: number;
                     /** @default true */
                     markAsRead?: boolean;
-                    includeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'pollVote' | 'groupInvited')[];
-                    excludeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'pollVote' | 'groupInvited')[];
+                    includeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'scheduledNotePosted' | 'scheduledNotePostFailed' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'voiceCall' | 'voiceCallEnded' | 'pollVote' | 'groupInvited')[];
+                    excludeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'scheduledNotePosted' | 'scheduledNotePostFailed' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'voiceCall' | 'voiceCallEnded' | 'pollVote' | 'groupInvited')[];
                 };
             };
         };
@@ -27909,8 +28770,8 @@ export interface operations {
                     untilDate?: number;
                     /** @default true */
                     markAsRead?: boolean;
-                    includeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'pollVote' | 'groupInvited')[];
-                    excludeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'pollVote' | 'groupInvited')[];
+                    includeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'scheduledNotePosted' | 'scheduledNotePostFailed' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'voiceCall' | 'voiceCallEnded' | 'pollVote' | 'groupInvited')[];
+                    excludeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'scheduledNotePosted' | 'scheduledNotePostFailed' | 'receiveFollowRequest' | 'followRequestAccepted' | 'roleAssigned' | 'chatRoomInvitationReceived' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'app' | 'test' | 'voiceCall' | 'voiceCallEnded' | 'pollVote' | 'groupInvited')[];
                 };
             };
         };
@@ -29316,6 +30177,24 @@ export interface operations {
                             userListId: string;
                         };
                         pollEnded?: {
+                            /** @enum {string} */
+                            type: 'all' | 'following' | 'follower' | 'mutualFollow' | 'followingOrFollower' | 'never';
+                        } | {
+                            /** @enum {string} */
+                            type: 'list';
+                            /** Format: misskey:id */
+                            userListId: string;
+                        };
+                        scheduledNotePosted?: {
+                            /** @enum {string} */
+                            type: 'all' | 'following' | 'follower' | 'mutualFollow' | 'followingOrFollower' | 'never';
+                        } | {
+                            /** @enum {string} */
+                            type: 'list';
+                            /** Format: misskey:id */
+                            userListId: string;
+                        };
+                        scheduledNotePostFailed?: {
                             /** @enum {string} */
                             type: 'all' | 'following' | 'follower' | 'mutualFollow' | 'followingOrFollower' | 'never';
                         } | {
@@ -31279,6 +32158,13 @@ export interface operations {
                         expiresAt?: number | null;
                         expiredAfter?: number | null;
                     } | null;
+                    scheduledAt?: number | null;
+                    /** @default false */
+                    isActuallyScheduled?: boolean;
+                    geojson?: {
+                        type?: string;
+                        coordinates?: unknown[];
+                    } | null;
                 };
             };
         };
@@ -31425,6 +32311,7 @@ export interface operations {
                     untilId?: string;
                     sinceDate?: number;
                     untilDate?: number;
+                    scheduled?: boolean | null;
                 };
             };
         };
@@ -31491,20 +32378,13 @@ export interface operations {
                 'application/json': {
                     /** Format: misskey:id */
                     draftId: string;
-                    /**
-                     * @default public
-                     * @enum {string}
-                     */
+                    /** @enum {string} */
                     visibility?: 'public' | 'home' | 'followers' | 'specified';
                     visibleUserIds?: string[];
                     cw?: string | null;
                     hashtag?: string | null;
-                    /** @default false */
                     localOnly?: boolean;
-                    /**
-                     * @default null
-                     * @enum {string|null}
-                     */
+                    /** @enum {string|null} */
                     reactionAcceptance?: null | 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote';
                     /** Format: misskey:id */
                     replyId?: string | null;
@@ -31519,6 +32399,12 @@ export interface operations {
                         multiple?: boolean;
                         expiresAt?: number | null;
                         expiredAfter?: number | null;
+                    } | null;
+                    scheduledAt?: number | null;
+                    isActuallyScheduled?: boolean;
+                    geojson?: {
+                        type?: string;
+                        coordinates?: unknown[];
                     } | null;
                 };
             };
@@ -33110,6 +33996,8 @@ export interface operations {
                     withReplies?: boolean;
                     /** @default false */
                     excludeNsfw?: boolean;
+                    /** @default true */
+                    enableCrossTimelineData?: boolean;
                     /**
                      * @default smart
                      * @enum {string}
@@ -33134,7 +34022,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    'application/json': components['schemas']['Note'][];
+                    'application/json': components['schemas']['Note'][] | {
+                        notes: components['schemas']['Note'][];
+                        scores: {
+                            [key: string]: number;
+                        };
+                    };
                 };
             };
             /** @description Client error */
@@ -34964,6 +35857,364 @@ export interface operations {
             };
             /** @description Too many requests */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'payment___cancel-subscription': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    subscriptionId: string;
+                    /** @default true */
+                    cancelAtPeriodEnd?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        subscriptionId: string;
+                        status: string;
+                    };
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'payment___confirm-intent': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    paymentIntentId?: string | null;
+                    checkoutSessionId?: string | null;
+                    paymentMethodId?: string | null;
+                } | unknown | unknown;
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        status: string;
+                        paymentIntentId: string | null;
+                        checkoutSessionId: string | null;
+                        amount: number;
+                        currency: string;
+                        description: string | null;
+                    };
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'payment___create-intent': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    amount: number;
+                    description?: string | null;
+                    metadata?: Record<string, never> | null;
+                    /** @default false */
+                    useCheckout?: boolean;
+                    paymentMethodConfiguration?: string | null;
+                    billingDetails: {
+                        firstName: string;
+                        lastName: string;
+                        email: string;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        clientSecret: string;
+                        paymentIntentId: string | null;
+                        checkoutSessionId: string | null;
+                        useCheckout: boolean;
+                    };
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'payment___create-subscription': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    priceId: string;
+                    paymentMethodId?: string | null;
+                    trialPeriodDays?: number | null;
+                    metadata?: Record<string, never> | null;
+                    amount?: number | null;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        subscriptionId: string;
+                        status: string;
+                        clientSecret: string | null;
+                    };
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'payment___get-config': {
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        enabled: boolean;
+                        publicKey: string | null;
+                    };
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -38177,7 +39428,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    'application/json': components['schemas']['UserList'];
+                    'application/json': components['schemas']['UserList'] & {
+                        likedCount?: number;
+                        isLiked?: boolean;
+                    };
                 };
             };
             /** @description Client error */

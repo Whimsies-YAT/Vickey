@@ -126,7 +126,7 @@ export class MiNoteDraft {
 	@JoinColumn()
 	public channel: MiChannel | null;
 
-	// 以下、Pollについて追加
+	//#region 以下、Pollについて追加
 
 	@Column('boolean', {
 		default: false,
@@ -151,13 +151,31 @@ export class MiNoteDraft {
 	})
 	public pollExpiredAfter: number | null;
 
-	// ここまで追加
+	//#endregion
 
-	constructor(data: Partial<MiNoteDraft>) {
-		if (data == null) return;
+	// 予約日時
+	// これがあるだけでは実際に予約されているかどうかはわからない
+	@Column('timestamp with time zone', {
+		nullable: true,
+	})
+	public scheduledAt: Date | null;
 
-		for (const [k, v] of Object.entries(data)) {
-			(this as any)[k] = v;
-		}
-	}
+	// scheduledAtに基づいて実際にスケジュールされているか
+	@Column('boolean', {
+		default: false,
+	})
+	public isActuallyScheduled: boolean;
+
+	@Column('jsonb', {
+		nullable: true,
+		comment: 'Original GeoJSON data (shared with lower precision if needed).',
+	})
+	public geojson: Record<string, any> | null;
+
+	@Index({ spatial: true })
+	@Column('geometry', {
+		nullable: true,
+		comment: 'Geographic location as Point (lon/lat, WGS84).',
+	})
+	public location: string | null;
 }

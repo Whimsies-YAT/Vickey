@@ -5,6 +5,7 @@
 
 import { URLSearchParams } from 'node:url';
 import { Inject, Injectable } from '@nestjs/common';
+import { createHash } from 'node:crypto';
 import cld from 'cld';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
@@ -14,6 +15,8 @@ import { RoleService } from '@/core/RoleService.js';
 import { ApiError } from '../../error.js';
 import { MiMeta } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
+import { MemoryKVCache } from '@/misc/cache.js';
+import { bindThis } from '@/decorators.js';
 
 export const meta = {
 	tags: ['notes'],
@@ -136,8 +139,15 @@ function normalizeLanguageCode(langCode: string): string {
 	return languageMapping[normalized] || normalized.split('-')[0];
 }
 
+type TranslationResult = {
+	sourceLang: string;
+	text: string;
+};
+
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> {
+	private translationCache = new MemoryKVCache<TranslationResult>(1000 * 60 * 60 * 48);
+
 	constructor(
 		@Inject(DI.meta)
 		private serverSettings: MiMeta,
@@ -186,6 +196,15 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				// Continue with translation if detection fails
 			}
 
+			const cacheKey = createHash('sha256')
+				.update(`${note.text}:${ps.targetLang}`)
+				.digest('hex');
+
+			const cached = this.translationCache.get(cacheKey);
+			if (cached !== undefined) {
+				return cached;
+			}
+
 			const params = new URLSearchParams();
 			params.append('auth_key', this.serverSettings.deeplAuthKey);
 			params.append('text', note.text);
@@ -209,10 +228,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				}[];
 			};
 
-			return {
+			const result = {
 				sourceLang: json.translations[0].detected_source_language,
 				text: json.translations[0].text,
 			};
+
+			this.translationCache.set(cacheKey, result);
+
+			return result;
 		});
 	}
 }

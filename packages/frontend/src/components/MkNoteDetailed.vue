@@ -108,10 +108,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</div>
 				<div v-if="converting || convert" :class="$style.translation">
 					<MkLoading v-if="converting" mini/>
-					<div v-else-if="converturl">
+					<div v-else-if="convert">
 						<!--<b>{{ i18n.tsx.convertedFrom({ x: appearNote.id }) }}: </b>-->
 						<b>{{ 'From ' + appearNote.id }} </b>
-						<MkMediaAudio :audio="converturl"/>
+						<MkMediaAudio :audio="convert"/>
 					</div>
 				</div>
 				<div v-if="appearNote.files && appearNote.files.length > 0">
@@ -236,7 +236,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, markRaw, provide, ref, useTemplateRef, watch, onUnmounted } from 'vue';
+import { computed, inject, markRaw, provide, ref, useTemplateRef, onUnmounted } from 'vue';
 import * as mfm from 'mfm-js';
 import * as Misskey from 'misskey-js';
 import { isLink } from '@@/js/is-link.js';
@@ -292,6 +292,11 @@ const props = withDefaults(defineProps<{
 	initialTab: 'replies',
 });
 
+const emit = defineEmits<{
+	(ev: 'reaction', emoji: string): void;
+	(ev: 'removeReaction', emoji: string): void;
+}>();
+
 const inChannel = inject('inChannel', null);
 
 let note = deepClone(props.note);
@@ -333,9 +338,8 @@ const translating = ref(false);
 const parsed = appearNote.text ? mfm.parse(appearNote.text) : null;
 const urls = parsed ? extractUrlFromMfm(parsed).filter((url) => appearNote.renote?.url !== url && appearNote.renote?.uri !== url) : null;
 const showTicker = (prefer.s.instanceTicker === 'always') || (prefer.s.instanceTicker === 'remote' && appearNote.user.instance);
-const convert = ref<Blob | null>(null);
+const convert = ref<string | null>(null);
 const converting = ref(false);
-const converturl = ref<Misskey.entities.NotesTTSResponse | null>(null);
 const conversation = ref<Misskey.entities.Note[]>([]);
 const replies = ref<Misskey.entities.Note[]>([]);
 const canRenote = computed(() => ['public', 'home'].includes(appearNote.visibility) || appearNote.userId === $i?.id);
@@ -549,6 +553,14 @@ function toggleReact() {
 	}
 }
 
+function emitUpdReaction(emoji: string, delta: number) {
+	if (delta < 0) {
+		emit('removeReaction', emoji);
+	} else if (delta > 0) {
+		emit('reaction', emoji);
+	}
+}
+
 function onContextmenu(ev: MouseEvent): void {
 	if (ev.target && isLink(ev.target as HTMLElement)) return;
 	if (window.getSelection()?.toString() !== '') return;
@@ -620,22 +632,10 @@ function loadConversation() {
 	});
 }
 
-watch(convert, (newBlob) => {
-	try {
-	  	if (newBlob) {
-    		converturl.value = { url: newBlob };
-  		} else {
-    		converturl.value = null;
-  		}
-	} catch (error) {
-  		console.error('Failed to create URL:', error);
-	}
-});
-
 onUnmounted(() => {
-  if (converturl.value && converturl.value.url) {
-    URL.revokeObjectURL(converturl.value.url);
-  }
+	if (convert.value) {
+		URL.revokeObjectURL(convert.value);
+	}
 });
 </script>
 

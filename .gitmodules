@@ -1,3 +1,6 @@
 [submodule "fluent-emojis"]
 	path = fluent-emojis
 	url = https://github.com/misskey-dev/emojis.git
+[submodule "external/yume-pdq"]
+	path = external/yume-pdq
+	url = https://github.com/eternal-flame-AD/yume-pdq.git

@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { UserPendingsRepository, UserProfilesRepository, UsersRepository } from '@/models/_.js';
+import type { UserPendingsRepository, UserProfilesRepository, UsersRepository, RegistrationTicketsRepository } from '@/models/_.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { SignupService } from '@/core/SignupService.js';
 import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
@@ -39,6 +39,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		@Inject(DI.userProfilesRepository)
 		private userProfilesRepository: UserProfilesRepository,
+
+		@Inject(DI.registrationTicketsRepository)
+		private registrationTicketsRepository: RegistrationTicketsRepository,
 
 		private signupService: SignupService,
 		private moderationLogService: ModerationLogService,
@@ -82,6 +85,15 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			this.userPendingsRepository.update({ id: pendingUser.id }, { isProcessed: true, result: "Approved" });
+
+			const inviteCode = await this.registrationTicketsRepository.findOneBy({ pendingUserId: pendingUser.id });
+			if (inviteCode) {
+				await this.registrationTicketsRepository.update({ id: inviteCode.id }, {
+					usedBy: user,
+					usedById: user.id,
+					pendingUserId: null,
+				});
+			}
 
 			this.moderationLogService.log(me, 'approve', {
 				userId: user.id,

@@ -635,6 +635,17 @@ export class UserFollowingService implements OnModuleInit {
 			followerId: follower.id,
 		});
 
+		const beforeNotifications = await this.notificationService.getAllNotifications(followee.id);
+		for (const notification of beforeNotifications) {
+			if (
+				notification.data &&
+				notification.data.type === 'receiveFollowRequest' &&
+				notification.data.notifierId === follower.id
+			) {
+				await this.notificationService.deleteNotification(followee.id, notification.redisId);
+			}
+		}
+
 		this.userEntityService.pack(followee.id, followee, {
 			schema: 'MeDetailed',
 		}).then(packed => this.globalEventService.publishMainStream(followee.id, 'meUpdated', packed));
