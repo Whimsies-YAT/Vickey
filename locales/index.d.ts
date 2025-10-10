@@ -586,6 +586,10 @@ export interface Locale extends ILocale {
      */
     "deletedBeforePlaceholder": string;
     /**
+     * From {x}
+     */
+    "convertedFrom": ParameterizedString<"x">;
+    /**
      * Status
      */
     "status": string;

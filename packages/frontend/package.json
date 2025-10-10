@@ -52,6 +52,7 @@
 		"eventemitter3": "5.0.1",
 		"execa": "9.6.0",
 		"frontend-shared": "workspace:*",
+		"heic2any": "0.0.4",
 		"icons-subsetter": "workspace:*",
 		"idb-keyval": "6.2.2",
 		"insert-text-at-cursor": "0.3.0",

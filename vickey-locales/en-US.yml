@@ -141,6 +141,7 @@ failedToLoadDeletedNotes: "Failed to load deleted notes"
 userIdOptionalPlaceholder: "User ID (optional)"
 deletedAfterPlaceholder: "Deleted after"
 deletedBeforePlaceholder: "Deleted before"
+convertedFrom: "From {x}"
 status: "Status"
 _oauthAppVK:
   title: "OAuth Application"

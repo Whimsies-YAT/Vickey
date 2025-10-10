@@ -28,11 +28,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, useTemplateRef } from 'vue';
+import { computed, onMounted, onUnmounted, useTemplateRef, ref } from 'vue';
 import * as Misskey from 'misskey-js';
 import PhotoSwipeLightbox from 'photoswipe/lightbox';
 import PhotoSwipe from 'photoswipe';
 import 'photoswipe/style.css';
+import heic2any from 'heic2any';
 import { FILE_TYPE_BROWSERSAFE } from '@@/js/const.js';
 import XBanner from '@/components/MkMediaBanner.vue';
 import XImage from '@/components/MkMediaImage.vue';
@@ -53,6 +54,61 @@ const count = computed(() => props.mediaList.filter(media => previewable(media))
 let lightbox: PhotoSwipeLightbox | null = null;
 
 let activeEl: HTMLElement | null = null;
+
+const heicCache = new Map<string, { url: string; width: number; height: number }>();
+const convertedMediaList = ref<Misskey.entities.DriveFile[]>(props.mediaList);
+
+const convertHeicToJpeg = async (url: string, thumbnailUrl?: string): Promise<{ url: string; width: number; height: number }> => {
+	if (heicCache.has(url)) {
+		return heicCache.get(url)!;
+	}
+
+	try {
+		const response = await fetch(url);
+
+		if (!response.ok) {
+			throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+		}
+
+		const contentLength = response.headers.get('Content-Length');
+		if (contentLength) {
+			console.log(`[HEIC] Fetching: ${contentLength} bytes`);
+		}
+
+		const blob = await response.blob();
+
+		if (contentLength && blob.size !== parseInt(contentLength, 10)) {
+			console.warn(`[HEIC] Size mismatch: expected ${contentLength}, got ${blob.size}`);
+		}
+
+		const convertedBlob = await heic2any({
+			blob,
+			toType: 'image/jpeg',
+			quality: 0.9,
+		}) as Blob;
+		const convertedUrl = URL.createObjectURL(convertedBlob);
+
+		// Load the converted image to get its actual dimensions
+		const img = new Image();
+		const dimensionPromise = new Promise<{ width: number; height: number }>((resolve, reject) => {
+			img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+			img.onerror = reject;
+		});
+		img.src = convertedUrl;
+		const dimensions = await dimensionPromise;
+
+		const result = { url: convertedUrl, width: dimensions.width, height: dimensions.height };
+		heicCache.set(url, result);
+		return result;
+	} catch (error) {
+		console.error('[HEIC] Conversion failed:', {
+			error: error instanceof Error ? error.message : String(error),
+			hasThumbnail: !!thumbnailUrl,
+		});
+		// Return fallback with dimensions of 1x1 (will be corrected by PhotoSwipe)
+		return { url: thumbnailUrl ?? url, width: 1, height: 1 };
+	}
+};
 
 const popstateHandler = (): void => {
 	if (lightbox?.pswp && lightbox.pswp.isOpen === true) {
@@ -91,22 +147,34 @@ async function calcAspectRatio() {
 	}
 }
 
-onMounted(() => {
+onMounted(async () => {
 	calcAspectRatio();
 
 	if (gallery.value == null) return; // TSを黙らすため
 
-	lightbox = new PhotoSwipeLightbox({
-		dataSource: props.mediaList
+	const processedMediaList = await Promise.all(
+		props.mediaList
 			.filter(media => {
 				if (media.type === 'image/svg+xml') return true; // svgのwebpublicはpngなのでtrue
+				if (media.type === 'image/heic' || media.type === 'image/heif') return true;
 				return media.type.startsWith('image') && FILE_TYPE_BROWSERSAFE.includes(media.type);
 			})
-			.map(media => {
+			.map(async media => {
+				let src = media.url;
+				let w = media.properties.width;
+				let h = media.properties.height;
+
+				if (media.type === 'image/heic' || media.type === 'image/heif') {
+					const converted = await convertHeicToJpeg(media.url, media.thumbnailUrl);
+					src = converted.url;
+					w = converted.width;
+					h = converted.height;
+				}
+
 				const item = {
-					src: media.url,
-					w: media.properties.width,
-					h: media.properties.height,
+					src,
+					w,
+					h,
 					alt: media.comment ?? media.name,
 					comment: media.comment ?? media.name,
 				};
@@ -114,7 +182,11 @@ onMounted(() => {
 					[item.w, item.h] = [item.h, item.w];
 				}
 				return item;
-			}),
+			})
+	);
+
+	lightbox = new PhotoSwipeLightbox({
+		dataSource: processedMediaList,
 		gallery: gallery.value,
 		mainClass: 'pswp',
 		children: '.image',
@@ -148,15 +220,24 @@ onMounted(() => {
 		const file = props.mediaList.find(media => media.id === id);
 		if (!file) return itemData;
 
-		itemData.src = file.url;
-		itemData.w = Number(file.properties.width);
-		itemData.h = Number(file.properties.height);
-		if (file.properties.orientation != null && file.properties.orientation >= 5) {
-			[itemData.w, itemData.h] = [itemData.h, itemData.w];
+		const fileIndex = props.mediaList
+			.filter(media => {
+				if (media.type === 'image/svg+xml') return true;
+				if (media.type === 'image/heic' || media.type === 'image/heif') return true;
+				return media.type.startsWith('image') && FILE_TYPE_BROWSERSAFE.includes(media.type);
+			})
+			.findIndex(media => media.id === id);
+
+		if (fileIndex >= 0 && processedMediaList[fileIndex]) {
+			const processedItem = processedMediaList[fileIndex];
+			itemData.src = processedItem.src;
+			itemData.w = processedItem.w;
+			itemData.h = processedItem.h;
+			itemData.alt = processedItem.alt;
+			itemData.comment = processedItem.comment;
 		}
+
 		itemData.msrc = file.thumbnailUrl ?? undefined;
-		itemData.alt = file.comment ?? file.name;
-		itemData.comment = file.comment ?? file.name;
 		itemData.thumbCropped = true;
 
 		return itemData;
@@ -206,11 +287,15 @@ onUnmounted(() => {
 	lightbox?.destroy();
 	lightbox = null;
 	activeEl = null;
+	heicCache.forEach(({ url }) => URL.revokeObjectURL(url));
+	heicCache.clear();
 });
 
 const previewable = (file: Misskey.entities.DriveFile): boolean => {
-	if (file.type === 'image/svg+xml') return true; // svgのwebpublic/thumbnailはpngなのでtrue
+	if (file.type === 'image/svg+xml') return true;
+	// svgのwebpublic/thumbnailはpngなのでtrue
 	// FILE_TYPE_BROWSERSAFEに適合しないものはブラウザで表示するのに不適切
+	if (file.type === 'image/heic' || file.type === 'image/heif') return true;
 	return (file.type.startsWith('video') || file.type.startsWith('image')) && FILE_TYPE_BROWSERSAFE.includes(file.type);
 };
 
