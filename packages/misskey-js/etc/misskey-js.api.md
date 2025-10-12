@@ -2104,6 +2104,15 @@ declare namespace entities {
         GalleryPostsUpdateResponse,
         GetAvatarDecorationsResponse,
         GetOnlineUsersCountResponse,
+        GomokuCancelMatchRequest,
+        GomokuGamesRequest,
+        GomokuGamesResponse,
+        GomokuInvitationsResponse,
+        GomokuMatchRequest,
+        GomokuMatchResponse,
+        GomokuShowGameRequest,
+        GomokuShowGameResponse,
+        GomokuSurrenderRequest,
         HashtagsListRequest,
         HashtagsListResponse,
         HashtagsSearchRequest,
@@ -2458,6 +2467,8 @@ declare namespace entities {
         RolePolicies,
         ReversiGameLite,
         ReversiGameDetailed,
+        GomokuGameLite,
+        GomokuGameDetailed,
         MetaLite,
         MetaDetailedOnly,
         MetaDetailed,
@@ -2713,6 +2724,39 @@ type GetAvatarDecorationsResponse = operations['get-avatar-decorations']['respon
 
 // @public (undocumented)
 type GetOnlineUsersCountResponse = operations['get-online-users-count']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type GomokuCancelMatchRequest = operations['gomoku___cancel-match']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type GomokuGameDetailed = components['schemas']['GomokuGameDetailed'];
+
+// @public (undocumented)
+type GomokuGameLite = components['schemas']['GomokuGameLite'];
+
+// @public (undocumented)
+type GomokuGamesRequest = operations['gomoku___games']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type GomokuGamesResponse = operations['gomoku___games']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type GomokuInvitationsResponse = operations['gomoku___invitations']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type GomokuMatchRequest = operations['gomoku___match']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type GomokuMatchResponse = operations['gomoku___match']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type GomokuShowGameRequest = operations['gomoku___show-game']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type GomokuShowGameResponse = operations['gomoku___show-game']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type GomokuSurrenderRequest = operations['gomoku___surrender']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type Hashtag = components['schemas']['Hashtag'];

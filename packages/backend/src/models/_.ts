@@ -75,6 +75,7 @@ import { MiRelay } from '@/models/Relay.js';
 import { MiRenoteMuting } from '@/models/RenoteMuting.js';
 import { MiRetentionAggregation } from '@/models/RetentionAggregation.js';
 import { MiReversiGame } from '@/models/ReversiGame.js';
+import { MiGomokuGame } from '@/models/GomokuGame.js';
 import { MiRole } from '@/models/Role.js';
 import { MiRoleAssignment } from '@/models/RoleAssignment.js';
 import { MiSignin } from '@/models/Signin.js';
@@ -110,6 +111,7 @@ import { MiStripeCustomer } from '@/models/StripeCustomer.js';
 import { MiStripePayment } from '@/models/StripePayment.js';
 import { MiStripeSubscription } from '@/models/StripeSubscription.js';
 import { MiStripeRefund } from '@/models/StripeRefund.js';
+import { MiElasticsearchReindexState } from '@/models/ElasticsearchReindexState.js';
 import type { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity.js';
 
 export interface MiRepository<T extends ObjectLiteral> {
@@ -254,6 +256,7 @@ export {
 	MiChatApproval,
 	MiBubbleGameRecord,
 	MiReversiGame,
+	MiGomokuGame,
 	MiUserSessions,
 	MiOAuthClientConfig,
 	MiUserSession,
@@ -270,6 +273,7 @@ export {
 	MiStripePayment,
 	MiStripeSubscription,
 	MiStripeRefund,
+	MiElasticsearchReindexState,
 };
 
 type MiRepositoryType<T extends ObjectLiteral> = Repository<T> & MiRepository<T>;
@@ -351,6 +355,7 @@ export type ChatRoomInvitationsRepository = MiRepositoryType<MiChatRoomInvitatio
 export type ChatApprovalsRepository = MiRepositoryType<MiChatApproval>;
 export type BubbleGameRecordsRepository = MiRepositoryType<MiBubbleGameRecord>;
 export type ReversiGamesRepository = MiRepositoryType<MiReversiGame>;
+export type GomokuGamesRepository = MiRepositoryType<MiGomokuGame>;
 export type UserSessionsRepository = MiRepositoryType<MiUserSessions>;
 export type UserSessionRepository = MiRepositoryType<MiUserSession>;
 export type OAuthClientConfigsRepository = MiRepositoryType<MiOAuthClientConfig>;
@@ -367,3 +372,4 @@ export type StripeCustomersRepository = MiRepositoryType<MiStripeCustomer>;
 export type StripePaymentsRepository = MiRepositoryType<MiStripePayment>;
 export type StripeSubscriptionsRepository = MiRepositoryType<MiStripeSubscription>;
 export type StripeRefundsRepository = MiRepositoryType<MiStripeRefund>;
+export type ElasticsearchReindexStatesRepository = MiRepositoryType<MiElasticsearchReindexState>;

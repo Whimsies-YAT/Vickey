@@ -1079,7 +1079,11 @@ export class NoteCreateService implements OnApplicationShutdown {
 	private index(note: MiNote) {
 		if (note.text == null && note.cw == null) return;
 
-		this.searchService.indexNote(note);
+		// console.log(note);
+
+		this.searchService.indexNote(note).catch(err => {
+			console.error('Failed to index note:', err);
+		});
 	}
 
 	@bindThis
@@ -1095,7 +1099,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 	@bindThis
 	private async extractMentionedUsers(user: { host: MiUser['host']; }, tokens: mfm.MfmNode[]): Promise<MiUser[]> {
-		if (tokens == null) return [];
+		if (tokens == null) return []
 
 		const mentions = extractMentions(tokens);
 		let mentionedUsers = (await Promise.all(mentions.map(m =>

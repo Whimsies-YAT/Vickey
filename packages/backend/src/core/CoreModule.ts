@@ -105,6 +105,7 @@ import { ChannelFollowingService } from './ChannelFollowingService.js';
 import { ChatService } from './ChatService.js';
 import { RegistryApiService } from './RegistryApiService.js';
 import { ReversiService } from './ReversiService.js';
+import { GomokuService } from './GomokuService.js';
 import { UserSessionsService } from './UserSessionsService.js';
 import { PageService } from './PageService.js';
 
@@ -159,6 +160,7 @@ import { FlashEntityService } from './entities/FlashEntityService.js';
 import { FlashLikeEntityService } from './entities/FlashLikeEntityService.js';
 import { RoleEntityService } from './entities/RoleEntityService.js';
 import { ReversiGameEntityService } from './entities/ReversiGameEntityService.js';
+import { GomokuGameEntityService } from './entities/GomokuGameEntityService.js';
 import { MetaEntityService } from './entities/MetaEntityService.js';
 
 import { ApAudienceService } from './activitypub/ApAudienceService.js';
@@ -210,7 +212,7 @@ const serviceClasses = [
 	UtilityService, ContentRecommendationService, RecommendationAlgorithms, SmartTimelineService,
 	HybridTimelineService, LocalAIContentAnalysisService, FileInfoService, FlashService,
 	SearchService, OfflineGeocodingService, ClipService, FeaturedService, FanoutTimelineService, FanoutTimelineEndpointService,
-	ChannelFollowingService, ChatService, RegistryApiService, ReversiService, UserSessionsService,
+	ChannelFollowingService, ChatService, RegistryApiService, ReversiService, GomokuService, UserSessionsService,
 	PageService, ChartLoggerService, FederationChart, NotesChart, UsersChart, ActiveUsersChart,
 	InstanceChart, PerUserNotesChart, PerUserPvChart, DriveChart, PerUserReactionsChart,
 	PerUserFollowingChart, PerUserDriveChart, ApRequestChart, ChartManagementService,
@@ -223,7 +225,7 @@ const serviceClasses = [
 	NoteEntityService, NoteFavoriteEntityService, NoteReactionEntityService, NoteDraftEntityService,
 	NotificationEntityService, PageEntityService, PageLikeEntityService, SigninEntityService,
 	UserEntityService, UserListEntityService, FlashEntityService, FlashLikeEntityService,
-	RoleEntityService, ReversiGameEntityService, MetaEntityService, SystemWebhookEntityService,
+	RoleEntityService, ReversiGameEntityService, GomokuGameEntityService, MetaEntityService, SystemWebhookEntityService,
 	ApAudienceService, ApDbResolverService, ApDeliverManagerService, ApInboxService, ApLoggerService,
 	ApMfmService, ApRendererService, ApRequestService, ApResolverService, JsonLdService,
 	RemoteLoggerService, RemoteUserResolveService, WebfingerService, ApImageService, ApMentionService,

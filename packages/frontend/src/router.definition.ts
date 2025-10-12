@@ -650,6 +650,14 @@ export const ROUTE_DEF = [{
 	component: page(() => import('@/pages/reversi/game.vue')),
 	loginRequired: false,
 }, {
+	path: '/gomoku',
+	component: page(() => import('@/pages/gomoku/index.vue')),
+	loginRequired: false,
+}, {
+	path: '/gomoku/g/:gameId',
+	component: page(() => import('@/pages/gomoku/game.vue')),
+	loginRequired: false,
+}, {
 	path: '/conway-game-of-life',
 	component: page(() => import('@/pages/conway-game-of-life.vue')),
 	loginRequired: false,

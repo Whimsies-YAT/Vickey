@@ -428,6 +428,15 @@ import type {
 	GalleryPostsUpdateResponse,
 	GetAvatarDecorationsResponse,
 	GetOnlineUsersCountResponse,
+	GomokuCancelMatchRequest,
+	GomokuGamesRequest,
+	GomokuGamesResponse,
+	GomokuInvitationsResponse,
+	GomokuMatchRequest,
+	GomokuMatchResponse,
+	GomokuShowGameRequest,
+	GomokuShowGameResponse,
+	GomokuSurrenderRequest,
 	HashtagsListRequest,
 	HashtagsListResponse,
 	HashtagsSearchRequest,
@@ -1005,6 +1014,12 @@ export type Endpoints = {
 	'gallery/posts/update': { req: GalleryPostsUpdateRequest; res: GalleryPostsUpdateResponse };
 	'get-avatar-decorations': { req: EmptyRequest; res: GetAvatarDecorationsResponse };
 	'get-online-users-count': { req: EmptyRequest; res: GetOnlineUsersCountResponse };
+	'gomoku/cancel-match': { req: GomokuCancelMatchRequest; res: EmptyResponse };
+	'gomoku/games': { req: GomokuGamesRequest; res: GomokuGamesResponse };
+	'gomoku/invitations': { req: EmptyRequest; res: GomokuInvitationsResponse };
+	'gomoku/match': { req: GomokuMatchRequest; res: GomokuMatchResponse };
+	'gomoku/show-game': { req: GomokuShowGameRequest; res: GomokuShowGameResponse };
+	'gomoku/surrender': { req: GomokuSurrenderRequest; res: EmptyResponse };
 	'hashtags/list': { req: HashtagsListRequest; res: HashtagsListResponse };
 	'hashtags/search': { req: HashtagsSearchRequest; res: HashtagsSearchResponse };
 	'hashtags/show': { req: HashtagsShowRequest; res: HashtagsShowResponse };

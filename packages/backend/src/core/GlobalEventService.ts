@@ -20,7 +20,7 @@ import type { MiPage } from '@/models/Page.js';
 import type { MiWebhook } from '@/models/Webhook.js';
 import type { MiSystemWebhook } from '@/models/SystemWebhook.js';
 import type { MiMeta } from '@/models/Meta.js';
-import { MiAvatarDecoration, MiChatMessage, MiChatRoom, MiReversiGame, MiRole, MiRoleAssignment } from '@/models/_.js';
+import { MiAvatarDecoration, MiChatMessage, MiChatRoom, MiGomokuGame, MiReversiGame, MiRole, MiRoleAssignment } from '@/models/_.js';
 import type { Packed } from '@/misc/json-schema.js';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
@@ -227,6 +227,33 @@ export interface ReversiGameEventTypes {
 		userId: MiUser['id'];
 	};
 }
+
+export interface GomokuEventTypes {
+	matched: {
+		game: Packed<'GomokuGameDetailed'>;
+	};
+	invited: {
+		user: Packed<'User'>;
+	};
+}
+
+export interface GomokuGameEventTypes {
+	changeReadyStates: {
+		user1: boolean;
+		user2: boolean;
+	};
+	log: [number, number];
+	started: {
+		game: Packed<'GomokuGameDetailed'>;
+	};
+	ended: {
+		winnerId: MiUser['id'] | null;
+		game: Packed<'GomokuGameDetailed'>;
+	};
+	canceled: {
+		userId: MiUser['id'];
+	};
+}
 //#endregion
 
 // 辞書(interface or type)から{ type, body }ユニオンを定義
@@ -344,6 +371,14 @@ export type GlobalEvents = {
 		name: `reversiGameStream:${MiReversiGame['id']}`;
 		payload: EventTypesToEventPayload<ReversiGameEventTypes>;
 	};
+	gomoku: {
+		name: `gomokuStream:${MiUser['id']}`;
+		payload: EventTypesToEventPayload<GomokuEventTypes>;
+	};
+	gomokuGame: {
+		name: `gomokuGameStream:${MiGomokuGame['id']}`;
+		payload: EventTypesToEventPayload<GomokuGameEventTypes>;
+	};
 };
 
 // API event definitions
@@ -452,5 +487,15 @@ export class GlobalEventService {
 	@bindThis
 	public publishReversiGameStream<K extends keyof ReversiGameEventTypes>(gameId: MiReversiGame['id'], type: K, value?: ReversiGameEventTypes[K]): void {
 		this.publish(`reversiGameStream:${gameId}`, type, typeof value === 'undefined' ? null : value);
+	}
+
+	@bindThis
+	public publishGomokuStream<K extends keyof GomokuEventTypes>(userId: MiUser['id'], type: K, value?: GomokuEventTypes[K]): void {
+		this.publish(`gomokuStream:${userId}`, type, typeof value === 'undefined' ? null : value);
+	}
+
+	@bindThis
+	public publishGomokuGameStream<K extends keyof GomokuGameEventTypes>(gameId: MiGomokuGame['id'], type: K, value?: GomokuGameEventTypes[K]): void {
+		this.publish(`gomokuGameStream:${gameId}`, type, typeof value === 'undefined' ? null : value);
 	}
 }

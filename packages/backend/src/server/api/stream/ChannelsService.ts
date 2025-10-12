@@ -24,6 +24,8 @@ import { ChatUserChannelService } from './channels/chat-user.js';
 import { ChatRoomChannelService } from './channels/chat-room.js';
 import { ReversiChannelService } from './channels/reversi.js';
 import { ReversiGameChannelService } from './channels/reversi-game.js';
+import { GomokuChannelService } from './channels/gomoku.js';
+import { GomokuGameChannelService } from './channels/gomoku-game.js';
 import { type MiChannelService } from './channel.js';
 
 @Injectable()
@@ -48,6 +50,8 @@ export class ChannelsService {
 		private chatRoomChannelService: ChatRoomChannelService,
 		private reversiChannelService: ReversiChannelService,
 		private reversiGameChannelService: ReversiGameChannelService,
+		private gomokuChannelService: GomokuChannelService,
+		private gomokuGameChannelService: GomokuGameChannelService,
 	) {
 	}
 
@@ -73,6 +77,8 @@ export class ChannelsService {
 			case 'chatRoom': return this.chatRoomChannelService;
 			case 'reversi': return this.reversiChannelService;
 			case 'reversiGame': return this.reversiGameChannelService;
+			case 'gomoku': return this.gomokuChannelService;
+			case 'gomokuGame': return this.gomokuGameChannelService;
 
 			default:
 				throw new Error(`no such channel: ${name}`);

@@ -4420,6 +4420,200 @@ export interface Locale extends ILocale {
             "renote": string;
         };
     };
+    "_gomoku": {
+        /**
+         * Gomoku
+         */
+        "title": string;
+        /**
+         * Play the classic strategy game with friends
+         */
+        "description": string;
+        /**
+         * Start Game
+         */
+        "startGame": string;
+        /**
+         * How to Play
+         */
+        "howToPlay": string;
+        /**
+         * Get 5 stones in a row (horizontal, vertical, or diagonal) to win
+         */
+        "rule1": string;
+        /**
+         * Black plays first, White plays second
+         */
+        "rule2": string;
+        /**
+         * Click on any empty intersection to place your stone
+         */
+        "rule3": string;
+        /**
+         * Take turns placing stones on the board
+         */
+        "rule4": string;
+        /**
+         * Black's Turn
+         */
+        "player1Turn": string;
+        /**
+         * White's Turn
+         */
+        "player2Turn": string;
+        /**
+         * Black Wins!
+         */
+        "player1Wins": string;
+        /**
+         * White Wins!
+         */
+        "player2Wins": string;
+        /**
+         * Draw - Board Full
+         */
+        "draw": string;
+        /**
+         * New Game
+         */
+        "newGame": string;
+        /**
+         * Move {count}
+         */
+        "moveCount": ParameterizedString<"count">;
+        /**
+         * The board is full. It's a draw!
+         */
+        "drawMessage": string;
+        /**
+         * Share Game
+         */
+        "shareGame": string;
+        /**
+         * Share your game result on your timeline
+         */
+        "shareGameDescription": string;
+        /**
+         * I just played Gomoku! {result} after {moves} moves.
+         */
+        "postDefaultText": ParameterizedString<"result" | "moves">;
+        /**
+         * It was a draw
+         */
+        "resultDraw": string;
+        /**
+         * Quick Match
+         */
+        "freeMatch": string;
+        /**
+         * Invite
+         */
+        "invite": string;
+        /**
+         * Invitations
+         */
+        "invitations": string;
+        /**
+         * My Games
+         */
+        "myGames": string;
+        /**
+         * All Games
+         */
+        "allGames": string;
+        /**
+         * Playing
+         */
+        "playing": string;
+        /**
+         * Ended
+         */
+        "ended": string;
+        /**
+         * Looking for a player
+         */
+        "lookingForPlayer": string;
+        /**
+         * Sound will be played
+         */
+        "soundWillBePlayed": string;
+        /**
+         * Black
+         */
+        "black": string;
+        /**
+         * White
+         */
+        "white": string;
+        /**
+         * Ready
+         */
+        "ready": string;
+        /**
+         * Cancel ready
+         */
+        "cancelReady": string;
+        /**
+         * Waiting for opponent to ready
+         */
+        "waitingForOther": string;
+        /**
+         * Opponent is ready. Click Ready to start!
+         */
+        "waitingForMe": string;
+        /**
+         * Waiting for both players to ready
+         */
+        "waitingBoth": string;
+        /**
+         * Game will start soon
+         */
+        "thisGameIsStartedSoon": string;
+        /**
+         * Game was canceled
+         */
+        "gameCanceled": string;
+        /**
+         * Share to timeline when game starts
+         */
+        "shareToTlTheGameWhenStart": string;
+        /**
+         * I started a Gomoku game!
+         */
+        "iStartedAGame": string;
+        /**
+         * Opponent's turn
+         */
+        "opponentTurn": string;
+        /**
+         * Your turn
+         */
+        "myTurn": string;
+        /**
+         * {name}'s turn
+         */
+        "turnOf": ParameterizedString<"name">;
+        /**
+         * Surrender
+         */
+        "surrender": string;
+        /**
+         * Surrendered
+         */
+        "surrendered": string;
+        /**
+         * {name} won!
+         */
+        "won": ParameterizedString<"name">;
+        /**
+         * Total
+         */
+        "total": string;
+        /**
+         * Turn {count}
+         */
+        "turnCount": ParameterizedString<"count">;
+    };
     /**
      * ノートでつながるネットワーク
      */

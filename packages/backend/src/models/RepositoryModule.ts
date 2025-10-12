@@ -99,6 +99,8 @@ import {
 	MiStripePayment,
 	MiStripeSubscription,
 	MiStripeRefund,
+	MiGomokuGame,
+	MiElasticsearchReindexState,
 } from './_.js';
 import type { Provider } from '@nestjs/common';
 import type { DataSource, EntityTarget } from 'typeorm';
@@ -203,6 +205,8 @@ const repositoryMappings = [
 	{ token: DI.stripePaymentsRepository, entity: MiStripePayment },
 	{ token: DI.stripeSubscriptionsRepository, entity: MiStripeSubscription },
 	{ token: DI.stripeRefundsRepository, entity: MiStripeRefund },
+	{ token: DI.gomokuGamesRepository, entity: MiGomokuGame },
+	{ token: DI.elasticsearchReindexStatesRepository, entity: MiElasticsearchReindexState },
 ] as const;
 
 const providers = repositoryMappings.map(({ token, entity }) =>
