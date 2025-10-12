@@ -800,6 +800,9 @@ export class SearchService {
 				this.logger.info(`Source index was empty, reindex completed with 0 documents`);
 			}
 
+			this.logger.info('Refreshing new index to ensure documents are queryable...');
+			await this.elasticsearch.indices.refresh({ index: state.newIndex });
+
 			const healthCheck = await this.elasticsearch.cat.indices({
 				index: state.newIndex,
 				format: 'json',
