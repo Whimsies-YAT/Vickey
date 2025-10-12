@@ -229,7 +229,6 @@ export class CommandService {
 			console.log('\n' + '='.repeat(80));
 			console.log('[SUCCESS] Elasticsearch index rebuild and cleanup completed!');
 			console.log('='.repeat(80));
-
 		} catch (error) {
 			console.error('\n' + '='.repeat(80));
 			console.error('[ERROR] Rebuild failed!');

@@ -64,7 +64,7 @@ const convertHeicToJpeg = async (url: string, thumbnailUrl?: string): Promise<{ 
 	}
 
 	try {
-		const response = await fetch(url);
+		const response = await window.fetch(url);
 
 		if (!response.ok) {
 			throw new Error(`HTTP ${response.status}: ${response.statusText}`);

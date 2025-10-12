@@ -191,7 +191,7 @@ function generateBoardImage(): Promise<Blob> {
 		const BOARD_PIXEL_SIZE = BOARD_SIZE * CELL_SIZE;
 		const CANVAS_SIZE = BOARD_PIXEL_SIZE + PADDING * 2;
 
-		const canvas = document.createElement('canvas');
+		const canvas = window.document.createElement('canvas');
 		canvas.width = CANVAS_SIZE;
 		canvas.height = CANVAS_SIZE;
 		const ctx = canvas.getContext('2d')!;

@@ -679,7 +679,6 @@ export class SearchService {
 			this.logger.info(`Reindex task started: ${state.taskId}`);
 
 			await this.monitorReindexTask(state);
-
 		} catch (error: any) {
 			this.reindexingIndices.delete(state.oldIndex);
 
