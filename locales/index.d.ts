@@ -1951,6 +1951,50 @@ export interface Locale extends ILocale {
          */
         "thisSettingWillAutomaticallyOnWhenModeratorsInactive": string;
         /**
+         * Timeline Cache Warming
+         */
+        "timelineWarmingTitle": string;
+        /**
+         * Intelligent timeline cache pre-loading system to improve user experience when viewing older posts.
+         */
+        "timelineWarmingDescription": string;
+        /**
+         * Enable Timeline Warming
+         */
+        "enableTimelineWarming": string;
+        /**
+         * Automatically pre-load timeline cache for users with high activity
+         */
+        "enableTimelineWarmingDescription": string;
+        /**
+         * Target Cache Size
+         */
+        "timelineWarmingTarget": string;
+        /**
+         * Number of notes to pre-load into cache (default: 1000)
+         */
+        "timelineWarmingTargetDescription": string;
+        /**
+         * Minimum Notes Threshold
+         */
+        "timelineWarmingMinNotes": string;
+        /**
+         * Only warm timelines for users with at least this many notes (default: 100)
+         */
+        "timelineWarmingMinNotesDescription": string;
+        /**
+         * Minimum Followers Threshold
+         */
+        "timelineWarmingMinFollowers": string;
+        /**
+         * Only warm timelines for users with at least this many followers (default: 100)
+         */
+        "timelineWarmingMinFollowersDescription": string;
+        /**
+         * Timeline warming is triggered when users post notes or gain new followers. This helps ensure popular users' timelines remain accessible beyond the default cache limit.
+         */
+        "timelineWarmingInfo": string;
+        /**
          * アイコン画像のURL
          */
         "iconUrl": string;

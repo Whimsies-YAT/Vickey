@@ -196,6 +196,10 @@ import { EventBus } from './events/EventBus.js';
 import { EventMetrics } from './events/EventMetrics.js';
 import { NoteEventHandlers } from './handlers/NoteEventHandlers.js';
 
+// Timeline Warming Feature (DDD Architecture)
+import { TimelineWarmingService } from './timeline/application/TimelineWarmingService.js';
+import { TimelineWarmingEventHandler } from './timeline/handlers/TimelineWarmingEventHandler.js';
+
 const serviceClasses = [
 	LoggerService, LogObserverService, AbuseReportService, AbuseReportNotificationService, AccountMoveService,
 	AccountUpdateService, AiService, AnnouncementService, AntennaService, AppLockService,
@@ -240,6 +244,8 @@ const serviceClasses = [
 	EventBus, EventMetrics,
 	// Event handlers (NEW)
 	NoteEventHandlers,
+	// Timeline Warming (DDD Architecture)
+	TimelineWarmingService, TimelineWarmingEventHandler,
 ];
 
 const stringProviders: Provider[] = serviceClasses.map(ServiceClass => ({

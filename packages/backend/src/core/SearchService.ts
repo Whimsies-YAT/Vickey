@@ -585,7 +585,29 @@ export class SearchService {
 
 		try {
 			let state = await this.elasticsearchReindexStatesRepository.findOneBy({ indexPattern });
-			if (!state) {
+
+			if (state) {
+				if (state.status === 'completed') {
+					this.logger.info(`Reindex already completed for ${indexPattern}, skipping`);
+					return;
+				}
+
+				if (state.status === 'in_progress') {
+					this.logger.info('Reindex task already exists, resuming');
+					await this.resumeReindex(state);
+					return;
+				}
+
+				if (state.status === 'failed') {
+					this.logger.info(`Previous reindex failed for ${indexPattern}, retrying`);
+					const hoursSinceFailed = state.completedAt
+						? (Date.now() - state.completedAt.getTime()) / (1000 * 60 * 60)
+						: 999;
+					if (hoursSinceFailed > 24) {
+						state.retryCount = 0;
+					}
+				}
+			} else {
 				state = this.elasticsearchReindexStatesRepository.create({
 					indexPattern,
 					status: 'pending',
@@ -599,10 +621,6 @@ export class SearchService {
 					completedAt: null,
 				});
 				await this.elasticsearchReindexStatesRepository.save(state);
-			} else if (state.status === 'in_progress') {
-				this.logger.info('Reindex task already exists, resuming');
-				await this.resumeReindex(state);
-				return;
 			}
 
 			await this.executeReindex(state);

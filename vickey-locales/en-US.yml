@@ -251,6 +251,17 @@ _donation:
   original: "Original"
 _serverSettings:
   thisSettingWillAutomaticallyOnWhenModeratorsInactive: "If no moderator activity is detected for a while, this setting will be automatically turned on to prevent spam."
+  timelineWarmingTitle: "Timeline Cache Warming"
+  timelineWarmingDescription: "Intelligent timeline cache pre-loading system to improve user experience when viewing older posts."
+  enableTimelineWarming: "Enable Timeline Warming"
+  enableTimelineWarmingDescription: "Automatically pre-load timeline cache for users with high activity"
+  timelineWarmingTarget: "Target Cache Size"
+  timelineWarmingTargetDescription: "Number of notes to pre-load into cache (default: 1000)"
+  timelineWarmingMinNotes: "Minimum Notes Threshold"
+  timelineWarmingMinNotesDescription: "Only warm timelines for users with at least this many notes (default: 100)"
+  timelineWarmingMinFollowers: "Minimum Followers Threshold"
+  timelineWarmingMinFollowersDescription: "Only warm timelines for users with at least this many followers (default: 100)"
+  timelineWarmingInfo: "Timeline warming is triggered when users post notes or gain new followers. This helps ensure popular users' timelines remain accessible beyond the default cache limit."
 _webhookSettings:
   _systemEvents:
     inactiveModeratorsApprovalOnlyChanged: "When a moderator has been inactive for a while, and the server is changed to approval-only"

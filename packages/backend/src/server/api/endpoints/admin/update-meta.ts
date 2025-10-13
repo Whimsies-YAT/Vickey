@@ -183,6 +183,10 @@ export const paramDef = {
 		perRemoteUserUserTimelineCacheMax: { type: 'integer' },
 		perUserHomeTimelineCacheMax: { type: 'integer' },
 		perUserListTimelineCacheMax: { type: 'integer' },
+		enableTimelineWarming: { type: 'boolean' },
+		timelineWarmingTarget: { type: 'integer' },
+		timelineWarmingMinNotes: { type: 'integer' },
+		timelineWarmingMinFollowers: { type: 'integer' },
 		enableReactionsBuffering: { type: 'boolean' },
 		notesPerOneAd: { type: 'integer' },
 		silencedHosts: {
@@ -844,6 +848,22 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (ps.perUserListTimelineCacheMax !== undefined) {
 				set.perUserListTimelineCacheMax = ps.perUserListTimelineCacheMax;
+			}
+
+			if (ps.enableTimelineWarming !== undefined) {
+				set.enableTimelineWarming = ps.enableTimelineWarming;
+			}
+
+			if (ps.timelineWarmingTarget !== undefined) {
+				set.timelineWarmingTarget = ps.timelineWarmingTarget;
+			}
+
+			if (ps.timelineWarmingMinNotes !== undefined) {
+				set.timelineWarmingMinNotes = ps.timelineWarmingMinNotes;
+			}
+
+			if (ps.timelineWarmingMinFollowers !== undefined) {
+				set.timelineWarmingMinFollowers = ps.timelineWarmingMinFollowers;
 			}
 
 			if (ps.enableReactionsBuffering !== undefined) {

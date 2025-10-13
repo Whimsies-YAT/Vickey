@@ -6078,6 +6078,14 @@ export type components = {
             requireSetup: boolean;
             cacheRemoteFiles: boolean;
             cacheRemoteSensitiveFiles: boolean;
+            /** @default false */
+            enableTimelineWarming: boolean;
+            /** @default 1000 */
+            timelineWarmingTarget: number;
+            /** @default 100 */
+            timelineWarmingMinNotes: number;
+            /** @default 100 */
+            timelineWarmingMinFollowers: number;
         };
         MetaDetailed: components['schemas']['MetaLite'] & components['schemas']['MetaDetailedOnly'];
         UserWebhook: {
@@ -14878,6 +14886,10 @@ export interface operations {
                     perRemoteUserUserTimelineCacheMax?: number;
                     perUserHomeTimelineCacheMax?: number;
                     perUserListTimelineCacheMax?: number;
+                    enableTimelineWarming?: boolean;
+                    timelineWarmingTarget?: number;
+                    timelineWarmingMinNotes?: number;
+                    timelineWarmingMinFollowers?: number;
                     enableReactionsBuffering?: boolean;
                     notesPerOneAd?: number;
                     silencedHosts?: string[] | null;

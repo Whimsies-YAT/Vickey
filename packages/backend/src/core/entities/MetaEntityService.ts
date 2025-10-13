@@ -172,6 +172,10 @@ export class MetaEntityService {
 			cacheRemoteSensitiveFiles: instance.cacheRemoteSensitiveFiles,
 			requireSetup: this.meta.rootUserId == null,
 			proxyAccountName: proxyAccount.username,
+			enableTimelineWarming: instance.enableTimelineWarming,
+			timelineWarmingTarget: instance.timelineWarmingTarget,
+			timelineWarmingMinNotes: instance.timelineWarmingMinNotes,
+			timelineWarmingMinFollowers: instance.timelineWarmingMinFollowers,
 			features: {
 				localTimeline: instance.policies.ltlAvailable,
 				globalTimeline: instance.policies.gtlAvailable,
