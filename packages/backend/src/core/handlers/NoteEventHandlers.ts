@@ -159,7 +159,7 @@ export class NoteEventHandlers {
 
 	@bindThis
 	private async pushUserTimelines(event: NoteCreatedEvent, r: Redis.ChainableCommander): Promise<void> {
-		let [followings, userListMemberships] = await Promise.all([
+		const results = await Promise.all([
 			this.followingsRepository.find({
 				where: {
 					followeeId: event.userId,
@@ -175,6 +175,9 @@ export class NoteEventHandlers {
 				select: ['userListId', 'userListUserId', 'withReplies'],
 			}),
 		]);
+
+		const followings = results[0];
+		let userListMemberships = results[1];
 
 		if (event.visibility === 'followers') {
 			userListMemberships = userListMemberships.filter(x => x.userListUserId === event.userId || followings.some(f => f.followerId === x.userListUserId));

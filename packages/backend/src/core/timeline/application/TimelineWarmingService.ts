@@ -28,7 +28,6 @@ export class TimelineWarmingService implements OnApplicationShutdown {
 	private isShuttingDown = false;
 	private readonly warmingStrategy: WarmingStrategy;
 
-	// Metrics
 	private stats = {
 		totalWarmed: 0,
 		totalSkipped: 0,
@@ -53,7 +52,6 @@ export class TimelineWarmingService implements OnApplicationShutdown {
 		@Inject(DI.usersRepository)
 		private readonly usersRepository: UsersRepository,
 	) {
-		// Initialize domain strategy with config
 		this.warmingStrategy = new WarmingStrategy(
 			this.meta.timelineWarmingMinNotes,
 			this.meta.timelineWarmingMinFollowers,
@@ -72,16 +70,13 @@ export class TimelineWarmingService implements OnApplicationShutdown {
 		userId: string,
 		trigger: 'note_created' | 'user_followed' | 'profile_accessed',
 	): Promise<void> {
-		// Check if feature is enabled
 		if (!this.meta.enableTimelineWarming) return;
 		if (this.isShuttingDown) return;
 
-		// Check if already warming
 		if (this.warmingQueue.has(userId)) {
 			return this.warmingQueue.get(userId)!;
 		}
 
-		// Create warming promise (fire-and-forget)
 		const warmPromise = this.executeWarming(userId, trigger)
 			.finally(() => {
 				this.warmingQueue.delete(userId);
@@ -103,15 +98,12 @@ export class TimelineWarmingService implements OnApplicationShutdown {
 		const startTime = Date.now();
 
 		try {
-			// Step 1: Load user (needed for domain logic)
 			const user = await this.usersRepository.findOneBy({ id: userId });
 			if (!user || user.host !== null) {
-				// Only warm local users
 				this.stats.totalSkipped++;
 				return;
 			}
 
-			// Step 2: Domain decision - should we warm this user?
 			const decision = this.warmingStrategy.shouldWarmForUser(user);
 			if (!decision.shouldWarm) {
 				this.stats.totalSkipped++;
@@ -119,18 +111,15 @@ export class TimelineWarmingService implements OnApplicationShutdown {
 				return;
 			}
 
-			// Step 3: Load current cache state
 			const cacheState = await this.loadCacheState(userId);
 			const cache = TimelineCache.fromState(cacheState);
 
-			// Step 4: Domain decision - does cache need warming?
 			if (!cache.needsWarming()) {
 				this.stats.totalSkipped++;
-				console.log(`[TimelineWarming] Skipped user ${userId}: cache is fresh`);
+				// console.log(`[TimelineWarming] Skipped user ${userId}: cache is fresh`);
 				return;
 			}
 
-			// Step 5: Calculate how many notes to load
 			const toLoad = cache.calculateWarmTarget(decision.targetSize);
 			if (toLoad === 0) {
 				this.stats.totalSkipped++;
@@ -141,7 +130,6 @@ export class TimelineWarmingService implements OnApplicationShutdown {
 				`[TimelineWarming] Warming user ${userId}: loading ${toLoad} notes (trigger: ${trigger}, priority: ${decision.priority})`
 			);
 
-			// Step 6: Load notes from database
 			const noteIds = await this.loadNotesFromDb(userId, cache.oldestNoteId, toLoad);
 
 			if (noteIds.length === 0) {
@@ -149,13 +137,10 @@ export class TimelineWarmingService implements OnApplicationShutdown {
 				return;
 			}
 
-			// Step 7: Write to Redis cache
 			await this.writeToCache(userId, noteIds, cache.maxSize);
 
-			// Step 8: Mark as warmed
 			await this.markAsWarmed(userId);
 
-			// Step 9: Update stats
 			const duration = Date.now() - startTime;
 			this.stats.totalWarmed++;
 			this.stats.lastWarmTime = new Date();
@@ -239,12 +224,10 @@ export class TimelineWarmingService implements OnApplicationShutdown {
 		const cacheKey = `list:userTimeline:${userId}`;
 		const pipeline = this.redisForTimelines.pipeline();
 
-		// Append to tail (chronologically oldest first)
 		for (const noteId of noteIds.reverse()) {
 			pipeline.rpush(cacheKey, noteId);
 		}
 
-		// Trim to max size
 		pipeline.ltrim(cacheKey, 0, maxLen - 1);
 
 		await pipeline.exec();

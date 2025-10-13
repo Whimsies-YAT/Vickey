@@ -30,7 +30,6 @@ export class TimelineWarmingEventHandler {
 	) {
 		console.log('[TimelineWarmingEventHandler] Constructor called, subscribing to events');
 
-		// Subscribe to NoteCreated event
 		this.eventBus.subscribe<NoteCreatedEvent>(
 			'NoteCreated',
 			this.handleNoteCreated,
@@ -41,7 +40,6 @@ export class TimelineWarmingEventHandler {
 			},
 		);
 
-		// Subscribe to UserFollowed event
 		this.eventBus.subscribe<UserFollowedEvent>(
 			'UserFollowed',
 			this.handleUserFollowed,
@@ -68,10 +66,8 @@ export class TimelineWarmingEventHandler {
 	private async handleNoteCreated(event: NoteCreatedEvent): Promise<void> {
 		const { userId, userHost } = event;
 
-		// Only handle local users
 		if (userHost !== null) return;
 
-		// Trigger warming (service handles all validation)
 		await this.timelineWarmingService.warmTimelineAsync(userId, 'note_created');
 	}
 
@@ -88,7 +84,6 @@ export class TimelineWarmingEventHandler {
 	private async handleUserFollowed(event: UserFollowedEvent): Promise<void> {
 		const { followeeId } = event;
 
-		// The followee (person being followed) is likely to be viewed
 		await this.timelineWarmingService.warmTimelineAsync(followeeId, 'user_followed');
 	}
 

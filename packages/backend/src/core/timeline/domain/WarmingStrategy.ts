@@ -30,7 +30,6 @@ export class WarmingStrategy {
 	 * Decide if a user's timeline should be warmed based on their profile
 	 */
 	shouldWarmForUser(user: MiUser): WarmingDecision {
-		// Rule 1: User must have enough notes to make warming worthwhile
 		if (user.notesCount < this.minNotesCount) {
 			return {
 				shouldWarm: false,
@@ -40,7 +39,6 @@ export class WarmingStrategy {
 			};
 		}
 
-		// Rule 2: Determine priority based on followers count
 		let priority: 'high' | 'normal' | 'low';
 		if (user.followersCount >= this.minFollowersForPredictive * 10) {
 			priority = 'high'; // Popular users: warm proactively
@@ -50,7 +48,6 @@ export class WarmingStrategy {
 			priority = 'low'; // Low-activity users: warm reactively
 		}
 
-		// Rule 3: Calculate target size based on user activity
 		const targetSize = this.calculateTargetSize(user);
 
 		return {
@@ -67,13 +64,11 @@ export class WarmingStrategy {
 	private calculateTargetSize(user: MiUser): number {
 		const totalNotes = user.notesCount;
 
-		// Strategy: Load more for prolific users, but cap at target
 		if (totalNotes < 500) {
 			return Math.min(totalNotes, this.defaultTargetSize);
 		} else if (totalNotes < 5000) {
 			return this.defaultTargetSize;
 		} else {
-			// Very prolific users: load up to 2x default
 			return Math.min(this.defaultTargetSize * 2, 2000);
 		}
 	}
