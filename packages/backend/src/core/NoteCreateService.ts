@@ -59,6 +59,8 @@ import { CacheService } from '@/core/CacheService.js';
 import { UserRiskScoreService } from '@/core/UserRiskScoreService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
 import { OfflineGeocodingService } from '@/core/OfflineGeocodingService.js';
+import { EventBus } from '@/core/events/EventBus.js';
+import type { NoteCreatedEvent } from '@/core/events/DomainEvents.js';
 
 type NotificationType = 'reply' | 'renote' | 'quote' | 'mention';
 
@@ -229,6 +231,8 @@ export class NoteCreateService implements OnApplicationShutdown {
 		private cacheService: CacheService,
 		private userRiskScoreService: UserRiskScoreService,
 		private offlineGeocodingService: OfflineGeocodingService,
+		// NEW: EventBus for gradual migration to event-driven architecture
+		private eventBus: EventBus,
 	) {
 		this.updateNotesCountQueue = new CollapsedQueue(process.env.NODE_ENV !== 'test' ? 60 * 1000 * 5 : 0, this.collapseNotesCount, this.performUpdateNotesCount);
 	}
@@ -822,7 +826,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 		// Increment notes count (user)
 		this.incNotesCountOfUser(user);
 
-		this.pushToTl(note, user);
+		// this.pushToTl(note, user);
 
 		this.antennaService.addNoteToAntennas({
 			...note,
@@ -989,7 +993,32 @@ export class NoteCreateService implements OnApplicationShutdown {
 		}
 
 		// Register to search database
-		this.index(note);
+		// this.index(note);
+
+		// Publish NoteCreated event
+		try {
+			this.eventBus.publish<NoteCreatedEvent>({
+				eventType: 'NoteCreated',
+				aggregateId: note.id,
+				aggregateType: 'Note',
+				occurredAt: this.idService.parse(note.id).date,
+				noteId: note.id,
+				userId: note.userId,
+				userHost: note.userHost,
+				text: note.text,
+				cw: note.cw,
+				visibility: note.visibility as 'public' | 'home' | 'followers' | 'specified',
+				localOnly: note.localOnly,
+				replyId: note.replyId,
+				renoteId: note.renoteId,
+				channelId: note.channelId,
+				fileIds: note.fileIds,
+				hasPoll: note.hasPoll,
+				tags: tags,
+			});
+		} catch (error) {
+			console.error('[EventBus] Failed to publish NoteCreated event:', error);
+		}
 	}
 
 	@bindThis
@@ -1075,6 +1104,9 @@ export class NoteCreateService implements OnApplicationShutdown {
 		return this.apRendererService.addContext(content);
 	}
 
+	/**
+	 * @deprecated: Migrated to NoteEventHandlers
+	 */
 	@bindThis
 	private index(note: MiNote) {
 		if (note.text == null && note.cw == null) return;
@@ -1114,6 +1146,9 @@ export class NoteCreateService implements OnApplicationShutdown {
 		return mentionedUsers;
 	}
 
+	/**
+	 * @deprecated Migrated to NoteEventHandlers
+	 */
 	@bindThis
 	private async pushToTl(note: MiNote, user: { id: MiUser['id']; host: MiUser['host']; }) {
 		if (!this.meta.enableFanoutTimeline) return;
@@ -1242,6 +1277,9 @@ export class NoteCreateService implements OnApplicationShutdown {
 		r.exec();
 	}
 
+	/**
+	 * @deprecated Migrated to NoteEventHandlers
+	 */
 	@bindThis
 	public async checkHibernation(followings: MiFollowing[]) {
 		if (followings.length === 0) return;

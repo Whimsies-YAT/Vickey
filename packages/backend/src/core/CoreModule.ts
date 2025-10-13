@@ -191,6 +191,11 @@ import { StripeWebhookService } from './StripeWebhookService.js';
 import { CloudflareCallsService } from './CloudflareCallsService.js';
 import { VoiceCallService } from './VoiceCallService.js';
 
+// EventBus infrastructure (NEW - for gradual migration)
+import { EventBus } from './events/EventBus.js';
+import { EventMetrics } from './events/EventMetrics.js';
+import { NoteEventHandlers } from './handlers/NoteEventHandlers.js';
+
 const serviceClasses = [
 	LoggerService, LogObserverService, AbuseReportService, AbuseReportNotificationService, AccountMoveService,
 	AccountUpdateService, AiService, AnnouncementService, AntennaService, AppLockService,
@@ -230,7 +235,11 @@ const serviceClasses = [
 	ApMfmService, ApRendererService, ApRequestService, ApResolverService, JsonLdService,
 	RemoteLoggerService, RemoteUserResolveService, WebfingerService, ApImageService, ApMentionService,
 	ApNoteService, ApPersonService, ApQuestionService, QueueService, StripeService, StripeSubscriptionService,
-	StripeWebhookService, CloudflareCallsService, VoiceCallService
+	StripeWebhookService, CloudflareCallsService, VoiceCallService,
+	// EventBus infrastructure (NEW)
+	EventBus, EventMetrics,
+	// Event handlers (NEW)
+	NoteEventHandlers,
 ];
 
 const stringProviders: Provider[] = serviceClasses.map(ServiceClass => ({
