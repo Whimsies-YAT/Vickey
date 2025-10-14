@@ -3,21 +3,21 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import {Inject, Injectable} from '@nestjs/common';
-import {DI} from '@/di-symbols.js';
-import {type Config, FulltextSearchProvider} from '@/config.js';
-import {bindThis} from '@/decorators.js';
-import {MiNote} from '@/models/Note.js';
-import type {ElasticsearchReindexStatesRepository, NotesRepository} from '@/models/_.js';
-import {MiUser} from '@/models/_.js';
-import {sqlLikeEscape} from '@/misc/sql-like-escape.js';
-import {isUserRelated} from '@/misc/is-user-related.js';
-import {CacheService} from '@/core/CacheService.js';
-import {QueryService} from '@/core/QueryService.js';
-import {IdService} from '@/core/IdService.js';
-import {LoggerService} from '@/core/LoggerService.js';
-import {Client as ElasticSearch} from '@elastic/elasticsearch';
-import type {Index, MeiliSearch} from 'meilisearch';
+import { Inject, Injectable } from '@nestjs/common';
+import { DI } from '@/di-symbols.js';
+import { type Config, FulltextSearchProvider } from '@/config.js';
+import { bindThis } from '@/decorators.js';
+import { MiNote } from '@/models/Note.js';
+import type { ElasticsearchReindexStatesRepository, NotesRepository } from '@/models/_.js';
+import { MiUser } from '@/models/_.js';
+import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
+import { isUserRelated } from '@/misc/is-user-related.js';
+import { CacheService } from '@/core/CacheService.js';
+import { QueryService } from '@/core/QueryService.js';
+import { IdService } from '@/core/IdService.js';
+import { LoggerService } from '@/core/LoggerService.js';
+import { Client as ElasticSearch } from '@elastic/elasticsearch';
+import type { Index, MeiliSearch } from 'meilisearch';
 import type Logger from '@/logger.js';
 
 type K = string;
@@ -168,7 +168,7 @@ export class SearchService {
                 async (transactionalEntityManager) => {
                     const inProgressCount = await transactionalEntityManager.count(
                         this.elasticsearchReindexStatesRepository.target,
-                        {where: {status: 'in_progress'}}
+                        { where: { status: 'in_progress' } }
                     );
 
                     if (inProgressCount >= maxConcurrent) {
@@ -184,7 +184,7 @@ export class SearchService {
                             lockedBy: this.instanceId,
                             lockedAt: new Date(),
                         })
-                        .where('indexPattern = :pattern', {pattern: indexPattern})
+                        .where('indexPattern = :pattern', { pattern: indexPattern })
                         .andWhere(
                             '(status = :pending OR (status = :inProgress AND (lockedAt IS NULL OR lockedAt < :timeout)))',
                             {
