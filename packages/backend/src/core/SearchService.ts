@@ -3,21 +3,21 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Inject, Injectable } from '@nestjs/common';
-import { DI } from '@/di-symbols.js';
-import { type Config, FulltextSearchProvider } from '@/config.js';
-import { bindThis } from '@/decorators.js';
-import { MiNote } from '@/models/Note.js';
-import type { NotesRepository, ElasticsearchReindexStatesRepository } from '@/models/_.js';
-import { MiUser } from '@/models/_.js';
-import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
-import { isUserRelated } from '@/misc/is-user-related.js';
-import { CacheService } from '@/core/CacheService.js';
-import { QueryService } from '@/core/QueryService.js';
-import { IdService } from '@/core/IdService.js';
-import { LoggerService } from '@/core/LoggerService.js';
-import { Client as ElasticSearch } from '@elastic/elasticsearch';
-import type { Index, MeiliSearch } from 'meilisearch';
+import {Inject, Injectable} from '@nestjs/common';
+import {DI} from '@/di-symbols.js';
+import {type Config, FulltextSearchProvider} from '@/config.js';
+import {bindThis} from '@/decorators.js';
+import {MiNote} from '@/models/Note.js';
+import type {ElasticsearchReindexStatesRepository, NotesRepository} from '@/models/_.js';
+import {MiUser} from '@/models/_.js';
+import {sqlLikeEscape} from '@/misc/sql-like-escape.js';
+import {isUserRelated} from '@/misc/is-user-related.js';
+import {CacheService} from '@/core/CacheService.js';
+import {QueryService} from '@/core/QueryService.js';
+import {IdService} from '@/core/IdService.js';
+import {LoggerService} from '@/core/LoggerService.js';
+import {Client as ElasticSearch} from '@elastic/elasticsearch';
+import type {Index, MeiliSearch} from 'meilisearch';
 import type Logger from '@/logger.js';
 
 type K = string;
@@ -159,40 +159,45 @@ export class SearchService {
 
 	@bindThis
 	private async acquireReindexLock(indexPattern: string): Promise<boolean> {
-		const lockTimeout = 3600000; // 1 hour
+		const lockTimeout = 1800000;
 		const timeoutDate = new Date(Date.now() - lockTimeout);
 		const maxConcurrent = 1;
 
 		try {
-			const inProgressCount = await this.elasticsearchReindexStatesRepository.count({
-				where: { status: 'in_progress' },
-			});
+            return await this.elasticsearchReindexStatesRepository.manager.transaction(
+                async (transactionalEntityManager) => {
+                    const inProgressCount = await transactionalEntityManager.count(
+                        this.elasticsearchReindexStatesRepository.target,
+                        {where: {status: 'in_progress'}}
+                    );
 
-			if (inProgressCount >= maxConcurrent) {
-				this.logger.debug(`Reindex limit reached (${inProgressCount}/${maxConcurrent}), skipping ${indexPattern}`);
-				return false;
-			}
+                    if (inProgressCount >= maxConcurrent) {
+                        this.logger.debug(`Reindex limit reached (${inProgressCount}/${maxConcurrent}), skipping ${indexPattern}`);
+                        return false;
+                    }
 
-			const result = await this.elasticsearchReindexStatesRepository
-				.createQueryBuilder()
-				.update()
-				.set({
-					status: 'in_progress',
-					lockedBy: this.instanceId,
-					lockedAt: new Date(),
-				})
-				.where('indexPattern = :pattern', { pattern: indexPattern })
-				.andWhere(
-					'(status = :pending OR (status = :inProgress AND (lockedAt IS NULL OR lockedAt < :timeout)))',
-					{
-						pending: 'pending',
-						inProgress: 'in_progress',
-						timeout: timeoutDate,
-					}
-				)
-				.execute();
+                    const result = await transactionalEntityManager
+                        .createQueryBuilder()
+                        .update(this.elasticsearchReindexStatesRepository.target)
+                        .set({
+                            status: 'in_progress',
+                            lockedBy: this.instanceId,
+                            lockedAt: new Date(),
+                        })
+                        .where('indexPattern = :pattern', {pattern: indexPattern})
+                        .andWhere(
+                            '(status = :pending OR (status = :inProgress AND (lockedAt IS NULL OR lockedAt < :timeout)))',
+                            {
+                                pending: 'pending',
+                                inProgress: 'in_progress',
+                                timeout: timeoutDate,
+                            }
+                        )
+                        .execute();
 
-			return result.affected === 1;
+                    return result.affected === 1;
+                }
+            );
 		} catch (error) {
 			this.logger.error(`Failed to acquire lock for ${indexPattern}:`, (error as Error));
 			return false;
@@ -215,6 +220,41 @@ export class SearchService {
 		} catch (error) {
 			this.logger.error(`Failed to release lock for ${indexPattern}:`, (error as Error));
 		}
+	}
+
+	@bindThis
+	private startLockHeartbeat(indexPattern: string): () => void {
+		const heartbeatInterval = 300000;
+
+		const timer = setInterval(async () => {
+			try {
+				await this.elasticsearchReindexStatesRepository
+					.createQueryBuilder()
+					.update()
+					.set({ lockedAt: new Date() })
+					.where('indexPattern = :pattern', { pattern: indexPattern })
+					.andWhere('lockedBy = :instanceId', { instanceId: this.instanceId })
+					.execute();
+				this.logger.debug(`Heartbeat: refreshed lock for ${indexPattern}`);
+			} catch (error) {
+				this.logger.error(`Failed to maintain heartbeat for ${indexPattern}:`, (error as Error));
+			}
+		}, heartbeatInterval);
+
+		return () => clearInterval(timer);
+	}
+
+	@bindThis
+	private calculateReindexTimeout(docCount: number): number {
+		const REINDEX_DOCS_PER_SEC = 1000;
+		const MIN_TIMEOUT_MS = 600000;
+		const MAX_TIMEOUT_MS = 21600000;
+
+		const estimatedSeconds = Math.max(docCount / REINDEX_DOCS_PER_SEC, MIN_TIMEOUT_MS / 1000);
+		const timeoutMs = Math.min(estimatedSeconds * 1000 * 2, MAX_TIMEOUT_MS);
+
+		this.logger.info(`Calculated reindex timeout: ${Math.round(timeoutMs / 60000)} minutes for ${docCount} documents`);
+		return timeoutMs;
 	}
 
 	@bindThis
@@ -700,6 +740,7 @@ export class SearchService {
 
 		const maxRetries = 5;
 		let newIndexCreated = false;
+		let stopHeartbeat: (() => void) | null = null;
 
 		try {
 			const sourceExists = await this.elasticsearch.indices.exists({ index: state.oldIndex });
@@ -733,11 +774,17 @@ export class SearchService {
 			}
 
 			const sourceStats = await this.elasticsearch.count({ index: state.oldIndex });
-			this.logger.info(`Source index ${state.oldIndex} has ${sourceStats.count} documents`);
+			const docCount = sourceStats.count;
+			this.logger.info(`Source index ${state.oldIndex} has ${docCount} documents`);
+
+			const reindexTimeout = this.calculateReindexTimeout(docCount);
 
 			state.status = 'in_progress';
 			state.startedAt = new Date();
 			await this.elasticsearchReindexStatesRepository.save(state);
+
+			stopHeartbeat = this.startLockHeartbeat(state.indexPattern);
+			this.logger.info('Started lock heartbeat');
 
 			const newIndexName = `${state.oldIndex}-reindex-${Date.now()}`;
 			await this.elasticsearch.indices.create({
@@ -764,7 +811,7 @@ export class SearchService {
 			await this.elasticsearchReindexStatesRepository.save(state);
 			this.logger.info(`Reindex task started: ${state.taskId}`);
 
-			await this.monitorReindexTask(state);
+			await this.monitorReindexTask(state, reindexTimeout);
 		} catch (error: any) {
 			if (newIndexCreated && state.newIndex) {
 				try {
@@ -813,15 +860,19 @@ export class SearchService {
 				await this.elasticsearchReindexStatesRepository.save(state);
 				this.logger.error('Reindex failed after max retries:', error);
 			}
+		} finally {
+			if (stopHeartbeat) {
+				stopHeartbeat();
+				this.logger.info('Stopped lock heartbeat');
+			}
 		}
 	}
 
 	@bindThis
-	private async monitorReindexTask(state: any) {
+	private async monitorReindexTask(state: any, maxWaitTime: number = 21600000) {
 		if (!this.elasticsearch || !state.taskId) return;
 
 		const checkInterval = 5000;
-		const maxWaitTime = 6 * 3600000;
 		const startTime = Date.now();
 
 		const check = async () => {
