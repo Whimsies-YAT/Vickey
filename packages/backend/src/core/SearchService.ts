@@ -1014,7 +1014,11 @@ export class SearchService {
 				this.logger.info(`Created alias ${state.oldIndex} -> ${state.newIndex}`);
 			}
 
-			if (this.elasticsearchWriteIndex === state.oldIndex) {
+			const aliasInfo = await this.elasticsearch.indices.getAlias({ name: state.oldIndex }).catch(() => null);
+			const oldRealIndex = aliasInfo ? Object.keys(aliasInfo)[0] : state.oldIndex;
+
+			if (this.elasticsearchWriteIndex === state.oldIndex || this.elasticsearchWriteIndex === oldRealIndex) {
+				this.logger.info(`Updating write index from ${this.elasticsearchWriteIndex} to ${state.newIndex}`);
 				this.elasticsearchWriteIndex = state.newIndex;
 			}
 
