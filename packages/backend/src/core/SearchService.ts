@@ -977,9 +977,20 @@ export class SearchService {
 			const aliasExists = await this.elasticsearch.indices.existsAlias({ name: state.oldIndex });
 			const indexExists = await this.elasticsearch.indices.exists({ index: state.oldIndex });
 
+			let oldRealIndex: string | null = null;
 			if (aliasExists) {
 				const aliasInfo = await this.elasticsearch.indices.getAlias({ name: state.oldIndex });
-				const oldRealIndex = Object.keys(aliasInfo)[0];
+				oldRealIndex = Object.keys(aliasInfo)[0];
+			} else if (indexExists) {
+				oldRealIndex = state.oldIndex;
+			}
+
+			if (oldRealIndex && (this.elasticsearchWriteIndex === state.oldIndex || this.elasticsearchWriteIndex === oldRealIndex)) {
+				this.logger.info(`Updating write index from ${this.elasticsearchWriteIndex} to ${state.newIndex}`);
+				this.elasticsearchWriteIndex = state.newIndex;
+			}
+
+			if (aliasExists && oldRealIndex) {
 
 				await this.elasticsearch.indices.updateAliases({
 					actions: [
@@ -1012,14 +1023,6 @@ export class SearchService {
 					name: state.oldIndex,
 				});
 				this.logger.info(`Created alias ${state.oldIndex} -> ${state.newIndex}`);
-			}
-
-			const aliasInfo = await this.elasticsearch.indices.getAlias({ name: state.oldIndex }).catch(() => null);
-			const oldRealIndex = aliasInfo ? Object.keys(aliasInfo)[0] : state.oldIndex;
-
-			if (this.elasticsearchWriteIndex === state.oldIndex || this.elasticsearchWriteIndex === oldRealIndex) {
-				this.logger.info(`Updating write index from ${this.elasticsearchWriteIndex} to ${state.newIndex}`);
-				this.elasticsearchWriteIndex = state.newIndex;
 			}
 
 			state.status = 'completed';
@@ -1396,17 +1399,32 @@ export class SearchService {
 				const reindexIndices = allIndices.filter(idx => idx.index.includes('-reindex-'));
 
 				if (reindexIndices.length > 0) {
+					const allAliases = await this.elasticsearch.cat.aliases({ format: 'json' });
+					const indicesWithAliases = new Set<string>();
+					for (const aliasInfo of allAliases as any[]) {
+						if (aliasInfo.index && aliasInfo.index.startsWith(base)) {
+							indicesWithAliases.add(aliasInfo.index);
+						}
+					}
+
 					const availableIndices = allIndices
 						.map(idx => idx.index)
-						.filter(idx => !idx.includes('-reindex-'));
+						.filter(idx => {
+							if (!idx.includes('-reindex-')) return true;
+							if (indicesWithAliases.has(idx)) return true;
+							return false;
+						});
 
 					if (availableIndices.length === 0) {
 						this.logger.warn('All indices are reindexing, returning empty results');
 						return [];
 					}
 
+					const excludedIndices = reindexIndices.filter(idx => !availableIndices.includes(idx.index));
+					if (excludedIndices.length > 0) {
+						this.logger.debug(`Excluded in-progress reindex indices: ${excludedIndices.map(i => i.index).join(',')}`);
+					}
 					searchIndex = availableIndices.join(',');
-					this.logger.debug(`Excluded reindex indices: ${reindexIndices.map(i => i.index).join(',')}`);
 				}
 			} catch (error) {
 				this.logger.error('Failed to filter reindex indices:', (error as Error));
