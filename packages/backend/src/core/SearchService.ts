@@ -253,7 +253,7 @@ export class SearchService {
 		const prefix = `${base}-${month}`;
 		const MAX_DOCS = 5_000_000;
 
-		await this.cleanupCompletedReindex();
+		await this.cleanupReindexArtifacts();
 		await this.resumePendingReindex();
 
 		let i = 0;
@@ -659,9 +659,19 @@ export class SearchService {
 			);
 
 			if (conflictingIndex) {
-				this.logger.warn(`Reindex already in progress for ${state.oldIndex}: ${conflictingIndex.index}`);
-				this.reindexingIndices.delete(state.oldIndex);
-				return;
+				this.logger.warn(`Found conflicting reindex index ${conflictingIndex.index}, attempting cleanup`);
+				try {
+					await this.elasticsearch.indices.delete({ index: conflictingIndex.index });
+					this.logger.info(`Deleted orphan reindex index ${conflictingIndex.index}, proceeding with reindex`);
+				} catch (deleteError: any) {
+					if (deleteError.meta?.body?.error?.type === 'index_not_found_exception') {
+						this.logger.info(`Conflicting index ${conflictingIndex.index} already deleted, proceeding`);
+					} else {
+						this.logger.error(`Failed to delete conflicting index ${conflictingIndex.index}: ${deleteError.message}`);
+						this.reindexingIndices.delete(state.oldIndex);
+						throw deleteError;
+					}
+				}
 			}
 
 			const sourceStats = await this.elasticsearch.count({ index: state.oldIndex });
@@ -903,51 +913,61 @@ export class SearchService {
 	}
 
 	@bindThis
-	private async cleanupCompletedReindex() {
+	private async cleanupReindexArtifacts() {
 		if (!this.elasticsearch) return;
 
 		try {
-			const completedStates = await this.elasticsearchReindexStatesRepository.findBy({
-				status: 'completed' as any,
-			});
-
 			const base = `${this.config.elasticsearch!.index}---notes`;
 			const allIndices = await this.elasticsearch.cat.indices({ index: `${base}*`, format: 'json' }) as ElasticsearchIndexInfo[];
-			const existingIndices = new Set(allIndices.map(idx => idx.index));
+			const orphanReindexIndices = allIndices.filter(idx => idx.index.includes('-reindex-'));
 
-			for (const state of completedStates) {
-				if (!state.oldIndex || !state.newIndex) continue;
+			for (const indexInfo of orphanReindexIndices) {
+				const orphanIndex = indexInfo.index;
 
-				const oldIndex = state.oldIndex;
-				const newIndex = state.newIndex;
+				const baseIndexName = orphanIndex.replace(/-reindex-\d+$/, '');
+				const aliasExists = await this.elasticsearch.indices.existsAlias({ name: baseIndexName });
 
-				const aliasExists = await this.elasticsearch.indices.existsAlias({ name: oldIndex });
 				if (aliasExists) {
-					const aliasInfo = await this.elasticsearch.indices.getAlias({ name: oldIndex });
+					const aliasInfo = await this.elasticsearch.indices.getAlias({ name: baseIndexName });
 					const currentTarget = Object.keys(aliasInfo)[0];
 
-					if (currentTarget === newIndex && existingIndices.has(oldIndex) && oldIndex.includes('-reindex-')) {
-						const nonAliasIndex = Array.from(existingIndices).find(idx =>
-							idx !== newIndex && idx.startsWith(oldIndex.split('-reindex-')[0])
-						);
-						if (nonAliasIndex) {
-							this.logger.info(`Cleanup: deleting orphaned index ${nonAliasIndex}`);
-							await this.elasticsearch.indices.delete({ index: nonAliasIndex });
+					if (currentTarget !== orphanIndex) {
+						this.logger.info(`Cleanup: deleting orphan reindex index ${orphanIndex} (alias points to ${currentTarget})`);
+						await this.elasticsearch.indices.delete({ index: orphanIndex });
+					}
+				} else {
+					this.logger.info(`Cleanup: deleting orphan reindex index ${orphanIndex} (no alias exists)`);
+					await this.elasticsearch.indices.delete({ index: orphanIndex });
+				}
+			}
+
+			const allStates = await this.elasticsearchReindexStatesRepository.find();
+			for (const state of allStates) {
+				if (!state.oldIndex) {
+					await this.elasticsearchReindexStatesRepository.remove(state);
+					continue;
+				}
+
+				const indexExists = await this.elasticsearch.indices.exists({ index: state.oldIndex });
+				const aliasExists = await this.elasticsearch.indices.existsAlias({ name: state.oldIndex });
+
+				if (!indexExists && !aliasExists) {
+					this.logger.info(`Cleanup: removing state for non-existent index ${state.oldIndex}`);
+					await this.elasticsearchReindexStatesRepository.remove(state);
+				}
+
+				if (state.status === 'completed' || state.status === 'failed') {
+					if (state.newIndex) {
+						const newIndexExists = await this.elasticsearch.indices.exists({ index: state.newIndex });
+						if (!newIndexExists) {
+							this.logger.info(`Cleanup: removing state for missing new index ${state.newIndex}`);
 							await this.elasticsearchReindexStatesRepository.remove(state);
 						}
 					}
-				} else if (existingIndices.has(oldIndex)) {
-					if (oldIndex.includes('-reindex-')) {
-						this.logger.warn(`Cleanup: old index ${oldIndex} still exists without alias, cleaning up state`);
-						await this.elasticsearchReindexStatesRepository.remove(state);
-					}
-				} else {
-					this.logger.info(`Cleanup: removing completed reindex state for non-existent index ${oldIndex}`);
-					await this.elasticsearchReindexStatesRepository.remove(state);
 				}
 			}
 		} catch (error) {
-			this.logger.error('Failed to cleanup completed reindex:', (error as Error));
+			this.logger.error('Failed to cleanup reindex artifacts:', (error as Error));
 		}
 	}
 
