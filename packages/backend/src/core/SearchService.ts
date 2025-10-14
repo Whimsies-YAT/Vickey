@@ -90,7 +90,7 @@ export class SearchService {
 	private readonly provider: FulltextSearchProvider;
 	private elasticsearchWriteIndex: string | null = null;
 	private elasticsearchSearchIndex: string | null = null;
-	private reindexingIndices: Set<string> = new Set();
+	private readonly instanceId: string;
 	private logger: Logger;
 
 	constructor(
@@ -115,6 +115,7 @@ export class SearchService {
 		private loggerService: LoggerService,
 	) {
 		this.logger = this.loggerService.getLogger('SearchService');
+		this.instanceId = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
 		if (meilisearch) {
 			this.meilisearchNoteIndex = meilisearch.index(`${config.meilisearch!.index}---notes`);
@@ -154,6 +155,79 @@ export class SearchService {
 
 		this.provider = config.fulltextSearch?.provider ?? 'sqlLike';
 		this.logger.info(`-- Provider: ${this.provider === 'searchengine' ? 'Search Engine' : this.provider}`);
+	}
+
+	@bindThis
+	private async acquireReindexLock(indexPattern: string): Promise<boolean> {
+		const lockTimeout = 3600000; // 1 hour
+		const timeoutDate = new Date(Date.now() - lockTimeout);
+		const maxConcurrent = 1;
+
+		try {
+			const inProgressCount = await this.elasticsearchReindexStatesRepository.count({
+				where: { status: 'in_progress' },
+			});
+
+			if (inProgressCount >= maxConcurrent) {
+				this.logger.debug(`Reindex limit reached (${inProgressCount}/${maxConcurrent}), skipping ${indexPattern}`);
+				return false;
+			}
+
+			const result = await this.elasticsearchReindexStatesRepository
+				.createQueryBuilder()
+				.update()
+				.set({
+					status: 'in_progress',
+					lockedBy: this.instanceId,
+					lockedAt: new Date(),
+				})
+				.where('indexPattern = :pattern', { pattern: indexPattern })
+				.andWhere(
+					'(status = :pending OR (status = :inProgress AND (lockedAt IS NULL OR lockedAt < :timeout)))',
+					{
+						pending: 'pending',
+						inProgress: 'in_progress',
+						timeout: timeoutDate,
+					}
+				)
+				.execute();
+
+			return result.affected === 1;
+		} catch (error) {
+			this.logger.error(`Failed to acquire lock for ${indexPattern}:`, (error as Error));
+			return false;
+		}
+	}
+
+	@bindThis
+	private async releaseReindexLock(indexPattern: string) {
+		try {
+			await this.elasticsearchReindexStatesRepository
+				.createQueryBuilder()
+				.update()
+				.set({
+					lockedBy: null,
+					lockedAt: null,
+				})
+				.where('indexPattern = :pattern', { pattern: indexPattern })
+				.andWhere('lockedBy = :instanceId', { instanceId: this.instanceId })
+				.execute();
+		} catch (error) {
+			this.logger.error(`Failed to release lock for ${indexPattern}:`, (error as Error));
+		}
+	}
+
+	@bindThis
+	private async canStartReindex(): Promise<boolean> {
+		try {
+			const count = await this.elasticsearchReindexStatesRepository.count({
+				where: { status: 'in_progress' },
+			});
+			return count < 1;
+		} catch (error) {
+			this.logger.error('Failed to check reindex count:', (error as Error));
+			return false;
+		}
 	}
 
 	@bindThis
@@ -289,17 +363,26 @@ export class SearchService {
 				continue;
 			}
 
-			const realIndexName = `${aliasName}-v1`;
-			const config = this.getElasticsearchIndexConfig();
-			await this.elasticsearch.indices.create({
-				index: realIndexName,
-				mappings: config.mappings,
-				settings: config.settings,
-				aliases: { [aliasName]: {} },
-			});
-			this.elasticsearchWriteIndex = realIndexName;
-			this.logger.info(`Created new Elasticsearch index: ${realIndexName} with alias: ${aliasName}`);
-			break;
+			try {
+				const realIndexName = `${aliasName}-v${Date.now()}-${this.instanceId.slice(0, 7)}`;
+				const config = this.getElasticsearchIndexConfig();
+				await this.elasticsearch.indices.create({
+					index: realIndexName,
+					mappings: config.mappings,
+					settings: config.settings,
+					aliases: { [aliasName]: {} },
+				});
+				this.elasticsearchWriteIndex = realIndexName;
+				this.logger.info(`Created new Elasticsearch index: ${realIndexName} with alias: ${aliasName}`);
+				break;
+			} catch (error: any) {
+				if (error.meta?.body?.error?.type === 'resource_already_exists_exception') {
+					this.logger.info(`Index/alias ${aliasName} was created by another instance, retrying...`);
+					i++;
+					continue;
+				}
+				throw error;
+			}
 		}
 
 		this.elasticsearchSearchIndex = `${base}*`;
@@ -336,7 +419,8 @@ export class SearchService {
 					await this.checkAndUpdateIndexConfig(indexName);
 				}
 
-				if (this.reindexingIndices.size >= 1) {
+				const canContinue = await this.canStartReindex();
+				if (!canContinue) {
 					this.logger.info('Reindex limit reached, will check remaining indices on next startup');
 					break;
 				}
@@ -371,43 +455,6 @@ export class SearchService {
 
 			if (diff.requiresReindex) {
 				this.logger.warn(`Index ${indexName} requires reindex: ${diff.reason.join(', ')}`);
-
-				const { count } = await this.elasticsearch.count({ index: indexName });
-				if (count === 0) {
-					this.logger.info(`Index ${indexName} is empty (${count} docs), recreating instead of reindexing`);
-					try {
-						const aliasExists = await this.elasticsearch.indices.existsAlias({ name: indexName });
-
-						if (aliasExists) {
-							const aliasInfo = await this.elasticsearch.indices.getAlias({ name: indexName });
-							const realIndexName = Object.keys(aliasInfo)[0];
-							this.logger.info(`Index ${indexName} is an alias pointing to ${realIndexName}`);
-
-							await this.elasticsearch.indices.delete({ index: realIndexName });
-
-							const newRealIndexName = `${indexName}-v${Date.now()}`;
-							await this.elasticsearch.indices.create({
-								index: newRealIndexName,
-								mappings: desiredConfig.mappings,
-								settings: desiredConfig.settings,
-								aliases: { [indexName]: {} },
-							});
-							this.logger.info(`Successfully recreated empty index ${realIndexName} as ${newRealIndexName} with alias ${indexName}`);
-						} else {
-							await this.elasticsearch.indices.delete({ index: indexName });
-							await this.elasticsearch.indices.create({
-								index: indexName,
-								mappings: desiredConfig.mappings,
-								settings: desiredConfig.settings,
-							});
-							this.logger.info(`Successfully recreated empty index ${indexName}`);
-						}
-						return;
-					} catch (error) {
-						this.logger.error(`Failed to recreate empty index ${indexName}:`, (error as Error));
-					}
-				}
-
 				await this.startReindexProcess(indexName, desiredConfig);
 			}
 		} catch (error) {
@@ -576,10 +623,6 @@ export class SearchService {
 	@bindThis
 	private async startReindexProcess(oldIndex: string, targetConfig: any) {
 		if (!this.elasticsearch) return;
-		if (this.reindexingIndices.size >= 1) {
-			this.logger.warn(`Reindex limit reached (${this.reindexingIndices.size}/1), will retry later for ${oldIndex}`);
-			return;
-		}
 
 		const indexPattern = oldIndex;
 
@@ -638,7 +681,23 @@ export class SearchService {
 			return;
 		}
 
-		this.reindexingIndices.add(state.oldIndex);
+		const lockAcquired = await this.acquireReindexLock(state.indexPattern);
+		if (!lockAcquired) {
+			this.logger.warn(`Failed to acquire lock for ${state.indexPattern}, another instance may be processing it`);
+			return;
+		}
+
+		try {
+			await this.doReindex(state);
+		} finally {
+			await this.releaseReindexLock(state.indexPattern);
+		}
+	}
+
+	@bindThis
+	private async doReindex(state: any) {
+		if (!this.elasticsearch) return;
+
 		const maxRetries = 5;
 		let newIndexCreated = false;
 
@@ -668,7 +727,6 @@ export class SearchService {
 						this.logger.info(`Conflicting index ${conflictingIndex.index} already deleted, proceeding`);
 					} else {
 						this.logger.error(`Failed to delete conflicting index ${conflictingIndex.index}: ${deleteError.message}`);
-						this.reindexingIndices.delete(state.oldIndex);
 						throw deleteError;
 					}
 				}
@@ -708,8 +766,6 @@ export class SearchService {
 
 			await this.monitorReindexTask(state);
 		} catch (error: any) {
-			this.reindexingIndices.delete(state.oldIndex);
-
 			if (newIndexCreated && state.newIndex) {
 				try {
 					const indexExists = await this.elasticsearch!.indices.exists({ index: state.newIndex });
@@ -726,16 +782,31 @@ export class SearchService {
 
 			if (state.retryCount < maxRetries) {
 				const backoffMs = Math.min(1000 * Math.pow(2, state.retryCount), 60000);
-				this.logger.warn(`Reindex failed, retry ${state.retryCount}/${maxRetries} in ${backoffMs}ms`);
+				this.logger.warn(`Reindex failed, scheduling retry ${state.retryCount}/${maxRetries} in ${backoffMs}ms`);
+
+				state.status = 'pending';
 				state.errorMessage = error.message;
 				state.newIndex = null;
 				await this.elasticsearchReindexStatesRepository.save(state);
 
-				setTimeout(() => {
-					this.executeReindex(state).catch(err => {
-						this.logger.error('Retry failed:', err);
-					});
+				const timer = setTimeout(async () => {
+					try {
+						const latestState = await this.elasticsearchReindexStatesRepository.findOneBy({
+							indexPattern: state.indexPattern
+						});
+
+						if (latestState && latestState.status === 'pending') {
+							this.logger.info(`Retrying reindex for ${state.indexPattern} (attempt ${latestState.retryCount}/${maxRetries})`);
+							await this.executeReindex(latestState);
+						} else {
+							this.logger.debug(`Skipping retry for ${state.indexPattern}: state changed`);
+						}
+					} catch (retryError) {
+						this.logger.error(`Retry execution failed for ${state.indexPattern}:`, (retryError as Error));
+					}
 				}, backoffMs);
+
+				timer.unref();
 			} else {
 				state.status = 'failed';
 				state.errorMessage = `Max retries exceeded: ${error.message}`;
@@ -794,7 +865,6 @@ export class SearchService {
 				state.status = 'failed';
 				state.errorMessage = error.message;
 				await this.elasticsearchReindexStatesRepository.save(state);
-				this.reindexingIndices.delete(state.oldIndex);
 			}
 		};
 
@@ -901,13 +971,11 @@ export class SearchService {
 			state.completedAt = new Date();
 			await this.elasticsearchReindexStatesRepository.save(state);
 
-			this.reindexingIndices.delete(state.oldIndex);
 			this.logger.info(`Reindex completed successfully for ${state.oldIndex}`);
 		} catch (error: any) {
 			state.status = 'failed';
 			state.errorMessage = error.message;
 			await this.elasticsearchReindexStatesRepository.save(state);
-			this.reindexingIndices.delete(state.oldIndex);
 			this.logger.error('Failed to switch to new index:', error);
 		}
 	}
@@ -988,7 +1056,8 @@ export class SearchService {
 			});
 
 			for (const state of pendingStates) {
-				if (this.reindexingIndices.size >= 1) {
+				const canStart = await this.canStartReindex();
+				if (!canStart) {
 					this.logger.info(`Reindex limit reached, skipping resume of ${state.indexPattern}`);
 					break;
 				}

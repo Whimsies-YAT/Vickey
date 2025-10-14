@@ -41,4 +41,10 @@ export class MiElasticsearchReindexState {
 
 	@Column('timestamp with time zone', { nullable: true })
 	public completedAt: Date | null;
+
+	@Column('varchar', { length: 128, nullable: true })
+	public lockedBy: string | null;
+
+	@Column('timestamp with time zone', { nullable: true })
+	public lockedAt: Date | null;
 }
