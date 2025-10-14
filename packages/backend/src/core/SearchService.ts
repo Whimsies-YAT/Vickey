@@ -919,25 +919,31 @@ export class SearchService {
 		try {
 			const base = `${this.config.elasticsearch!.index}---notes`;
 			const allIndices = await this.elasticsearch.cat.indices({ index: `${base}*`, format: 'json' }) as ElasticsearchIndexInfo[];
-			const orphanReindexIndices = allIndices.filter(idx => idx.index.includes('-reindex-'));
+			const reindexIndices = allIndices.filter(idx => idx.index.includes('-reindex-'));
 
-			for (const indexInfo of orphanReindexIndices) {
-				const orphanIndex = indexInfo.index;
+			const allAliases = await this.elasticsearch.cat.aliases({ format: 'json' });
+			const indicesWithAliases = new Set<string>();
+			for (const aliasInfo of allAliases as any[]) {
+				if (aliasInfo.index && aliasInfo.index.startsWith(base)) {
+					indicesWithAliases.add(aliasInfo.index);
+				}
+			}
 
-				const baseIndexName = orphanIndex.replace(/-reindex-\d+$/, '');
-				const aliasExists = await this.elasticsearch.indices.existsAlias({ name: baseIndexName });
+			for (const indexInfo of reindexIndices) {
+				const reindexIndex = indexInfo.index;
 
-				if (aliasExists) {
-					const aliasInfo = await this.elasticsearch.indices.getAlias({ name: baseIndexName });
-					const currentTarget = Object.keys(aliasInfo)[0];
+				if (indicesWithAliases.has(reindexIndex)) {
+					this.logger.info(`Cleanup: keeping reindex index ${reindexIndex} (has active alias)`);
+					continue;
+				}
 
-					if (currentTarget !== orphanIndex) {
-						this.logger.info(`Cleanup: deleting orphan reindex index ${orphanIndex} (alias points to ${currentTarget})`);
-						await this.elasticsearch.indices.delete({ index: orphanIndex });
+				this.logger.info(`Cleanup: deleting orphan reindex index ${reindexIndex} (no alias references)`);
+				try {
+					await this.elasticsearch.indices.delete({ index: reindexIndex });
+				} catch (deleteError: any) {
+					if (deleteError.meta?.body?.error?.type !== 'index_not_found_exception') {
+						this.logger.error(`Failed to delete orphan index ${reindexIndex}:`, (deleteError as Error));
 					}
-				} else {
-					this.logger.info(`Cleanup: deleting orphan reindex index ${orphanIndex} (no alias exists)`);
-					await this.elasticsearch.indices.delete({ index: orphanIndex });
 				}
 			}
 
@@ -954,6 +960,7 @@ export class SearchService {
 				if (!indexExists && !aliasExists) {
 					this.logger.info(`Cleanup: removing state for non-existent index ${state.oldIndex}`);
 					await this.elasticsearchReindexStatesRepository.remove(state);
+					continue;
 				}
 
 				if (state.status === 'completed' || state.status === 'failed') {
