@@ -991,7 +991,6 @@ export class SearchService {
 			}
 
 			if (aliasExists && oldRealIndex) {
-
 				await this.elasticsearch.indices.updateAliases({
 					actions: [
 						{ remove: { index: oldRealIndex, alias: state.oldIndex } },
