@@ -909,6 +909,11 @@ export class MiMeta {
 	})
 	public visibleRecipient: string | null;
 
+	@Column('boolean', {
+		default: false,
+	})
+	public showRoleBadgesOfRemoteUsers: boolean;
+
 	@Column('jsonb', {
 		default: { },
 	})

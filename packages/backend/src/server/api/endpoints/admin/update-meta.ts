@@ -265,6 +265,7 @@ export const paramDef = {
 		cloudflareApiToken: { type: 'string', nullable: true },
 		cloudflareSfuAppId: { type: 'string', nullable: true },
 		cloudflareSfuAppSecret: { type: 'string', nullable: true },
+		showRoleBadgesOfRemoteUsers: { type: 'boolean' },
 	},
 	required: [],
 } as const;
@@ -1089,6 +1090,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				} else {
 					set.cloudflareSfuAppSecret = ps.cloudflareSfuAppSecret;
 				}
+			}
+
+			if (ps.showRoleBadgesOfRemoteUsers !== undefined) {
+				set.showRoleBadgesOfRemoteUsers = ps.showRoleBadgesOfRemoteUsers;
 			}
 
 			const before = await this.metaService.fetch(true);
