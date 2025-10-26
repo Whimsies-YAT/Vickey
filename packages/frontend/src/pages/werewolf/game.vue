@@ -1536,10 +1536,10 @@ async function initVoiceConnection(retryCount = 0) {
 
 		if (pc.iceGatheringState !== 'complete') {
 			await new Promise<void>((resolve) => {
-				const timeout = setTimeout(() => resolve(), 3000);
+				const timeout = window.setTimeout(() => resolve(), 3000);
 				pc.onicegatheringstatechange = () => {
 					if (pc.iceGatheringState === 'complete') {
-						clearTimeout(timeout);
+						window.clearTimeout(timeout);
 						resolve();
 					}
 				};
@@ -1558,17 +1558,17 @@ async function initVoiceConnection(retryCount = 0) {
 
 		if (pc.connectionState !== 'connected') {
 			await new Promise<void>((resolve, reject) => {
-				const timeout = setTimeout(() => {
+				const timeout = window.setTimeout(() => {
 					resolve();
 				}, 10000);
 
 				const checkState = () => {
 					if (pc.connectionState === 'connected') {
-						clearTimeout(timeout);
+						window.clearTimeout(timeout);
 						pc.removeEventListener('connectionstatechange', checkState);
 						resolve();
 					} else if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
-						clearTimeout(timeout);
+						window.clearTimeout(timeout);
 						pc.removeEventListener('connectionstatechange', checkState);
 						reject(new Error(`Connection ${pc.connectionState}`));
 					}
@@ -1587,7 +1587,7 @@ async function initVoiceConnection(retryCount = 0) {
 		const maxRetries = 3;
 		if (retryCount < maxRetries) {
 			const retryDelay = 2000 * (retryCount + 1);
-			setTimeout(() => {
+			window.setTimeout(() => {
 				initVoiceConnection(retryCount + 1);
 			}, retryDelay);
 		} else {
