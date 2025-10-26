@@ -20,8 +20,8 @@ function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
 	}) as T;
 }
 
-export default {
-	mounted(src, _binding, _vn) {
+export const adaptiveBorderDirective = {
+	mounted(src) {
 		function calc() {
 			const parentBg = getBgColor(src.parentElement) ?? 'transparent';
 			const myBg = window.getComputedStyle(src).backgroundColor;
@@ -56,8 +56,8 @@ export default {
 		globalEvents.on('themeChanged', debouncedCalc);
 	},
 
-	unmounted(src, _binding, _vn) {
+	unmounted(src) {
 		globalEvents.off('themeChanged', handlerMap.get(src));
 		cachedResults.delete(src);
 	},
-} as Directive;
+} as Directive<HTMLElement>;

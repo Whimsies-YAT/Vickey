@@ -43,8 +43,8 @@ html {
 	left: 0;
 	margin: auto;
 	display: inline-block;
-	width: 28px;
-	height: 28px;
+	width: 48px;
+	height: 48px;
 	transform: translateY(70px);
 	color: var(--MI_THEME-accent);
 }
@@ -53,32 +53,39 @@ html {
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: 28px;
-	height: 28px;
-	fill-rule: evenodd;
-	clip-rule: evenodd;
+	width: 48px;
+	height: 48px;
+	animation: splashSpinnerRotate 2s linear infinite;
+}
+
+#splashSpinner > .spinner circle {
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 5;
 	stroke-linecap: round;
-	stroke-linejoin: round;
-	stroke-miterlimit: 1.5;
+	stroke-dasharray: 1, 200;
+	stroke-dashoffset: 0;
+	animation: splashSpinnerDash 1.5s ease-in-out infinite;
 }
 
-#splashSpinner > .spinner.bg {
-	opacity: 0.275;
-}
-
-#splashSpinner > .spinner.fg {
-	animation: splashSpinnerHashi 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-}
-
-@keyframes splashSpinnerHashi {
-	0% {
-		transform: rotate(0deg);
-	}
-	50% {
-		transform: rotate(180deg);
-	}
+@keyframes splashSpinnerRotate {
 	100% {
 		transform: rotate(360deg);
+	}
+}
+
+@keyframes splashSpinnerDash {
+	0% {
+		stroke-dasharray: 1, 200;
+		stroke-dashoffset: 0;
+	}
+	50% {
+		stroke-dasharray: 89, 200;
+		stroke-dashoffset: -35px;
+	}
+	100% {
+		stroke-dasharray: 89, 200;
+		stroke-dashoffset: -124px;
 	}
 }
 

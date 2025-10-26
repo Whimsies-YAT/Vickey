@@ -586,6 +586,10 @@ export interface Locale extends ILocale {
      */
     "deletedBeforePlaceholder": string;
     /**
+     * From {x}
+     */
+    "convertedFrom": ParameterizedString<"x">;
+    /**
      * Status
      */
     "status": string;
@@ -1946,6 +1950,50 @@ export interface Locale extends ILocale {
          * If no moderator activity is detected for a while, this setting will be automatically turned on to prevent spam.
          */
         "thisSettingWillAutomaticallyOnWhenModeratorsInactive": string;
+        /**
+         * Timeline Cache Warming
+         */
+        "timelineWarmingTitle": string;
+        /**
+         * Intelligent timeline cache pre-loading system to improve user experience when viewing older posts.
+         */
+        "timelineWarmingDescription": string;
+        /**
+         * Enable Timeline Warming
+         */
+        "enableTimelineWarming": string;
+        /**
+         * Automatically pre-load timeline cache for users with high activity
+         */
+        "enableTimelineWarmingDescription": string;
+        /**
+         * Target Cache Size
+         */
+        "timelineWarmingTarget": string;
+        /**
+         * Number of notes to pre-load into cache (default: 1000)
+         */
+        "timelineWarmingTargetDescription": string;
+        /**
+         * Minimum Notes Threshold
+         */
+        "timelineWarmingMinNotes": string;
+        /**
+         * Only warm timelines for users with at least this many notes (default: 100)
+         */
+        "timelineWarmingMinNotesDescription": string;
+        /**
+         * Minimum Followers Threshold
+         */
+        "timelineWarmingMinFollowers": string;
+        /**
+         * Only warm timelines for users with at least this many followers (default: 100)
+         */
+        "timelineWarmingMinFollowersDescription": string;
+        /**
+         * Timeline warming is triggered when users post notes or gain new followers. This helps ensure popular users' timelines remain accessible beyond the default cache limit.
+         */
+        "timelineWarmingInfo": string;
         /**
          * アイコン画像のURL
          */
@@ -4415,6 +4463,706 @@ export interface Locale extends ILocale {
              */
             "renote": string;
         };
+    };
+    "_gomoku": {
+        /**
+         * Gomoku
+         */
+        "title": string;
+        /**
+         * Play the classic strategy game with friends
+         */
+        "description": string;
+        /**
+         * Start Game
+         */
+        "startGame": string;
+        /**
+         * How to Play
+         */
+        "howToPlay": string;
+        /**
+         * Get 5 stones in a row (horizontal, vertical, or diagonal) to win
+         */
+        "rule1": string;
+        /**
+         * Black plays first, White plays second
+         */
+        "rule2": string;
+        /**
+         * Click on any empty intersection to place your stone
+         */
+        "rule3": string;
+        /**
+         * Take turns placing stones on the board
+         */
+        "rule4": string;
+        /**
+         * Black's Turn
+         */
+        "player1Turn": string;
+        /**
+         * White's Turn
+         */
+        "player2Turn": string;
+        /**
+         * Black Wins!
+         */
+        "player1Wins": string;
+        /**
+         * White Wins!
+         */
+        "player2Wins": string;
+        /**
+         * Draw - Board Full
+         */
+        "draw": string;
+        /**
+         * New Game
+         */
+        "newGame": string;
+        /**
+         * Move {count}
+         */
+        "moveCount": ParameterizedString<"count">;
+        /**
+         * The board is full. It's a draw!
+         */
+        "drawMessage": string;
+        /**
+         * Share Game
+         */
+        "shareGame": string;
+        /**
+         * Share your game result on your timeline
+         */
+        "shareGameDescription": string;
+        /**
+         * I just played Gomoku! {result} after {moves} moves.
+         */
+        "postDefaultText": ParameterizedString<"result" | "moves">;
+        /**
+         * It was a draw
+         */
+        "resultDraw": string;
+        /**
+         * Quick Match
+         */
+        "freeMatch": string;
+        /**
+         * Invite
+         */
+        "invite": string;
+        /**
+         * Invitations
+         */
+        "invitations": string;
+        /**
+         * My Games
+         */
+        "myGames": string;
+        /**
+         * All Games
+         */
+        "allGames": string;
+        /**
+         * Playing
+         */
+        "playing": string;
+        /**
+         * Ended
+         */
+        "ended": string;
+        /**
+         * Looking for a player
+         */
+        "lookingForPlayer": string;
+        /**
+         * Sound will be played
+         */
+        "soundWillBePlayed": string;
+        /**
+         * Black
+         */
+        "black": string;
+        /**
+         * White
+         */
+        "white": string;
+        /**
+         * Ready
+         */
+        "ready": string;
+        /**
+         * Cancel ready
+         */
+        "cancelReady": string;
+        /**
+         * Waiting for opponent to ready
+         */
+        "waitingForOther": string;
+        /**
+         * Opponent is ready. Click Ready to start!
+         */
+        "waitingForMe": string;
+        /**
+         * Waiting for both players to ready
+         */
+        "waitingBoth": string;
+        /**
+         * Game will start soon
+         */
+        "thisGameIsStartedSoon": string;
+        /**
+         * Game was canceled
+         */
+        "gameCanceled": string;
+        /**
+         * Share to timeline when game starts
+         */
+        "shareToTlTheGameWhenStart": string;
+        /**
+         * I started a Gomoku game!
+         */
+        "iStartedAGame": string;
+        /**
+         * Opponent's turn
+         */
+        "opponentTurn": string;
+        /**
+         * Your turn
+         */
+        "myTurn": string;
+        /**
+         * {name}'s turn
+         */
+        "turnOf": ParameterizedString<"name">;
+        /**
+         * Surrender
+         */
+        "surrender": string;
+        /**
+         * Surrendered
+         */
+        "surrendered": string;
+        /**
+         * {name} won!
+         */
+        "won": ParameterizedString<"name">;
+        /**
+         * Total
+         */
+        "total": string;
+        /**
+         * Turn {count}
+         */
+        "turnCount": ParameterizedString<"count">;
+    };
+    "_werewolf": {
+        /**
+         * Werewolf
+         */
+        "title": string;
+        /**
+         * A classic social deduction game
+         */
+        "description": string;
+        /**
+         * Beginner Match (6 Players)
+         */
+        "create6PlayerGame": string;
+        /**
+         * Standard Match (9 Players)
+         */
+        "create9PlayerGame": string;
+        /**
+         * Beginner (6P)
+         */
+        "sixPlayer": string;
+        /**
+         * Standard (9P)
+         */
+        "ninePlayer": string;
+        /**
+         * Join Game
+         */
+        "join": string;
+        /**
+         * Leave Game
+         */
+        "leave": string;
+        /**
+         * Ready
+         */
+        "ready": string;
+        /**
+         * Not Ready
+         */
+        "unready": string;
+        /**
+         * Start Game
+         */
+        "start": string;
+        /**
+         * Waiting
+         */
+        "waiting": string;
+        /**
+         * Playing
+         */
+        "playing": string;
+        /**
+         * Ended
+         */
+        "ended": string;
+        /**
+         * Players
+         */
+        "players": string;
+        /**
+         * Alive Players
+         */
+        "alivePlayers": string;
+        /**
+         * Dead Players
+         */
+        "deadPlayers": string;
+        /**
+         * Dead Chat
+         */
+        "deadChat": string;
+        /**
+         * My Games
+         */
+        "myGames": string;
+        /**
+         * All Games
+         */
+        "allGames": string;
+        /**
+         * Game was canceled
+         */
+        "gameCanceled": string;
+        /**
+         * Game Ended
+         */
+        "gameEnded": string;
+        /**
+         * Winner
+         */
+        "winner": string;
+        /**
+         * Werewolves
+         */
+        "werewolves": string;
+        /**
+         * Villagers
+         */
+        "villagers": string;
+        /**
+         * Back to Lobby
+         */
+        "backToLobby": string;
+        /**
+         * Phase
+         */
+        "phase": string;
+        /**
+         * Day
+         */
+        "day": string;
+        /**
+         * Night
+         */
+        "night": string;
+        /**
+         * Voting
+         */
+        "voting": string;
+        /**
+         * Your Role
+         */
+        "yourRole": string;
+        /**
+         * Seer
+         */
+        "seer": string;
+        /**
+         * Witch
+         */
+        "witch": string;
+        /**
+         * Hunter
+         */
+        "hunter": string;
+        /**
+         * Villager
+         */
+        "villager": string;
+        /**
+         * Werewolf
+         */
+        "werewolf": string;
+        /**
+         * Check one player's team each night
+         */
+        "seerDesc": string;
+        /**
+         * One heal potion and one poison potion
+         */
+        "witchDesc": string;
+        /**
+         * Shoot one player when eliminated
+         */
+        "hunterDesc": string;
+        /**
+         * Help identify werewolves
+         */
+        "villagerDesc": string;
+        /**
+         * Eliminate all villagers or gods to win
+         */
+        "werewolfDesc": string;
+        /**
+         * Werewolf Chat
+         */
+        "werewolfChat": string;
+        /**
+         * Waiting for Players
+         */
+        "waitingForPlayers": string;
+        /**
+         * Seated
+         */
+        "seated": string;
+        /**
+         * Locked
+         */
+        "seatLocked": string;
+        /**
+         * Empty
+         */
+        "emptySeat": string;
+        /**
+         * Leave Seat
+         */
+        "leaveSeat": string;
+        /**
+         * Click an empty seat to join
+         */
+        "selectSeat": string;
+        /**
+         * Discussion
+         */
+        "discussion": string;
+        /**
+         * Testament
+         */
+        "testament": string;
+        /**
+         * Tied Players
+         */
+        "tiedPlayers": string;
+        /**
+         * Werewolf Turn
+         */
+        "werewolfTurn": string;
+        /**
+         * Seer Turn
+         */
+        "seerTurn": string;
+        /**
+         * Witch Turn
+         */
+        "witchTurn": string;
+        /**
+         * Select a target to kill
+         */
+        "selectKillTarget": string;
+        /**
+         * Select a player to check
+         */
+        "selectCheckTarget": string;
+        /**
+         * Choose your action
+         */
+        "witchChoice": string;
+        /**
+         * Use Heal Potion
+         */
+        "useHeal": string;
+        /**
+         * Select a target to poison
+         */
+        "selectPoisonTarget": string;
+        /**
+         * Use Poison
+         */
+        "usePoison": string;
+        /**
+         * Skip Action
+         */
+        "skip": string;
+        /**
+         * Vote
+         */
+        "vote": string;
+        /**
+         * Confirm Vote
+         */
+        "confirmVote": string;
+        /**
+         * Hunter's Revenge
+         */
+        "hunterShoot": string;
+        /**
+         * Hunter Shooting
+         */
+        "hunterShooting": string;
+        /**
+         * Confirm Shoot
+         */
+        "confirmShoot": string;
+        /**
+         * Self-Destruct
+         */
+        "selfDestruct": string;
+        /**
+         * Are you sure you want to self-destruct? This will end the game immediately.
+         */
+        "confirmSelfDestruct": string;
+        /**
+         * is speaking
+         */
+        "speaking": string;
+        /**
+         * is giving last words
+         */
+        "givingTestament": string;
+        /**
+         * Skip Speech
+         */
+        "skipSpeech": string;
+        /**
+         * Finish Testament
+         */
+        "finishTestament": string;
+        /**
+         * Confirm
+         */
+        "confirm": string;
+        /**
+         * Your Action
+         */
+        "yourAction": string;
+        /**
+         * Game Configuration
+         */
+        "gameConfig": string;
+        /**
+         * Role Distribution
+         */
+        "roleDistribution": string;
+        /**
+         * Round
+         */
+        "round": string;
+        /**
+         * Game Rules
+         */
+        "gameRules": string;
+        /**
+         * Closed Role (Hidden)
+         */
+        "closedRole": string;
+        /**
+         * Slaughter All Sides
+         */
+        "slaughterAllSides": string;
+        /**
+         * Werewolves win by eliminating all gods OR all villagers
+         */
+        "slaughterAllSidesDesc": string;
+        /**
+         * Enter Game
+         */
+        "enterGame": string;
+        /**
+         * Kicked from game
+         */
+        "kickedFromGame": string;
+        /**
+         * Ready timeout
+         */
+        "readyTimeout": string;
+        /**
+         * Lobby Chat
+         */
+        "lobbyChat": string;
+        /**
+         * No messages yet
+         */
+        "noMessagesYet": string;
+        /**
+         * Type a message...
+         */
+        "typeMessage": string;
+        /**
+         * You cannot send messages right now
+         */
+        "cannotSendMessage": string;
+        /**
+         * Chat
+         */
+        "chat": string;
+        /**
+         * Mute
+         */
+        "mute": string;
+        /**
+         * Unmute
+         */
+        "unmute": string;
+        /**
+         * Heal Phase
+         */
+        "witchHealPhase": string;
+        /**
+         * Poison Phase
+         */
+        "witchPoisonPhase": string;
+        /**
+         * s remaining
+         */
+        "secondsRemaining": string;
+        /**
+         * Second round of discussion started
+         */
+        "secondRoundStarted": string;
+        /**
+         * Antidote already used
+         */
+        "antidoteUsed": string;
+        /**
+         * No one was killed tonight
+         */
+        "noKillTonight": string;
+        /**
+         * Preparing...
+         */
+        "preparing": string;
+        /**
+         * Poison already used
+         */
+        "poisonUsed": string;
+        /**
+         * Please wait...
+         */
+        "pleaseWait": string;
+        /**
+         * Next speaker is preparing...
+         */
+        "nextSpeakerPreparing": string;
+        /**
+         * Preparing for voting...
+         */
+        "preparingForVoting": string;
+        /**
+         * Displaying voting results...
+         */
+        "votingResultsDisplay": string;
+        /**
+         * Vote is tied! Starting second round of discussion
+         */
+        "votingTiedRound1": string;
+        /**
+         * Vote is still tied! Starting another round
+         */
+        "votingTiedRound2": string;
+        /**
+         * Game History
+         */
+        "gameHistory": string;
+        /**
+         * Player Roles
+         */
+        "playerRoles": string;
+        /**
+         * Alive
+         */
+        "alive": string;
+        /**
+         * Dead
+         */
+        "dead": string;
+        /**
+         * Day by Day History
+         */
+        "dayByDayHistory": string;
+        /**
+         * Loading History...
+         */
+        "loadingHistory": string;
+        /**
+         * Unknown Player
+         */
+        "unknownPlayer": string;
+        /**
+         * was killed by werewolves
+         */
+        "wasKilledByWerewolves": string;
+        /**
+         * Witch used heal
+         */
+        "witchUsedHeal": string;
+        /**
+         * Witch used poison on
+         */
+        "witchUsedPoison": string;
+        /**
+         * Seer checked
+         */
+        "seerChecked": string;
+        /**
+         * voted for
+         */
+        "votedFor": string;
+        /**
+         * was executed
+         */
+        "wasExecuted": string;
+        /**
+         * Hunter shot
+         */
+        "hunterShot": string;
+        /**
+         * self-destructed
+         */
+        "selfDestructed": string;
+        /**
+         * Dawn Breaks
+         */
+        "dawnBreaks": string;
+        /**
+         * One player died last night
+         */
+        "onePlayerDied": string;
+        /**
+         * {count} players died last night
+         */
+        "multiplePlayersDied": ParameterizedString<"count">;
+        /**
+         * Player Executed
+         */
+        "playerExecuted": string;
+        /**
+         * Hunter's Revenge
+         */
+        "hunterRevenge": string;
+        /**
+         * Bomb Exploded!
+         */
+        "bombExploded": string;
     };
     /**
      * ノートでつながるネットワーク
@@ -7498,6 +8246,10 @@ export interface Locale extends ILocale {
      */
     "disableShowingAnimatedImages": string;
     /**
+     * この設定に関わらずアニメーション画像が再生されないときは、ブラウザ・OSのアクセシビリティ設定や省電力設定等が干渉している場合があります。
+     */
+    "disableShowingAnimatedImages_caption": string;
+    /**
      * メディアがセンシティブであることを分かりやすく表示
      */
     "highlightSensitiveMedia": string;
@@ -9077,6 +9829,10 @@ export interface Locale extends ILocale {
      * ユーザーごとのIdenticon生成を有効にする
      */
     "enableIdenticonGeneration": string;
+    /**
+     * リモートユーザーに付与したロールバッジを表示する
+     */
+    "showRoleBadgesOfRemoteUsers": string;
     /**
      * オフにするとパフォーマンスが向上します。
      */
@@ -14831,6 +15587,10 @@ export interface Locale extends ILocale {
          * 敷き詰める
          */
         "repeat": string;
+        /**
+         * 回転時はみ出ないように調整する
+         */
+        "preserveBoundingRect": string;
         /**
          * 不透明度
          */

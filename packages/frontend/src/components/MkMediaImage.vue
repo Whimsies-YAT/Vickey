@@ -66,8 +66,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { watch, ref, computed } from 'vue';
+import { watch, ref, computed, onMounted, onUnmounted } from 'vue';
 import * as Misskey from 'misskey-js';
+import heic2any from 'heic2any';
 import type { MenuItem } from '@/types/menu.js';
 import { copyToClipboard } from '@/utility/copy-to-clipboard';
 import { getStaticImageUrl } from '@/utility/media-proxy.js';
@@ -91,13 +92,61 @@ const props = withDefaults(defineProps<{
 });
 
 const hide = ref(true);
+const convertedHeicUrl = ref<string | null>(null);
 
-const url = computed(() => (props.raw || prefer.s.loadRawImages)
-	? props.image.url
-	: prefer.s.disableShowingAnimatedImages
-		? getStaticImageUrl(props.image.url)
-		: props.image.thumbnailUrl!,
+const isHeic = computed(() =>
+	props.image.type === 'image/heic' || props.image.type === 'image/heif'
 );
+
+const url = computed(() => {
+	if (isHeic.value && convertedHeicUrl.value) {
+		return convertedHeicUrl.value;
+	}
+
+	return (props.raw || prefer.s.loadRawImages)
+		? props.image.url
+		: prefer.s.disableShowingAnimatedImages
+			? getStaticImageUrl(props.image.url)
+			: props.image.thumbnailUrl!;
+});
+
+async function convertHeicToJpeg(url: string, thumbnailUrl?: string): Promise<string> {
+	try {
+		const response = await window.fetch(url);
+
+		if (!response.ok) {
+			throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+		}
+
+		const blob = await response.blob();
+		const convertedBlob = await heic2any({
+			blob,
+			toType: 'image/jpeg',
+			quality: 0.9,
+		}) as Blob;
+
+		return URL.createObjectURL(convertedBlob);
+	} catch (error) {
+		console.error('[HEIC] Conversion failed:', error);
+		return thumbnailUrl ?? url;
+	}
+}
+
+onMounted(async () => {
+	if (isHeic.value) {
+		const urlToConvert = (props.raw || prefer.s.loadRawImages)
+			? props.image.url
+			: props.image.thumbnailUrl ?? props.image.url;
+
+		convertedHeicUrl.value = await convertHeicToJpeg(urlToConvert, props.image.thumbnailUrl ?? undefined);
+	}
+});
+
+onUnmounted(() => {
+	if (convertedHeicUrl.value) {
+		URL.revokeObjectURL(convertedHeicUrl.value);
+	}
+});
 
 async function reveal(ev: MouseEvent) {
 	if (!props.controls) {

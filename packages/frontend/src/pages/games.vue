@@ -28,6 +28,28 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</MkA>
 			</div>
+			<div class="_panel" :class="$style.link">
+				<MkA to="/gomoku">
+					<div style="display: flex; align-items: center; justify-content: center; height: 200px; background: linear-gradient(135deg, #d4a574 0%, #c9964f 100%); color: #3d2f1f; font-size: 24px; font-weight: bold; border-radius: 8px;">
+						<div style="text-align: center;">
+							<div style="font-size: 48px; margin-bottom: 8px;">⚫⚪</div>
+							<div>{{ i18n.ts._gomoku.title }}</div>
+							<div style="font-size: 14px; font-weight: normal; margin-top: 4px; opacity: 0.8;">{{ i18n.ts._gomoku.description }}</div>
+						</div>
+					</div>
+				</MkA>
+			</div>
+<!--			<div class="_panel" :class="$style.link">-->
+<!--				<MkA to="/werewolf">-->
+<!--					<div style="display: flex; align-items: center; justify-content: center; height: 200px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #e4b363; font-size: 24px; font-weight: bold; border-radius: 8px;">-->
+<!--						<div style="text-align: center;">-->
+<!--							<div style="font-size: 48px; margin-bottom: 8px;">🌙🐺</div>-->
+<!--							<div>{{ i18n.ts._werewolf.title }}</div>-->
+<!--							<div style="font-size: 14px; font-weight: normal; margin-top: 4px; opacity: 0.8;">{{ i18n.ts._werewolf.description }}</div>-->
+<!--						</div>-->
+<!--					</div>-->
+<!--				</MkA>-->
+<!--			</div>-->
 		</div>
 	</div>
 </PageWithHeader>

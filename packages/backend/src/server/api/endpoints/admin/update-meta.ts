@@ -183,6 +183,10 @@ export const paramDef = {
 		perRemoteUserUserTimelineCacheMax: { type: 'integer' },
 		perUserHomeTimelineCacheMax: { type: 'integer' },
 		perUserListTimelineCacheMax: { type: 'integer' },
+		enableTimelineWarming: { type: 'boolean' },
+		timelineWarmingTarget: { type: 'integer' },
+		timelineWarmingMinNotes: { type: 'integer' },
+		timelineWarmingMinFollowers: { type: 'integer' },
 		enableReactionsBuffering: { type: 'boolean' },
 		notesPerOneAd: { type: 'integer' },
 		silencedHosts: {
@@ -261,6 +265,7 @@ export const paramDef = {
 		cloudflareApiToken: { type: 'string', nullable: true },
 		cloudflareSfuAppId: { type: 'string', nullable: true },
 		cloudflareSfuAppSecret: { type: 'string', nullable: true },
+		showRoleBadgesOfRemoteUsers: { type: 'boolean' },
 	},
 	required: [],
 } as const;
@@ -846,6 +851,22 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				set.perUserListTimelineCacheMax = ps.perUserListTimelineCacheMax;
 			}
 
+			if (ps.enableTimelineWarming !== undefined) {
+				set.enableTimelineWarming = ps.enableTimelineWarming;
+			}
+
+			if (ps.timelineWarmingTarget !== undefined) {
+				set.timelineWarmingTarget = ps.timelineWarmingTarget;
+			}
+
+			if (ps.timelineWarmingMinNotes !== undefined) {
+				set.timelineWarmingMinNotes = ps.timelineWarmingMinNotes;
+			}
+
+			if (ps.timelineWarmingMinFollowers !== undefined) {
+				set.timelineWarmingMinFollowers = ps.timelineWarmingMinFollowers;
+			}
+
 			if (ps.enableReactionsBuffering !== undefined) {
 				set.enableReactionsBuffering = ps.enableReactionsBuffering;
 			}
@@ -1069,6 +1090,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				} else {
 					set.cloudflareSfuAppSecret = ps.cloudflareSfuAppSecret;
 				}
+			}
+
+			if (ps.showRoleBadgesOfRemoteUsers !== undefined) {
+				set.showRoleBadgesOfRemoteUsers = ps.showRoleBadgesOfRemoteUsers;
 			}
 
 			const before = await this.metaService.fetch(true);

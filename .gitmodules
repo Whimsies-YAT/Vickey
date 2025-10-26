@@ -4,3 +4,8 @@
 [submodule "external/yume-pdq"]
 	path = external/yume-pdq
 	url = https://github.com/eternal-flame-AD/yume-pdq.git
+	branch = main
+[submodule "python-workspace/aminome-es"]
+	path = python-workspace/aminome-es
+	url = https://github.com/MomentQYC/aminome-es.git
+	branch = master

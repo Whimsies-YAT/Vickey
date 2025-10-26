@@ -60,6 +60,8 @@ import {
 } from '@/models/json-schema/role.js';
 import { packedAdSchema } from '@/models/json-schema/ad.js';
 import { packedReversiGameDetailedSchema, packedReversiGameLiteSchema } from '@/models/json-schema/reversi-game.js';
+import { packedGomokuGameDetailedSchema, packedGomokuGameLiteSchema } from '@/models/json-schema/gomoku-game.js';
+import { packedWerewolfGameDetailedSchema, packedWerewolfGameLiteSchema } from '@/models/json-schema/werewolf-game.js';
 import {
 	packedMetaDetailedOnlySchema,
 	packedMetaDetailedSchema,
@@ -132,6 +134,10 @@ export const refs = {
 	RolePolicies: packedRolePoliciesSchema,
 	ReversiGameLite: packedReversiGameLiteSchema,
 	ReversiGameDetailed: packedReversiGameDetailedSchema,
+	GomokuGameLite: packedGomokuGameLiteSchema,
+	GomokuGameDetailed: packedGomokuGameDetailedSchema,
+	WerewolfGameLite: packedWerewolfGameLiteSchema,
+	WerewolfGameDetailed: packedWerewolfGameDetailedSchema,
 	MetaLite: packedMetaLiteSchema,
 	MetaDetailedOnly: packedMetaDetailedOnlySchema,
 	MetaDetailed: packedMetaDetailedSchema,

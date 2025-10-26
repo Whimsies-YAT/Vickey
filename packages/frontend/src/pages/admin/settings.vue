@@ -364,6 +364,55 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</MkFolder>
 				</SearchMarker>
 
+				<SearchMarker v-slot="slotProps" :keywords="['timeline', 'warming', 'cache']">
+					<MkFolder :defaultOpen="slotProps.isParentOfTarget">
+						<template #icon><SearchIcon><i class="ti ti-clock-bolt"></i></SearchIcon></template>
+						<template #label><SearchLabel>{{ i18n.ts._serverSettings.timelineWarmingTitle }}</SearchLabel></template>
+						<template v-if="timelineWarmingForm.modified.value" #footer>
+							<MkFormFooter :form="timelineWarmingForm"/>
+						</template>
+
+						<div class="_gaps">
+							<MkInfo>{{ i18n.ts._serverSettings.timelineWarmingDescription }}</MkInfo>
+
+							<SearchMarker :keywords="['enable', 'warming']">
+								<MkSwitch v-model="timelineWarmingForm.state.enableTimelineWarming">
+									<template #label><SearchLabel>{{ i18n.ts._serverSettings.enableTimelineWarming }}</SearchLabel><span v-if="timelineWarmingForm.modifiedStates.enableTimelineWarming" class="_modified">{{ i18n.ts.modified }}</span></template>
+									<template #caption>{{ i18n.ts._serverSettings.enableTimelineWarmingDescription }}</template>
+								</MkSwitch>
+							</SearchMarker>
+
+							<template v-if="timelineWarmingForm.state.enableTimelineWarming">
+								<SearchMarker :keywords="['target', 'notes']">
+									<MkInput v-model="timelineWarmingForm.state.timelineWarmingTarget" type="number" :min="100">
+										<template #label><SearchLabel>{{ i18n.ts._serverSettings.timelineWarmingTarget }}</SearchLabel><span v-if="timelineWarmingForm.modifiedStates.timelineWarmingTarget" class="_modified">{{ i18n.ts.modified }}</span></template>
+										<template #caption>{{ i18n.ts._serverSettings.timelineWarmingTargetDescription }}</template>
+										<template #prefix><i class="ti ti-target"></i></template>
+									</MkInput>
+								</SearchMarker>
+
+								<SearchMarker :keywords="['minimum', 'notes', 'threshold']">
+									<MkInput v-model="timelineWarmingForm.state.timelineWarmingMinNotes" type="number" :min="0">
+										<template #label><SearchLabel>{{ i18n.ts._serverSettings.timelineWarmingMinNotes }}</SearchLabel><span v-if="timelineWarmingForm.modifiedStates.timelineWarmingMinNotes" class="_modified">{{ i18n.ts.modified }}</span></template>
+										<template #caption>{{ i18n.ts._serverSettings.timelineWarmingMinNotesDescription }}</template>
+										<template #prefix><i class="ti ti-notes"></i></template>
+									</MkInput>
+								</SearchMarker>
+
+								<SearchMarker :keywords="['minimum', 'followers', 'threshold']">
+									<MkInput v-model="timelineWarmingForm.state.timelineWarmingMinFollowers" type="number" :min="0">
+										<template #label><SearchLabel>{{ i18n.ts._serverSettings.timelineWarmingMinFollowers }}</SearchLabel><span v-if="timelineWarmingForm.modifiedStates.timelineWarmingMinFollowers" class="_modified">{{ i18n.ts.modified }}</span></template>
+										<template #caption>{{ i18n.ts._serverSettings.timelineWarmingMinFollowersDescription }}</template>
+										<template #prefix><i class="ti ti-users"></i></template>
+									</MkInput>
+								</SearchMarker>
+
+								<MkInfo>{{ i18n.ts._serverSettings.timelineWarmingInfo }}</MkInfo>
+							</template>
+						</div>
+					</MkFolder>
+				</SearchMarker>
+
 				<SearchMarker v-slot="slotProps" :keywords="['stripe', 'payment']">
 					<MkFolder :defaultOpen="slotProps.isParentOfTarget">
 						<template #icon><SearchIcon><i class="ti ti-credit-card"></i></SearchIcon></template>
@@ -567,6 +616,21 @@ const proxyAccountForm = useForm({
 }, async (state) => {
 	await os.apiWithDialog('admin/update-proxy-account', {
 		description: state.description,
+	});
+	fetchInstance(true);
+});
+
+const timelineWarmingForm = useForm({
+	enableTimelineWarming: meta.enableTimelineWarming ?? false,
+	timelineWarmingTarget: meta.timelineWarmingTarget ?? 1000,
+	timelineWarmingMinNotes: meta.timelineWarmingMinNotes ?? 100,
+	timelineWarmingMinFollowers: meta.timelineWarmingMinFollowers ?? 100,
+}, async (state) => {
+	await os.apiWithDialog('admin/update-meta', {
+		enableTimelineWarming: state.enableTimelineWarming,
+		timelineWarmingTarget: state.timelineWarmingTarget,
+		timelineWarmingMinNotes: state.timelineWarmingMinNotes,
+		timelineWarmingMinFollowers: state.timelineWarmingMinFollowers,
 	});
 	fetchInstance(true);
 });

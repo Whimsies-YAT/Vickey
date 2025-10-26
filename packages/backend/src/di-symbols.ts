@@ -92,6 +92,8 @@ export const DI = {
 	chatRoomInvitationsRepository: Symbol('chatRoomInvitationsRepository'),
 	bubbleGameRecordsRepository: Symbol('bubbleGameRecordsRepository'),
 	reversiGamesRepository: Symbol('reversiGamesRepository'),
+	gomokuGamesRepository: Symbol('gomokuGamesRepository'),
+	werewolfGamesRepository: Symbol('werewolfGamesRepository'),
 	noteDraftsRepository: Symbol('noteDraftsRepository'),
 	userSessionsRepository: Symbol('userSessionsRepository'),
 	oauthClientConfigsRepository: Symbol('oauthClientConfigsRepository'),
@@ -109,5 +111,6 @@ export const DI = {
 	stripePaymentsRepository: Symbol('stripePaymentsRepository'),
 	stripeSubscriptionsRepository: Symbol('stripeSubscriptionsRepository'),
 	stripeRefundsRepository: Symbol('stripeRefundsRepository'),
+	elasticsearchReindexStatesRepository: Symbol('elasticsearchReindexStatesRepository'),
 	//#endregion
 };

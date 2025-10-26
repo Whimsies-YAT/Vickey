@@ -713,6 +713,33 @@ export class MiMeta {
 	})
 	public perUserListTimelineCacheMax: number;
 
+	/**
+	 * Timeline Warming System Configuration
+	 */
+	@Column('boolean', {
+		default: false,
+		comment: 'Enable intelligent timeline cache warming system',
+	})
+	public enableTimelineWarming: boolean;
+
+	@Column('integer', {
+		default: 1000,
+		comment: 'Target number of notes to warm per user timeline',
+	})
+	public timelineWarmingTarget: number;
+
+	@Column('integer', {
+		default: 100,
+		comment: 'Minimum notes count for a user to be eligible for warming',
+	})
+	public timelineWarmingMinNotes: number;
+
+	@Column('integer', {
+		default: 100,
+		comment: 'Minimum follower count for predictive warming',
+	})
+	public timelineWarmingMinFollowers: number;
+
 	@Column('boolean', {
 		default: false,
 	})
@@ -881,6 +908,11 @@ export class MiMeta {
 		nullable: true,
 	})
 	public visibleRecipient: string | null;
+
+	@Column('boolean', {
+		default: false,
+	})
+	public showRoleBadgesOfRemoteUsers: boolean;
 
 	@Column('jsonb', {
 		default: { },

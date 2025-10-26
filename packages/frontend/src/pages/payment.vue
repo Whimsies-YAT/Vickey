@@ -41,7 +41,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<div class="payment-element-wrapper">
 							<div v-if="!paymentElementMounted" class="payment-loading">
 								<div class="loading-spinner">
-									<i class="ti ti-loader"></i>
+									<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+										<circle cx="24" cy="24" r="18"/>
+									</svg>
 								</div>
 								<p>{{ i18n.ts._payment.loadingPaymentMethods }}</p>
 							</div>
@@ -800,16 +802,22 @@ onUnmounted(() => {
 					z-index: 1;
 
 					.loading-spinner {
-						font-size: 32px;
+						width: 48px;
+						height: 48px;
 						margin-bottom: 16px;
+						animation: globalSpinnerRotate 2s linear infinite;
 
-						i {
-							animation: spin 1s linear infinite;
-						}
+						svg {
+							width: 100%;
+							height: 100%;
+							fill: none;
+							stroke: currentColor;
+							stroke-width: 4px;
+							stroke-linecap: round;
 
-						@keyframes spin {
-							0% { transform: rotate(0deg); }
-							100% { transform: rotate(360deg); }
+							circle {
+								animation: globalSpinnerDash 1.5s ease-in-out infinite;
+							}
 						}
 					}
 
@@ -849,12 +857,7 @@ onUnmounted(() => {
 			padding: 0 32px 24px;
 
 			.loading-icon {
-				animation: spin 1s linear infinite;
-			}
-
-			@keyframes spin {
-				0% { transform: rotate(0deg); }
-				100% { transform: rotate(360deg); }
+				animation: globalSpinnerRotate 2s linear infinite;
 			}
 		}
 
