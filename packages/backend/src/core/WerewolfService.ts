@@ -198,7 +198,6 @@ export class WerewolfService implements OnApplicationShutdown, OnModuleInit {
 	}
 
 	async onModuleInit() {
-
 		const activeGames = await this.werewolfGamesRepository.find({
 			where: {
 				isStarted: true,
@@ -1084,7 +1083,7 @@ export class WerewolfService implements OnApplicationShutdown, OnModuleInit {
 	@bindThis
 	private async endNight(game: MiWerewolfGame): Promise<void> {
 		let hunterTriggered = false;
-		const deadPlayers: Array<{userId: string}> = [];
+		const deadPlayers: Array<{ userId: string }> = [];
 
 		const tonightLogs = game.logs.filter(log => log.day === game.dayNumber && log.phase === 'night');
 		const guardProtectLog = tonightLogs.find(log => log.type === 'guard_protect');

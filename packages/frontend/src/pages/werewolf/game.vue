@@ -102,7 +102,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<i class="ti ti-headphones" style="margin-right: 8px;"></i>
 					Voice Chat
 				</div>
-				<MkButton v-if="voiceConnected" @click="toggleMute" :primary="!localMuted" style="font-size: 0.9em;">
+				<MkButton v-if="voiceConnected" :primary="!localMuted" style="font-size: 0.9em;" @click="toggleMute">
 					<i :class="localMuted ? 'ti ti-microphone-off' : 'ti ti-microphone'"></i>
 					{{ localMuted ? i18n.ts._werewolf.unmute : i18n.ts._werewolf.mute }}
 				</MkButton>
@@ -222,7 +222,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					{{ i18n.ts._werewolf.phase }}: {{ getPhaseText(game.phase, game.subPhase) }}
 				</h3>
 				<div style="display: flex; gap: 12px; align-items: center;">
-					<MkButton v-if="voiceConnected" @click="toggleMute" :primary="!localMuted">
+					<MkButton v-if="voiceConnected" :primary="!localMuted" @click="toggleMute">
 						<i :class="localMuted ? 'ti ti-microphone-off' : 'ti ti-microphone'"></i>
 						{{ localMuted ? i18n.ts._werewolf.unmute : i18n.ts._werewolf.mute }}
 					</MkButton>
@@ -310,7 +310,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 								{{ witchWindowRemaining }}{{ i18n.ts._werewolf.secondsRemaining }}
 							</div>
 						</div>
-						<MkButton v-if="witchCanHeal && witchUiState.nightKillTarget" primary @click="submitAction('heal')" style="width: 100%;">
+						<MkButton v-if="witchCanHeal && witchUiState.nightKillTarget" primary style="width: 100%;" @click="submitAction('heal')">
 							<i class="ti ti-heart"></i> {{ i18n.ts._werewolf.useHeal }}
 						</MkButton>
 						<div v-else-if="!witchUiState.hasAntidote" style="text-align: center; opacity: 0.6; padding: 8px;">
@@ -353,7 +353,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 					</div>
 
-					<MkButton v-if="witchCanSkip" @click="submitAction('skip')" style="width: 100%;">
+					<MkButton v-if="witchCanSkip" style="width: 100%;" @click="submitAction('skip')">
 						<i class="ti ti-x"></i> {{ i18n.ts._werewolf.skip }}
 					</MkButton>
 				</div>
@@ -1060,7 +1060,6 @@ async function fetchGame() {
 			witchWindowRemaining.value = roleState.windowRemaining;
 			witchAllowedActions.value = roleState.allowedActions || [];
 		}
-
 	}
 
 	if (game.value.phase === 'waiting' && mySeat.value === null && !hasAttemptedAutoSeat.value) {

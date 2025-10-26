@@ -55,7 +55,11 @@ class WerewolfGameChannel extends Channel {
 	private async ready(ready: boolean) {
 		if (this.user == null) return;
 
-		this.werewolfService.setReady(this.gameId!, this.user, ready);
+		if (ready) {
+			this.werewolfService.setReady(this.gameId!, this.user);
+		} else {
+			this.werewolfService.setUnready(this.gameId!, this.user);
+		}
 	}
 
 	@bindThis

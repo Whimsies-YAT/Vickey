@@ -87,7 +87,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				endedAt: game.endedAt?.toISOString() ?? null,
 				isStarted: game.isStarted,
 				isEnded: game.isEnded,
-				winner: game.winner,
+				winner: game.winnerTeam,
 				logs: game.logs,
 				players: game.players,
 			};

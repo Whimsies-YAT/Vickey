@@ -3,13 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { WerewolfService } from '@/core/WerewolfService.js';
 import { WerewolfVoiceService } from '@/core/WerewolfVoiceService.js';
-import { GlobalEventService } from '@/core/GlobalEventService.js';
-import { DI } from '@/di-symbols.js';
-import type { WerewolfGamesRepository } from '@/models/_.js';
 
 export const meta = {
 	tags: ['werewolf'],
@@ -53,12 +50,8 @@ export const paramDef = {
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> {
 	constructor(
-		@Inject(DI.werewolfGamesRepository)
-		private werewolfGamesRepository: WerewolfGamesRepository,
-
 		private werewolfService: WerewolfService,
 		private werewolfVoiceService: WerewolfVoiceService,
-		private globalEventService: GlobalEventService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			// Get game
@@ -67,8 +60,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				throw new Error('Game not found or ended');
 			}
 
-			// Check if user is in game
-			let isInGame = false;
+			let isInGame: boolean;
 			if (game.isStarted && game.players) {
 				isInGame = game.players.some(p => p.userId === me.id);
 			} else {
@@ -79,31 +71,24 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				throw new Error('Player not in game');
 			}
 
-			// Check if voice is enabled
 			if (!game.config.voiceEnabled) {
 				throw new Error('Voice not enabled for this game');
 			}
 
-			// SECURITY: Check if player has permission to listen to any speakers in current phase
-			// This prevents dead players from hearing alive players, non-werewolves from hearing werewolves, etc.
 			const canListenToAnyone = game.players.some(speaker =>
 				this.werewolfService.canPlayerHearNow(game, me.id, speaker.userId)
 			);
 
 			if (!canListenToAnyone) {
-				// Player has no listening permission in current phase - return null
-				// Frontend should disconnect when voicePermissions indicate no permission
 				return { answer: null };
 			}
 
-			// Pull remote tracks (can be null if no tracks to pull yet)
 			const answer = await this.werewolfVoiceService.pullRemoteTracks(
 				ps.gameId,
 				me.id,
 				ps.currentOffer as RTCSessionDescriptionInit,
 			);
 
-			// Return null if no new tracks (client will retry later)
 			if (!answer) {
 				return { answer: null };
 			}

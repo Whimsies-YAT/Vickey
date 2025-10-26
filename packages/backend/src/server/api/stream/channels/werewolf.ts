@@ -23,13 +23,11 @@ class WerewolfChannel extends Channel {
 
 	@bindThis
 	public async init(params: JsonObject) {
-		// Subscribe to global lobby events (all users see new games)
 		this.subscriber.on('werewolfLobbyStream', this.send);
 	}
 
 	@bindThis
 	public dispose() {
-		// Unsubscribe from global lobby
 		this.subscriber.off('werewolfLobbyStream', this.send);
 	}
 }
