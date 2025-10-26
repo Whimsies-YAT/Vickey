@@ -20,7 +20,8 @@ import type { MiPage } from '@/models/Page.js';
 import type { MiWebhook } from '@/models/Webhook.js';
 import type { MiSystemWebhook } from '@/models/SystemWebhook.js';
 import type { MiMeta } from '@/models/Meta.js';
-import { MiAvatarDecoration, MiChatMessage, MiChatRoom, MiReversiGame, MiRole, MiRoleAssignment } from '@/models/_.js';
+import { MiAvatarDecoration, MiChatMessage, MiChatRoom, MiGomokuGame, MiReversiGame, MiRole, MiRoleAssignment, MiWerewolfGame } from '@/models/_.js';
+import type { WerewolfPlayer } from '@/models/WerewolfGame.js';
 import type { Packed } from '@/misc/json-schema.js';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
@@ -103,7 +104,7 @@ export interface MainEventTypes {
 		announcement: Packed<'Announcement'>;
 	};
 	voiceCall: {
-		type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'readyToPull' | 'pullAnswered' | 'pullCompleted' | 'switchToSfu';
+		type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'readyToPull' | 'pullAnswered' | 'pullCompleted' | 'switchToSfu' | 'groupMemberJoined' | 'groupMemberLeft';
 		callId?: string;
 		from?: MiUser['id'];
 		by?: MiUser['id'];
@@ -115,6 +116,7 @@ export interface MainEventTypes {
 		sessionId?: string;
 		answer?: any;
 		message?: string;
+		userId?: MiUser['id'];
 	};
 }
 
@@ -225,6 +227,181 @@ export interface ReversiGameEventTypes {
 	};
 	canceled: {
 		userId: MiUser['id'];
+	};
+}
+
+export interface GomokuEventTypes {
+	matched: {
+		game: Packed<'GomokuGameDetailed'>;
+	};
+	invited: {
+		user: Packed<'User'>;
+	};
+}
+
+export interface GomokuGameEventTypes {
+	changeReadyStates: {
+		user1: boolean;
+		user2: boolean;
+	};
+	log: [number, number];
+	started: {
+		game: Packed<'GomokuGameDetailed'>;
+	};
+	ended: {
+		winnerId: MiUser['id'] | null;
+		game: Packed<'GomokuGameDetailed'>;
+	};
+	canceled: {
+		userId: MiUser['id'];
+	};
+}
+
+export interface WerewolfEventTypes {
+	matched: {
+		game: Packed<'WerewolfGameDetailed'>;
+	};
+	invited: {
+		user: Packed<'User'>;
+	};
+	canceled: {
+		game: Packed<'WerewolfGameLite'>;
+	};
+}
+
+export interface WerewolfGameEventTypes {
+	playerJoined: {
+		userId: MiUser['id'];
+	};
+	playerLeft: {
+		userId: MiUser['id'];
+	};
+	readyChanged: {
+		userId: MiUser['id'];
+		ready: boolean;
+	};
+	playerReady: {
+		userId: MiUser['id'];
+		readyPlayers: MiUser['id'][];
+	};
+	playerUnready: {
+		userId: MiUser['id'];
+		readyPlayers: MiUser['id'][];
+	};
+	countdownStarted: {
+		countdownStartedAt: Date;
+	};
+	countdownTick: {
+		remaining: number;
+	};
+	countdownCancelled: Record<string, never>;
+	playerKicked: {
+		userId: MiUser['id'];
+		reason: string;
+	};
+	started: {
+		game: Packed<'WerewolfGameDetailed'>;
+	};
+	gameStarted: {
+		game: Packed<'WerewolfGameDetailed'>;
+	};
+	seatChanged: {
+		seats: any[];
+		players?: any[];
+		userId?: MiUser['id'];
+		seatNumber?: number | null;
+	};
+	phaseChanged: {
+		phase: string;
+		phaseCount?: number;
+		dayNumber?: number;
+		voicePermissions?: Record<string, boolean>;
+	};
+	subPhaseChanged: {
+		subPhase: string;
+		voicePermissions?: Record<string, boolean>;
+	};
+	speakerChanged: {
+		userId: MiUser['id'] | null;
+		timeLimit?: number;
+		isTestament?: boolean;
+	};
+	speechTimeUpdate: {
+		remaining: number;
+	};
+	discussionEnded: Record<string, never>;
+	testamentNext: {
+		userId: MiUser['id'];
+	};
+	playerDied: {
+		userId: MiUser['id'];
+		reason: string;
+		revealRole?: boolean;
+		role?: string;
+		players?: WerewolfPlayer[];
+	};
+	transitionDelay: {
+		type: 'death_announcement' | 'speech_transition' | 'discussion_to_voting' | 'voting_results';
+		duration: number;
+		[key: string]: any;
+	};
+	actionPerformed: {
+		userId: MiUser['id'];
+		action: string;
+	};
+	message: {
+		channel: string;
+		userId: MiUser['id'];
+		message: string;
+		timestamp: Date;
+	};
+	ended: {
+		winnerTeam: string | null;
+		game: Packed<'WerewolfGameDetailed'>;
+	};
+	gameEnded: {
+		winnerTeam: string | null;
+		game: Packed<'WerewolfGameDetailed'>;
+	};
+	canceled: {
+		userId: MiUser['id'];
+	};
+	gameCanceled: Record<string, never>;
+	voiceTrackReady: {
+		userId: MiUser['id'];
+		sessionId: string;
+		trackName: string;
+	};
+	voiceTrackAdded: {
+		userId: MiUser['id'];
+	};
+	votingTied: {
+		round: number;
+		tiedPlayers: MiUser['id'][];
+	};
+	secondRoundDiscussionStarted: {
+		tiedPlayers: MiUser['id'][];
+		speechOrder: MiUser['id'][] | null;
+	};
+	nightPhaseTimeUpdate: {
+		role: string;
+		subPhase: string;
+		elapsed: number;
+		remaining: number;
+		total: number;
+	};
+	witchTimeWindowUpdate: {
+		window: string;
+		windowRemaining: number;
+		allowedActions: string[];
+		uiState: Record<string, any>;
+		hasSubmitted: boolean;
+	};
+	votingTimeUpdate: {
+		elapsed: number;
+		remaining: number;
+		total: number;
+		round: number;
 	};
 }
 //#endregion
@@ -344,6 +521,26 @@ export type GlobalEvents = {
 		name: `reversiGameStream:${MiReversiGame['id']}`;
 		payload: EventTypesToEventPayload<ReversiGameEventTypes>;
 	};
+	gomoku: {
+		name: `gomokuStream:${MiUser['id']}`;
+		payload: EventTypesToEventPayload<GomokuEventTypes>;
+	};
+	gomokuGame: {
+		name: `gomokuGameStream:${MiGomokuGame['id']}`;
+		payload: EventTypesToEventPayload<GomokuGameEventTypes>;
+	};
+	werewolf: {
+		name: `werewolfStream:${MiUser['id']}`;
+		payload: EventTypesToEventPayload<WerewolfEventTypes>;
+	};
+	werewolfLobby: {
+		name: 'werewolfLobbyStream';
+		payload: EventTypesToEventPayload<WerewolfEventTypes>;
+	};
+	werewolfGame: {
+		name: `werewolfGameStream:${MiWerewolfGame['id']}`;
+		payload: EventTypesToEventPayload<WerewolfGameEventTypes>;
+	};
 };
 
 // API event definitions
@@ -452,5 +649,30 @@ export class GlobalEventService {
 	@bindThis
 	public publishReversiGameStream<K extends keyof ReversiGameEventTypes>(gameId: MiReversiGame['id'], type: K, value?: ReversiGameEventTypes[K]): void {
 		this.publish(`reversiGameStream:${gameId}`, type, typeof value === 'undefined' ? null : value);
+	}
+
+	@bindThis
+	public publishGomokuStream<K extends keyof GomokuEventTypes>(userId: MiUser['id'], type: K, value?: GomokuEventTypes[K]): void {
+		this.publish(`gomokuStream:${userId}`, type, typeof value === 'undefined' ? null : value);
+	}
+
+	@bindThis
+	public publishGomokuGameStream<K extends keyof GomokuGameEventTypes>(gameId: MiGomokuGame['id'], type: K, value?: GomokuGameEventTypes[K]): void {
+		this.publish(`gomokuGameStream:${gameId}`, type, typeof value === 'undefined' ? null : value);
+	}
+
+	@bindThis
+	public publishWerewolfStream<K extends keyof WerewolfEventTypes>(userId: MiUser['id'], type: K, value?: WerewolfEventTypes[K]): void {
+		this.publish(`werewolfStream:${userId}`, type, typeof value === 'undefined' ? null : value);
+	}
+
+	@bindThis
+	public publishWerewolfLobbyStream<K extends keyof WerewolfEventTypes>(type: K, value?: WerewolfEventTypes[K]): void {
+		this.publish('werewolfLobbyStream', type, typeof value === 'undefined' ? null : value);
+	}
+
+	@bindThis
+	public publishWerewolfGameStream<K extends keyof WerewolfGameEventTypes>(gameId: MiWerewolfGame['id'], type: K, value?: WerewolfGameEventTypes[K]): void {
+		this.publish(`werewolfGameStream:${gameId}`, type, typeof value === 'undefined' ? null : value);
 	}
 }

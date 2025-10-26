@@ -29,6 +29,8 @@ import { AccountMoveService } from '@/core/AccountMoveService.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { UserRiskScoreService } from '@/core/UserRiskScoreService.js';
 import type { ThinUser } from '@/queue/types.js';
+import { EventBus } from '@/core/events/EventBus.js';
+import type { UserFollowedEvent } from '@/core/events/DomainEvents.js';
 import Logger from '../logger.js';
 
 const logger = new Logger('following/create');
@@ -88,6 +90,7 @@ export class UserFollowingService implements OnModuleInit {
 		private perUserFollowingChart: PerUserFollowingChart,
 		private instanceChart: InstanceChart,
 		private userRiskScoreService: UserRiskScoreService,
+		private eventBus: EventBus,
 	) {
 	}
 
@@ -350,6 +353,19 @@ export class UserFollowingService implements OnModuleInit {
 		}
 
 		this.globalEventService.publishInternalEvent('follow', { followerId: follower.id, followeeId: followee.id });
+
+		try {
+			this.eventBus.publish<UserFollowedEvent>({
+				eventType: 'UserFollowed',
+				aggregateId: followee.id,
+				occurredAt: new Date(),
+				followerId: follower.id,
+				followeeId: followee.id,
+				withReplies: withReplies ?? false,
+			});
+		} catch (error) {
+			logger.error('Failed to publish UserFollowed event', error as Error);
+		}
 
 		const [followeeUser, followerUser] = await Promise.all([
 			this.usersRepository.findOneByOrFail({ id: followee.id }),

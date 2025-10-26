@@ -2691,14 +2691,19 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 						this.logger.info(`- Memory warnings: ${memoryWarningCount}`);
 						this.logger.info(`- Final result count: ${results.length}`);
 
+						stream.destroy();
 						resolve(results);
 					} catch (endError) {
 						this.logger.error('Error during stream end processing:', (endError as Error));
+						stream.destroy();
 						reject(endError);
 					}
 				});
 
-				stream.on('error', reject);
+				stream.on('error', (err) => {
+					stream.destroy();
+					reject(err);
+				});
 			});
 		} catch (error) {
 			this.logger.error('Failed to process large GeoNames file:', error as any);
@@ -2788,31 +2793,41 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 					});
 
 					stream.on('end', () => {
-						if (buffer.trim()) {
-							try {
-								const parts = buffer.split('\t');
-								if (parts.length >= 4) {
-									const geonameId = parseInt(parts[1]);
-									const alternateName = parts[3];
-									const isoLanguage = parts[2];
+						try {
+							if (buffer.trim()) {
+								try {
+									const parts = buffer.split('\t');
+									if (parts.length >= 4) {
+										const geonameId = parseInt(parts[1]);
+										const alternateName = parts[3];
+										const isoLanguage = parts[2];
 
-									const entry = geonameIdIndex.get(geonameId);
-									if (entry && alternateName && isoLanguage) {
-										if (!entry.properties.alternate_names) {
-											entry.properties.alternate_names = {};
+										const entry = geonameIdIndex.get(geonameId);
+										if (entry && alternateName && isoLanguage) {
+											if (!entry.properties.alternate_names) {
+												entry.properties.alternate_names = {};
+											}
+											entry.properties.alternate_names[isoLanguage] = alternateName;
+											processedCount++;
 										}
-										entry.properties.alternate_names[isoLanguage] = alternateName;
-										processedCount++;
 									}
+								} catch (parseError) {
+									this.logger.warn('Error processing final buffer:', parseError as Error);
 								}
-							} catch (parseError) {
-								this.logger.warn('Error processing final buffer:', parseError as Error);
 							}
+							stream.destroy();
+							resolve();
+						} catch (endError) {
+							this.logger.error('Error during stream end processing:', endError as Error);
+							stream.destroy();
+							reject(endError);
 						}
-						resolve();
 					});
 
-					stream.on('error', reject);
+					stream.on('error', (err) => {
+						stream.destroy();
+						reject(err);
+					});
 				});
 
 				this.logger.info(`Multilingual names processing completed: ${processedCount} entries`);

@@ -81,6 +81,7 @@ export class CloudflareCallsService {
 				method: 'POST',
 				headers: this.getAuthHeaders(),
 				body: JSON.stringify({ name }),
+				timeout: 30000,
 			});
 
 			const data = await response.json() as any;
@@ -159,6 +160,7 @@ export class CloudflareCallsService {
 				headers: {
 					'Authorization': `Bearer ${appSecret}`,
 				},
+				timeout: 30000,
 			});
 
 			const data = await response.json() as any;
@@ -185,7 +187,9 @@ export class CloudflareCallsService {
 		tracks: Array<{ location: 'local' | 'remote'; mid?: string; trackName: string; sessionId?: string }>,
 	): Promise<{
 		sessionDescription: RTCSessionDescriptionInit;
-		tracks: Array<{ trackName: string; mid?: string; sessionId?: string }>;
+		tracks: Array<{ trackName: string; mid?: string; sessionId?: string; errorCode?: string; errorDescription?: string }>;
+		hasErrors?: boolean;
+		hasRetryableTrackError?: boolean;
 	} | null> {
 		if (!this.isEnabled()) {
 			return null;
@@ -204,27 +208,75 @@ export class CloudflareCallsService {
 		try {
 			const url = `${this.getBaseUrl(appId)}/sessions/${sessionId}/tracks/new`;
 
+			const requestBody = {
+				sessionDescription,
+				tracks,
+			};
+
 			const response = await this.httpRequestService.send(url, {
 				method: 'POST',
 				headers: {
 					'Authorization': `Bearer ${appSecret}`,
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({
-					sessionDescription,
-					tracks,
-				}),
+				body: JSON.stringify(requestBody),
 				timeout: 30000,
+			}, {
+				throwErrorWhenResponseNotOk: false,
 			});
 
 			const data = await response.json() as any;
 
+			if (!response.ok) {
+				if (response.status === 410 && data?.errorCode === 'session_error') {
+					return {
+						sessionDescription: { type: 'answer', sdp: '' } as RTCSessionDescriptionInit,
+						tracks: [{
+							trackName: '',
+							errorCode: data.errorCode,
+							errorDescription: data.errorDescription,
+						}],
+						hasErrors: true,
+						hasRetryableTrackError: false,
+					};
+				}
+
+				if (response.status === 425 && data?.errorCode === 'session_error') {
+					return {
+						sessionDescription: { type: 'answer', sdp: '' } as RTCSessionDescriptionInit,
+						tracks: [{
+							trackName: '',
+							errorCode: data.errorCode,
+							errorDescription: data.errorDescription,
+						}],
+						hasErrors: true,
+						hasRetryableTrackError: true,
+					};
+				}
+
+				return null;
+			}
+
+			let hasErrors = false;
+			let hasRetryableTrackError = false;
 			if (data?.tracks && Array.isArray(data.tracks)) {
 				const tracksWithErrors = data.tracks.filter((t: any) => t.errorCode);
 				if (tracksWithErrors.length > 0) {
-					console.error('Cloudflare Calls track errors:', JSON.stringify(tracksWithErrors, null, 2));
-					return null;
+					hasErrors = true;
+					const retryableErrors = ['empty_track_error', 'not_found_track_error', 'transport_unavailable_error'];
+					hasRetryableTrackError = tracksWithErrors.some((t: any) =>
+						retryableErrors.includes(t.errorCode)
+					);
 				}
+			}
+
+			if (hasRetryableTrackError) {
+				return {
+					sessionDescription: data.sessionDescription || { type: 'answer', sdp: '' },
+					tracks: data.tracks || [],
+					hasErrors,
+					hasRetryableTrackError,
+				};
 			}
 
 			if (!data?.sessionDescription?.type || !data?.sessionDescription?.sdp) {
@@ -235,6 +287,8 @@ export class CloudflareCallsService {
 			return {
 				sessionDescription: data.sessionDescription,
 				tracks: data.tracks || [],
+				hasErrors,
+				hasRetryableTrackError: false,
 			};
 		} catch (error) {
 			console.error('Failed to add track to Cloudflare Calls session:', error);
@@ -340,7 +394,18 @@ export class CloudflareCallsService {
 					'Authorization': `Bearer ${appSecret}`,
 					'Content-Type': 'application/json',
 				},
+				timeout: 5000,
+			}, {
+				throwErrorWhenResponseNotOk: false,
 			});
+
+			if (response.status === 410) {
+				return null;
+			}
+
+			if (!response.ok) {
+				return null;
+			}
 
 			const data = await response.json() as any;
 

@@ -10,7 +10,7 @@ import { CommandModule } from '@/cli/CommandModule.js';
 import { NestLogger } from '@/NestLogger.js';
 import { CommandService } from '@/cli/CommandService.js';
 
-process.title = 'Misskey Cli';
+process.title = 'Vickey Cli';
 
 Error.stackTraceLimit = Infinity;
 EventEmitter.defaultMaxListeners = 128;
@@ -28,6 +28,7 @@ switch (command) {
 		console.log('Available commands:');
 		console.log('  help - Displays this help message');
 		console.log('  reset-captcha - Resets the captcha');
+		console.log('  rebuild-es-index - Rebuilds Elasticsearch index from PostgreSQL (WARNING: Search will be unavailable)');
 		break;
 	}
 	case 'ping': {
@@ -37,6 +38,10 @@ switch (command) {
 	case 'reset-captcha': {
 		await commandService.resetCaptcha();
 		console.log('Captcha has been reset.');
+		break;
+	}
+	case 'rebuild-es-index': {
+		await commandService.rebuildElasticsearchIndex();
 		break;
 	}
 	default: {

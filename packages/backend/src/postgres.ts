@@ -104,6 +104,9 @@ import { MiStripeCustomer } from '@/models/StripeCustomer.js';
 import { MiStripePayment } from '@/models/StripePayment.js';
 import { MiStripeSubscription } from '@/models/StripeSubscription.js';
 import { MiStripeRefund } from '@/models/StripeRefund.js';
+import { MiGomokuGame } from '@/models/GomokuGame.js';
+import { MiElasticsearchReindexState } from '@/models/ElasticsearchReindexState.js';
+import { MiWerewolfGame } from '@/models/WerewolfGame.js';
 
 pg.types.setTypeParser(20, Number);
 
@@ -292,6 +295,9 @@ export const entities = [
 	MiStripePayment,
 	MiStripeSubscription,
 	MiStripeRefund,
+	MiGomokuGame,
+	MiElasticsearchReindexState,
+	MiWerewolfGame,
 	...charts,
 ];
 
@@ -306,7 +312,13 @@ export function createPostgresDataSource(config: Config) {
 		password: config.db.pass,
 		database: config.db.db,
 		extra: {
-			statement_timeout: 1000 * 10,
+			max: 50,
+			min: 10,
+			idleTimeoutMillis: 30000,
+			connectionTimeoutMillis: 10000,
+			statement_timeout: 30000,
+			keepAlive: true,
+			keepAliveInitialDelayMillis: 10000,
 			...config.db.extra,
 		},
 		...(config.dbReplications ? {

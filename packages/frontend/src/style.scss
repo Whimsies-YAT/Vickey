@@ -660,6 +660,25 @@ html[data-color-scheme=dark] ._woodenFrame {
 	100% { transform: rotate(360deg); }
 }
 
+@keyframes globalSpinnerRotate {
+	100% { transform: rotate(360deg); }
+}
+
+@keyframes globalSpinnerDash {
+	0% {
+		stroke-dasharray: 1, 200;
+		stroke-dashoffset: 0;
+	}
+	50% {
+		stroke-dasharray: 89, 200;
+		stroke-dashoffset: -35px;
+	}
+	100% {
+		stroke-dasharray: 89, 200;
+		stroke-dashoffset: -124px;
+	}
+}
+
 @keyframes mfm-spinX {
 	0% { transform: perspective(128px) rotateX(0deg); }
 	100% { transform: perspective(128px) rotateX(360deg); }

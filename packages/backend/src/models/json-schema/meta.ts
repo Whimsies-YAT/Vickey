@@ -437,6 +437,26 @@ export const packedMetaDetailedOnlySchema = {
 			type: 'boolean',
 			optional: false, nullable: false,
 		},
+		enableTimelineWarming: {
+			type: 'boolean',
+			optional: false, nullable: false,
+			default: false,
+		},
+		timelineWarmingTarget: {
+			type: 'number',
+			optional: false, nullable: false,
+			default: 1000,
+		},
+		timelineWarmingMinNotes: {
+			type: 'number',
+			optional: false, nullable: false,
+			default: 100,
+		},
+		timelineWarmingMinFollowers: {
+			type: 'number',
+			optional: false, nullable: false,
+			default: 100,
+		},
 	},
 } as const;
 

@@ -11,6 +11,8 @@ import {
 	UserDetailed,
 	UserDetailedNotMe,
 	UserLite,
+	WerewolfGameDetailed,
+	WerewolfGameLite,
 } from './autogen/models.js';
 import {
 	AnnouncementCreated,
@@ -71,10 +73,11 @@ export type Channels = {
 			receiveFollowRequest: (payload: User) => void;
 			announcementCreated: (payload: AnnouncementCreated) => void;
 			voiceCall: (payload: {
-				type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'tracksReady' | 'readyToPull' | 'pullAnswered' | 'pullCompleted' | 'switchToSfu' | 'switchedToSfu' | 'restored';
+				type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'tracksReady' | 'readyToPull' | 'pullAnswered' | 'pullCompleted' | 'switchToSfu' | 'switchedToSfu' | 'restored' | 'groupMemberLeft' | 'groupMemberJoined';
 				callId?: string;
 				from?: string;
 				peerId?: string;
+				userId?: string;
 				isIncoming?: boolean;
 				state?: 'ringing' | 'connecting' | 'connected';
 				mode?: 'auto' | 'p2p' | 'sfu';
@@ -351,6 +354,137 @@ export type Channels = {
 				id: ChatMessageLite['id'];
 			};
 		};
+	};
+	werewolf: {
+		params: null;
+		events: {
+			matched: (payload: { game: WerewolfGameDetailed }) => void;
+			invited: (payload: { user: User }) => void;
+			canceled: (payload: { game: WerewolfGameLite }) => void;
+		};
+		receives: null;
+	};
+	werewolfGame: {
+		params: {
+			gameId: string;
+		};
+		events: {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			seatChanged: (payload: {
+				seats: any[];
+				players?: any[];
+				userId?: string;
+				seatNumber?: number | null;
+			}) => void;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			playerReady: (payload: {
+				userId: string;
+				readyPlayers: string[];
+			}) => void;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			playerUnready: (payload: {
+				userId: string;
+				readyPlayers: string[];
+			}) => void;
+			countdownStarted: (payload: {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				countdownStartedAt: any;
+			}) => void;
+			countdownTick: (payload: {
+				remaining: number;
+			}) => void;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			countdownCancelled: (payload: any) => void;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			playerKicked: (payload: {
+				userId: string;
+				reason: string;
+			}) => void;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			gameStarted: (payload: { game: any }) => void;
+			phaseChanged: (payload: {
+				phase: string;
+				dayNumber?: number;
+				subPhase?: string;
+			}) => void;
+			subPhaseChanged: (payload: {
+				subPhase?: string;
+			}) => void;
+			speakerChanged: (payload: {
+				userId: string | null;
+				timeLimit?: number;
+				isTestament?: boolean;
+			}) => void;
+			speechTimeUpdate: (payload: {
+				remaining: number;
+			}) => void;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			discussionEnded: (payload: any) => void;
+			testamentNext: (payload: {
+				userId: string;
+			}) => void;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			playerDied: (payload: {
+				userId: string;
+				reason: string;
+				revealRole?: boolean;
+				role?: string;
+				players?: any[];
+			}) => void;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			message: (payload: {
+				channel: string;
+				userId: string;
+				message: string;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				timestamp: any;
+			}) => void;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			gameEnded: (payload: {
+				winnerTeam?: string | null;
+				game: any;
+			}) => void;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			gameCanceled: (payload: any) => void;
+			voiceTrackReady: (payload: {
+				userId: string;
+				sessionId: string;
+				trackName: string;
+			}) => void;
+			voiceTrackAdded: (payload: {
+				userId: string;
+			}) => void;
+			votingTied: (payload: {
+				round: number;
+				tiedPlayers: string[];
+			}) => void;
+			secondRoundDiscussionStarted: (payload: {
+				tiedPlayers: string[];
+				speechOrder: string[] | null;
+			}) => void;
+			nightPhaseTimeUpdate: (payload: {
+				role: string;
+				subPhase: string;
+				elapsed: number;
+				remaining: number;
+				total: number;
+			}) => void;
+			witchTimeWindowUpdate: (payload: {
+				window: string;
+				windowRemaining: number;
+				allowedActions: string[];
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				uiState: any;
+				hasSubmitted: boolean;
+			}) => void;
+			votingTimeUpdate: (payload: {
+				elapsed: number;
+				remaining: number;
+				total: number;
+				round: number;
+			}) => void;
+		};
+		receives: null;
 	};
 };
 

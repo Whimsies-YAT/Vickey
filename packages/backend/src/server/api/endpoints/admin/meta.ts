@@ -764,7 +764,11 @@ export const meta = {
 			cloudflareSfuAppSecret: {
 				type: 'string',
 				optional: false, nullable: true,
-			}
+			},
+			showRoleBadgesOfRemoteUsers: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
 		},
 	},
 } as const;
@@ -962,6 +966,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				cloudflareApiToken: instance.cloudflareApiToken,
 				cloudflareSfuAppId: instance.cloudflareSfuAppId,
 				cloudflareSfuAppSecret: instance.cloudflareSfuAppSecret,
+				showRoleBadgesOfRemoteUsers: instance.showRoleBadgesOfRemoteUsers,
 			};
 		});
 	}

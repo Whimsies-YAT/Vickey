@@ -428,6 +428,15 @@ import type {
 	GalleryPostsUpdateResponse,
 	GetAvatarDecorationsResponse,
 	GetOnlineUsersCountResponse,
+	GomokuCancelMatchRequest,
+	GomokuGamesRequest,
+	GomokuGamesResponse,
+	GomokuInvitationsResponse,
+	GomokuMatchRequest,
+	GomokuMatchResponse,
+	GomokuShowGameRequest,
+	GomokuShowGameResponse,
+	GomokuSurrenderRequest,
 	HashtagsListRequest,
 	HashtagsListResponse,
 	HashtagsSearchRequest,
@@ -726,6 +735,28 @@ import type {
 	V2AdminEmojiListRequest,
 	V2AdminEmojiListResponse,
 	VerifyEmailRequest,
+	WerewolfActionRequest,
+	WerewolfCreateRequest,
+	WerewolfCreateResponse,
+	WerewolfFinishTestamentRequest,
+	WerewolfGameHistoryRequest,
+	WerewolfGameHistoryResponse,
+	WerewolfGamesRequest,
+	WerewolfGamesResponse,
+	WerewolfGetVoiceCredsRequest,
+	WerewolfJoinRequest,
+	WerewolfLeaveRequest,
+	WerewolfReadyRequest,
+	WerewolfSelfDestructRequest,
+	WerewolfSendMessageRequest,
+	WerewolfShowRequest,
+	WerewolfShowResponse,
+	WerewolfSkipSpeechRequest,
+	WerewolfTakeSeatRequest,
+	WerewolfUnreadyRequest,
+	WerewolfVoiceNegotiateRequest,
+	WerewolfVoicePullSingleTrackRequest,
+	WerewolfVoicePullTracksRequest,
 } from './entities.js';
 
 export type Endpoints = {
@@ -1005,6 +1036,12 @@ export type Endpoints = {
 	'gallery/posts/update': { req: GalleryPostsUpdateRequest; res: GalleryPostsUpdateResponse };
 	'get-avatar-decorations': { req: EmptyRequest; res: GetAvatarDecorationsResponse };
 	'get-online-users-count': { req: EmptyRequest; res: GetOnlineUsersCountResponse };
+	'gomoku/cancel-match': { req: GomokuCancelMatchRequest; res: EmptyResponse };
+	'gomoku/games': { req: GomokuGamesRequest; res: GomokuGamesResponse };
+	'gomoku/invitations': { req: EmptyRequest; res: GomokuInvitationsResponse };
+	'gomoku/match': { req: GomokuMatchRequest; res: GomokuMatchResponse };
+	'gomoku/show-game': { req: GomokuShowGameRequest; res: GomokuShowGameResponse };
+	'gomoku/surrender': { req: GomokuSurrenderRequest; res: EmptyResponse };
 	'hashtags/list': { req: HashtagsListRequest; res: HashtagsListResponse };
 	'hashtags/search': { req: HashtagsSearchRequest; res: HashtagsSearchResponse };
 	'hashtags/show': { req: HashtagsShowRequest; res: HashtagsShowResponse };
@@ -1205,6 +1242,24 @@ export type Endpoints = {
 	'users/update-memo': { req: UsersUpdateMemoRequest; res: EmptyResponse };
 	'v2/admin/emoji/list': { req: V2AdminEmojiListRequest; res: V2AdminEmojiListResponse };
 	'verify-email': { req: VerifyEmailRequest; res: EmptyResponse };
+	'werewolf/action': { req: WerewolfActionRequest; res: EmptyResponse };
+	'werewolf/create': { req: WerewolfCreateRequest; res: WerewolfCreateResponse };
+	'werewolf/finish-testament': { req: WerewolfFinishTestamentRequest; res: EmptyResponse };
+	'werewolf/game-history': { req: WerewolfGameHistoryRequest; res: WerewolfGameHistoryResponse };
+	'werewolf/games': { req: WerewolfGamesRequest; res: WerewolfGamesResponse };
+	'werewolf/get-voice-creds': { req: WerewolfGetVoiceCredsRequest; res: EmptyResponse };
+	'werewolf/join': { req: WerewolfJoinRequest; res: EmptyResponse };
+	'werewolf/leave': { req: WerewolfLeaveRequest; res: EmptyResponse };
+	'werewolf/ready': { req: WerewolfReadyRequest; res: EmptyResponse };
+	'werewolf/self-destruct': { req: WerewolfSelfDestructRequest; res: EmptyResponse };
+	'werewolf/send-message': { req: WerewolfSendMessageRequest; res: EmptyResponse };
+	'werewolf/show': { req: WerewolfShowRequest; res: WerewolfShowResponse };
+	'werewolf/skip-speech': { req: WerewolfSkipSpeechRequest; res: EmptyResponse };
+	'werewolf/take-seat': { req: WerewolfTakeSeatRequest; res: EmptyResponse };
+	'werewolf/unready': { req: WerewolfUnreadyRequest; res: EmptyResponse };
+	'werewolf/voice-negotiate': { req: WerewolfVoiceNegotiateRequest; res: EmptyResponse };
+	'werewolf/voice-pull-single-track': { req: WerewolfVoicePullSingleTrackRequest; res: EmptyResponse };
+	'werewolf/voice-pull-tracks': { req: WerewolfVoicePullTracksRequest; res: EmptyResponse };
 };
 
 /**

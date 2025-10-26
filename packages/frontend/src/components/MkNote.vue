@@ -85,8 +85,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<div v-if="converting || convert" :class="$style.translation">
 							<MkLoading v-if="converting" mini/>
 							<div v-else-if="convert">
-								<!--<b>{{ i18n.tsx.convertedFrom({ x: appearNote.id }) }}: </b>-->
-								<b>{{ 'From ' + appearNote.id }} </b>
+								<b>{{ i18n.tsx.convertedFrom({ x: appearNote.id }) }}: </b>
 								<MkMediaAudio :audio="convert"/>
 							</div>
 						</div>
