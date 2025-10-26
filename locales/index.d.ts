@@ -4658,6 +4658,512 @@ export interface Locale extends ILocale {
          */
         "turnCount": ParameterizedString<"count">;
     };
+    "_werewolf": {
+        /**
+         * Werewolf
+         */
+        "title": string;
+        /**
+         * A classic social deduction game
+         */
+        "description": string;
+        /**
+         * Beginner Match (6 Players)
+         */
+        "create6PlayerGame": string;
+        /**
+         * Standard Match (9 Players)
+         */
+        "create9PlayerGame": string;
+        /**
+         * Beginner (6P)
+         */
+        "sixPlayer": string;
+        /**
+         * Standard (9P)
+         */
+        "ninePlayer": string;
+        /**
+         * Join Game
+         */
+        "join": string;
+        /**
+         * Leave Game
+         */
+        "leave": string;
+        /**
+         * Ready
+         */
+        "ready": string;
+        /**
+         * Not Ready
+         */
+        "unready": string;
+        /**
+         * Start Game
+         */
+        "start": string;
+        /**
+         * Waiting
+         */
+        "waiting": string;
+        /**
+         * Playing
+         */
+        "playing": string;
+        /**
+         * Ended
+         */
+        "ended": string;
+        /**
+         * Players
+         */
+        "players": string;
+        /**
+         * Alive Players
+         */
+        "alivePlayers": string;
+        /**
+         * Dead Players
+         */
+        "deadPlayers": string;
+        /**
+         * Dead Chat
+         */
+        "deadChat": string;
+        /**
+         * My Games
+         */
+        "myGames": string;
+        /**
+         * All Games
+         */
+        "allGames": string;
+        /**
+         * Game was canceled
+         */
+        "gameCanceled": string;
+        /**
+         * Game Ended
+         */
+        "gameEnded": string;
+        /**
+         * Winner
+         */
+        "winner": string;
+        /**
+         * Werewolves
+         */
+        "werewolves": string;
+        /**
+         * Villagers
+         */
+        "villagers": string;
+        /**
+         * Back to Lobby
+         */
+        "backToLobby": string;
+        /**
+         * Phase
+         */
+        "phase": string;
+        /**
+         * Day
+         */
+        "day": string;
+        /**
+         * Night
+         */
+        "night": string;
+        /**
+         * Voting
+         */
+        "voting": string;
+        /**
+         * Your Role
+         */
+        "yourRole": string;
+        /**
+         * Seer
+         */
+        "seer": string;
+        /**
+         * Witch
+         */
+        "witch": string;
+        /**
+         * Hunter
+         */
+        "hunter": string;
+        /**
+         * Villager
+         */
+        "villager": string;
+        /**
+         * Werewolf
+         */
+        "werewolf": string;
+        /**
+         * Check one player's team each night
+         */
+        "seerDesc": string;
+        /**
+         * One heal potion and one poison potion
+         */
+        "witchDesc": string;
+        /**
+         * Shoot one player when eliminated
+         */
+        "hunterDesc": string;
+        /**
+         * Help identify werewolves
+         */
+        "villagerDesc": string;
+        /**
+         * Eliminate all villagers or gods to win
+         */
+        "werewolfDesc": string;
+        /**
+         * Werewolf Chat
+         */
+        "werewolfChat": string;
+        /**
+         * Waiting for Players
+         */
+        "waitingForPlayers": string;
+        /**
+         * Seated
+         */
+        "seated": string;
+        /**
+         * Locked
+         */
+        "seatLocked": string;
+        /**
+         * Empty
+         */
+        "emptySeat": string;
+        /**
+         * Leave Seat
+         */
+        "leaveSeat": string;
+        /**
+         * Click an empty seat to join
+         */
+        "selectSeat": string;
+        /**
+         * Discussion
+         */
+        "discussion": string;
+        /**
+         * Testament
+         */
+        "testament": string;
+        /**
+         * Tied Players
+         */
+        "tiedPlayers": string;
+        /**
+         * Werewolf Turn
+         */
+        "werewolfTurn": string;
+        /**
+         * Seer Turn
+         */
+        "seerTurn": string;
+        /**
+         * Witch Turn
+         */
+        "witchTurn": string;
+        /**
+         * Select a target to kill
+         */
+        "selectKillTarget": string;
+        /**
+         * Select a player to check
+         */
+        "selectCheckTarget": string;
+        /**
+         * Choose your action
+         */
+        "witchChoice": string;
+        /**
+         * Use Heal Potion
+         */
+        "useHeal": string;
+        /**
+         * Select a target to poison
+         */
+        "selectPoisonTarget": string;
+        /**
+         * Use Poison
+         */
+        "usePoison": string;
+        /**
+         * Skip Action
+         */
+        "skip": string;
+        /**
+         * Vote
+         */
+        "vote": string;
+        /**
+         * Confirm Vote
+         */
+        "confirmVote": string;
+        /**
+         * Hunter's Revenge
+         */
+        "hunterShoot": string;
+        /**
+         * Hunter Shooting
+         */
+        "hunterShooting": string;
+        /**
+         * Confirm Shoot
+         */
+        "confirmShoot": string;
+        /**
+         * Self-Destruct
+         */
+        "selfDestruct": string;
+        /**
+         * Are you sure you want to self-destruct? This will end the game immediately.
+         */
+        "confirmSelfDestruct": string;
+        /**
+         * is speaking
+         */
+        "speaking": string;
+        /**
+         * is giving last words
+         */
+        "givingTestament": string;
+        /**
+         * Skip Speech
+         */
+        "skipSpeech": string;
+        /**
+         * Finish Testament
+         */
+        "finishTestament": string;
+        /**
+         * Confirm
+         */
+        "confirm": string;
+        /**
+         * Your Action
+         */
+        "yourAction": string;
+        /**
+         * Game Configuration
+         */
+        "gameConfig": string;
+        /**
+         * Role Distribution
+         */
+        "roleDistribution": string;
+        /**
+         * Round
+         */
+        "round": string;
+        /**
+         * Game Rules
+         */
+        "gameRules": string;
+        /**
+         * Closed Role (Hidden)
+         */
+        "closedRole": string;
+        /**
+         * Slaughter All Sides
+         */
+        "slaughterAllSides": string;
+        /**
+         * Werewolves win by eliminating all gods OR all villagers
+         */
+        "slaughterAllSidesDesc": string;
+        /**
+         * Enter Game
+         */
+        "enterGame": string;
+        /**
+         * Kicked from game
+         */
+        "kickedFromGame": string;
+        /**
+         * Ready timeout
+         */
+        "readyTimeout": string;
+        /**
+         * Lobby Chat
+         */
+        "lobbyChat": string;
+        /**
+         * No messages yet
+         */
+        "noMessagesYet": string;
+        /**
+         * Type a message...
+         */
+        "typeMessage": string;
+        /**
+         * You cannot send messages right now
+         */
+        "cannotSendMessage": string;
+        /**
+         * Chat
+         */
+        "chat": string;
+        /**
+         * Mute
+         */
+        "mute": string;
+        /**
+         * Unmute
+         */
+        "unmute": string;
+        /**
+         * Heal Phase
+         */
+        "witchHealPhase": string;
+        /**
+         * Poison Phase
+         */
+        "witchPoisonPhase": string;
+        /**
+         * s remaining
+         */
+        "secondsRemaining": string;
+        /**
+         * Second round of discussion started
+         */
+        "secondRoundStarted": string;
+        /**
+         * Antidote already used
+         */
+        "antidoteUsed": string;
+        /**
+         * No one was killed tonight
+         */
+        "noKillTonight": string;
+        /**
+         * Preparing...
+         */
+        "preparing": string;
+        /**
+         * Poison already used
+         */
+        "poisonUsed": string;
+        /**
+         * Please wait...
+         */
+        "pleaseWait": string;
+        /**
+         * Next speaker is preparing...
+         */
+        "nextSpeakerPreparing": string;
+        /**
+         * Preparing for voting...
+         */
+        "preparingForVoting": string;
+        /**
+         * Displaying voting results...
+         */
+        "votingResultsDisplay": string;
+        /**
+         * Vote is tied! Starting second round of discussion
+         */
+        "votingTiedRound1": string;
+        /**
+         * Vote is still tied! Starting another round
+         */
+        "votingTiedRound2": string;
+        /**
+         * Game History
+         */
+        "gameHistory": string;
+        /**
+         * Player Roles
+         */
+        "playerRoles": string;
+        /**
+         * Alive
+         */
+        "alive": string;
+        /**
+         * Dead
+         */
+        "dead": string;
+        /**
+         * Day by Day History
+         */
+        "dayByDayHistory": string;
+        /**
+         * Loading History...
+         */
+        "loadingHistory": string;
+        /**
+         * Unknown Player
+         */
+        "unknownPlayer": string;
+        /**
+         * was killed by werewolves
+         */
+        "wasKilledByWerewolves": string;
+        /**
+         * Witch used heal
+         */
+        "witchUsedHeal": string;
+        /**
+         * Witch used poison on
+         */
+        "witchUsedPoison": string;
+        /**
+         * Seer checked
+         */
+        "seerChecked": string;
+        /**
+         * voted for
+         */
+        "votedFor": string;
+        /**
+         * was executed
+         */
+        "wasExecuted": string;
+        /**
+         * Hunter shot
+         */
+        "hunterShot": string;
+        /**
+         * self-destructed
+         */
+        "selfDestructed": string;
+        /**
+         * Dawn Breaks
+         */
+        "dawnBreaks": string;
+        /**
+         * One player died last night
+         */
+        "onePlayerDied": string;
+        /**
+         * {count} players died last night
+         */
+        "multiplePlayersDied": ParameterizedString<"count">;
+        /**
+         * Player Executed
+         */
+        "playerExecuted": string;
+        /**
+         * Hunter's Revenge
+         */
+        "hunterRevenge": string;
+        /**
+         * Bomb Exploded!
+         */
+        "bombExploded": string;
+    };
     /**
      * ノートでつながるネットワーク
      */

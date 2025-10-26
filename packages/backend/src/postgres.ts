@@ -106,6 +106,7 @@ import { MiStripeSubscription } from '@/models/StripeSubscription.js';
 import { MiStripeRefund } from '@/models/StripeRefund.js';
 import { MiGomokuGame } from '@/models/GomokuGame.js';
 import { MiElasticsearchReindexState } from '@/models/ElasticsearchReindexState.js';
+import { MiWerewolfGame } from '@/models/WerewolfGame.js';
 
 pg.types.setTypeParser(20, Number);
 
@@ -296,6 +297,7 @@ export const entities = [
 	MiStripeRefund,
 	MiGomokuGame,
 	MiElasticsearchReindexState,
+	MiWerewolfGame,
 	...charts,
 ];
 

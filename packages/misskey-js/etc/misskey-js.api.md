@@ -803,10 +803,11 @@ export type Channels = {
             receiveFollowRequest: (payload: User) => void;
             announcementCreated: (payload: AnnouncementCreated) => void;
             voiceCall: (payload: {
-                type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'tracksReady' | 'readyToPull' | 'pullAnswered' | 'pullCompleted' | 'switchToSfu' | 'switchedToSfu' | 'restored';
+                type: 'incoming' | 'initiated' | 'answered' | 'ready' | 'rejected' | 'ended' | 'signal' | 'error' | 'tracksAnswered' | 'tracksReady' | 'readyToPull' | 'pullAnswered' | 'pullCompleted' | 'switchToSfu' | 'switchedToSfu' | 'restored' | 'groupMemberLeft' | 'groupMemberJoined';
                 callId?: string;
                 from?: string;
                 peerId?: string;
+                userId?: string;
                 isIncoming?: boolean;
                 state?: 'ringing' | 'connecting' | 'connected';
                 mode?: 'auto' | 'p2p' | 'sfu';
@@ -1094,6 +1095,131 @@ export type Channels = {
                 id: ChatMessageLite['id'];
             };
         };
+    };
+    werewolf: {
+        params: null;
+        events: {
+            matched: (payload: {
+                game: WerewolfGameDetailed;
+            }) => void;
+            invited: (payload: {
+                user: User;
+            }) => void;
+            canceled: (payload: {
+                game: WerewolfGameLite;
+            }) => void;
+        };
+        receives: null;
+    };
+    werewolfGame: {
+        params: {
+            gameId: string;
+        };
+        events: {
+            seatChanged: (payload: {
+                seats: any[];
+                players?: any[];
+                userId?: string;
+                seatNumber?: number | null;
+            }) => void;
+            playerReady: (payload: {
+                userId: string;
+                readyPlayers: string[];
+            }) => void;
+            playerUnready: (payload: {
+                userId: string;
+                readyPlayers: string[];
+            }) => void;
+            countdownStarted: (payload: {
+                countdownStartedAt: any;
+            }) => void;
+            countdownTick: (payload: {
+                remaining: number;
+            }) => void;
+            countdownCancelled: (payload: any) => void;
+            playerKicked: (payload: {
+                userId: string;
+                reason: string;
+            }) => void;
+            gameStarted: (payload: {
+                game: any;
+            }) => void;
+            phaseChanged: (payload: {
+                phase: string;
+                dayNumber?: number;
+                subPhase?: string;
+            }) => void;
+            subPhaseChanged: (payload: {
+                subPhase?: string;
+            }) => void;
+            speakerChanged: (payload: {
+                userId: string | null;
+                timeLimit?: number;
+                isTestament?: boolean;
+            }) => void;
+            speechTimeUpdate: (payload: {
+                remaining: number;
+            }) => void;
+            discussionEnded: (payload: any) => void;
+            testamentNext: (payload: {
+                userId: string;
+            }) => void;
+            playerDied: (payload: {
+                userId: string;
+                reason: string;
+                revealRole?: boolean;
+                role?: string;
+                players?: any[];
+            }) => void;
+            message: (payload: {
+                channel: string;
+                userId: string;
+                message: string;
+                timestamp: any;
+            }) => void;
+            gameEnded: (payload: {
+                winnerTeam?: string | null;
+                game: any;
+            }) => void;
+            gameCanceled: (payload: any) => void;
+            voiceTrackReady: (payload: {
+                userId: string;
+                sessionId: string;
+                trackName: string;
+            }) => void;
+            voiceTrackAdded: (payload: {
+                userId: string;
+            }) => void;
+            votingTied: (payload: {
+                round: number;
+                tiedPlayers: string[];
+            }) => void;
+            secondRoundDiscussionStarted: (payload: {
+                tiedPlayers: string[];
+                speechOrder: string[] | null;
+            }) => void;
+            nightPhaseTimeUpdate: (payload: {
+                role: string;
+                subPhase: string;
+                elapsed: number;
+                remaining: number;
+                total: number;
+            }) => void;
+            witchTimeWindowUpdate: (payload: {
+                window: string;
+                windowRemaining: number;
+                allowedActions: string[];
+                uiState: any;
+                hasSubmitted: boolean;
+            }) => void;
+            votingTimeUpdate: (payload: {
+                elapsed: number;
+                remaining: number;
+                total: number;
+                round: number;
+            }) => void;
+        };
+        receives: null;
     };
 };
 
@@ -2411,6 +2537,28 @@ declare namespace entities {
         V2AdminEmojiListRequest,
         V2AdminEmojiListResponse,
         VerifyEmailRequest,
+        WerewolfActionRequest,
+        WerewolfCreateRequest,
+        WerewolfCreateResponse,
+        WerewolfFinishTestamentRequest,
+        WerewolfGameHistoryRequest,
+        WerewolfGameHistoryResponse,
+        WerewolfGamesRequest,
+        WerewolfGamesResponse,
+        WerewolfGetVoiceCredsRequest,
+        WerewolfJoinRequest,
+        WerewolfLeaveRequest,
+        WerewolfReadyRequest,
+        WerewolfSelfDestructRequest,
+        WerewolfSendMessageRequest,
+        WerewolfShowRequest,
+        WerewolfShowResponse,
+        WerewolfSkipSpeechRequest,
+        WerewolfTakeSeatRequest,
+        WerewolfUnreadyRequest,
+        WerewolfVoiceNegotiateRequest,
+        WerewolfVoicePullSingleTrackRequest,
+        WerewolfVoicePullTracksRequest,
         Error_2 as Error,
         UserLite,
         UserDetailedNotMeOnly,
@@ -2469,6 +2617,8 @@ declare namespace entities {
         ReversiGameDetailed,
         GomokuGameLite,
         GomokuGameDetailed,
+        WerewolfGameLite,
+        WerewolfGameDetailed,
         MetaLite,
         MetaDetailedOnly,
         MetaDetailed,
@@ -4238,13 +4388,85 @@ type V2AdminEmojiListResponse = operations['v2___admin___emoji___list']['respons
 // @public (undocumented)
 type VerifyEmailRequest = operations['verify-email']['requestBody']['content']['application/json'];
 
+// @public (undocumented)
+type WerewolfActionRequest = operations['werewolf___action']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfCreateRequest = operations['werewolf___create']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfCreateResponse = operations['werewolf___create']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfFinishTestamentRequest = operations['werewolf___finish-testament']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfGameDetailed = components['schemas']['WerewolfGameDetailed'];
+
+// @public (undocumented)
+type WerewolfGameHistoryRequest = operations['werewolf___game-history']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfGameHistoryResponse = operations['werewolf___game-history']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfGameLite = components['schemas']['WerewolfGameLite'];
+
+// @public (undocumented)
+type WerewolfGamesRequest = operations['werewolf___games']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfGamesResponse = operations['werewolf___games']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfGetVoiceCredsRequest = operations['werewolf___get-voice-creds']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfJoinRequest = operations['werewolf___join']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfLeaveRequest = operations['werewolf___leave']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfReadyRequest = operations['werewolf___ready']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfSelfDestructRequest = operations['werewolf___self-destruct']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfSendMessageRequest = operations['werewolf___send-message']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfShowRequest = operations['werewolf___show']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfShowResponse = operations['werewolf___show']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfSkipSpeechRequest = operations['werewolf___skip-speech']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfTakeSeatRequest = operations['werewolf___take-seat']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfUnreadyRequest = operations['werewolf___unready']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfVoiceNegotiateRequest = operations['werewolf___voice-negotiate']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfVoicePullSingleTrackRequest = operations['werewolf___voice-pull-single-track']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfVoicePullTracksRequest = operations['werewolf___voice-pull-tracks']['requestBody']['content']['application/json'];
+
 // Warnings were encountered during analysis:
 //
 // src/entities.ts:55:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
 // src/streaming.ts:57:3 - (ae-forgotten-export) The symbol "ReconnectingWebSocket" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:82:5 - (ae-forgotten-export) The symbol "IceServer" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:293:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:303:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:85:5 - (ae-forgotten-export) The symbol "IceServer" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:296:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:306:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

@@ -6,6 +6,8 @@ precision mediump float;
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+precision mediump float;
+
 in vec4 v_color;
 in float v_rotation;
 uniform sampler2D u_texture;

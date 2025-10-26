@@ -34,6 +34,8 @@ import { IconService } from './IconService.js';
 import { StripeWebhookServerService } from './StripeWebhookServerService.js';
 import { GomokuChannelService } from './api/stream/channels/gomoku.js';
 import { GomokuGameChannelService } from './api/stream/channels/gomoku-game.js';
+import { WerewolfChannelService } from './api/stream/channels/werewolf.js';
+import { WerewolfGameChannelService } from './api/stream/channels/werewolf-game.js';
 
 import { MainChannelService } from './api/stream/channels/main.js';
 import { AdminChannelService } from './api/stream/channels/admin.js';
@@ -110,6 +112,8 @@ import { SigninWithPasskeyApiService } from './api/SigninWithPasskeyApiService.j
 		StripeWebhookServerService,
 		GomokuChannelService,
 		GomokuGameChannelService,
+		WerewolfChannelService,
+		WerewolfGameChannelService,
 	],
 	exports: [
 		ServerService,

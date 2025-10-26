@@ -26,6 +26,8 @@ import { ReversiChannelService } from './channels/reversi.js';
 import { ReversiGameChannelService } from './channels/reversi-game.js';
 import { GomokuChannelService } from './channels/gomoku.js';
 import { GomokuGameChannelService } from './channels/gomoku-game.js';
+import { WerewolfChannelService } from './channels/werewolf.js';
+import { WerewolfGameChannelService } from './channels/werewolf-game.js';
 import { type MiChannelService } from './channel.js';
 
 @Injectable()
@@ -52,6 +54,8 @@ export class ChannelsService {
 		private reversiGameChannelService: ReversiGameChannelService,
 		private gomokuChannelService: GomokuChannelService,
 		private gomokuGameChannelService: GomokuGameChannelService,
+		private werewolfChannelService: WerewolfChannelService,
+		private werewolfGameChannelService: WerewolfGameChannelService,
 	) {
 	}
 
@@ -79,6 +83,8 @@ export class ChannelsService {
 			case 'reversiGame': return this.reversiGameChannelService;
 			case 'gomoku': return this.gomokuChannelService;
 			case 'gomokuGame': return this.gomokuGameChannelService;
+			case 'werewolf': return this.werewolfChannelService;
+			case 'werewolfGame': return this.werewolfGameChannelService;
 
 			default:
 				throw new Error(`no such channel: ${name}`);

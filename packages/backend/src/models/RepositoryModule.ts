@@ -100,6 +100,7 @@ import {
 	MiStripeSubscription,
 	MiStripeRefund,
 	MiGomokuGame,
+	MiWerewolfGame,
 	MiElasticsearchReindexState,
 } from './_.js';
 import type { Provider } from '@nestjs/common';
@@ -206,6 +207,7 @@ const repositoryMappings = [
 	{ token: DI.stripeSubscriptionsRepository, entity: MiStripeSubscription },
 	{ token: DI.stripeRefundsRepository, entity: MiStripeRefund },
 	{ token: DI.gomokuGamesRepository, entity: MiGomokuGame },
+	{ token: DI.werewolfGamesRepository, entity: MiWerewolfGame },
 	{ token: DI.elasticsearchReindexStatesRepository, entity: MiElasticsearchReindexState },
 ] as const;
 

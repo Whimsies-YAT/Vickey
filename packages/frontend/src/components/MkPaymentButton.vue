@@ -10,7 +10,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 	v-bind="$attrs"
 	@click="openPaymentDialog"
 >
-	<i v-if="processing" class="ti ti-loader spinning"></i>
+	<span v-if="processing" :class="$style.spinnerWrapper">
+		<svg :class="$style.spinner" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+			<circle cx="24" cy="24" r="18" :class="$style.spinnerCircle"/>
+		</svg>
+	</span>
 	<i v-else class="ti ti-credit-card"></i>
 	{{ processing ? i18n.ts._payment.processing : buttonText }}
 </MkButton>
@@ -100,13 +104,26 @@ onMounted(() => {
 });
 </script>
 
-<style lang="scss" scoped>
-.spinning {
-	animation: spin 1s linear infinite;
+<style lang="scss" module>
+.spinnerWrapper {
+	display: inline-block;
+	width: 1.28em;
+	height: 1.28em;
+	vertical-align: -0.2em;
+	animation: globalSpinnerRotate 2s linear infinite;
 }
 
-@keyframes spin {
-	from { transform: rotate(0deg); }
-	to { transform: rotate(360deg); }
+.spinner {
+	width: 100%;
+	height: 100%;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 4px;
+	stroke-linecap: round;
+}
+
+.spinnerCircle {
+	animation: globalSpinnerDash 1.5s ease-in-out infinite;
+	transform-origin: center;
 }
 </style>

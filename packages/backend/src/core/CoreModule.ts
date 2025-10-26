@@ -106,6 +106,7 @@ import { ChatService } from './ChatService.js';
 import { RegistryApiService } from './RegistryApiService.js';
 import { ReversiService } from './ReversiService.js';
 import { GomokuService } from './GomokuService.js';
+import { WerewolfService } from './WerewolfService.js';
 import { UserSessionsService } from './UserSessionsService.js';
 import { PageService } from './PageService.js';
 
@@ -161,6 +162,7 @@ import { FlashLikeEntityService } from './entities/FlashLikeEntityService.js';
 import { RoleEntityService } from './entities/RoleEntityService.js';
 import { ReversiGameEntityService } from './entities/ReversiGameEntityService.js';
 import { GomokuGameEntityService } from './entities/GomokuGameEntityService.js';
+import { WerewolfGameEntityService } from './entities/WerewolfGameEntityService.js';
 import { MetaEntityService } from './entities/MetaEntityService.js';
 
 import { ApAudienceService } from './activitypub/ApAudienceService.js';
@@ -190,6 +192,7 @@ import { StripeSubscriptionService } from './StripeSubscriptionService.js';
 import { StripeWebhookService } from './StripeWebhookService.js';
 import { CloudflareCallsService } from './CloudflareCallsService.js';
 import { VoiceCallService } from './VoiceCallService.js';
+import { WerewolfVoiceService } from './WerewolfVoiceService.js';
 
 // EventBus infrastructure (NEW - for gradual migration)
 import { EventBus } from './events/EventBus.js';
@@ -221,7 +224,7 @@ const serviceClasses = [
 	UtilityService, ContentRecommendationService, RecommendationAlgorithms, SmartTimelineService,
 	HybridTimelineService, LocalAIContentAnalysisService, FileInfoService, FlashService,
 	SearchService, OfflineGeocodingService, ClipService, FeaturedService, FanoutTimelineService, FanoutTimelineEndpointService,
-	ChannelFollowingService, ChatService, RegistryApiService, ReversiService, GomokuService, UserSessionsService,
+	ChannelFollowingService, ChatService, RegistryApiService, ReversiService, GomokuService, WerewolfService, UserSessionsService,
 	PageService, ChartLoggerService, FederationChart, NotesChart, UsersChart, ActiveUsersChart,
 	InstanceChart, PerUserNotesChart, PerUserPvChart, DriveChart, PerUserReactionsChart,
 	PerUserFollowingChart, PerUserDriveChart, ApRequestChart, ChartManagementService,
@@ -234,12 +237,12 @@ const serviceClasses = [
 	NoteEntityService, NoteFavoriteEntityService, NoteReactionEntityService, NoteDraftEntityService,
 	NotificationEntityService, PageEntityService, PageLikeEntityService, SigninEntityService,
 	UserEntityService, UserListEntityService, FlashEntityService, FlashLikeEntityService,
-	RoleEntityService, ReversiGameEntityService, GomokuGameEntityService, MetaEntityService, SystemWebhookEntityService,
+	RoleEntityService, ReversiGameEntityService, GomokuGameEntityService, WerewolfGameEntityService, MetaEntityService, SystemWebhookEntityService,
 	ApAudienceService, ApDbResolverService, ApDeliverManagerService, ApInboxService, ApLoggerService,
 	ApMfmService, ApRendererService, ApRequestService, ApResolverService, JsonLdService,
 	RemoteLoggerService, RemoteUserResolveService, WebfingerService, ApImageService, ApMentionService,
 	ApNoteService, ApPersonService, ApQuestionService, QueueService, StripeService, StripeSubscriptionService,
-	StripeWebhookService, CloudflareCallsService, VoiceCallService,
+	StripeWebhookService, CloudflareCallsService, VoiceCallService, WerewolfVoiceService,
 	// EventBus infrastructure (NEW)
 	EventBus, EventMetrics,
 	// Event handlers (NEW)

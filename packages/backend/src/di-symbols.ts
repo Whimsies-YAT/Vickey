@@ -93,6 +93,7 @@ export const DI = {
 	bubbleGameRecordsRepository: Symbol('bubbleGameRecordsRepository'),
 	reversiGamesRepository: Symbol('reversiGamesRepository'),
 	gomokuGamesRepository: Symbol('gomokuGamesRepository'),
+	werewolfGamesRepository: Symbol('werewolfGamesRepository'),
 	noteDraftsRepository: Symbol('noteDraftsRepository'),
 	userSessionsRepository: Symbol('userSessionsRepository'),
 	oauthClientConfigsRepository: Symbol('oauthClientConfigsRepository'),

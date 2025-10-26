@@ -29,8 +29,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<circle cx="80" cy="80" r="56" style="--l:350;" :class="[$style.line, $style.animCircle]"/>
 </svg>
 <svg v-else-if="type === 'waiting'" :class="[$style.icon, $style.waiting]" viewBox="0 0 160 160">
-	<circle cx="80" cy="80" r="56" style="--l:350;" :class="[$style.line, $style.animCircleWaiting]"/>
-	<circle cx="80" cy="80" r="56" style="opacity: 0.25;" :class="[$style.line]"/>
+	<g :class="$style.waitingContainer">
+		<circle cx="80" cy="80" r="56" style="opacity: 0.25;" :class="[$style.line]"/>
+		<circle cx="80" cy="80" r="56" :class="[$style.line, $style.animCircleWaiting]"/>
+	</g>
 </svg>
 </template>
 
@@ -95,11 +97,14 @@ const props = defineProps<{
 	transform: rotate(-90deg);
 }
 
-.animCircleWaiting {
-	stroke-dasharray: var(--l);
-	stroke-dashoffset: calc(var(--l) / 1.5);
-	animation: waiting 0.75s linear infinite;
+.waitingContainer {
+	animation: globalSpinnerRotate 2s linear infinite;
 	transform-origin: center;
+}
+
+.animCircleWaiting {
+	animation: globalSpinnerDash 1.5s ease-in-out infinite;
+	stroke-linecap: round;
 }
 
 .animFade {
@@ -116,15 +121,6 @@ const props = defineProps<{
 	100% {
 		stroke-dashoffset: 0;
 		opacity: 1;
-	}
-}
-
-@keyframes waiting {
-	0% {
-		transform: rotate(0deg);
-	}
-	100% {
-		transform: rotate(360deg);
 	}
 }
 

@@ -76,6 +76,7 @@ import { MiRenoteMuting } from '@/models/RenoteMuting.js';
 import { MiRetentionAggregation } from '@/models/RetentionAggregation.js';
 import { MiReversiGame } from '@/models/ReversiGame.js';
 import { MiGomokuGame } from '@/models/GomokuGame.js';
+import { MiWerewolfGame } from '@/models/WerewolfGame.js';
 import { MiRole } from '@/models/Role.js';
 import { MiRoleAssignment } from '@/models/RoleAssignment.js';
 import { MiSignin } from '@/models/Signin.js';
@@ -257,6 +258,7 @@ export {
 	MiBubbleGameRecord,
 	MiReversiGame,
 	MiGomokuGame,
+	MiWerewolfGame,
 	MiUserSessions,
 	MiOAuthClientConfig,
 	MiUserSession,
@@ -356,6 +358,7 @@ export type ChatApprovalsRepository = MiRepositoryType<MiChatApproval>;
 export type BubbleGameRecordsRepository = MiRepositoryType<MiBubbleGameRecord>;
 export type ReversiGamesRepository = MiRepositoryType<MiReversiGame>;
 export type GomokuGamesRepository = MiRepositoryType<MiGomokuGame>;
+export type WerewolfGamesRepository = MiRepositoryType<MiWerewolfGame>;
 export type UserSessionsRepository = MiRepositoryType<MiUserSessions>;
 export type UserSessionRepository = MiRepositoryType<MiUserSession>;
 export type OAuthClientConfigsRepository = MiRepositoryType<MiOAuthClientConfig>;
