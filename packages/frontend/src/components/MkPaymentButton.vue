@@ -11,8 +11,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 	@click="openPaymentDialog"
 >
 	<span v-if="processing" :class="$style.spinnerWrapper">
-		<svg :class="$style.spinner" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-			<circle cx="24" cy="24" r="18" :class="$style.spinnerCircle"/>
+		<svg :class="$style.spinner" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+			<circle cx="25" cy="25" r="20" :class="$style.spinnerCircle"/>
 		</svg>
 	</span>
 	<i v-else class="ti ti-credit-card"></i>
@@ -118,12 +118,14 @@ onMounted(() => {
 	height: 100%;
 	fill: none;
 	stroke: currentColor;
-	stroke-width: 4px;
+	stroke-width: 3px;
 	stroke-linecap: round;
 }
 
 .spinnerCircle {
-	animation: globalSpinnerDash 1.5s ease-in-out infinite;
 	transform-origin: center;
+	stroke-dasharray: 1, 200;
+	stroke-dashoffset: 0;
+	animation: globalSpinnerDash 1.5s ease-in-out infinite;
 }
 </style>

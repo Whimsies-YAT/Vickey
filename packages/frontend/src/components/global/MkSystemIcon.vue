@@ -28,10 +28,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<path d="M96,63L63,96" style="--l:47;--duration:0.3s;--delay:0.2s;" :class="[$style.line, $style.animLine]"/>
 	<circle cx="80" cy="80" r="56" style="--l:350;" :class="[$style.line, $style.animCircle]"/>
 </svg>
-<svg v-else-if="type === 'waiting'" :class="[$style.icon, $style.waiting]" viewBox="0 0 160 160">
+<svg v-else-if="type === 'waiting'" :class="[$style.icon, $style.waiting]" viewBox="0 0 150 150">
 	<g :class="$style.waitingContainer">
-		<circle cx="80" cy="80" r="56" style="opacity: 0.25;" :class="[$style.line]"/>
-		<circle cx="80" cy="80" r="56" :class="[$style.line, $style.animCircleWaiting]"/>
+		<circle cx="75" cy="75" r="60" style="opacity: 0.25;" :class="[$style.line]"/>
+		<circle cx="75" cy="75" r="60" :class="[$style.line, $style.animCircleWaiting]"/>
 	</g>
 </svg>
 </template>
@@ -77,7 +77,7 @@ const props = defineProps<{
 .line {
 	fill: none;
 	stroke: currentColor;
-	stroke-width: 8px;
+	stroke-width: 7.5px;
 	shape-rendering: geometricPrecision;
 }
 
@@ -103,8 +103,25 @@ const props = defineProps<{
 }
 
 .animCircleWaiting {
-	animation: globalSpinnerDash 1.5s ease-in-out infinite;
 	stroke-linecap: round;
+	stroke-dasharray: 3, 600;
+	stroke-dashoffset: 0;
+	animation: mkSystemIconDash 1.5s ease-in-out infinite;
+}
+
+@keyframes mkSystemIconDash {
+	0% {
+		stroke-dasharray: 3, 600;
+		stroke-dashoffset: 0;
+	}
+	50% {
+		stroke-dasharray: 267, 600;
+		stroke-dashoffset: -105px;
+	}
+	100% {
+		stroke-dasharray: 267, 600;
+		stroke-dashoffset: -372px;
+	}
 }
 
 .animFade {
