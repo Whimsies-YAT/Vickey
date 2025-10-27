@@ -41,8 +41,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<div class="payment-element-wrapper">
 							<div v-if="!paymentElementMounted" class="payment-loading">
 								<div class="loading-spinner">
-									<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-										<circle cx="24" cy="24" r="18"/>
+									<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+										<circle cx="25" cy="25" r="20"/>
 									</svg>
 								</div>
 								<p>{{ i18n.ts._payment.loadingPaymentMethods }}</p>
@@ -812,10 +812,12 @@ onUnmounted(() => {
 							height: 100%;
 							fill: none;
 							stroke: currentColor;
-							stroke-width: 4px;
+							stroke-width: 3px;
 							stroke-linecap: round;
 
 							circle {
+								stroke-dasharray: 1, 200;
+								stroke-dashoffset: 0;
 								animation: globalSpinnerDash 1.5s ease-in-out infinite;
 							}
 						}

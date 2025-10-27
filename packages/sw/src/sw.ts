@@ -37,76 +37,174 @@ async function offlineContentHTML() {
 	};
 
 	return `<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta content="width=device-width,initial-scale=1" name="viewport">
-<title>${messages.title}</title>
-<style>
-  body {
-    background-color: #0d1117;
-    color: #dce6f1;
-    font-family: Hiragino Maru Gothic Pro, BIZ UDGothic, Roboto, HelveticaNeue, Arial, sans-serif;
-    line-height: 1.35;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    margin: 0;
-    padding: 24px;
-    box-sizing: border-box;
-  }
-  .icon {
-    max-width: 120px;
-    width: 100%;
-    height: auto;
-    margin-bottom: 20px;
-    color: #61a8ff;
-  }
-  .message {
-    text-align: center;
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 20px;
-  }
-  .version {
-    text-align: center;
-    font-size: 90%;
-    margin-bottom: 20px;
-  }
-  button {
-    padding: 7px 14px;
-    min-width: 100px;
-    font-weight: 700;
-    font-family: Hiragino Maru Gothic Pro, BIZ UDGothic, Roboto, HelveticaNeue, Arial, sans-serif;
-    line-height: 1.35;
-    border-radius: 99rem;
-    background-color: #3b82f6;
-    color: #f8fafc;
-    border: none;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-  button:hover {
-    background-color: #60a5fa;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${messages.title}</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: black;
+      background-image: radial-gradient(circle at center, #001a33 0%, #000d1a 10%, black 60%);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Triangle animation background */
+    .wrap {
+      transform-style: preserve-3d;
+      perspective: 800px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .tri {
+      height: 0;
+      width: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      border-style: solid;
+    }
+
+    /* Main content */
+    .content {
+      position: relative;
+      z-index: 1;
+      color: #dce6f1;
+      font-family: Hiragino Maru Gothic Pro, BIZ UDGothic, Roboto, HelveticaNeue, Arial, sans-serif;
+      line-height: 1.35;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+
+    .icon {
+      max-width: 120px;
+      width: 100%;
+      height: auto;
+      margin-bottom: 20px;
+      color: #61a8ff;
+      filter: drop-shadow(0 0 20px rgba(97, 168, 255, 0.3));
+    }
+
+    .message {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .version {
+      text-align: center;
+      font-size: 90%;
+      margin-bottom: 20px;
+      opacity: 0.8;
+    }
+
+    button {
+      padding: 7px 14px;
+      min-width: 100px;
+      font-weight: 700;
+      font-family: Hiragino Maru Gothic Pro, BIZ UDGothic, Roboto, HelveticaNeue, Arial, sans-serif;
+      line-height: 1.35;
+      border-radius: 99rem;
+      background-color: #3b82f6;
+      color: #f8fafc;
+      border: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #60a5fa;
+    }
+  </style>
 </head>
 <body>
-<svg class="icon" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
-  <path d="M0 0h24v24H0z" fill="none" stroke="none"/>
-  <path d="M9.58 5.548c.24 -.11 .492 -.207 .752 -.286c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 .957 -.383 1.824 -1.003 2.454m-2.997 1.033h-11.343c-2.572 -.004 -4.657 -2.011 -4.657 -4.487c0 -2.475 2.085 -4.482 4.657 -4.482c.13 -.582 .37 -1.128 .7 -1.62"/>
-  <path d="M3 3l18 18"/>
-</svg>
-<div class="message">${messages.header}</div>
-<div class="version">${_CODENAME_.replace(/^[a-z]/, c => c.toUpperCase())} v${_VERSION_}</div>
-<button onclick="reloadPage()">${messages.reload}</button>
-<script>
-  function reloadPage() {
-    location.reload(true);
-  }
-</script>
+  <!-- Triangle animation background -->
+  <div class="wrap" id="container"></div>
+
+  <!-- Main content -->
+  <div class="content">
+    <svg class="icon" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 0h24v24H0z" fill="none" stroke="none"/>
+      <path d="M9.58 5.548c.24 -.11 .492 -.207 .752 -.286c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 .957 -.383 1.824 -1.003 2.454m-2.997 1.033h-11.343c-2.572 -.004 -4.657 -2.011 -4.657 -4.487c0 -2.475 2.085 -4.482 4.657 -4.482c.13 -.582 .37 -1.128 .7 -1.62"/>
+      <path d="M3 3l18 18"/>
+    </svg>
+    <div class="message">${messages.header}</div>
+    <div class="version">${_CODENAME_.replace(/^[a-z]/, c => c.toUpperCase())} v${_VERSION_}</div>
+    <button onclick="reloadPage()">${messages.reload}</button>
+  </div>
+
+  <script>
+    const total = 100;
+    const time = 10;
+    const container = document.getElementById('container');
+
+    function random(max) {
+      return Math.floor(Math.random() * max);
+    }
+
+    for (let i = 1; i <= total; i++) {
+      const tri = document.createElement('div');
+      tri.className = 'tri';
+
+      const size = random(25) + 10;
+      const rotate = random(360);
+      const hue = random(360);
+      const translateX = random(1000);
+      const translateY = random(1000);
+      const delay = i * -(time / total);
+
+      tri.style.borderTop = \`\${size}px solid hsla(\${hue}, 100%, 50%, 0.3)\`;
+      tri.style.borderRight = \`\${size}px solid transparent\`;
+      tri.style.borderLeft = \`\${size}px solid transparent\`;
+      tri.style.marginLeft = \`-\${size / 2}px\`;
+      tri.style.marginTop = \`-\${size / 2}px\`;
+      tri.style.filter = 'grayscale(1)';
+      tri.style.opacity = '0';
+      tri.style.animation = \`anim\${i} \${time}s infinite linear\`;
+      tri.style.animationDelay = \`\${delay}s\`;
+
+      const styleSheet = document.styleSheets[0];
+      const keyframes = \`
+@keyframes anim\${i} {
+		0% {
+			opacity: 1;
+			transform: rotate(\${rotate * 1.5}deg) translate3d(\${translateX}px, \${translateY}px, 1000px) scale(1);
+	}
+		100% {
+			opacity: 0;
+			transform: rotate(\${rotate}deg) translate3d(0, 0, -1500px) scale(0);
+	}
+	}
+	\`;
+      styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
+
+      container.appendChild(tri);
+    }
+
+    function reloadPage() {
+      location.reload(true);
+    }
+  </script>
 </body>
 </html>`;
 }

@@ -6,11 +6,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <div :class="[$style.root, { [$style.inline]: inline, [$style.colored]: colored, [$style.mini]: mini, [$style.em]: em }]">
 	<div :class="$style.container">
-		<svg :class="[$style.spinner, $style.bg]" viewBox="0 0 168 168" xmlns="http://www.w3.org/2000/svg">
-			<circle cx="84" cy="84" r="64" style="fill:none;stroke:currentColor;stroke-width:10px;"/>
+		<svg :class="[$style.spinner, $style.bg]" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg">
+			<circle cx="75" cy="75" r="60" style="fill:none;stroke:currentColor;stroke-width:7.5px;"/>
 		</svg>
-		<svg :class="[$style.spinner, $style.fg, { [$style.static]: static }]" viewBox="0 0 168 168" xmlns="http://www.w3.org/2000/svg">
-			<circle cx="84" cy="84" r="64" style="fill:none;stroke:currentColor;stroke-width:10px;"/>
+		<svg :class="[$style.spinner, $style.fg, { [$style.static]: static }]" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg">
+			<circle cx="75" cy="75" r="60" style="fill:none;stroke:currentColor;stroke-width:7.5px;"/>
 		</svg>
 	</div>
 </div>
@@ -91,14 +91,31 @@ const props = withDefaults(defineProps<{
 }
 
 .fg {
-	animation: globalSpinnerDash 1.5s ease-in-out infinite;
-
 	&.static {
 		animation-play-state: paused;
 	}
 
 	circle {
 		transform-origin: center;
+		stroke-linecap: round;
+		stroke-dasharray: 3, 600;
+		stroke-dashoffset: 0;
+		animation: mkLoadingDash 1.5s ease-in-out infinite;
+	}
+}
+
+@keyframes mkLoadingDash {
+	0% {
+		stroke-dasharray: 3, 600;
+		stroke-dashoffset: 0;
+	}
+	50% {
+		stroke-dasharray: 267, 600;
+		stroke-dashoffset: -105px;
+	}
+	100% {
+		stroke-dasharray: 267, 600;
+		stroke-dashoffset: -372px;
 	}
 }
 </style>

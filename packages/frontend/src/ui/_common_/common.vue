@@ -89,7 +89,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <XStreamIndicator/>
 
-<div v-if="pendingApiRequestsCount > 0" id="wait"></div>
+<div v-if="pendingApiRequestsCount > 0" id="wait">
+	<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+		<circle cx="25" cy="25" r="20"/>
+	</svg>
+</div>
 
 <div v-if="dev" id="devTicker"><span style="animation: dev-ticker-blink 2s infinite;">DEV BUILD</span></div>
 
@@ -388,15 +392,6 @@ onMounted(() => {
 	100% { opacity: 1; }
 }
 
-@keyframes progress-spinner {
-	0% {
-		transform: rotate(0deg);
-	}
-	100% {
-		transform: rotate(360deg);
-	}
-}
-
 #wait {
 	display: block;
 	position: fixed;
@@ -404,18 +399,23 @@ onMounted(() => {
 	top: 15px;
 	right: 15px;
 	pointer-events: none;
+	width: 18px;
+	height: 18px;
+	animation: globalSpinnerRotate 2s linear infinite;
 
-	&::before {
-		content: "";
-		display: block;
-		width: 18px;
-		height: 18px;
-		box-sizing: border-box;
-		border: solid 2px transparent;
-		border-top-color: var(--MI_THEME-accent);
-		border-left-color: var(--MI_THEME-accent);
-		border-radius: 50%;
-		animation: progress-spinner 400ms linear infinite;
+	svg {
+		width: 100%;
+		height: 100%;
+
+		circle {
+			fill: none;
+			stroke: var(--MI_THEME-accent);
+			stroke-width: 3;
+			stroke-linecap: round;
+			stroke-dasharray: 1, 200;
+			stroke-dashoffset: 0;
+			animation: globalSpinnerDash 1.5s ease-in-out infinite;
+		}
 	}
 }
 
