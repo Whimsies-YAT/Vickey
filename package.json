@@ -61,7 +61,7 @@
 		"file-type": "21.0.0",
 		"glob": "11.0.3",
 		"ignore-walk": "8.0.0",
-		"isolated-vm": "5.0.4",
+		"isolated-vm": "6.0.2",
 		"js-yaml": "4.1.0",
 		"nanoid": "5.1.5",
 		"postcss": "8.5.6",
