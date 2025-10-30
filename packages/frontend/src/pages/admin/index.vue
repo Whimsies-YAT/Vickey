@@ -112,6 +112,11 @@ const menuDef = computed<SuperMenuDef[]>(() => [{
 		icon: 'ti ti-user-plus',
 		text: i18n.ts.createInviteCode,
 		action: invite,
+	}] : []), ...(isAdmin.value ? [{
+		type: 'button' as const,
+		icon: 'ti ti-reload',
+		text: i18n.ts.gracefulReload,
+		action: gracefulReload,
 	}] : [])],
 }, {
 	title: i18n.ts.administration,
@@ -352,6 +357,30 @@ function invite() {
 			text: err,
 		});
 	});
+}
+
+async function gracefulReload() {
+	const { canceled } = await os.confirm({
+		type: 'warning',
+		title: i18n.ts.gracefulReload,
+		text: i18n.ts.gracefulReloadConfirm,
+	});
+
+	if (canceled) return;
+
+	try {
+		await misskeyApi('admin/graceful-reload', {});
+		os.alert({
+			type: 'success',
+			title: i18n.ts.gracefulReloadSuccess,
+			text: i18n.ts.gracefulReloadSuccessDescription,
+		});
+	} catch (err) {
+		os.alert({
+			type: 'error',
+			text: err.message || i18n.ts.gracefulReloadFailed,
+		});
+	}
 }
 
 function adminLookup(ev: MouseEvent) {

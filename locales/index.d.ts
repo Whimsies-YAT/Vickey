@@ -18,6 +18,34 @@ export interface Locale extends ILocale {
      */
     "result": string;
     /**
+     * Graceful Reload
+     */
+    "gracefulReload": string;
+    /**
+     * This will perform a zero-downtime reload of the server. New workers will be spawned and old workers will be gracefully terminated. WebSocket connections will reconnect automatically (1-3 seconds). Continue?
+     */
+    "gracefulReloadConfirm": string;
+    /**
+     * Reload Initiated
+     */
+    "gracefulReloadSuccess": string;
+    /**
+     * Server reload has been successfully initiated. New workers are being spawned and old workers will be gracefully terminated.
+     */
+    "gracefulReloadSuccessDescription": string;
+    /**
+     * Failed to initiate graceful reload
+     */
+    "gracefulReloadFailed": string;
+    /**
+     * A graceful reload is already in progress. Please wait for it to complete before initiating another reload.
+     */
+    "gracefulReloadInProgress": string;
+    /**
+     * 処理中
+     */
+    "processing": string;
+    /**
      * Automatic TTS feature needed.
      */
     "flagAsVI": string;
@@ -6157,10 +6185,6 @@ export interface Locale extends ILocale {
      * 完了
      */
     "done": string;
-    /**
-     * 処理中
-     */
-    "processing": string;
     /**
      * 準備中
      */

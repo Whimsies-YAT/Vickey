@@ -39,6 +39,7 @@ export async function workerMain() {
 	} else if (envOption.onlyQueue) {
 		await jobQueue();
 	} else {
+		await server();
 		await jobQueue();
 	}
 
