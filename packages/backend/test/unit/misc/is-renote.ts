@@ -47,6 +47,7 @@ const base: MiNote = {
 	geojson: null,
 	location: null,
 	isDeleted: false,
+	renoteChannelId: null,
 };
 
 describe('misc:is-renote', () => {

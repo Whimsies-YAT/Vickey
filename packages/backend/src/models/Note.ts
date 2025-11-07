@@ -268,6 +268,14 @@ export class MiNote {
 	})
 	public location: string | null;
 
+	@Column({
+		...id(),
+		nullable: true,
+		comment: '[Denormalized]',
+	})
+	public renoteChannelId: MiChannel['id'] | null;
+	//#endregion
+
 	constructor(data: Partial<MiNote>) {
 		if (data == null) return;
 

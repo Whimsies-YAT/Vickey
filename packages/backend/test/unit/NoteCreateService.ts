@@ -64,6 +64,7 @@ describe('NoteCreateService', () => {
 			geojson: null,
 			location: null,
 			isDeleted: false,
+			renoteChannelId: null,
 		};
 
 		const poll: IPoll = {
