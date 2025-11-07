@@ -314,11 +314,11 @@ export function createPostgresDataSource(config: Config) {
 		password: config.db.pass,
 		database: config.db.db,
 		extra: {
-			max: 50,
+			max: 100,
 			min: 10,
 			idleTimeoutMillis: 30000,
 			connectionTimeoutMillis: 10000,
-			statement_timeout: 30000,
+			statement_timeout: 120000,
 			keepAlive: true,
 			keepAliveInitialDelayMillis: 10000,
 			...config.db.extra,

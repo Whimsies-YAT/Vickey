@@ -13,6 +13,7 @@ import { UtilityService } from '@/core/UtilityService.js';
 import { bindThis } from '@/decorators.js';
 import { DI } from '@/di-symbols.js';
 import * as Acct from '@/misc/acct.js';
+import { pMap } from '@/misc/p-limit.js';
 import type { Packed } from '@/misc/json-schema.js';
 import type { AntennasRepository, UserListMembershipsRepository } from '@/models/_.js';
 import type { MiAntenna } from '@/models/Antenna.js';
@@ -97,7 +98,7 @@ export class AntennaService implements OnApplicationShutdown {
 	@bindThis
 	public async addNoteToAntennas(note: MiNote, noteUser: { id: MiUser['id']; username: string; host: string | null; isBot: boolean; }): Promise<void> {
 		const antennas = await this.getAntennas();
-		const antennasWithMatchResult = await Promise.all(antennas.map(antenna => this.checkHitAntenna(antenna, note, noteUser).then(hit => [antenna, hit] as const)));
+		const antennasWithMatchResult = await pMap(antennas, antenna => this.checkHitAntenna(antenna, note, noteUser).then(hit => [antenna, hit] as const), 10);
 		const matchedAntennas = antennasWithMatchResult.filter(([, hit]) => hit).map(([antenna]) => antenna);
 
 		const redisPipeline = this.redisForTimelines.pipeline();

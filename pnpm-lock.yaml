@@ -295,10 +295,10 @@ importers:
         specifier: 4.0.2
         version: 4.0.2
       ip2location-nodejs:
-        specifier: ^9.6.3
-        version: 9.6.3
+        specifier: 9.7.0
+        version: 9.7.0
       ip2proxy-nodejs:
-        specifier: ^4.4.0
+        specifier: 4.4.0
         version: 4.4.0
       ipaddr.js:
         specifier: 2.2.0
@@ -8052,8 +8052,8 @@ packages:
     resolution: {integrity: sha512-fOCG6lhoKKakwv+C6KdsOnGvgXnmgfmp0myi3bcNwj3qfwPAxRKWEuFhvEFF7ceYIz6+1jRZ+yguLFAmUNPEfw==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
-  ip2location-nodejs@9.6.3:
-    resolution: {integrity: sha512-npgq6Dwk0G53GKbxUCzZvosr0KPfreufohFKSzM7vAGtbmpuO2KwULQb5AxkCtlBIZ7xFShri7R1iVUbe7BKTw==}
+  ip2location-nodejs@9.7.0:
+    resolution: {integrity: sha512-eQ4T5TXm1cx0+pQcRycPiuaiRuoDEMd9O89Be7Ugk555qi9UY9enXSznkkqr3kQRyUaXx7zj5dORC5LGTPOttA==}
 
   ip2proxy-nodejs@4.4.0:
     resolution: {integrity: sha512-7sHyVDWX6NE8clQBgd7yTKCee926ftCFARoKLjSKSPnp0tUY8feT7uEAxwn+gAjf+3QYQMd3CWdxf5kD31DWtQ==}
@@ -11907,6 +11907,9 @@ packages:
   vue-component-type-helpers@3.1.1:
     resolution: {integrity: sha512-B0kHv7qX6E7+kdc5nsaqjdGZ1KwNKSUQDWGy7XkTYT7wFsOpkEyaJ1Vq79TjwrrtuLRgizrTV7PPuC4rRQo+vw==}
 
+  vue-component-type-helpers@3.1.2:
+    resolution: {integrity: sha512-ch3/SKBtxdZq18vsEntiGCdSszCRNfhX5QaTxjSacCAXLlNQRXfXo+ANjoQEYJMsJOJy1/vHF6Tkc4s85MS+zw==}
+
   vue-demi@0.14.7:
     resolution: {integrity: sha512-EOG8KXDQNwkJILkx/gPcoL/7vH+hORoBaKgGe+6W7VFMvCYJfmF2dGbvgDroVnI8LU7/kTu8mbjRZGBU1z9NTA==}
     engines: {node: '>=12'}
@@ -13625,7 +13628,7 @@ snapshots:
   '@eslint/config-array@0.20.1':
     dependencies:
       '@eslint/object-schema': 2.1.6
-      debug: 4.4.3(supports-color@10.2.0)
+      debug: 4.4.3(supports-color@8.1.1)
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -16326,7 +16329,7 @@ snapshots:
       storybook: 9.1.10(@testing-library/dom@10.4.0)(bufferutil@4.0.9)(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(prettier@3.6.2)(utf-8-validate@6.0.5)(vite@7.1.9(@types/node@24.9.1)(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6))
       type-fest: 2.19.0
       vue: 3.5.22(typescript@5.9.3)
-      vue-component-type-helpers: 3.1.1
+      vue-component-type-helpers: 3.1.2
 
   '@stripe/stripe-js@7.9.0': {}
 
@@ -17046,7 +17049,7 @@ snapshots:
       '@typescript-eslint/visitor-keys': 8.46.1
       eslint: 9.27.0
       graphemer: 1.4.0
-      ignore: 7.0.5
+      ignore: 7.0.4
       natural-compare: 1.4.0
       ts-api-utils: 2.1.0(typescript@5.9.3)
       typescript: 5.9.3
@@ -17076,7 +17079,7 @@ snapshots:
       '@typescript-eslint/types': 8.46.1
       '@typescript-eslint/typescript-estree': 8.46.1(typescript@5.9.3)
       '@typescript-eslint/visitor-keys': 8.46.1
-      debug: 4.4.3(supports-color@10.2.0)
+      debug: 4.4.3(supports-color@8.1.1)
       eslint: 9.27.0
       typescript: 5.9.3
     transitivePeerDependencies:
@@ -17117,7 +17120,7 @@ snapshots:
       '@typescript-eslint/types': 8.46.1
       '@typescript-eslint/typescript-estree': 8.46.1(typescript@5.9.3)
       '@typescript-eslint/utils': 8.46.1(eslint@9.27.0)(typescript@5.9.3)
-      debug: 4.4.3(supports-color@10.2.0)
+      debug: 4.4.3(supports-color@8.1.1)
       eslint: 9.27.0
       ts-api-utils: 2.1.0(typescript@5.9.3)
       typescript: 5.9.3
@@ -19295,15 +19298,15 @@ snapshots:
       '@eslint/eslintrc': 3.3.1
       '@eslint/js': 9.27.0
       '@eslint/plugin-kit': 0.3.5
-      '@humanfs/node': 0.16.7
+      '@humanfs/node': 0.16.6
       '@humanwhocodes/module-importer': 1.0.1
-      '@humanwhocodes/retry': 0.4.3
+      '@humanwhocodes/retry': 0.4.2
       '@types/estree': 1.0.8
       '@types/json-schema': 7.0.15
       ajv: 6.12.6
       chalk: 4.1.2
       cross-spawn: 7.0.6
-      debug: 4.4.3(supports-color@10.2.0)
+      debug: 4.4.3(supports-color@8.1.1)
       escape-string-regexp: 4.0.0
       eslint-scope: 8.4.0
       eslint-visitor-keys: 4.2.1
@@ -19314,7 +19317,7 @@ snapshots:
       file-entry-cache: 8.0.0
       find-up: 5.0.0
       glob-parent: 6.0.2
-      ignore: 5.3.2
+      ignore: 5.3.1
       imurmurhash: 0.1.4
       is-glob: 4.0.3
       json-stable-stringify-without-jsonify: 1.0.1
@@ -20403,7 +20406,7 @@ snapshots:
 
   ip-regex@5.0.0: {}
 
-  ip2location-nodejs@9.6.3:
+  ip2location-nodejs@9.7.0:
     dependencies:
       csv-parser: 3.2.0
 
@@ -24786,6 +24789,8 @@ snapshots:
   vue-component-type-helpers@2.0.16: {}
 
   vue-component-type-helpers@3.1.1: {}
+
+  vue-component-type-helpers@3.1.2: {}
 
   vue-demi@0.14.7(vue@3.5.22(typescript@5.9.3)):
     dependencies:

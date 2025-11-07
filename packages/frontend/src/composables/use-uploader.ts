@@ -636,7 +636,7 @@ export function useUploader(options: {
 		if (needsImageFrame && item.imageFrameParams != null) {
 			const canvas = window.document.createElement('canvas');
 			const ExifReader = await import('exifreader');
-			const exif = await ExifReader.load(await item.file.arrayBuffer());
+			const exif = ExifReader.load(await item.file.arrayBuffer());
 			const ImageFrameRenderer = await import('@/utility/image-frame-renderer/ImageFrameRenderer.js').then(x => x.ImageFrameRenderer);
 			const frameRenderer = new ImageFrameRenderer({
 				canvas: canvas,

@@ -135,9 +135,13 @@ export const miRepository = {
 		if (opt.replication) {
 			const queryRunner = this.manager.connection.createQueryRunner('master');
 			try {
-				return this.insertOneImpl(entity, findOptions, queryRunner);
+				return await this.insertOneImpl(entity, findOptions, queryRunner);
+			} catch (error) {
+				throw error;
 			} finally {
-				await queryRunner.release();
+				if (queryRunner && !queryRunner.isReleased) {
+					await queryRunner.release();
+				}
 			}
 		} else {
 			return this.insertOneImpl(entity, findOptions);

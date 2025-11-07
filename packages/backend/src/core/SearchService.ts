@@ -681,7 +681,9 @@ export class SearchService {
 					return;
 				}
 
-				if (state.status === 'failed') {
+				if (state.status === 'pending') {
+					this.logger.info(`Reindex is pending for ${indexPattern}, continuing`);
+				} else if (state.status === 'failed') {
 					this.logger.info(`Previous reindex failed for ${indexPattern}, retrying`);
 					const hoursSinceFailed = state.completedAt
 						? (Date.now() - state.completedAt.getTime()) / (1000 * 60 * 60)
@@ -691,19 +693,32 @@ export class SearchService {
 					}
 				}
 			} else {
-				state = this.elasticsearchReindexStatesRepository.create({
-					indexPattern,
-					status: 'pending',
-					oldIndex,
-					newIndex: null,
-					taskId: null,
-					targetConfig,
-					retryCount: 0,
-					errorMessage: null,
-					startedAt: null,
-					completedAt: null,
-				});
-				await this.elasticsearchReindexStatesRepository.save(state);
+				try {
+					state = this.elasticsearchReindexStatesRepository.create({
+						indexPattern,
+						status: 'pending',
+						oldIndex,
+						newIndex: null,
+						taskId: null,
+						targetConfig,
+						retryCount: 0,
+						errorMessage: null,
+						startedAt: null,
+						completedAt: null,
+					});
+					await this.elasticsearchReindexStatesRepository.save(state);
+				} catch (saveError: any) {
+					if (saveError.message?.includes('duplicate key') || saveError.message?.includes('重复键')) {
+						this.logger.warn(`Reindex state already exists for ${indexPattern}, fetching existing record`);
+						state = await this.elasticsearchReindexStatesRepository.findOneByOrFail({ indexPattern });
+						if (state.status === 'completed') {
+							this.logger.info(`Reindex already completed for ${indexPattern}, skipping`);
+							return;
+						}
+					} else {
+						throw saveError;
+					}
+				}
 			}
 
 			await this.executeReindex(state);

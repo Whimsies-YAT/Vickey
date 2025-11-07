@@ -413,12 +413,21 @@ export class SmartTimelineService implements OnApplicationShutdown {
 		const timeThreshold = new Date(Date.now() - timeWindow * 60 * 60 * 1000);
 		const sinceId = this.idService.gen(timeThreshold.getTime());
 
-		const candidateNotes = await this.notesRepository.createQueryBuilder('note')
+		const query = this.notesRepository.createQueryBuilder('note')
 			.leftJoinAndSelect('note.user', 'user')
+			.leftJoinAndSelect('note.reply', 'reply')
+			.leftJoinAndSelect('note.renote', 'renote')
+			.leftJoinAndSelect('reply.user', 'replyUser')
+			.leftJoinAndSelect('renote.user', 'renoteUser')
 			.where('note.id > :sinceId', { sinceId })
 			.andWhere('note.visibility = :visibility', { visibility: 'public' })
 			.andWhere('user.isSuspended = false')
-			.andWhere('user.isDeleted = false')
+			.andWhere('user.isDeleted = false');
+
+		this.queryService.generateVisibilityQuery(query, user);
+		this.queryService.generateBaseNoteFilteringQuery(query, user);
+
+		const candidateNotes = await query
 			.orderBy('note.id', 'DESC')
 			.limit(segment.maxItems * 10)
 			.getMany();
@@ -1382,7 +1391,7 @@ export class SmartTimelineService implements OnApplicationShutdown {
 			const timeThreshold = Date.now() - 12 * 60 * 60 * 1000;
 			const sinceId = this.idService.gen(new Date(timeThreshold).getTime());
 
-			const candidateNotes = await this.notesRepository.createQueryBuilder('note')
+			const query = this.notesRepository.createQueryBuilder('note')
 				.leftJoinAndSelect('note.user', 'user')
 				.where('note.id > :sinceId', { sinceId })
 				.andWhere('note.visibility = :visibility', { visibility: 'public' })
@@ -1390,15 +1399,15 @@ export class SmartTimelineService implements OnApplicationShutdown {
 				.andWhere('user.isDeleted = false')
 				.andWhere(excludeUserIds.length > 0 && excludeUserIds.length < 1000
 					? 'note.userId NOT IN (:...excludeUserIds)' : '1=1',
-					excludeUserIds.length > 0 && excludeUserIds.length < 1000 ? { excludeUserIds } : {})
+					excludeUserIds.length > 0 && excludeUserIds.length < 1000 ? { excludeUserIds } : {});
+
+			this.queryService.generateVisibilityQuery(query, user);
+			this.queryService.generateBaseNoteFilteringQuery(query, user);
+
+			const candidateNotes = await query
 				.orderBy('note.id', 'DESC')
 				.limit(limit * 10)
 				.getMany();
-
-			this.queryService.generateVisibilityQuery(
-				this.notesRepository.createQueryBuilder('note').leftJoinAndSelect('note.user', 'user'),
-				user
-			);
 
 			if (candidateNotes.length === 0) {
 				await this.redisClient.setex(cacheKey, 300, JSON.stringify([]));
@@ -1455,7 +1464,7 @@ export class SmartTimelineService implements OnApplicationShutdown {
 			const timeThreshold = Date.now() - 6 * 60 * 60 * 1000;
 			const sinceId = this.idService.gen(new Date(timeThreshold).getTime());
 
-			const candidateNotes = await this.notesRepository.createQueryBuilder('note')
+			const query = this.notesRepository.createQueryBuilder('note')
 				.leftJoinAndSelect('note.user', 'user')
 				.where('note.id > :sinceId', { sinceId })
 				.andWhere('note.visibility = :visibility', { visibility: 'public' })
@@ -1466,15 +1475,15 @@ export class SmartTimelineService implements OnApplicationShutdown {
 				.andWhere('user.isDeleted = false')
 				.andWhere(excludeUserIds.length > 0 && excludeUserIds.length < 1000
 					? 'note.userId NOT IN (:...excludeUserIds)' : '1=1',
-					excludeUserIds.length > 0 && excludeUserIds.length < 1000 ? { excludeUserIds } : {})
+					excludeUserIds.length > 0 && excludeUserIds.length < 1000 ? { excludeUserIds } : {});
+
+			this.queryService.generateVisibilityQuery(query, user);
+			this.queryService.generateBaseNoteFilteringQuery(query, user);
+
+			const candidateNotes = await query
 				.orderBy('note.id', 'DESC')
 				.limit(limit * 10)
 				.getMany();
-
-			this.queryService.generateVisibilityQuery(
-				this.notesRepository.createQueryBuilder('note').leftJoinAndSelect('note.user', 'user'),
-				user
-			);
 
 			if (candidateNotes.length === 0) {
 				await this.redisClient.setex(cacheKey, 300, JSON.stringify([]));
