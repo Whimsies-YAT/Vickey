@@ -34,14 +34,22 @@ function main() {
 	}
 	console.log('');
 
-	console.log('\x1b[1m[2/5] Building backend (generates endpoint-list)...\x1b[0m');
+	console.log('\x1b[1m[2/6] Building misskey-js (base version, no autogen)...\x1b[0m');
+	console.log('[smart-build] Building misskey-js base for backend dependencies\n');
+	if (!exec('pnpm --filter misskey-js build')) {
+		console.error('\x1b[31m✗ misskey-js base build failed\x1b[0m');
+		process.exit(1);
+	}
+	console.log('');
+
+	console.log('\x1b[1m[3/6] Building backend (generates endpoint-list)...\x1b[0m');
 	if (!exec('pnpm --filter backend build')) {
 		console.error('\x1b[31m✗ Backend build failed\x1b[0m');
 		process.exit(1);
 	}
 	console.log('');
 
-	console.log('\x1b[1m[3/5] Checking and building misskey-js...\x1b[0m');
+	console.log('\x1b[1m[4/6] Checking and rebuilding misskey-js with types...\x1b[0m');
 	const needsMisskeyJsRebuild = !exec('node scripts/check-misskey-js.js', { stdio: 'inherit' });
 
 	if (needsMisskeyJsRebuild) {
@@ -54,7 +62,7 @@ function main() {
 		console.log('\x1b[32m[smart-build] ✓ Skipped misskey-js rebuild\x1b[0m\n');
 	}
 
-	console.log('\x1b[1m[4/5] Building remaining packages...\x1b[0m');
+	console.log('\x1b[1m[5/6] Building remaining packages...\x1b[0m');
 	console.log('[smart-build] Building frontend, sw, etc.\n');
 	if (!exec('pnpm -r --filter=!backend --filter=!misskey-js build')) {
 		console.error('\x1b[31m✗ Package build failed\x1b[0m');
@@ -62,7 +70,7 @@ function main() {
 	}
 	console.log('');
 
-	console.log('\x1b[1m[5/5] Building assets...\x1b[0m');
+	console.log('\x1b[1m[6/6] Building assets...\x1b[0m');
 	if (!exec('pnpm build-assets')) {
 		console.error('\x1b[31m✗ build-assets failed\x1b[0m');
 		process.exit(1);
