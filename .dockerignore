@@ -2,7 +2,8 @@
 .github
 .travis
 .vscode
-.config
+.config/*
+!.config/example.yml
 Dockerfile
 build/
 built/
