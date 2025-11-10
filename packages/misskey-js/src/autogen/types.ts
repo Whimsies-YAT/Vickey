@@ -5623,7 +5623,8 @@ export type components = {
             summary: string | null;
             hideTitleWhenPinned: boolean;
             alignCenter: boolean;
-            font: string;
+            /** @enum {string} */
+            font: 'serif' | 'sans-serif';
             script: string;
             eyeCatchingImageId: string | null;
             eyeCatchingImage: components['schemas']['DriveFile'] | null;
@@ -5670,6 +5671,8 @@ export type components = {
             userId: string | null;
             /** Format: url */
             bannerUrl: string | null;
+            /** Format: id */
+            bannerId: string | null;
             pinnedNoteIds: string[];
             color: string;
             isArchived: boolean;
@@ -41473,9 +41476,11 @@ export interface operations {
                     /** @default 10 */
                     limit?: number;
                     page?: number;
-                    /** @default [
+                    /**
+                     * @default [
                      *       "-id"
-                     *     ] */
+                     *     ]
+                     */
                     sortKeys?: ('+id' | '-id' | '+updatedAt' | '-updatedAt' | '+name' | '-name' | '+host' | '-host' | '+uri' | '-uri' | '+publicUrl' | '-publicUrl' | '+type' | '-type' | '+aliases' | '-aliases' | '+category' | '-category' | '+license' | '-license' | '+isSensitive' | '-isSensitive' | '+localOnly' | '-localOnly' | '+roleIdsThatCanBeUsedThisEmojiAsReaction' | '-roleIdsThatCanBeUsedThisEmojiAsReaction')[];
                 };
             };
