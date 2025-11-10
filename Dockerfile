@@ -41,6 +41,9 @@ RUN node -e "console.log(JSON.parse(require('node:fs').readFileSync('./package.j
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store,sharing=locked \
 	pnpm i --frozen-lockfile --aggregate-output
 
+# Copy example config for build-time (will be overridden by volume mount at runtime)
+COPY --link [".config/example.yml", "./.config/default.yml"]
+
 COPY --link . ./
 
 RUN git submodule update --init
