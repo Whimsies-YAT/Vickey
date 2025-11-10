@@ -18,18 +18,14 @@ async function main() {
 		throw new Error('`built` directory does not exist.');
 	}
 
+	/** @type {import('../src/config.js')} */
+	const { loadConfig } = await import('../built/config.js');
+
 	/** @type {import('../src/server/api/openapi/gen-spec.js')} */
 	const { genOpenapiSpec } = await import('../built/server/api/openapi/gen-spec.js');
 
-	// Use dummy config for build-time API spec generation.
-	// This file is only used by misskey-js type generator, which doesn't need real values.
-	// The actual runtime spec is generated dynamically with real config.
-	const dummyConfig = {
-		version: 'build-time',
-		apiUrl: 'https://vickeyhub.com/api',
-	};
-
-	const spec = genOpenapiSpec(dummyConfig, true);
+	const config = loadConfig();
+	const spec = genOpenapiSpec(config, true);
 
 	writeFileSync('./built/api.json', JSON.stringify(spec), 'utf-8');
 }
