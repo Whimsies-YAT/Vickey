@@ -72,6 +72,9 @@ temp
 tsdoc-metadata.json
 misskey-assets
 
+# Auto-generated endpoint list (see endpoint-config.json)
+/packages/backend/src/server/api/endpoint-list.ts
+
 # Vite temporary files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*

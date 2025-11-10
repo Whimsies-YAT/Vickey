@@ -13,6 +13,7 @@
 		"revert": "pnpm typeorm migration:revert -d ormconfig.js",
 		"cli": "node ./built/boot/cli.js",
 		"check:connect": "node ./scripts/check_connect.js",
+		"prebuild": "node ./scripts/generate-endpoint-list.mjs",
 		"build": "swc src -d built -D --strip-leading-paths",
 		"build:test": "swc test-server -d built-test -D --config-file test-server/.swcrc --strip-leading-paths",
 		"watch:swc": "swc src -d built -D -w --strip-leading-paths",

@@ -1000,6 +1000,7 @@ export type Endpoints = {
 	'emojis': { req: EmptyRequest; res: EmojisResponse };
 	'endpoint': { req: EndpointRequest; res: EndpointResponse };
 	'endpoints': { req: EmptyRequest; res: EndpointsResponse };
+	'export-custom-avatar-decoration': { req: EmptyRequest; res: EmptyResponse };
 	'export-custom-emojis': { req: EmptyRequest; res: EmptyResponse };
 	'federation/followers': { req: FederationFollowersRequest; res: FederationFollowersResponse };
 	'federation/following': { req: FederationFollowingRequest; res: FederationFollowingResponse };
