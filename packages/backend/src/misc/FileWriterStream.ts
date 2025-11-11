@@ -21,16 +21,28 @@ export class FileWriterStream extends WritableStream<Uint8Array> {
 			write: async (chunk, controller) => {
 				if (file === null) {
 					controller.error();
-					throw new Error();
+					throw new Error('FileHandle is null');
 				}
 
-				await file.write(chunk);
+				try {
+					await file.write(chunk);
+				} catch (error) {
+					await file?.close();
+					file = null;
+					throw error;
+				}
 			},
 			close: async () => {
-				await file?.close();
+				if (file !== null) {
+					await file.close();
+					file = null;
+				}
 			},
 			abort: async () => {
-				await file?.close();
+				if (file !== null) {
+					await file.close();
+					file = null;
+				}
 			},
 		});
 	}

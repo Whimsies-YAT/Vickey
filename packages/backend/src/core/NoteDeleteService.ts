@@ -76,6 +76,10 @@ export class NoteDeleteService {
 				deletedAt: deletedAt,
 			});
 
+			this.globalEventService.publishInternalEvent('noteDeleted', {
+				noteId: note.id,
+			});
+
 			//#region ローカルの投稿なら削除アクティビティを配送
 			if (this.userEntityService.isLocalUser(user) && !note.localOnly) {
 				let renote: MiNote | null = null;
@@ -147,6 +151,10 @@ export class NoteDeleteService {
 		if (!quiet) {
 			this.globalEventService.publishNoteStream(note.id, 'deleted', {
 				deletedAt: deletedAt,
+			});
+
+			this.globalEventService.publishInternalEvent('noteDeleted', {
+				noteId: note.id,
 			});
 
 			//#region ローカルの投稿なら削除アクティビティを配送
