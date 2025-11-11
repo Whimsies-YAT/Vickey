@@ -136,8 +136,6 @@ export const miRepository = {
 			const queryRunner = this.manager.connection.createQueryRunner('master');
 			try {
 				return await this.insertOneImpl(entity, findOptions, queryRunner);
-			} catch (error) {
-				throw error;
 			} finally {
 				if (queryRunner && !queryRunner.isReleased) {
 					await queryRunner.release();
@@ -300,7 +298,7 @@ export type AuthSessionsRepository = MiRepositoryType<MiAuthSession>;
 export type BlockingsRepository = MiRepositoryType<MiBlocking>;
 export type ChannelFollowingsRepository = MiRepositoryType<MiChannelFollowing>;
 export type ChannelFavoritesRepository = MiRepositoryType<MiChannelFavorite>;
-export type ChannelMutingRepository = MiRepository<MiChannelMuting>;
+export type ChannelMutingRepository = MiRepositoryType<MiChannelMuting>;
 export type ClipsRepository = MiRepositoryType<MiClip>;
 export type ClipNotesRepository = MiRepositoryType<MiClipNote>;
 export type ClipFavoritesRepository = MiRepositoryType<MiClipFavorite>;
