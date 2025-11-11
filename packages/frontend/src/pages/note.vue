@@ -37,7 +37,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkNotesTimeline :withControl="false" :pullToRefresh="false" class="" :paginator="showPrev === 'channel' ? prevChannelPaginator : prevUserPaginator" :noGap="true"/>
 				</div>
 			</div>
-			<MkError v-else-if="error" @retry="fetchNote()"/>
+			<MkResult v-else-if="error === 'notFound'" type="notFound" :text="i18n.ts.noSuchNote">
+				<MkButton :class="$style.retryButton" rounded @click="fetchNote()">{{ i18n.ts.retry }}</MkButton>
+			</MkResult>
+			<MkError v-else-if="error === 'error'" @retry="fetchNote()"/>
 			<MkLoading v-else/>
 		</Transition>
 	</div>
@@ -76,7 +79,7 @@ const note = ref<null | Misskey.entities.Note>(CTX_NOTE);
 const clips = ref<Misskey.entities.Clip[]>();
 const showPrev = ref<'user' | 'channel' | false>(false);
 const showNext = ref<'user' | 'channel' | false>(false);
-const error = ref();
+const error = ref<'notFound' | 'error' | null>();
 
 const prevUserPaginator = markRaw(new Paginator('users/notes', {
 	limit: 10,
@@ -126,6 +129,7 @@ function fetchNote() {
 		noteId: props.noteId,
 	}).then(res => {
 		note.value = res;
+		error.value = null;
 		const appearNote = getAppearNote(res) ?? res;
 		// 古いノートは被クリップ数をカウントしていないので、2023-10-01以前のものは強制的にnotes/clipsを叩く
 		if ((appearNote.clippedCount ?? 0) > 0 || new Date(appearNote.createdAt).getTime() < new Date('2023-10-01').getTime()) {
@@ -146,7 +150,11 @@ function fetchNote() {
 				},
 			});
 		}
-		error.value = err;
+		if (err.code === 'NO_SUCH_NOTE') {
+			error.value = 'notFound';
+		} else {
+			error.value = 'error';
+		}
 	});
 }
 
@@ -202,5 +210,9 @@ definePage(() => ({
 .note {
 	border-radius: var(--MI-radius);
 	background: var(--MI_THEME-panel);
+}
+
+.retryButton {
+	margin: 0 auto;
 }
 </style>

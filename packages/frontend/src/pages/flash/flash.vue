@@ -53,7 +53,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkA v-if="$i && $i.id === flash.userId" :to="`/play/${flash.id}/edit`" style="color: var(--MI_THEME-accent);">{{ i18n.ts._play.editThisPage }}</MkA>
 				<MkAd :preferForms="['horizontal', 'horizontal-big']"/>
 			</div>
-			<MkError v-else-if="error" @retry="fetchFlash()"/>
+			<MkResult v-else-if="error === 'notFound'" type="notFound" :text="i18n.ts.noSuchFlash">
+				<MkButton :class="$style.retryButton" rounded @click="fetchFlash()">{{ i18n.ts.retry }}</MkButton>
+			</MkResult>
+			<MkError v-else-if="error === 'error'" @retry="fetchFlash()"/>
 			<MkLoading v-else/>
 		</Transition>
 	</div>
@@ -89,7 +92,7 @@ const props = defineProps<{
 }>();
 
 const flash = ref<Misskey.entities.Flash | null>(null);
-const error = ref<any>(null);
+const error = ref<'notFound' | 'error' | null>(null);
 
 function fetchFlash() {
 	flash.value = null;
@@ -97,8 +100,13 @@ function fetchFlash() {
 		flashId: props.id,
 	}).then(_flash => {
 		flash.value = _flash;
+		error.value = null;
 	}).catch(err => {
-		error.value = err;
+		if (err.code === 'NO_SUCH_FLASH') {
+			error.value = 'notFound';
+		} else {
+			error.value = 'error';
+		}
 	});
 }
 
@@ -386,6 +394,10 @@ definePage(() => ({
 			}
 		}
 	}
+}
+
+.retryButton {
+	margin: 0 auto;
 }
 </style>
 

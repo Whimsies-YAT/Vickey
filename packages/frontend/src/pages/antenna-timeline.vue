@@ -6,7 +6,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <PageWithHeader :actions="headerActions" :tabs="headerTabs">
 	<div class="_spacer" style="--MI_SPACER-w: 800px;">
-		<div :class="$style.tl">
+		<MkResult v-if="error === 'notFound'" type="notFound" :text="i18n.ts.noSuchAntenna">
+			<MkButton :class="$style.retryButton" rounded @click="fetchAntenna()">{{ i18n.ts.retry }}</MkButton>
+		</MkResult>
+		<MkError v-else-if="error === 'error'" @retry="fetchAntenna()"/>
+		<div v-else :class="$style.tl">
 			<MkStreamingNotesTimeline
 				ref="tlEl" :key="antennaId"
 				src="antenna"
@@ -22,6 +26,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { computed, watch, ref, useTemplateRef } from 'vue';
 import * as Misskey from 'misskey-js';
 import MkStreamingNotesTimeline from '@/components/MkStreamingNotesTimeline.vue';
+import MkButton from '@/components/MkButton.vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { definePage } from '@/page.js';
@@ -35,6 +40,7 @@ const props = defineProps<{
 }>();
 
 const antenna = ref<Misskey.entities.Antenna | null>(null);
+const error = ref<'notFound' | 'error' | null>(null);
 const tlEl = useTemplateRef('tlEl');
 
 function settings() {
@@ -45,11 +51,22 @@ function settings() {
 	});
 }
 
-watch(() => props.antennaId, async () => {
-	antenna.value = await misskeyApi('antennas/show', {
-		antennaId: props.antennaId,
-	});
-}, { immediate: true });
+async function fetchAntenna() {
+	try {
+		antenna.value = await misskeyApi('antennas/show', {
+			antennaId: props.antennaId,
+		});
+		error.value = null;
+	} catch (err: any) {
+		if (err.code === 'NO_SUCH_ANTENNA') {
+			error.value = 'notFound';
+		} else {
+			error.value = 'error';
+		}
+	}
+}
+
+watch(() => props.antennaId, fetchAntenna, { immediate: true });
 
 const headerActions = computed(() => antenna.value ? [{
 	icon: 'ti ti-settings',
@@ -70,5 +87,9 @@ definePage(() => ({
 	background: var(--MI_THEME-bg);
 	border-radius: var(--MI-radius);
 	overflow: clip;
+}
+
+.retryButton {
+	margin: 0 auto;
 }
 </style>

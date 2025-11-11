@@ -18,6 +18,42 @@ export interface Locale extends ILocale {
      */
     "result": string;
     /**
+     * Note not found
+     */
+    "noSuchNote": string;
+    /**
+     * Announcement not found
+     */
+    "noSuchAnnouncement": string;
+    /**
+     * Channel not found
+     */
+    "noSuchChannel": string;
+    /**
+     * Play not found
+     */
+    "noSuchFlash": string;
+    /**
+     * Antenna not found
+     */
+    "noSuchAntenna": string;
+    /**
+     * Page not found
+     */
+    "noSuchPage": string;
+    /**
+     * Post not found
+     */
+    "noSuchPost": string;
+    /**
+     * Game not found
+     */
+    "noSuchGame": string;
+    /**
+     * Chat room not found
+     */
+    "noSuchRoom": string;
+    /**
      * Graceful Reload
      */
     "gracefulReload": string;

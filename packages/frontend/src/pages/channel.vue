@@ -6,7 +6,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <PageWithHeader v-model:tab="tab" :actions="headerActions" :tabs="headerTabs" :swipable="true">
 	<div class="_spacer" style="--MI_SPACER-w: 700px;">
-		<div v-if="channel && tab === 'overview'" class="_gaps">
+		<MkResult v-if="error === 'notFound'" type="notFound" :text="i18n.ts.noSuchChannel">
+			<MkButton :class="$style.retryButton" rounded @click="fetchChannel()">{{ i18n.ts.retry }}</MkButton>
+		</MkResult>
+		<MkError v-else-if="error === 'error'" @retry="fetchChannel()"/>
+		<div v-else-if="channel && tab === 'overview'" class="_gaps">
 			<div class="_panel" :class="$style.bannerContainer">
 				<XChannelFollowButton :channel="channel" :full="true" :class="$style.subscribe"/>
 				<MkButton v-if="favorited" v-tooltip="i18n.ts.unfavorite" asLike class="button" rounded primary :class="$style.favorite" @click="unfavorite()"><i class="ti ti-star"></i></MkButton>
@@ -109,6 +113,7 @@ const props = defineProps<{
 const tab = ref('overview');
 
 const channel = ref<Misskey.entities.Channel | null>(null);
+const error = ref<'notFound' | 'error' | null>(null);
 const favorited = ref(false);
 const searchQuery = ref('');
 const searchPaginator = shallowRef();
@@ -128,27 +133,38 @@ useInterval(() => {
 	afterMounted: true,
 });
 
-watch(() => props.channelId, async () => {
-	const _channel = await misskeyApi('channels/show', {
-		channelId: props.channelId,
-	});
+async function fetchChannel() {
+	try {
+		const _channel = await misskeyApi('channels/show', {
+			channelId: props.channelId,
+		});
 
-	favorited.value = _channel.isFavorited ?? false;
-	if (favorited.value || _channel.isFollowing) {
-		tab.value = 'timeline';
-	}
+		favorited.value = _channel.isFavorited ?? false;
+		if (favorited.value || _channel.isFollowing) {
+			tab.value = 'timeline';
+		}
 
-	if ((favorited.value || _channel.isFollowing) && _channel.lastNotedAt) {
-		const lastReadedAt: number = miLocalStorage.getItemAsJson(`channelLastReadedAt:${_channel.id}`) ?? 0;
-		const lastNotedAt = Date.parse(_channel.lastNotedAt);
+		if ((favorited.value || _channel.isFollowing) && _channel.lastNotedAt) {
+			const lastReadedAt: number = miLocalStorage.getItemAsJson(`channelLastReadedAt:${_channel.id}`) ?? 0;
+			const lastNotedAt = Date.parse(_channel.lastNotedAt);
 
-		if (lastNotedAt > lastReadedAt) {
-			miLocalStorage.setItemAsJson(`channelLastReadedAt:${_channel.id}`, lastNotedAt);
+			if (lastNotedAt > lastReadedAt) {
+				miLocalStorage.setItemAsJson(`channelLastReadedAt:${_channel.id}`, lastNotedAt);
+			}
+		}
+
+		channel.value = _channel;
+		error.value = null;
+	} catch (err: any) {
+		if (err.code === 'NO_SUCH_CHANNEL') {
+			error.value = 'notFound';
+		} else {
+			error.value = 'error';
 		}
 	}
+}
 
-	channel.value = _channel;
-}, { immediate: true });
+watch(() => props.channelId, fetchChannel, { immediate: true });
 
 function edit() {
 	router.push('/channels/:channelId/edit', {
@@ -416,5 +432,9 @@ definePage(() => ({
 	font-weight: bold;
 	font-size: 1em;
 	padding: 4px 7px;
+}
+
+.retryButton {
+	margin: 0 auto;
 }
 </style>

@@ -39,7 +39,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkButton primary @click="read(announcement)"><i class="ti ti-check"></i> {{ i18n.ts.gotIt }}</MkButton>
 				</div>
 			</div>
-			<MkError v-else-if="error" @retry="_fetch_()"/>
+			<MkResult v-else-if="error === 'notFound'" type="notFound" :text="i18n.ts.noSuchAnnouncement">
+				<MkButton :class="$style.retryButton" rounded @click="_fetch_()">{{ i18n.ts.retry }}</MkButton>
+			</MkResult>
+			<MkError v-else-if="error === 'error'" @retry="_fetch_()"/>
 			<MkLoading v-else/>
 		</Transition>
 	</div>
@@ -63,7 +66,7 @@ const props = defineProps<{
 }>();
 
 const announcement = ref<Misskey.entities.Announcement | null>(null);
-const error = ref<any>(null);
+const error = ref<'notFound' | 'error' | null>(null);
 const path = computed(() => props.announcementId);
 
 function _fetch_() {
@@ -72,8 +75,13 @@ function _fetch_() {
 		announcementId: props.announcementId,
 	}).then(async _announcement => {
 		announcement.value = _announcement;
+		error.value = null;
 	}).catch(err => {
-		error.value = err;
+		if (err.code === 'NO_SUCH_ANNOUNCEMENT') {
+			error.value = 'notFound';
+		} else {
+			error.value = 'error';
+		}
 	});
 }
 
@@ -147,5 +155,9 @@ definePage(() => ({
 
 .footer {
 	margin-top: 16px;
+}
+
+.retryButton {
+	margin: 0 auto;
 }
 </style>
