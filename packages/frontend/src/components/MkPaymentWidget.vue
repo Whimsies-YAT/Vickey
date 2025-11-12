@@ -321,9 +321,9 @@ const processOneTimePayment = async () => {
 	}
 
 	requestData.billingDetails = {
-		firstName: billingInfo.value.firstName || undefined,
-		lastName: billingInfo.value.lastName || undefined,
-		email: billingInfo.value.email || undefined,
+		firstName: billingInfo.value.firstName || '',
+		lastName: billingInfo.value.lastName || '',
+		email: billingInfo.value.email || '',
 	};
 
 	const intentResponse = await misskeyApi('payment/create-intent', requestData) as {

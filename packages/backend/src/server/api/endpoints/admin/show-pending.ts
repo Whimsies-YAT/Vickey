@@ -19,7 +19,31 @@ export const meta = {
 		type: 'object',
 		nullable: false, optional: false,
 		properties: {
+			username: {
+				type: 'string',
+				optional: false, nullable: false,
+			},
 			email: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			isProcessed: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			signupReason: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			result: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			time: {
+				type: 'string',
+				optional: false, nullable: false,
+			},
+			ip: {
 				type: 'string',
 				optional: false, nullable: true,
 			},

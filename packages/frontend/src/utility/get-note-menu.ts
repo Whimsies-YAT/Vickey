@@ -183,7 +183,7 @@ export function getNoteMenu(props: {
 	note: Misskey.entities.Note;
 	translation: Ref<Misskey.entities.NotesTranslateResponse | null>;
 	translating: Ref<boolean>;
-	convert: Ref<string | null>;
+	convert: Ref<Misskey.entities.DriveFile | null>;
 	converting: Ref<boolean>;
 	currentClip?: Misskey.entities.Clip;
 }) {
@@ -359,9 +359,27 @@ export function getNoteMenu(props: {
 				const audioBlob = new Blob(chunks, { type: 'audio/flac' });
 
 				if (props.convert.value) {
-					URL.revokeObjectURL(props.convert.value);
+					URL.revokeObjectURL(props.convert.value.url);
 				}
-				props.convert.value = URL.createObjectURL(audioBlob);
+				const audioUrl = URL.createObjectURL(audioBlob);
+			props.convert.value = {
+				id: `convert-${appearNote.id}`,
+				createdAt: new Date().toISOString(),
+				name: 'tts-audio.flac',
+				type: 'audio/flac',
+				md5: '',
+				size: audioBlob.size,
+				isSensitive: false,
+				blurhash: null,
+				properties: {},
+				url: audioUrl,
+				thumbnailUrl: null,
+				comment: null,
+				folderId: null,
+				folder: null,
+				userId: null,
+				user: null,
+			} as Misskey.entities.DriveFile;
 			} else {
 				console.error('Response body is not a ReadableStream');
 			}

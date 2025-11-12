@@ -167,8 +167,8 @@ function tryMergeNotification(newNotification) {
 
 		if (newNotification.type === 'reaction' &&
 			existingNotification.type === 'reaction' &&
-			newNotification.noteId && existingNotification.noteId &&
-			newNotification.noteId === existingNotification.noteId) {
+			newNotification.note?.id && existingNotification.note?.id &&
+			newNotification.note.id === existingNotification.note.id) {
 			const groupedNotification = {
 				...existingNotification,
 				type: 'reaction:grouped',
@@ -191,10 +191,10 @@ function tryMergeNotification(newNotification) {
 
 		if (newNotification.type === 'reaction' &&
 			existingNotification.type === 'reaction:grouped' &&
-			newNotification.noteId && existingNotification.noteId &&
-			newNotification.noteId === existingNotification.noteId) {
+			newNotification.note?.id && existingNotification.note?.id &&
+			newNotification.note.id === existingNotification.note.id) {
 			paginator.updateItem(existingNotification.id, (item) => {
-				const updated = { ...item };
+				const updated = { ...item } as typeof existingNotification;
 				updated.reactions = [...updated.reactions, {
 					user: newNotification.user,
 					reaction: newNotification.reaction,
@@ -207,8 +207,8 @@ function tryMergeNotification(newNotification) {
 
 		if (newNotification.type === 'renote' &&
 			existingNotification.type === 'renote' &&
-			newNotification.targetNoteId && existingNotification.targetNoteId &&
-			newNotification.targetNoteId === existingNotification.targetNoteId) {
+			newNotification.note?.renoteId && existingNotification.note?.renoteId &&
+			newNotification.note.renoteId === existingNotification.note.renoteId) {
 			const groupedNotification = {
 				...existingNotification,
 				type: 'renote:grouped',
@@ -225,10 +225,10 @@ function tryMergeNotification(newNotification) {
 
 		if (newNotification.type === 'renote' &&
 			existingNotification.type === 'renote:grouped' &&
-			newNotification.targetNoteId && existingNotification.targetNoteId &&
-			newNotification.targetNoteId === existingNotification.targetNoteId) {
+			newNotification.note?.renoteId && existingNotification.note?.renoteId &&
+			newNotification.note.renoteId === existingNotification.note.renoteId) {
 			paginator.updateItem(existingNotification.id, (item) => {
-				const updated = { ...item };
+				const updated = { ...item } as typeof existingNotification;
 				updated.users = [...updated.users, newNotification.user];
 				updated.id = newNotification.id;
 				return updated;
@@ -262,16 +262,20 @@ function handleNotificationDeleted(data) {
 					if (remainingReaction) {
 						paginator.updateItem(notification.id, (item) => ({
 							...item,
-							type: 'reaction',
+							type: 'reaction' as const,
 							user: remainingReaction.user,
+							userId: remainingReaction.user.id,
 							reaction: remainingReaction.reaction,
 						}));
 					}
 				} else {
-					paginator.updateItem(notification.id, (item) => ({
-						...item,
-						reactions: item.reactions.filter((_, idx) => idx !== reactionIndex),
-					}));
+					paginator.updateItem(notification.id, (item) => {
+						const updated = item as typeof notification;
+						return {
+							...updated,
+							reactions: updated.reactions.filter((_, idx) => idx !== reactionIndex),
+						};
+					});
 				}
 				return;
 			}
@@ -290,16 +294,19 @@ function handleNotificationDeleted(data) {
 					if (remainingUser) {
 						paginator.updateItem(notification.id, (item) => ({
 							...item,
-							type: 'renote',
+							type: 'renote' as const,
 							user: remainingUser,
-							notifierId: remainingUser.id,
+							userId: remainingUser.id,
 						}));
 					}
 				} else {
-					paginator.updateItem(notification.id, (item) => ({
-						...item,
-						users: item.users.filter((_, idx) => idx !== userIndex),
-					}));
+					paginator.updateItem(notification.id, (item) => {
+						const updated = item as typeof notification;
+						return {
+							...updated,
+							users: updated.users.filter((_, idx) => idx !== userIndex),
+						};
+					});
 				}
 				return;
 			}
