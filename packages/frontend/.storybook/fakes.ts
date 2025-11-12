@@ -257,6 +257,7 @@ export function userLite(id = 'someuserid', username = 'miskist', host: entities
 		avatarDecorations: [],
 		emojis: {},
 	} as entities.UserLite;
+}
 
 export function userDetailed(id = 'someuserid', username = 'miskist', host: entities.UserDetailed['host'] = 'misskey-hub.net', name: entities.UserDetailed['name'] = 'Misskey User'): entities.UserDetailed {
 	return {

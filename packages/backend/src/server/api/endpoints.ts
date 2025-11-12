@@ -144,7 +144,7 @@ const endpoints: IEndpoint[] = Object.entries(endpointsObject as Record<string, 
 			return ep.meta ?? {};
 		},
 		get params() {
-			return ep.paramDef;
+			return ep.paramDef ?? { type: 'object', properties: {} };
 		},
 	};
 });
