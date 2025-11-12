@@ -9,6 +9,12 @@ import type { KeyOf, Schema } from '@/misc/json-schema.js';
 // @ts-expect-error endpoint-list.js is auto-generated at build time
 import * as endpointsObject from './endpoint-list.js';
 
+type EndpointModule = {
+	default: new (...args: any[]) => any;
+	meta?: IEndpointMeta;
+	paramDef?: Schema;
+};
+
 interface IEndpointMetaBase {
 	readonly stability?: 'deprecated' | 'experimental' | 'stable';
 
@@ -131,7 +137,7 @@ export interface IEndpoint {
 	params: Schema;
 }
 
-const endpoints: IEndpoint[] = Object.entries(endpointsObject).map(([name, ep]) => {
+const endpoints: IEndpoint[] = Object.entries(endpointsObject as Record<string, EndpointModule>).map(([name, ep]) => {
 	return {
 		name: name,
 		get meta() {

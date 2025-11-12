@@ -12,7 +12,13 @@ import { GetterService } from './GetterService.js';
 import { ApiLoggerService } from './ApiLoggerService.js';
 import type { Provider } from '@nestjs/common';
 
-const endpoints = Object.entries(endpointsObject);
+type EndpointModule = {
+	default: new (...args: any[]) => any;
+	meta?: Record<string, any>;
+	paramDef?: Record<string, any>;
+};
+
+const endpoints = Object.entries(endpointsObject as Record<string, EndpointModule>);
 const endpointProviders = endpoints.map(([path, endpoint]): Provider => ({ provide: `ep:${path}`, useClass: endpoint.default }));
 
 @Module({

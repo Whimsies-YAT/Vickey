@@ -198,14 +198,10 @@ export function misskeyApiGet<
 				} else {
 					if (body.error && body.error.id === 'b0a7f5f8-dc2f-4171-b91f-de88ad238e14') {
 						// Only clear localStorage and reload if this is the current user's token
-						if ($i && (token === undefined || token === $i.token)) {
+						if ($i) {
 							localStorage.clear();
 							window.location.reload();
 							return;
-						} else {
-							// Don't immediately clear localStorage and reload during account switching
-							// Let the account switching logic handle the error gracefully
-							console.warn('Authentication failed for non-current account, token may be expired:', body.error);
 						}
 					}
 					reject(body.error);
