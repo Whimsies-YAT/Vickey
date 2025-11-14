@@ -3,10 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { StripeService } from '@/core/StripeService.js';
 import { ApiError } from '../../error.js';
+import type { StripeSubscriptionsRepository } from '@/models/_.js';
+import { DI } from '@/di-symbols.js';
 
 export const meta = {
 	tags: ['payment'],
@@ -52,6 +54,9 @@ export const paramDef = {
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> {
 	constructor(
+		@Inject(DI.stripeSubscriptionsRepository)
+		private stripeSubscriptionsRepository: StripeSubscriptionsRepository,
+
 		private stripeService: StripeService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
@@ -60,10 +65,29 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			}
 
 			try {
+				const subscriptionRecord = await this.stripeSubscriptionsRepository.findOneBy({
+					stripeSubscriptionId: ps.subscriptionId,
+					userId: me.id,
+				});
+
+				if (!subscriptionRecord) {
+					throw new ApiError(meta.errors.subscriptionNotFound);
+				}
+
 				const subscription = await this.stripeService.cancelSubscription(
 					ps.subscriptionId,
 					ps.cancelAtPeriodEnd,
 				);
+
+				await this.stripeSubscriptionsRepository.update(subscriptionRecord.id, {
+					status: subscription.status as typeof subscriptionRecord.status,
+					cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+					canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : new Date(),
+					endedAt: subscription.ended_at ? new Date(subscription.ended_at * 1000) : subscriptionRecord.endedAt,
+					currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : subscriptionRecord.currentPeriodStart,
+					currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : subscriptionRecord.currentPeriodEnd,
+					updatedAt: new Date(),
+				});
 
 				return {
 					subscriptionId: subscription.id,

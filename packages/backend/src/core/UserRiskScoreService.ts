@@ -129,7 +129,7 @@ export interface UserRiskScore {
 
 @Injectable()
 export class UserRiskScoreService implements OnApplicationShutdown {
-	private static readonly ALGORITHM_VERSION = '1.2.3';
+	private static readonly ALGORITHM_VERSION = '2.0.0';
 	constructor(
 		@Inject(DI.redis)
 		private redisClient: Redis.Redis,
@@ -209,12 +209,12 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 				return;
 			}
 
-			const sampleUsers = await this.usersRepository.find({
-				where: {
-					lastActiveDate: MoreThan(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)),
-					host: IsNull(),
-					isSuspended: false,
-					isDeleted: false,
+				const sampleUsers = await this.usersRepository.find({
+					where: {
+						lastActiveDate: MoreThan(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)),
+						host: IsNull(),
+						isSuspended: false,
+						isDeleted: false,
 				},
 				select: ['id', 'notesCount', 'followersCount', 'followingCount', 'riskScore'],
 				take: 2000,
@@ -235,9 +235,9 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 				followingCount: normalUsers.map(u => u.followingCount).sort((a, b) => a - b),
 			};
 
-			for (const [key, values] of Object.entries(metrics)) {
-				if (values.length > 0) {
-					const q25 = values[Math.floor(values.length * 0.25)];
+				for (const [key, values] of Object.entries(metrics)) {
+					if (values.length > 0) {
+						const q25 = values[Math.floor(values.length * 0.25)];
 					const median = values[Math.floor(values.length * 0.5)];
 					const q75 = values[Math.floor(values.length * 0.75)];
 					const mean = values.reduce((a, b) => a + b, 0) / values.length;
@@ -249,10 +249,10 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 				}
 			}
 
-			const riskScores = normalUsers
-				.filter(u => u.riskScore && u.riskScore > 0)
-				.map(u => u.riskScore!)
-				.sort((a, b) => a - b);
+				const riskScores = normalUsers
+					.filter(u => u.riskScore && u.riskScore > 0)
+					.map(u => u.riskScore!)
+					.sort((a, b) => a - b);
 
 			if (riskScores.length > 0) {
 				const scoreMedian = riskScores[Math.floor(riskScores.length * 0.5)];
@@ -261,6 +261,15 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 				this.baselines.set('riskScore_mean', scoreMean);
 				this.baselines.set('scoreDistribution', riskScores.slice(0, 1000) as any);
 			}
+				this.baselines.set('sampleSize', normalUsers.length);
+				const populationSize = await this.usersRepository.count({
+					where: {
+						host: IsNull(),
+						isSuspended: false,
+						isDeleted: false,
+					},
+				});
+				this.baselines.set('populationSize', populationSize);
 
 			this.lastBaselineUpdate = new Date();
 
@@ -280,6 +289,10 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 		this.baselines.set('riskScore_median', 72);
 		this.baselines.set('riskScore_mean', 70);
 		this.baselines.set('scoreDistribution', Array.from({ length: 100 }, (_, i) => 50 + i * 0.5) as any);
+		this.baselines.set('sampleSize', 0);
+		if (!this.baselines.has('populationSize')) {
+			this.baselines.set('populationSize', 0);
+		}
 		this.lastBaselineUpdate = new Date();
 	}
 
@@ -341,20 +354,57 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 
 		let totalScore = await this.calculateTotalScore(dimensions);
 
-			totalScore = await this.multiAccountDetectionService.applyLinkPenalty(totalScore, userId);
+		totalScore = await this.multiAccountDetectionService.applyLinkPenalty(totalScore, userId);
+		const linkPressure = await this.multiAccountDetectionService.calculateLinkRiskPressure(userId);
+		if (linkPressure > 0) {
+			totalScore = Math.max(0, totalScore - Math.min(25, linkPressure * 6));
+		}
 
-			const rehabilitationFactor = await this.rehabilitationService.calculateRehabilitationFactors(userId, totalScore, dimensions as unknown as Record<string, number>);
+		const requestPatternRisk = await this.multiAccountDetectionService.analyzeRequestPatternRisk(userId);
+		if (requestPatternRisk.riskScore > 0) {
+			totalScore = Math.min(100, totalScore + requestPatternRisk.riskScore * 0.3);
+		}
+
+		const eventImpact = await this.riskEventLogService.calculateDecayedImpact(userId);
+		if (eventImpact.totalImpact > 0) {
+			const eventPenalty = Math.min(40, eventImpact.totalImpact * 0.8);
+			totalScore = Math.max(0, totalScore - eventPenalty);
+		}
+
+		const rehabilitationFactor = await this.rehabilitationService.calculateRehabilitationFactors(
+			userId,
+			totalScore,
+			dimensions as unknown as Record<string, number>
+		);
 		totalScore = await this.applyScoreAdjustmentDynamics(totalScore, rehabilitationFactor.finalAdjustment);
+
+		totalScore = Number(totalScore.toFixed(2));
 
 		const riskLevel = await this.determineRiskLevel(totalScore);
 		const details: any = this.generateDetails(dimensions, totalScore);
 
-			const requestPatternRisk = await this.multiAccountDetectionService.analyzeRequestPatternRisk(userId);
-		if (requestPatternRisk.riskScore > 0) {
-			totalScore = Math.min(100, totalScore + requestPatternRisk.riskScore * 0.3);
-			if (requestPatternRisk.factors.length > 0) {
-				details.riskFactors = requestPatternRisk.factors;
-			}
+		if (requestPatternRisk.factors.length > 0) {
+			details.riskFactors = requestPatternRisk.factors;
+		}
+		details.requestPattern = {
+			riskScore: requestPatternRisk.riskScore,
+			factors: requestPatternRisk.factors,
+		};
+
+		details.rehabilitation = {
+			improvementBonus: rehabilitationFactor.improvementBonus,
+			consistencyBonus: rehabilitationFactor.consistencyBonus,
+			dormancyBonus: rehabilitationFactor.dormancyBonus,
+			recoveryMultiplier: rehabilitationFactor.recoveryMultiplier,
+			finalAdjustment: rehabilitationFactor.finalAdjustment,
+			reasons: rehabilitationFactor.adjustmentReasons,
+		};
+
+		if (eventImpact.breakdown.length > 0) {
+			details.eventImpact = {
+				total: eventImpact.totalImpact,
+				events: eventImpact.breakdown.slice(0, 10),
+			};
 		}
 
 		const result: UserRiskScore = {
@@ -367,12 +417,10 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 			algorithmVersion: UserRiskScoreService.ALGORITHM_VERSION,
 		};
 
-			await this.redisClient.set(
-			`user:risk-score:${userId}`,
-			JSON.stringify(result),
-			'EX',
-			86400
-		);
+		await this.redisClient.multi()
+			.set(`user:risk-score:${userId}`, JSON.stringify(result))
+			.zadd('risk-score:latest', result.totalScore, userId)
+			.exec();
 
 			await this.usersRepository.update(userId, {
 			riskScore: totalScore,
@@ -395,7 +443,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	private createDefaultRiskScore(userId: string): UserRiskScore {
 		return {
 			userId,
-			totalScore: 70,
+			totalScore: 70.00,
 			riskLevel: 'good',
 			dimensions: this.createDefaultDimensions(),
 			details: {
@@ -416,17 +464,17 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 		const accountAge = Date.now() - createdAt.getTime();
 		const days = accountAge / (1000 * 60 * 60 * 24);
 
-		dimensions.accountAge = Math.min(10, Math.log(days + 1) * 2);
-		dimensions.avatarExists = user.avatarId ? 2 : 0;
+		dimensions.accountAge = Math.min(10, Math.log(days + 1) * 2.5);
+		dimensions.avatarExists = user.avatarId ? 3 : 1;
 
-		const baseScore = 68;
-		const ageBonus = Math.min(15, dimensions.accountAge * 1.2);
-		const avatarBonus = dimensions.avatarExists * 3;
+		const baseScore = 75;
+		const ageBonus = Math.min(12, dimensions.accountAge * 1.0);
+		const avatarBonus = dimensions.avatarExists * 2;
 		const totalScore = baseScore + ageBonus + avatarBonus;
 
 		return {
 			userId,
-			totalScore: Math.min(100, Math.max(0, totalScore)),
+			totalScore: Number(Math.min(100, Math.max(0, totalScore)).toFixed(2)),
 			riskLevel: totalScore >= 87 ? 'excellent' : totalScore >= 76 ? 'veryGood' : totalScore >= 65 ? 'good' : totalScore >= 55 ? 'fair' : 'poor',
 			dimensions,
 			details: {
@@ -442,40 +490,40 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	@bindThis
 	private createDefaultDimensions(): RiskScoreDimensions {
 		return {
-			accountAge: 6.0,
-			emailVerified: 0.0,
-			avatarExists: 0.0,
-			profileComplete: 4.0,
-			twoFactorEnabled: 0.0,
+			accountAge: 7.5,
+			emailVerified: 2.5,
+			avatarExists: 2.5,
+			profileComplete: 6.5,
+			twoFactorEnabled: 3.0,
 
-			loginFrequency: 7.0,
-			loginTimePattern: 6.0,
+			loginFrequency: 7.5,
+			loginTimePattern: 6.8,
 			ipChangeFrequency: 8.0,
-			deviceDiversity: 7.0,
-			sessionDuration: 7.0,
-			failedLoginAttempts: 9.0,
+			deviceDiversity: 7.2,
+			sessionDuration: 7.3,
+			failedLoginAttempts: 9.2,
 
-			postingFrequency: 6.0,
-			postingTimePattern: 6.0,
-			contentDiversity: 7.0,
-			mediaUsagePattern: 7.0,
+			postingFrequency: 6.8,
+			postingTimePattern: 6.5,
+			contentDiversity: 7.2,
+			mediaUsagePattern: 7.1,
 			interactionPattern: 7.0,
 
-			followRatio: 6.0,
-			mutualFollowRate: 6.0,
-			socialGraphDensity: 5.0,
-			interactionReciprocity: 5.0,
+			followRatio: 6.8,
+			mutualFollowRate: 6.6,
+			socialGraphDensity: 6.2,
+			interactionReciprocity: 6.0,
 
-			averageNoteLength: 7.0,
-			hashtagUsage: 6.0,
-			mentionFrequency: 6.0,
-			urlUsage: 6.0,
+			averageNoteLength: 7.2,
+			hashtagUsage: 6.5,
+			mentionFrequency: 6.4,
+			urlUsage: 6.4,
 
-			reportedCount: 9.0,
-			blockedByCount: 9.0,
+			reportedCount: 9.3,
+			blockedByCount: 9.2,
 
-			rateLimitHits: 9.0,
-			apiUsagePattern: 8.0,
+			rateLimitHits: 9.1,
+			apiUsagePattern: 8.2,
 		};
 	}
 
@@ -606,7 +654,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 			order: { id: 'DESC' },
 		});
 
-		if (logins.length < 5) return await this.normalizeScore(0.5, 'loginTimePattern', userId);
+		if (logins.length < 5) return await this.normalizeScore(0.75, 'loginTimePattern', userId);
 
 		const hours = logins.map(l => this.idService.parse(l.id).date.getHours());
 		const uniqueHours = new Set(hours).size;
@@ -686,7 +734,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 			take: 100,
 		});
 
-		if (sessions.length === 0) return 0.5;
+		if (sessions.length === 0) return await this.normalizeScore(0.8, 'deviceDiversity', userId);
 
 		const devices = new Set(sessions.map(s => s.deviceId).filter(d => d));
 
@@ -928,7 +976,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 			}),
 		]);
 
-		if (allNotes.length === 0) return 2;
+		if (allNotes.length === 0) return 4;
 
 		const now = Date.now();
 		let weightedInteractions = 0;
@@ -998,7 +1046,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 			}),
 		]);
 
-		if (following.length === 0) return 2;
+		if (following.length === 0) return 4;
 
 		const followingIds = new Set(following.map(f => f.followeeId));
 		const followerIds = new Set(followers.map(f => f.followerId));
@@ -1025,7 +1073,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 			take: 100,
 		});
 
-		if (following.length < 10) return 2;
+		if (following.length < 10) return 4;
 
 		const followeeIds = following.map(f => f.followeeId);
 		const interconnections = await this.followingsRepository.count({
@@ -1230,17 +1278,40 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 
 	@bindThis
 	private async calculateRateLimitScore(userId: string): Promise<number> {
-		const key = `rate-limit:${userId}:*`;
-		const keys = await this.redisClient.keys(key);
+		const key = `risk:rate-limit:violations:${userId}`;
+		const now = Date.now();
+		const windows = [
+			{ duration: 60 * 60 * 1000, weight: 0.5 }, // 1 hour
+			{ duration: 24 * 60 * 60 * 1000, weight: 0.3 }, // 1 day
+			{ duration: 7 * 24 * 60 * 60 * 1000, weight: 0.15 }, // 7 days
+			{ duration: 30 * 24 * 60 * 60 * 1000, weight: 0.05 }, // 30 days
+		] as const;
 
-		const hitCount = keys.length;
+		const pipeline = this.redisClient.multi();
+		for (const window of windows) {
+			pipeline.zcount(key, now - window.duration, now);
+		}
+		const execResult = await pipeline.exec();
 
-		if (hitCount === 0) return 5;
-		if (hitCount <= 5) return 4;
-		if (hitCount <= 10) return 3;
-		if (hitCount <= 20) return 2;
-		if (hitCount <= 50) return 1;
-		return 0;
+		if (!execResult) {
+			return 10;
+		}
+
+		let pressure = 0;
+		for (let i = 0; i < execResult.length; i++) {
+			const [err, count] = execResult[i];
+			if (err) continue;
+			const violations = typeof count === 'number' ? count : parseInt(String(count ?? 0), 10);
+			pressure += violations * windows[i].weight;
+		}
+
+		if (pressure <= 0) {
+			return 10;
+		}
+
+		const penalty = Math.min(9.5, pressure * 1.6);
+		const score = Math.max(0.5, 10 - penalty);
+		return Number(score.toFixed(2));
 	}
 
 	@bindThis
@@ -1258,57 +1329,26 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	}
 
 	@bindThis
-	private async applyScoreAdjustmentDynamics(baseScore: number, adjustmentFactor: number): Promise<number> {
-		const adjustment = adjustmentFactor - 1;
-
-		const k = 0.1;
-		const midpoint = 65;
-
-		const sigmoid = (x: number) => 1 / (1 + Math.exp(-k * (x - midpoint)));
-		const sigmoidDerivative = (x: number) => {
-			const s = sigmoid(x);
-			return k * s * (1 - s);
-		};
-
-		let dynamicMultiplier: number;
-
-		if (adjustment > 0) {
-			const percentile = this.calculatePercentile(baseScore);
-			dynamicMultiplier = Math.log(101 - percentile) / Math.log(101);
-		} else {
-			const shape = 2;
-			const scale = 65;
-			dynamicMultiplier = Math.pow(baseScore / scale, shape - 1);
+	private async applyScoreAdjustmentDynamics(baseScore: number, adjustmentDelta: number): Promise<number> {
+		if (!Number.isFinite(baseScore)) {
+			return 0;
 		}
 
-		const priorWeight = 0.7;
-		const likelihoodWeight = 0.3;
-
-		const adjustedScore = baseScore * (1 + adjustment * dynamicMultiplier * sigmoidDerivative(baseScore));
-		const finalScore = priorWeight * baseScore + likelihoodWeight * adjustedScore;
-
-		if (finalScore < 5) {
-			return 5 * Math.tanh(finalScore / 5);
-		} else if (finalScore > 95) {
-			return 100 - 5 * Math.tanh((100 - finalScore) / 5);
+		if (!Number.isFinite(adjustmentDelta) || adjustmentDelta === 0) {
+			return Math.max(0, Math.min(100, baseScore));
 		}
 
-		return finalScore;
-	}
+		const clampedDelta = Math.max(-15, Math.min(15, adjustmentDelta));
+		const normalized = (baseScore - 50) / 12;
+		const shifted = normalized + clampedDelta / 15;
+		const adjusted = 50 + 12 * Math.tanh(shifted);
 
-	@bindThis
-	private calculatePercentile(score: number): number {
-		const distributionData = this.baselines.get('scoreDistribution');
-		const distribution = Array.isArray(distributionData) ? distributionData : [];
-		if (distribution.length === 0) return 70;
-
-		const below = distribution.filter(s => s < score).length;
-		return (below / distribution.length) * 100;
+		return Math.max(0, Math.min(100, adjusted));
 	}
 
 	@bindThis
 	private async calculateTotalScore(dimensions: RiskScoreDimensions): Promise<number> {
-		if (!this.config) return 68;
+		if (!this.config) return 70;
 
 		let totalScore = 0;
 		let totalWeight = 0;
@@ -1323,53 +1363,36 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 			}
 		}
 
-		if (totalWeight === 0) return 68;
+		if (totalWeight === 0) return 70;
 
-		let rawScore = (totalScore / totalWeight) * 100;
+		const ratio = totalScore / totalWeight;
+		const shiftedRatio = (ratio - 0.4) * 2.0;
+		let normalizedScore = 68 + 30 * Math.tanh(shiftedRatio);
 
 		const outlierPenalty = this.calculateOutlierPenalty(dimensions);
-		rawScore *= (1 - outlierPenalty);
+		normalizedScore *= (1 - outlierPenalty * 0.4);
 
-		const normalizedScore = await this.applyPopulationNormalization(rawScore);
-
-		return Math.min(95, Math.max(45, normalizedScore));
-	}
-
-	@bindThis
-	private async applyPopulationNormalization(rawScore: number): Promise<number> {
-		const median = this.baselines.get('riskScore_median') || 65;
-		const mean = this.baselines.get('riskScore_mean') || 65;
-
-		if (!this.baselines.has('scoreDistribution')) {
-			return rawScore * 0.95;
+		const sampleSize = this.baselines.get('sampleSize') ?? 0;
+		if (sampleSize < 200) {
+			normalizedScore *= 1.12;
+		} else if (sampleSize < 1000) {
+			normalizedScore *= 1.05;
 		}
 
-		const distributionData = this.baselines.get('scoreDistribution');
-		const distribution = Array.isArray(distributionData) ? distributionData : [];
-		if (distribution.length < 50) {
-			return rawScore * 0.95;
+		const baselineMedian = this.baselines.get('riskScore_median');
+		if (baselineMedian != null) {
+			const medianDelta = baselineMedian - 72;
+			normalizedScore -= medianDelta * 0.3;
 		}
 
-		const percentile = this.calculatePercentile(rawScore);
-
-		let adjustmentFactor: number;
-		if (percentile > 90) {
-			adjustmentFactor = 0.85 + (percentile - 90) * 0.01;
-		} else if (percentile > 70) {
-			adjustmentFactor = 0.90 + (percentile - 70) * 0.0025;
-		} else if (percentile > 30) {
-			adjustmentFactor = 0.95 + (percentile - 30) * 0.00125;
-		} else {
-			adjustmentFactor = 1.00 + (30 - percentile) * 0.002;
+		const activityLevel = this.computeActivityLevel(dimensions);
+		if (activityLevel < 0.4) {
+			normalizedScore += (0.4 - activityLevel) * 25;
 		}
 
-		const populationAdjustedScore = rawScore * adjustmentFactor;
+		normalizedScore = this.applyPopulationScaling(normalizedScore);
 
-		const targetMean = 65;
-		const currentDeviation = mean - targetMean;
-		const correctionFactor = 1 - (currentDeviation * 0.01);
-
-		return populationAdjustedScore * Math.max(0.85, Math.min(1.15, correctionFactor));
+		return Number(Math.max(0, Math.min(100, normalizedScore)).toFixed(2));
 	}
 
 	@bindThis
@@ -1390,6 +1413,47 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 		}
 
 		return Math.min(0.2, outlierCount * 0.05);
+	}
+
+	@bindThis
+	private applyPopulationScaling(score: number): number {
+		const populationSize = Number(this.baselines.get('populationSize') ?? 0);
+		if (!Number.isFinite(populationSize) || populationSize <= 0) {
+			return score;
+		}
+
+		let bonus = 0;
+		if (populationSize < 100) {
+			bonus = 8;
+		} else if (populationSize < 400) {
+			bonus = 4;
+		} else if (populationSize < 1000) {
+			bonus = 2;
+		}
+
+		if (bonus === 0) {
+			return score;
+		}
+
+		return Math.min(100, score + bonus);
+	}
+
+	@bindThis
+	private computeActivityLevel(dimensions: RiskScoreDimensions): number {
+		const indicators = [
+			dimensions.loginFrequency,
+			dimensions.sessionDuration,
+			dimensions.postingFrequency,
+			dimensions.interactionPattern,
+			dimensions.apiUsagePattern,
+		].filter(v => typeof v === 'number');
+
+		if (indicators.length === 0) {
+			return 0.5;
+		}
+
+		const avg = indicators.reduce((sum, value) => sum + value, 0) / indicators.length;
+		return Math.max(0, Math.min(1, avg / 10));
 	}
 
 	@bindThis
@@ -1535,8 +1599,6 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 		await this.redisClient.set(
 			`user:risk-score:${targetUserId}`,
 			JSON.stringify(newScore),
-			'EX',
-			60 * 60 * 24,
 		);
 	}
 
