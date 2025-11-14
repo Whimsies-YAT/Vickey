@@ -354,7 +354,7 @@ function invite() {
 	}).catch(err => {
 		os.alert({
 			type: 'error',
-			text: err,
+			text: getErrorMessage(err) || i18n.ts.somethingHappened,
 		});
 	});
 }
@@ -378,7 +378,7 @@ async function gracefulReload() {
 	} catch (err) {
 		os.alert({
 			type: 'error',
-			text: err.message || i18n.ts.gracefulReloadFailed,
+			text: getErrorMessage(err) || i18n.ts.gracefulReloadFailed,
 		});
 	}
 }
@@ -416,6 +416,16 @@ const headerActions = computed(() => []);
 const headerTabs = computed(() => []);
 
 definePage(() => INFO.value);
+
+function getErrorMessage(err: unknown): string {
+	if (err instanceof Error) return err.message;
+	if (typeof err === 'string') return err;
+	if (err && typeof err === 'object' && 'message' in err) {
+		const message = (err as { message?: unknown }).message;
+		return typeof message === 'string' ? message : '';
+	}
+	return '';
+}
 </script>
 
 <style lang="scss" scoped>

@@ -45,7 +45,7 @@ export async function checkAndRegenerateToken(): Promise<boolean> {
 			current: true,
 		});
 
-		if (result && typeof result === 'object' && 'token' in result) {
+		if (isTokenResponse(result)) {
 			// Update all token references immediately
 			const newToken = result.token;
 			$i.token = newToken;
@@ -82,7 +82,7 @@ export async function silentTokenRefresh(): Promise<boolean> {
 	try {
 		const result = await misskeyApi('i/regenerate-token');
 
-		if (result && typeof result === 'object' && 'token' in result) {
+		if (isTokenResponse(result)) {
 			// Update all token references immediately
 			const newToken = result.token;
 			$i.token = newToken;
@@ -98,4 +98,8 @@ export async function silentTokenRefresh(): Promise<boolean> {
 		console.warn('Silent token refresh failed:', error);
 		return false;
 	}
+}
+
+function isTokenResponse(result: unknown): result is { token: string } {
+	return typeof result === 'object' && result !== null && typeof (result as { token?: unknown }).token === 'string';
 }

@@ -61,6 +61,12 @@ import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import MkButton from '@/components/MkButton.vue';
+
+type EmailTemplate = {
+	key: string;
+	content: string[];
+	enabled: boolean;
+};
 import MkFolder from '@/components/MkFolder.vue';
 import MkInput from "@/components/MkInput.vue";
 
@@ -204,11 +210,12 @@ const folderConfigs = ref<Array<{
 async function init() {
 	const meta = await misskeyApi('admin/meta');
 	enableEmailTemplates.value = meta.enableEmailTemplates;
-	const templates = await misskeyApi('admin/email/templates/show');
+	const templates = await misskeyApi<EmailTemplate[]>('admin/email/templates/show');
+	if (!templates) return;
 	folderConfigs.value.forEach((folder) => {
-		const content = templates.find(template => template.key === folder.apiKey) || {};
-		folder.value = Array.isArray(content.content) ? content.content : [];
-		folder.enabled = content.enabled || false;
+		const template = templates.find(item => item.key === folder.apiKey);
+		folder.value = Array.isArray(template?.content) ? template.content : [];
+		folder.enabled = template?.enabled ?? false;
 	});
 }
 

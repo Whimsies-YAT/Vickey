@@ -488,6 +488,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed } from 'vue';
+import * as Misskey from 'misskey-js';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkTextarea from '@/components/MkTextarea.vue';
@@ -505,7 +506,17 @@ import MkFormFooter from '@/components/MkFormFooter.vue';
 import MkRadios from '@/components/MkRadios.vue';
 import MkSelect from '@/components/MkSelect.vue';
 
-const meta = await misskeyApi('admin/meta');
+type StripeCurrency = 'USD' | 'EUR' | 'CNY' | 'JPY' | 'GBP' | 'CHF' | 'CAD' | 'AUD' | 'SGD' | 'HKD';
+
+type ExtendedMeta = Misskey.entities.MetaDetailed & {
+	enableTimelineWarming?: boolean;
+	timelineWarmingTarget?: number;
+	timelineWarmingMinNotes?: number;
+	timelineWarmingMinFollowers?: number;
+	stripeCurrency?: StripeCurrency;
+} & Record<string, any>;
+
+const meta = await misskeyApi<ExtendedMeta>('admin/meta');
 
 const proxyAccount = await misskeyApi('users/show', { userId: meta.proxyAccountId });
 
@@ -648,7 +659,14 @@ const currencyOptions = [
 	{ label: `HKD - ${i18n.ts._stripe.currencyHKD}`, value: 'HKD' },
 ];
 
-const stripeForm = useForm({
+const stripeForm = useForm<{
+	enableStripe: boolean;
+	stripePublicKey: string;
+	stripeSecretKey: string;
+	stripeWebhookSecret: string;
+	stripePaymentMethodConfiguration: string;
+	stripeCurrency: StripeCurrency;
+}>({
 	enableStripe: meta.enableStripe ?? false,
 	stripePublicKey: meta.stripePublicKey ?? '',
 	stripeSecretKey: meta.stripeSecretKey ?? '',

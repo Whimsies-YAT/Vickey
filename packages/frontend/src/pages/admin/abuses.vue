@@ -25,20 +25,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkSelect v-model="reporterOrigin" :items="reporterOriginDef" style="margin: 0; flex: 1;">
 					<template #label>{{ i18n.ts.reporterOrigin }}</template>
 				</MkSelect>
-				<MkSelect v-model="type" :items="[]" style="margin: 0; flex: 1;">
+				<MkSelect v-model="type" :items="typeDef" style="margin: 0; flex: 1;">
 					<template #label>{{ i18n.ts.type }}</template>
-					<option value="all">{{ i18n.ts.all }}</option>
-					<option value="note">{{ i18n.ts._abuseReportAutoProcessing.note }}</option>
-					<option value="flash">{{ i18n.ts._abuseReportAutoProcessing.flash }}</option>
-					<option value="gallery">{{ i18n.ts._abuseReportAutoProcessing.gallery }}</option>
-					<option value="page">{{ i18n.ts._abuseReportAutoProcessing.page }}</option>
-					<option value="user">{{ i18n.ts._abuseReportAutoProcessing.user }}</option>
 				</MkSelect>
-				<MkSelect v-model="status" :items="[]" style="margin: 0; flex: 1;">
+				<MkSelect v-model="status" :items="statusDef" style="margin: 0; flex: 1;">
 					<template #label>{{ i18n.ts._abuseReportAutoProcessing.status }}</template>
-					<option value="record">{{ i18n.ts._abuseReportAutoProcessing.record }}</option>
-					<option value="ignore">{{ i18n.ts._abuseReportAutoProcessing.ignore }}</option>
-					<option value="delete">{{ i18n.ts._abuseReportAutoProcessing.delete }}</option>
 				</MkSelect>
 			</div>
 
@@ -111,8 +102,32 @@ const {
 });
 const searchUsername = ref('');
 const searchHost = ref('');
-const type = ref<Misskey.Endpoints['admin/abuse-user-reports']['req']['type']>('all');
-const status = ref<Misskey.Endpoints['admin/abuse-user-reports']['req']['status']>('record');
+const {
+	model: type,
+	def: typeDef,
+} = useMkSelect({
+	items: [
+		{ label: i18n.ts.all, value: 'all' },
+		{ label: i18n.ts._abuseReportAutoProcessing.note, value: 'note' },
+		{ label: i18n.ts._abuseReportAutoProcessing.flash, value: 'flash' },
+		{ label: i18n.ts._abuseReportAutoProcessing.gallery, value: 'gallery' },
+		{ label: i18n.ts._abuseReportAutoProcessing.page, value: 'page' },
+		{ label: i18n.ts._abuseReportAutoProcessing.user, value: 'user' },
+	],
+	initialValue: 'all',
+});
+
+const {
+	model: status,
+	def: statusDef,
+} = useMkSelect({
+	items: [
+		{ label: i18n.ts._abuseReportAutoProcessing.record, value: 'record' },
+		{ label: i18n.ts._abuseReportAutoProcessing.ignore, value: 'ignore' },
+		{ label: i18n.ts._abuseReportAutoProcessing.delete, value: 'delete' },
+	],
+	initialValue: 'record',
+});
 
 const paginator = markRaw(new Paginator('admin/abuse-user-reports', {
 	limit: 10,

@@ -107,6 +107,7 @@ const props = defineProps<{
 	manualSave?: boolean;
 	small?: boolean;
 	large?: boolean;
+	modelModifiers?: Record<string, boolean>;
 }>();
 
 const emit = defineEmits<{

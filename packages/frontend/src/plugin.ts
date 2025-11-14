@@ -290,7 +290,7 @@ async function launchPlugin(id: Plugin['installId']): Promise<void> {
 				const msg = event.data;
 
 				switch (msg.type) {
-					case 'ready':
+					case 'ready': {
 						systemLog('Worker ready, initializing plugin...');
 
 						const baseEnv = await createPluginEnvForWorker({
@@ -306,6 +306,7 @@ async function launchPlugin(id: Plugin['installId']): Promise<void> {
 							env: baseEnv,
 						});
 						break;
+				}
 
 					case 'output':
 						pluginLogs.value.get(plugin.installId)?.push({
@@ -466,13 +467,14 @@ async function handleApiCall(callId: string, method: string, args: any[], plugin
 			});
 			return null;
 
-		case 'Mk:confirm':
+		case 'Mk:confirm': {
 			const confirm = await os.confirm({
 				type: args[2] || 'question',
 				title: args[0],
 				text: args[1],
 			});
 			return !confirm.canceled;
+		}
 
 		case 'Mk:toast':
 			os.toast(args[0]);
@@ -664,7 +666,6 @@ async function callWorkerHandler(pluginId: string, handlerType: string, args: an
 }
 
 // Legacy function kept for compatibility (unused now, retained for reference)
-// @ts-ignore - This function is no longer used but kept for documentation purposes
 async function createPluginEnv(opts: { plugin: Plugin; storageKey: string }): Promise<Record<string, values.Value>> {
 	const id = opts.plugin.installId;
 

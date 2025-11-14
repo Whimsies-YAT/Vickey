@@ -15,7 +15,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 
 		<div style="overflow: clip; line-height: 28px; text-align: center;">
-			<div v-if="!iAmPlayer && !game.isEnded && currentPlayerIsBlack !== null">
+			<div v-if="!iAmPlayer && !game.isEnded && currentPlayerIsBlack !== null && turnUser">
 				<Mfm :key="'turn:' + turnUser.id" :text="i18n.tsx._gomoku.turnOf({ name: turnUser.name ?? turnUser.username })" :plain="true" :customEmojis="turnUser.emojis"/>
 				<MkEllipsis/>
 			</div>
@@ -96,6 +96,10 @@ const props = defineProps<{
 	connection?: Misskey.IChannelConnection<Misskey.Channels['gomokuGame']> | null;
 }>();
 
+type GomokuConnection = Misskey.IChannelConnection<Misskey.Channels['gomokuGame']> & {
+	send: (type: string, payload: Record<string, unknown>) => void;
+};
+
 const EMPTY = 0;
 const BLACK = 1;
 const WHITE = 2;
@@ -153,9 +157,8 @@ function putStone(pos: number) {
 	board.value[pos] = myColor.value!;
 	lastMovePos.value = pos;
 
-	props.connection!.send('putStone', {
-		pos: pos,
-	});
+	const conn = props.connection as GomokuConnection | null;
+	conn?.send('putStone', { pos });
 }
 
 function onStreamLog(log) {
@@ -314,30 +317,34 @@ async function share() {
 }
 
 onMounted(() => {
-	if (props.connection != null) {
-		props.connection.on('log', onStreamLog);
-		props.connection.on('ended', onStreamEnded);
+	const conn = props.connection as any;
+	if (conn) {
+		conn.on('log', onStreamLog);
+		conn.on('ended', onStreamEnded);
 	}
 });
 
 onActivated(() => {
-	if (props.connection != null) {
-		props.connection.on('log', onStreamLog);
-		props.connection.on('ended', onStreamEnded);
+	const conn = props.connection as any;
+	if (conn) {
+		conn.on('log', onStreamLog);
+		conn.on('ended', onStreamEnded);
 	}
 });
 
 onDeactivated(() => {
-	if (props.connection != null) {
-		props.connection.off('log', onStreamLog);
-		props.connection.off('ended', onStreamEnded);
+	const conn = props.connection as any;
+	if (conn) {
+		conn.off('log', onStreamLog);
+		conn.off('ended', onStreamEnded);
 	}
 });
 
 onUnmounted(() => {
-	if (props.connection != null) {
-		props.connection.off('log', onStreamLog);
-		props.connection.off('ended', onStreamEnded);
+	const conn = props.connection as any;
+	if (conn) {
+		conn.off('log', onStreamLog);
+		conn.off('ended', onStreamEnded);
 	}
 });
 </script>

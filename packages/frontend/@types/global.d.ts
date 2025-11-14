@@ -19,3 +19,25 @@ declare const _LANGS_FULL_: string[][];
 interface Window {
 	TagCanvas: any;
 }
+
+declare module 'wasm-game-of-life' {
+	const init: () => Promise<void>;
+	export class Universe {
+		static new(width: number, height: number): Universe;
+		width(): number;
+		height(): number;
+		randomize(density?: number): void;
+		set_pattern(pattern: string, row: number, col: number): void;
+		cells_js(): Uint8Array;
+		render_to_rgba(maxPixels: number): Uint8Array;
+		render_dimensions(maxPixels: number): { width: number; height: number };
+		tick(): void;
+		generation(): number;
+		live_cell_count(): number;
+		is_stable(): boolean;
+		clear(): void;
+		toggle_cell(row: number, col: number): void;
+	}
+
+	export default init;
+}

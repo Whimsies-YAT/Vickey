@@ -99,8 +99,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 											<div v-if="group.metadata?.description" class="group-description">{{ group.metadata.description }}</div>
 											<div class="group-stats">
 												{{ i18n.tsx._accountLink.usersNum({ length: group.userIds.length }) }},
-												{{ i18n.tsx._accountLink.linksNum({ linkCount: group.metadata?.linkCount }) }},
-												{{ i18n.tsx._accountLink.confidenceNum({ confidence: Math.round(group.metadata?.confidence * 100) }) }}
+												{{ i18n.tsx._accountLink.linksNum({ linkCount: group.metadata?.linkCount ?? 0 }) }},
+												{{ i18n.tsx._accountLink.confidenceNum({ confidence: Math.round(((group.metadata?.confidence ?? 0) * 100)) }) }}
 											</div>
 											<div class="group-users">{{ group.userIds.join(', ') }}</div>
 										</div>
@@ -156,6 +156,72 @@ import { definePage } from '@/page.js';
 import { dateString } from '@/filters/date.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 
+type AccountLinkMetadata = {
+	groupName?: string;
+	groupDescription?: string;
+	linkCount?: number;
+	confidence?: number;
+	[key: string]: unknown;
+};
+
+type AccountLink = {
+	id: string;
+	primaryUserId: string;
+	linkedUserId: string;
+	confidence: number;
+	detectionMethods: string[];
+	createdAt: string;
+	isManual: boolean;
+	metadata?: AccountLinkMetadata;
+};
+
+type AccountLinkGroupInfo = {
+	name: string;
+	description?: string | null;
+	userCount: number;
+	linkCount: number;
+};
+
+type AccountLinkGroupPayload = {
+	groupId: string;
+	userIds: string[];
+	links: AccountLink[];
+	groupInfo: AccountLinkGroupInfo;
+};
+
+type AccountLinkNetwork = {
+	nodes: {
+		id: string;
+		name: string;
+		type: 'user';
+		metadata?: {
+			host?: string | null;
+		};
+	}[];
+	edges: {
+		from: string;
+		to: string;
+		confidence: number;
+		methods: string[];
+		isManual: boolean;
+		metadata?: Record<string, unknown>;
+	}[];
+	groups: {
+		name: string;
+		userIds: string[];
+		metadata?: {
+			description?: string;
+			linkCount?: number;
+			confidence?: number;
+		};
+	}[];
+};
+
+type ManageAccountLinksBasicResponse = { success: true };
+type ManageAccountLinksCreateResponse = { success: true; group: AccountLinkGroupPayload };
+type ManageAccountLinksListResponse = { success: true; links: AccountLink[] };
+type ManageAccountLinksNetworkResponse = { success: true; network: AccountLinkNetwork };
+
 const linkMode = ref('pair');
 const user1Id = ref('');
 const user2Id = ref('');
@@ -163,9 +229,9 @@ const groupName = ref('');
 const groupDescription = ref('');
 const userIdsText = ref('');
 const searchUserId = ref('');
-const links = ref<any[]>([]);
+const links = ref<AccountLink[]>([]);
 const searched = ref(false);
-const network = ref<any>(null);
+const network = ref<AccountLinkNetwork | null>(null);
 const showNetwork = ref(false);
 const error = ref('');
 const success = ref('');
@@ -199,18 +265,21 @@ async function createLink() {
 		const result = await misskeyApi('admin/users/manage-account-links', {
 			operation: 'create',
 			userIds: [user1Id.value.trim(), user2Id.value.trim()],
-		});
+		} as any) as ManageAccountLinksBasicResponse | undefined;
 
-		if (result.success) {
-			const createdUserIds = [user1Id.value.trim(), user2Id.value.trim()];
+		if (!result?.success) {
+			error.value = i18n.ts._accountLink.createFailed;
+			return;
+		}
 
-			success.value = i18n.ts._accountLink.createdSucc;
-			user1Id.value = '';
-			user2Id.value = '';
+		const createdUserIds = [user1Id.value.trim(), user2Id.value.trim()];
 
-			if (searchUserId.value && createdUserIds.includes(searchUserId.value)) {
-				await searchLinks();
-			}
+		success.value = i18n.ts._accountLink.createdSucc;
+		user1Id.value = '';
+		user2Id.value = '';
+
+		if (searchUserId.value && createdUserIds.includes(searchUserId.value)) {
+			await searchLinks();
 		}
 	} catch (err: any) {
 		error.value = err.message || i18n.ts._accountLink.createFailed;
@@ -231,12 +300,14 @@ async function searchLinks() {
 		const result = await misskeyApi('admin/users/manage-account-links', {
 			operation: 'list',
 			userId: searchUserId.value.trim(),
-		});
+		} as any) as ManageAccountLinksListResponse | undefined;
 
-		if (result.success) {
-			links.value = result.links || [];
-			searched.value = true;
+		if (!result?.success) {
+			throw new Error('Failed to fetch account links');
 		}
+
+		links.value = result.links ?? [];
+		searched.value = true;
 	} catch (err: any) {
 		error.value = err.message || i18n.ts._accountLink.searchFailed;
 		links.value = [];
@@ -259,20 +330,22 @@ async function createGroup() {
 			userIds: parsedUserIds.value,
 			groupName: groupName.value.trim() || undefined,
 			groupDescription: groupDescription.value.trim() || undefined,
-		});
+		} as any) as ManageAccountLinksCreateResponse | undefined;
 
-		if (result.success) {
-			const groupInfo = result.group.groupInfo;
-			success.value = i18n.tsx._accountLink.groupCreated1({ name: groupInfo.name }) +
-				i18n.tsx._accountLink.groupCreated2({ userCount: groupInfo.userCount, linkCount: groupInfo.linkCount });
+		if (!result?.success) {
+			throw new Error(i18n.ts._accountLink.createGroupFailed);
+		}
 
-			userIdsText.value = '';
-			groupName.value = '';
-			groupDescription.value = '';
+		const groupInfo = result.group.groupInfo;
+		success.value = i18n.tsx._accountLink.groupCreated1({ name: groupInfo.name }) +
+			i18n.tsx._accountLink.groupCreated2({ userCount: groupInfo.userCount, linkCount: groupInfo.linkCount });
 
-			if (searchUserId.value && parsedUserIds.value.includes(searchUserId.value)) {
-				await searchLinks();
-			}
+		userIdsText.value = '';
+		groupName.value = '';
+		groupDescription.value = '';
+
+		if (searchUserId.value && parsedUserIds.value.includes(searchUserId.value)) {
+			await searchLinks();
 		}
 	} catch (err: any) {
 		error.value = err.message || i18n.ts._accountLink.createGroupFailed;
@@ -287,13 +360,15 @@ async function removeLink(linkId: string) {
 		const result = await misskeyApi('admin/users/manage-account-links', {
 			operation: 'remove',
 			linkId: linkId,
-		});
+		} as any) as ManageAccountLinksBasicResponse | undefined;
 
-		if (result.success) {
-			success.value = i18n.ts._accountLink.removedSucc;
-			if (searchUserId.value) {
-				await searchLinks();
-			}
+		if (!result?.success) {
+			throw new Error(i18n.ts._accountLink.removeFailed);
+		}
+
+		success.value = i18n.ts._accountLink.removedSucc;
+		if (searchUserId.value) {
+			await searchLinks();
 		}
 	} catch (err: any) {
 		error.value = err.message || i18n.ts._accountLink.removeFailed;
@@ -313,12 +388,14 @@ async function viewNetwork() {
 		const result = await misskeyApi('admin/users/manage-account-links', {
 			operation: 'getNetwork',
 			userId: searchUserId.value.trim(),
-		});
+		} as any) as ManageAccountLinksNetworkResponse | undefined;
 
-		if (result.success) {
-			network.value = result.network;
-			showNetwork.value = true;
+		if (!result?.success) {
+			throw new Error(i18n.ts._accountLink.loadNetworkFailed);
 		}
+
+		network.value = result.network;
+		showNetwork.value = true;
 	} catch (err: any) {
 		error.value = err.message || i18n.ts._accountLink.loadNetworkFailed;
 		network.value = null;

@@ -3,9 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error - Worker module resolution handled by Vite at build time
-import { Parser, Interpreter, values, utils } from '@syuilo/aiscript';
+import type { Parser, Interpreter, values } from '@syuilo/aiscript';
 
 type WorkerMessage =
 	| { type: 'init'; pluginId: string; code: string; env: Record<string, any> }
@@ -21,11 +19,21 @@ type MainThreadMessage =
 	| { type: 'registerHandler'; pluginId: string; handlerType: string; title?: string }
 	| { type: 'apiCall'; pluginId: string; callId: string; method: string; args: any[] };
 
+let ais: typeof import('@syuilo/aiscript') | null = null;
+
+async function getAiScript() {
+	if (!ais) {
+		ais = await import('@syuilo/aiscript');
+	}
+	return ais;
+}
+
 const interpreters = new Map<string, Interpreter>();
 let parser: Parser | null = null;
 
-function getParser(): Parser {
+async function getParser(): Promise<Parser> {
 	if (!parser) {
+		const { Parser } = await getAiScript();
 		parser = new Parser();
 	}
 	return parser;
@@ -50,7 +58,7 @@ function callMainThread(pluginId: string, method: string, args: any[]): Promise<
 			args,
 		} satisfies MainThreadMessage);
 
-		setTimeout(() => {
+		globalThis.setTimeout(() => {
 			if (pendingCalls.has(callId)) {
 				pendingCalls.delete(callId);
 				reject(new Error('API call timeout'));
@@ -59,7 +67,8 @@ function callMainThread(pluginId: string, method: string, args: any[]): Promise<
 	});
 }
 
-function createWorkerEnv(pluginId: string, baseEnv: Record<string, any>): Record<string, values.Value> {
+async function createWorkerEnv(pluginId: string, baseEnv: Record<string, any>): Promise<Record<string, values.Value>> {
+	const { values, utils } = await getAiScript();
 	const env: Record<string, values.Value> = {};
 
 	for (const [key, value] of Object.entries(baseEnv)) {
@@ -91,9 +100,10 @@ function createWorkerEnv(pluginId: string, baseEnv: Record<string, any>): Record
 	];
 
 	for (const key of apiKeys) {
-		env[key] = values.FN_NATIVE(async (args: values.Value[]) => {
+		env[key] = values.FN_NATIVE(async (args, _opts) => {
 			try {
-				const result = await callMainThread(pluginId, key, args.map((arg: values.Value) => utils.valToJs(arg)));
+				const serializedArgs = args.map(arg => utils.valToJs(arg ?? values.NULL));
+				const result = await callMainThread(pluginId, key, serializedArgs);
 				return utils.jsToVal(result);
 			} catch (err) {
 				return values.ERROR('api_call_failed', utils.jsToVal(err));
@@ -106,13 +116,15 @@ function createWorkerEnv(pluginId: string, baseEnv: Record<string, any>): Record
 
 async function initPlugin(pluginId: string, code: string, baseEnv: Record<string, any>): Promise<void> {
 	try {
+		const { Interpreter, utils } = await getAiScript();
+
 		self.postMessage({
 			type: 'systemLog',
 			pluginId,
 			message: 'Initializing plugin in worker...',
 		} satisfies MainThreadMessage);
 
-		const env = createWorkerEnv(pluginId, baseEnv);
+		const env = await createWorkerEnv(pluginId, baseEnv);
 
 		const interpreter = new Interpreter(env, {
 			in: (q: string) => callMainThread(pluginId, 'readline', [q]),
@@ -136,7 +148,7 @@ async function initPlugin(pluginId: string, code: string, baseEnv: Record<string
 
 		interpreters.set(pluginId, interpreter);
 
-		const parserInstance = getParser();
+		const parserInstance = await getParser();
 		const ast = parserInstance.parse(code);
 
 		self.postMessage({
@@ -193,7 +205,7 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
 			abortPlugin(msg.pluginId);
 			break;
 
-		case 'call':
+		case 'call': {
 			const pending = pendingCalls.get(msg.callId);
 			if (pending) {
 				pendingCalls.delete(msg.callId);
@@ -204,6 +216,7 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
 				}
 			}
 			break;
+		}
 	}
 });
 
