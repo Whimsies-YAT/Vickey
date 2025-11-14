@@ -338,7 +338,7 @@ const translating = ref(false);
 const parsed = appearNote.text ? mfm.parse(appearNote.text) : null;
 const urls = parsed ? extractUrlFromMfm(parsed).filter((url) => appearNote.renote?.url !== url && appearNote.renote?.uri !== url) : null;
 const showTicker = (prefer.s.instanceTicker === 'always') || (prefer.s.instanceTicker === 'remote' && appearNote.user.instance);
-const convert = ref<string | null>(null);
+const convert = ref<Misskey.entities.DriveFile | null>(null);
 const converting = ref(false);
 const conversation = ref<Misskey.entities.Note[]>([]);
 const replies = ref<Misskey.entities.Note[]>([]);
@@ -633,8 +633,8 @@ function loadConversation() {
 }
 
 onUnmounted(() => {
-	if (convert.value) {
-		URL.revokeObjectURL(convert.value);
+	if (convert.value?.url) {
+		URL.revokeObjectURL(convert.value.url);
 	}
 });
 </script>

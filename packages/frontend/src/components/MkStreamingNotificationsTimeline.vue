@@ -57,6 +57,27 @@ import { prefer } from '@/preferences.js';
 import { store } from '@/store.js';
 import { isSeparatorNeeded, getSeparatorInfo } from '@/utility/timeline-date-separate.js';
 import { Paginator } from '@/utility/paginator.js';
+import type { IPaginator } from '@/utility/paginator.js';
+
+type GroupedReactionNotification = Misskey.entities.Notification & {
+	type: 'reaction:grouped';
+	reactions: {
+		user: Misskey.entities.UserLite;
+		reaction: string;
+	}[];
+};
+
+type GroupedRenoteNotification = Misskey.entities.Notification & {
+	type: 'renote:grouped';
+	users: Misskey.entities.UserLite[];
+};
+
+type ExtendedNotification = Misskey.entities.Notification | GroupedReactionNotification | GroupedRenoteNotification;
+type NotificationDeletedPayload = {
+	notificationId: string;
+	notifierId?: string;
+	reaction?: string;
+};
 
 const props = defineProps<{
 	excludeTypes?: typeof notificationTypes[number][] | null;
@@ -64,7 +85,7 @@ const props = defineProps<{
 
 const rootEl = useTemplateRef('rootEl');
 
-const paginator = prefer.s.useGroupedNotifications ? markRaw(new Paginator('i/notifications-grouped', {
+const paginatorBase = prefer.s.useGroupedNotifications ? markRaw(new Paginator('i/notifications-grouped', {
 	limit: 20,
 	computedParams: computed(() => ({
 		excludeTypes: props.excludeTypes ?? undefined,
@@ -75,6 +96,8 @@ const paginator = prefer.s.useGroupedNotifications ? markRaw(new Paginator('i/no
 		excludeTypes: props.excludeTypes ?? undefined,
 	})),
 }));
+
+const paginator = paginatorBase as unknown as IPaginator<ExtendedNotification>;
 
 const MIN_POLLING_INTERVAL = 1000 * 10;
 const POLLING_INTERVAL =
@@ -137,8 +160,8 @@ watch(visibility, () => {
 	}
 });
 
-function onNotification(notification) {
-	const isMuted = props.excludeTypes ? props.excludeTypes.includes(notification.type) : false;
+function onNotification(notification: Misskey.entities.Notification) {
+	const isMuted = props.excludeTypes ? props.excludeTypes.includes(notification.type as typeof notificationTypes[number]) : false;
 	if (isMuted || window.document.visibilityState === 'visible') {
 		if (store.s.realtimeMode) {
 			useStream().send('readNotification');
@@ -158,7 +181,7 @@ function onNotification(notification) {
 	}
 }
 
-function tryMergeNotification(newNotification) {
+function tryMergeNotification(newNotification: Misskey.entities.Notification): boolean {
 	const items = paginator.items.value;
 	if (items.length === 0) return false;
 
@@ -169,7 +192,7 @@ function tryMergeNotification(newNotification) {
 			existingNotification.type === 'reaction' &&
 			newNotification.note?.id && existingNotification.note?.id &&
 			newNotification.note.id === existingNotification.note.id) {
-			const groupedNotification = {
+			const groupedNotification: GroupedReactionNotification = {
 				...existingNotification,
 				type: 'reaction:grouped',
 				id: newNotification.id,
@@ -209,7 +232,7 @@ function tryMergeNotification(newNotification) {
 			existingNotification.type === 'renote' &&
 			newNotification.note?.renoteId && existingNotification.note?.renoteId &&
 			newNotification.note.renoteId === existingNotification.note.renoteId) {
-			const groupedNotification = {
+			const groupedNotification: GroupedRenoteNotification = {
 				...existingNotification,
 				type: 'renote:grouped',
 				id: newNotification.id,
@@ -240,7 +263,7 @@ function tryMergeNotification(newNotification) {
 	return false;
 }
 
-function handleNotificationDeleted(data) {
+function handleNotificationDeleted(data: NotificationDeletedPayload) {
 	const deletedId = data.notificationId;
 	const items = paginator.items.value;
 
@@ -266,7 +289,7 @@ function handleNotificationDeleted(data) {
 							user: remainingReaction.user,
 							userId: remainingReaction.user.id,
 							reaction: remainingReaction.reaction,
-						}));
+						} as ExtendedNotification));
 					}
 				} else {
 					paginator.updateItem(notification.id, (item) => {
@@ -297,7 +320,7 @@ function handleNotificationDeleted(data) {
 							type: 'renote' as const,
 							user: remainingUser,
 							userId: remainingUser.id,
-						}));
+						} as ExtendedNotification));
 					}
 				} else {
 					paginator.updateItem(notification.id, (item) => {
@@ -335,14 +358,16 @@ onMounted(() => {
 		connection = useStream().useChannel('main');
 		connection.on('notification', onNotification);
 		connection.on('notificationFlushed', reload);
-		connection.on('notificationDeleted', (data) => {
-			if (prefer.s.useGroupedNotifications) {
-				handleNotificationDeleted(data);
-			} else {
-				paginator.removeItem(data.notificationId);
-			}
-		});
-	}
+			connection.on('notificationDeleted', (data) => {
+				if (!data) return;
+				const payload = data as NotificationDeletedPayload;
+				if (prefer.s.useGroupedNotifications) {
+					handleNotificationDeleted(payload);
+				} else {
+					paginator.removeItem(payload.notificationId);
+				}
+			});
+		}
 });
 
 onUnmounted(() => {

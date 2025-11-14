@@ -712,6 +712,20 @@ type AuthSessionUserkeyRequest = operations['auth___session___userkey']['request
 type AuthSessionUserkeyResponse = operations['auth___session___userkey']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type AutoProcessedAbuseReport = {
+    id: string;
+    score: number;
+    detail: {
+        id: string;
+        status: number;
+        label: string;
+        note: {
+            text: string;
+        };
+    };
+};
+
+// @public (undocumented)
 type Blocking = components['schemas']['Blocking'];
 
 // @public (undocumented)
@@ -788,6 +802,11 @@ export type Channels = {
             readAllNotifications: () => void;
             unreadNotification: (payload: Notification_2) => void;
             notificationFlushed: () => void;
+            notificationDeleted: (payload: {
+                notificationId: string;
+                notifierId?: string;
+                reaction?: string;
+            }) => void;
             unreadAntenna: (payload: Antenna) => void;
             newChatMessage: (payload: ChatMessage) => void;
             readAllAnnouncements: () => void;
@@ -886,6 +905,21 @@ export type Channels = {
             withRenotes?: boolean;
             withReplies?: boolean;
             withFiles?: boolean;
+        };
+        events: {
+            note: (payload: Note) => void;
+        };
+        receives: null;
+    };
+    smartTimeline: {
+        params: {
+            withRenotes?: boolean;
+            withReplies?: boolean;
+            withFiles?: boolean;
+            algorithm?: 'smart' | 'hybrid' | 'social' | 'discovery';
+            diversityLevel?: 'low' | 'medium' | 'high';
+            freshnessWeight?: number;
+            qualityThreshold?: number;
         };
         events: {
             note: (payload: Note) => void;
@@ -1095,6 +1129,32 @@ export type Channels = {
                 id: ChatMessageLite['id'];
             };
         };
+    };
+    gomoku: {
+        params: null;
+        events: {
+            matched: (payload: {
+                game: GomokuGameDetailed;
+            }) => void;
+            invited: (payload: {
+                user: UserLite;
+            }) => void;
+        };
+        receives: null;
+    };
+    gomokuGame: {
+        params: {
+            gameId: string;
+        };
+        events: {
+            started: (payload: {
+                game: GomokuGameDetailed;
+            }) => void;
+            canceled: (payload: {
+                userId: string;
+            }) => void;
+        };
+        receives: null;
     };
     werewolf: {
         params: null;
@@ -1776,6 +1836,26 @@ export type Endpoints = Overwrite<Endpoints_2, {
         }>;
         res: AdminRolesCreateResponse;
     };
+    'admin/abuse-report/auto-processed/show': {
+        req: Endpoints_2['admin/abuse-report/auto-processed/show']['req'];
+        res: AutoProcessedAbuseReport[];
+    };
+    'admin/show-user': {
+        req: Endpoints_2['admin/show-user']['req'];
+        res: Endpoints_2['admin/show-user']['res'] & {
+            approved?: boolean;
+        };
+    };
+    'admin/show-pending': {
+        req: Endpoints_2['admin/show-pending']['req'];
+        res: Endpoints_2['admin/show-pending']['res'] & {
+            signupReason?: string | null;
+            time?: string;
+            isProcessed?: boolean;
+            result?: string | null;
+            ip?: string | null;
+        };
+    };
     'clear-browser-cache': {
         req: EmptyRequest;
         res: EmptyResponse;
@@ -1800,6 +1880,7 @@ declare namespace entities {
         EmojiUpdated,
         EmojiDeleted,
         AnnouncementCreated,
+        AutoProcessedAbuseReport,
         SignupRequest,
         SignupResponse,
         SignupPendingRequest,
@@ -3461,6 +3542,15 @@ type ModerationLog = {
 } | {
     type: 'updateProxyAccountDescription';
     info: ModerationLogPayloads['updateProxyAccountDescription'];
+} | {
+    type: 'viewDeletedNote';
+    info: ModerationLogPayloads['viewDeletedNote'];
+} | {
+    type: 'listDeletedNotes';
+    info: ModerationLogPayloads['listDeletedNotes'];
+} | {
+    type: 'hardDeleteNote';
+    info: ModerationLogPayloads['hardDeleteNote'];
 });
 
 // @public (undocumented)
@@ -4099,6 +4189,7 @@ type SignupPendingRequest = {
 type SignupPendingResponse = {
     id: User['id'];
     i: string;
+    pendingApproval?: boolean;
 };
 
 // @public (undocumented)
@@ -4108,6 +4199,7 @@ type SignupRequest = {
     host?: string;
     invitationCode?: string;
     emailAddress?: string;
+    reason?: string;
     'hcaptcha-response'?: string | null;
     'g-recaptcha-response'?: string | null;
     'turnstile-response'?: string | null;
@@ -4477,9 +4569,9 @@ type WerewolfVoicePullTracksRequest = operations['werewolf___voice-pull-tracks']
 //
 // src/entities.ts:55:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
 // src/streaming.ts:57:3 - (ae-forgotten-export) The symbol "ReconnectingWebSocket" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:85:5 - (ae-forgotten-export) The symbol "IceServer" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:296:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:306:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:87:5 - (ae-forgotten-export) The symbol "IceServer" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:313:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:323:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

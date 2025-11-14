@@ -25,16 +25,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkSelect v-model="reporterOrigin" :items="reporterOriginDef" style="margin: 0; flex: 1;">
 					<template #label>{{ i18n.ts.reporterOrigin }}</template>
 				</MkSelect>
-				<MkSelect v-model="type" style="margin: 0; flex: 1;">
+				<MkSelect v-model="type" :items="[]" style="margin: 0; flex: 1;">
 					<template #label>{{ i18n.ts.type }}</template>
 					<option value="all">{{ i18n.ts.all }}</option>
 					<option value="note">{{ i18n.ts._abuseReportAutoProcessing.note }}</option>
-					<option value=“flash”>{{ i18n.ts._abuseReportAutoProcessing.flash }}</option>
+					<option value="flash">{{ i18n.ts._abuseReportAutoProcessing.flash }}</option>
 					<option value="gallery">{{ i18n.ts._abuseReportAutoProcessing.gallery }}</option>
 					<option value="page">{{ i18n.ts._abuseReportAutoProcessing.page }}</option>
-					<option value=“user”>{{ i18n.ts._abuseReportAutoProcessing.user }}</option>
+					<option value="user">{{ i18n.ts._abuseReportAutoProcessing.user }}</option>
 				</MkSelect>
-				<MkSelect v-model="status" style="margin: 0; flex: 1;">
+				<MkSelect v-model="status" :items="[]" style="margin: 0; flex: 1;">
 					<template #label>{{ i18n.ts._abuseReportAutoProcessing.status }}</template>
 					<option value="record">{{ i18n.ts._abuseReportAutoProcessing.record }}</option>
 					<option value="ignore">{{ i18n.ts._abuseReportAutoProcessing.ignore }}</option>
@@ -65,6 +65,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, ref, markRaw } from 'vue';
+import * as Misskey from 'misskey-js';
 import MkSelect from '@/components/MkSelect.vue';
 import MkPagination from '@/components/MkPagination.vue';
 import XAbuseReport from '@/components/MkAbuseReport.vue';
@@ -110,8 +111,8 @@ const {
 });
 const searchUsername = ref('');
 const searchHost = ref('');
-const type = ref('all');
-const status = ref('record');
+const type = ref<Misskey.Endpoints['admin/abuse-user-reports']['req']['type']>('all');
+const status = ref<Misskey.Endpoints['admin/abuse-user-reports']['req']['status']>('record');
 
 const paginator = markRaw(new Paginator('admin/abuse-user-reports', {
 	limit: 10,

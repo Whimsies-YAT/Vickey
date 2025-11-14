@@ -75,6 +75,7 @@ import { misskeyApi } from '@/utility/misskey-api.js';
 import { showSuspendedDialog } from '@/utility/show-suspended-dialog.js';
 import { i18n } from '@/i18n.js';
 import * as os from '@/os.js';
+import type { AuthenticationResponseJSON } from '@simplewebauthn/types';
 
 import XInput from '@/components/MkSignin.input.vue';
 import XPassword from '@/components/MkSignin.password.vue';
@@ -131,27 +132,34 @@ function onPasskeyLogin(): void {
 	}
 }
 
-function onPasskeyDone(credential: AuthenticationPublicKeyCredential): void {
+async function onPasskeyDone(credential: AuthenticationPublicKeyCredential): Promise<void> {
 	waiting.value = true;
 
+	const passkeyJson = credential.toJSON() as AuthenticationResponseJSON;
+
 	if (doingPasskeyFromInputPage.value) {
-		misskeyApi<Misskey.entities.SigninWithPasskeyResponse>('signin-with-passkey', {
-			credential: credential.toJSON(),
-			context: passkeyContext.value,
-		}).then((res) => {
-			if (res.signinResponse == null) {
+		try {
+			const res = await misskeyApi('signin-with-passkey', {
+				credential: passkeyJson,
+				context: passkeyContext.value,
+			});
+
+			if (!res || typeof res !== 'object' || !('signinResponse' in res) || res.signinResponse == null) {
 				onSigninApiError();
 				return;
 			}
-			emit('login', res.signinResponse);
-			onLoginSucceeded(res.signinResponse);
-		}).catch(onSigninApiError);
+
+			const signinResponse = res.signinResponse;
+			emit('login', signinResponse);
+			await onLoginSucceeded(signinResponse);
+		} catch (error) {
+			onSigninApiError(error);
+		}
 	} else if (userInfo.value != null) {
 		tryLogin({
 			username: userInfo.value.username,
 			password: password.value,
-			// @ts-expect-error TODO: misskey-js由来の型（@simplewebauthn/types）とフロントエンド由来の型（@github/webauthn-json）が合わない
-			credential: credential.toJSON(),
+			credential: passkeyJson,
 		});
 	}
 }

@@ -306,14 +306,19 @@ const processOneTimePayment = async () => {
 		amount: number;
 		description?: string;
 		useCheckout: boolean;
-		billingDetails?: {
-			firstName?: string;
-			lastName?: string;
-			email?: string;
+		billingDetails: {
+			firstName: string;
+			lastName: string;
+			email: string;
 		};
 	} = {
 		amount: amount.value * 100,
 		useCheckout: props.useCheckout,
+		billingDetails: {
+			firstName: '',
+			lastName: '',
+			email: '',
+		},
 	};
 
 	if (description.value) {

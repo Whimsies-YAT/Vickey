@@ -13830,7 +13830,13 @@ export interface operations {
                 };
                 content: {
                     'application/json': {
+                        username: string;
                         email: string | null;
+                        isProcessed: boolean;
+                        signupReason: string | null;
+                        result: string | null;
+                        time: string;
+                        ip: string | null;
                     };
                 };
             };

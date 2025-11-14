@@ -5,8 +5,6 @@
 
 import { permissions } from 'misskey-js';
 import type { KeyOf, Schema } from '@/misc/json-schema.js';
-
-// @ts-expect-error endpoint-list.js is auto-generated at build time
 import * as endpointsObject from './endpoint-list.js';
 
 type EndpointModule = {

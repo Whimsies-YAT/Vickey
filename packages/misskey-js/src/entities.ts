@@ -212,6 +212,15 @@ export type ModerationLog = {
 } | {
 	type: 'updateProxyAccountDescription';
 	info: ModerationLogPayloads['updateProxyAccountDescription'];
+} | {
+	type: 'viewDeletedNote';
+	info: ModerationLogPayloads['viewDeletedNote'];
+} | {
+	type: 'listDeletedNotes';
+	info: ModerationLogPayloads['listDeletedNotes'];
+} | {
+	type: 'hardDeleteNote';
+	info: ModerationLogPayloads['hardDeleteNote'];
 });
 
 export type ServerStats = {
@@ -265,12 +274,26 @@ export type AnnouncementCreated = {
 	announcement: Announcement;
 };
 
+export type AutoProcessedAbuseReport = {
+	id: string;
+	score: number;
+	detail: {
+		id: string;
+		status: number;
+		label: string;
+		note: {
+			text: string;
+		};
+	};
+};
+
 export type SignupRequest = {
 	username: string;
 	password: string;
 	host?: string;
 	invitationCode?: string;
 	emailAddress?: string;
+	reason?: string;
 	'hcaptcha-response'?: string | null;
 	'g-recaptcha-response'?: string | null;
 	'turnstile-response'?: string | null;
@@ -289,6 +312,7 @@ export type SignupPendingRequest = {
 export type SignupPendingResponse = {
 	id: User['id'],
 	i: string,
+	pendingApproval?: boolean;
 };
 
 export type SigninFlowRequest = {

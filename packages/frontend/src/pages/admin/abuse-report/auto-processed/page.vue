@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<PageWithHeader :tabs="headerTabs">
 		<MkSpacer :contentMax="900">
 			<div :class="$style.root" class="_gaps">
-				<MkPagination v-slot="{ items }" ref="reports" :pagination="pagination">
+				<MkPagination v-slot="{ items }: { items: AutoProcessedReport[] }" ref="reports" :pagination="pagination">
 					<div class="_gaps">
 						<MkFolder v-for="item in items">
 							<template #label>{{ item.id }}</template>
@@ -51,6 +51,9 @@ import MkInfo from '@/components/MkInfo.vue';
 import * as os from "@/os";
 import { misskeyApi } from "@/utility/misskey-api";
 import MkFolder from "@/components/MkFolder.vue";
+import * as Misskey from 'misskey-js';
+
+type AutoProcessedReport = Misskey.Endpoints['admin/abuse-report/auto-processed/show']['res'][number];
 
 const reports = shallowRef<InstanceType<typeof MkPagination>>();
 

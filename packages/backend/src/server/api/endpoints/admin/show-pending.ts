@@ -80,7 +80,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				isProcessed: PendingUser.isProcessed,
 				signupReason: PendingUser.reason,
 				result: PendingUser.result,
-				time: PendingUser.time,
+				time: PendingUser.time.toISOString(),
 				ip: PendingUser.ip,
 			};
 		});

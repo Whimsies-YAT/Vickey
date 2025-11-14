@@ -60,21 +60,23 @@ const props = defineProps<{
 const reason = ref('');
 const email = ref('');
 const time = ref('');
-const isProcessed = ref('');
+const isProcessed = ref(false);
 const result = ref('');
 const ip = ref('');
 
 async function getReason() {
-	return misskeyApi('admin/show-pending', {
+	const info = await misskeyApi('admin/show-pending', {
 		id: props.user.id,
-	}).then(info => {
-		reason.value = info.signupReason ?? '';
-		email.value = info.email ?? '';
-		time.value = String(new Date(info.time).toLocaleString());
-		isProcessed.value = info.isProcessed;
-		result.value = info.result;
-		ip.value = info.ip;
 	});
+
+	if (!info) return;
+
+	reason.value = info.signupReason ?? '';
+	email.value = info.email ?? '';
+	time.value = info.time ? String(new Date(info.time).toLocaleString()) : '';
+	isProcessed.value = info.isProcessed ?? false;
+	result.value = info.result ?? '';
+	ip.value = info.ip ?? '';
 }
 
 onMounted(() => {

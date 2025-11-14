@@ -109,3 +109,6 @@ vite.config.local-dev.ts.timestamp-*
 
 # If using Claude
 CLAUDE.local.md
+
+# If using Codex
+AGENTS.md

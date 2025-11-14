@@ -27,9 +27,27 @@ type AbsEndpointType = {
 type FilterByEpRes<E extends Record<string, AbsEndpointType>> = {
 	[K in keyof E]: E[K]['res'] extends Array<{ id: string }> ? K : never
 }[keyof E];
-export type PaginatorCompatibleEndpointPaths = FilterByEpRes<Misskey.Endpoints>;
+
+type BasePaginatorEndpointPaths = FilterByEpRes<Misskey.Endpoints>;
+
+type AdditionalPaginatorEndpoints = 'notes/smart-timeline';
+
+type BasePaginatorEndpoints = {
+	[K in BasePaginatorEndpointPaths]: Misskey.Endpoints[K];
+};
+
+type AdditionalPaginatorEndpointMap = {
+	'notes/smart-timeline': {
+		req: Misskey.Endpoints['notes/smart-timeline']['req'];
+		res: Misskey.entities.Note[];
+	};
+};
+
+type CombinedPaginatorEndpoints = BasePaginatorEndpoints & AdditionalPaginatorEndpointMap;
+
+export type PaginatorCompatibleEndpointPaths = keyof CombinedPaginatorEndpoints;
 export type PaginatorCompatibleEndpoints = {
-	[K in PaginatorCompatibleEndpointPaths]: Misskey.Endpoints[K];
+	[K in keyof CombinedPaginatorEndpoints]: CombinedPaginatorEndpoints[K];
 };
 
 export type ExtractorFunction<P extends IPaginator, T> = (item: UnwrapRef<P['items']>[number]) => T;
