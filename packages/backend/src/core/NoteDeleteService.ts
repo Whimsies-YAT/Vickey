@@ -72,10 +72,13 @@ export class NoteDeleteService {
 	 */
 	async delete(user: { id: MiUser['id']; uri: MiUser['uri']; host: MiUser['host']; isBot: MiUser['isBot']; }, note: MiNote, quiet = false, deleter?: MiUser, isMLDelete = false) {
 		const isAdminDelete = deleter ? await this.roleService.isModerator(deleter) : false;
+		const isDeletingOthersNote = deleter && (note.userId !== deleter.id);
 		const collectionInstances = this.meta.deletedNoteCollectionInstances ?? [];
 		const isInWhitelist = collectionInstances.length > 0 && matchHostPatterns(user.host ?? 'local', collectionInstances);
 
-		if ((!isAdminDelete && !isMLDelete) || !isInWhitelist) {
+		const shouldSoftDelete = isInWhitelist && (isMLDelete || (isAdminDelete && isDeletingOthersNote));
+
+		if (!shouldSoftDelete) {
 			return this.hardDelete(user, note, quiet, deleter, isMLDelete);
 		}
 
