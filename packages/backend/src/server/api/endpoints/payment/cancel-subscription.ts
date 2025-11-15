@@ -84,8 +84,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
 					canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : new Date(),
 					endedAt: subscription.ended_at ? new Date(subscription.ended_at * 1000) : subscriptionRecord.endedAt,
-					currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : subscriptionRecord.currentPeriodStart,
-					currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : subscriptionRecord.currentPeriodEnd,
+					currentPeriodStart: subscription.items?.data?.[0]?.current_period_start ? new Date(subscription.items.data[0].current_period_start * 1000) : subscriptionRecord.currentPeriodStart,
+					currentPeriodEnd: subscription.items?.data?.[0]?.current_period_end ? new Date(subscription.items.data[0].current_period_end * 1000) : subscriptionRecord.currentPeriodEnd,
 					updatedAt: new Date(),
 				});
 
