@@ -10967,6 +10967,8 @@ export interface operations {
                         ttsAvailable: boolean;
                         silencedHosts?: string[];
                         mediaSilencedHosts: string[];
+                        deletedNoteCollectionInstances: string[];
+                        deletedNoteRetentionHours: number;
                         pinnedUsers: string[];
                         hiddenTags: string[];
                         blockedHosts: string[];
@@ -15233,6 +15235,8 @@ export interface operations {
                     notesPerOneAd?: number;
                     silencedHosts?: string[] | null;
                     mediaSilencedHosts?: string[] | null;
+                    deletedNoteCollectionInstances?: string[] | null;
+                    deletedNoteRetentionHours?: number | null;
                     /** @description [Deprecated] Use "urlPreviewSummaryProxyUrl" instead. */
                     summalyProxy?: string | null;
                     urlPreviewEnabled?: boolean;

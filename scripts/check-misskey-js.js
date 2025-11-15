@@ -6,13 +6,64 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execSync, spawnSync } = require('child_process');
 
 const rootDir = path.join(__dirname, '..');
 const rootPackageJson = path.join(rootDir, 'package.json');
 const mjsPackageJson = path.join(rootDir, 'packages/misskey-js/package.json');
 const backendDir = path.join(rootDir, 'packages/backend');
 const autogenDir = path.join(rootDir, 'packages/misskey-js/src/autogen');
+const generatedAutogenDir = path.join(rootDir, 'packages/misskey-js/generator/built/autogen');
+
+function runCommand(cmd, label) {
+	console.log(`[misskey-js] ${label}`);
+	try {
+		execSync(cmd, { cwd: rootDir, stdio: 'inherit' });
+		return true;
+	} catch (error) {
+		console.log(`[misskey-js] ❌ ${label} failed`, error?.message ?? '');
+		return false;
+	}
+}
+
+function regenerateApiJson() {
+	return runCommand('pnpm --filter backend generate-api-json', 'Generating API JSON (backend)');
+}
+
+function regenerateAutogenTypes() {
+	return runCommand('pnpm --filter misskey-js-type-generator generate', 'Regenerating misskey-js types');
+}
+
+function compareAutogenWithGenerated() {
+	if (!fs.existsSync(generatedAutogenDir)) {
+		console.log('[misskey-js] ⚠ Generated autogen directory not found');
+		return 'needs-rebuild';
+	}
+	if (!fs.existsSync(autogenDir)) {
+		console.log('[misskey-js] ⚠ Repository autogen directory missing');
+		return 'needs-rebuild';
+	}
+
+	const diff = spawnSync('diff', ['-qr', generatedAutogenDir, autogenDir], {
+		cwd: rootDir,
+		stdio: ['ignore', 'pipe', 'pipe'],
+		encoding: 'utf-8',
+	});
+
+	if (diff.status === 0) {
+		console.log('[misskey-js] ✓ Autogen files match generated output');
+		return 'match';
+	}
+
+	if (diff.status === 1) {
+		console.log('[misskey-js] ⚠ Autogen mismatch detected (diff excerpt below)\n');
+		console.log(diff.stdout || diff.stderr || '(diff output empty)');
+		return 'mismatch';
+	}
+
+	console.log('[misskey-js] ⚠ Failed to compare autogen directories:', diff.stderr || diff.error?.message);
+	return 'needs-rebuild';
+}
 
 /**
  * Version consistency
@@ -138,6 +189,22 @@ function main() {
 	} else if (apiStatus === 'needs-rebuild') {
 		needsRebuild = true;
 		reasons.push('api.json verification failed or missing');
+	}
+
+	if (!needsRebuild) {
+		const apiReady = regenerateApiJson();
+		const autogenReady = apiReady && regenerateAutogenTypes();
+
+		if (!apiReady || !autogenReady) {
+			needsRebuild = true;
+			reasons.push('autogen regeneration failed');
+		} else {
+			const diffStatus = compareAutogenWithGenerated();
+			if (diffStatus !== 'match') {
+				needsRebuild = true;
+				reasons.push('autogen mismatch (regenerate types)');
+			}
+		}
 	}
 
 	console.log('');

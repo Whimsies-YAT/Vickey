@@ -24,7 +24,9 @@ import { SearchService } from '@/core/SearchService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { NotificationService } from '@/core/NotificationService.js';
 import { FanoutTimelineService } from '@/core/FanoutTimelineService.js';
+import { RoleService } from '@/core/RoleService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
+import { matchHostPatterns } from '@/misc/match-host.js';
 
 @Injectable()
 export class NoteDeleteService {
@@ -54,6 +56,7 @@ export class NoteDeleteService {
 		private moderationLogService: ModerationLogService,
 		private notificationService: NotificationService,
 		private fanoutTimelineService: FanoutTimelineService,
+		private roleService: RoleService,
 		private notesChart: NotesChart,
 		private perUserNotesChart: PerUserNotesChart,
 		private instanceChart: InstanceChart,
@@ -63,8 +66,19 @@ export class NoteDeleteService {
 	 * 投稿を削除します。
 	 * @param user 投稿者
 	 * @param note 投稿
+	 * @param quiet
+	 * @param deleter
+	 * @param isMLDelete ML自動削除フラグ
 	 */
-	async delete(user: { id: MiUser['id']; uri: MiUser['uri']; host: MiUser['host']; isBot: MiUser['isBot']; }, note: MiNote, quiet = false, deleter?: MiUser) {
+	async delete(user: { id: MiUser['id']; uri: MiUser['uri']; host: MiUser['host']; isBot: MiUser['isBot']; }, note: MiNote, quiet = false, deleter?: MiUser, isMLDelete = false) {
+		const isAdminDelete = deleter ? await this.roleService.isModerator(deleter) : false;
+		const collectionInstances = this.meta.deletedNoteCollectionInstances ?? [];
+		const isInWhitelist = collectionInstances.length > 0 && matchHostPatterns(user.host ?? 'local', collectionInstances);
+
+		if ((!isAdminDelete && !isMLDelete) || !isInWhitelist) {
+			return this.hardDelete(user, note, quiet, deleter, isMLDelete);
+		}
+
 		const deletedAt = new Date();
 
 		if (note.replyId) {
@@ -127,6 +141,7 @@ export class NoteDeleteService {
 			userId: user.id,
 		}, {
 			isDeleted: true,
+			deletedAt: deletedAt,
 		});
 
 		if (deleter && (note.userId !== deleter.id)) {
@@ -141,7 +156,7 @@ export class NoteDeleteService {
 		}
 	}
 
-	async hardDelete(user: { id: MiUser['id']; uri: MiUser['uri']; host: MiUser['host']; isBot: MiUser['isBot']; }, note: MiNote, quiet = false, deleter?: MiUser) {
+	async hardDelete(user: { id: MiUser['id']; uri: MiUser['uri']; host: MiUser['host']; isBot: MiUser['isBot']; }, note: MiNote, quiet = false, deleter?: MiUser, isMLDelete = false) {
 		const deletedAt = new Date();
 
 		if (note.replyId) {

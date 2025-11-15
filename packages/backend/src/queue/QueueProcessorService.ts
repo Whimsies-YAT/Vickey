@@ -47,6 +47,7 @@ import { BakeBufferedReactionsProcessorService } from './processors/BakeBuffered
 import { CleanProcessorService } from './processors/CleanProcessorService.js';
 import { AggregateRetentionProcessorService } from './processors/AggregateRetentionProcessorService.js';
 import { CleanRemoteNotesProcessorService } from './processors/CleanRemoteNotesProcessorService.js';
+import { CleanDeletedNotesProcessorService } from './processors/CleanDeletedNotesProcessorService.js';
 import { QueueLoggerService } from './QueueLoggerService.js';
 import { CheckSecurityReleaseProcessorService } from "./processors/CheckSecurityReleaseProcessorService.js";
 import { DefaultSecCheckSecurityReleaseProcessorService } from "@/queue/processors/DefaultSecCheckSecurityReleaseProcessorService.js";
@@ -145,6 +146,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		private checkIP2LReleaseProcessorService: CheckIP2LReleaseProcessorService,
 		private cleanExpiredPendingsProcessorService: CleanExpiredPendingsProcessorService,
 		private cleanRemoteNotesProcessorService: CleanRemoteNotesProcessorService,
+		private cleanDeletedNotesProcessorService: CleanDeletedNotesProcessorService,
 		private userSessionsProcessorService: UserSessionsProcessorService,
 		private userSessionsCleanupProcessorService: UserSessionsCleanupProcessorService,
 		private riskScoreUpdateProcessorService: RiskScoreUpdateProcessorService,
@@ -195,6 +197,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 					case 'cleanExpired': return this.cleanExpiredPendingsProcessorService.process();
 					case 'checkIP2L': return this.checkIP2LReleaseProcessorService.process();
 					case 'cleanRemoteNotes': return this.cleanRemoteNotesProcessorService.process(job);
+					case 'cleanDeletedNotes': return this.cleanDeletedNotesProcessorService.process(job);
 					case 'syncUserSessions': return this.userSessionsProcessorService.process();
 					case 'clearExpiredSessions': return this.userSessionsCleanupProcessorService.process();
 					case 'riskScoreUpdate': return this.riskScoreUpdateProcessorService.process(job);

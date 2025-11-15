@@ -586,6 +586,26 @@ export interface Locale extends ILocale {
      */
     "deletedNoteDetailsTitle": string;
     /**
+     * Deleted Note Collection
+     */
+    "deletedNoteCollection": string;
+    /**
+     * Collection Instances (Whitelist)
+     */
+    "deletedNoteCollectionInstances": string;
+    /**
+     * Specify instances to collect deleted notes from (one per line). Supports wildcards: *.example.com matches all subdomains. Use "local" to collect local deleted notes. Leave empty to disable collection (no deleted notes will be kept).
+     */
+    "deletedNoteCollectionInstancesDescription": string;
+    /**
+     * Retention Period (Hours)
+     */
+    "deletedNoteRetentionHours": string;
+    /**
+     * Deleted notes older than this will be permanently removed (1-72 hours)
+     */
+    "deletedNoteRetentionHoursDescription": string;
+    /**
      * エラー
      */
     "error": string;

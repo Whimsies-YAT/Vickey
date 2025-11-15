@@ -116,6 +116,7 @@ function generateDummyNote(override?: Partial<MiNote>): MiNote {
 		geojson: null,
 		location: null,
 		isDeleted: false,
+		deletedAt: null,
 		renoteChannelId: null,
 		...override,
 	};

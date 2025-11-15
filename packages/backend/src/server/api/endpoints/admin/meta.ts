@@ -159,6 +159,21 @@ export const meta = {
 					nullable: false,
 				},
 			},
+			deletedNoteCollectionInstances: {
+				type: 'array',
+				optional: false,
+				nullable: false,
+				items: {
+					type: 'string',
+					optional: false,
+					nullable: false,
+				},
+			},
+			deletedNoteRetentionHours: {
+				type: 'number',
+				optional: false,
+				nullable: false,
+			},
 			pinnedUsers: {
 				type: 'array',
 				optional: false, nullable: false,
@@ -850,6 +865,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				blockedHosts: instance.blockedHosts,
 				silencedHosts: instance.silencedHosts,
 				mediaSilencedHosts: instance.mediaSilencedHosts,
+				deletedNoteCollectionInstances: instance.deletedNoteCollectionInstances,
+				deletedNoteRetentionHours: instance.deletedNoteRetentionHours,
 				sensitiveWords: instance.sensitiveWords,
 				prohibitedWords: instance.prohibitedWords,
 				prohibitedWordsForNameOfUser: instance.prohibitedWordsForNameOfUser,

@@ -87,6 +87,9 @@ const REPEATABLE_SYSTEM_JOB_DEF = [{
 	// 毎日午前4時に起動(最も人の少ない時間帯)
 	pattern: '0 4 * * *',
 }, {
+	name: 'cleanDeletedNotes',
+	pattern: '0 * * * *',
+}, {
 	name: 'riskScoreUpdate',
 	pattern: '0 */6 * * *',
 }];

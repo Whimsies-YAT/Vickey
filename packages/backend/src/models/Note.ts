@@ -207,6 +207,12 @@ export class MiNote {
 	})
 	public isDeleted: boolean;
 
+	@Column('timestamp with time zone', {
+		nullable: true,
+		comment: 'The date when the note was deleted.',
+	})
+	public deletedAt: Date | null;
+
 	@Index()
 	@Column({
 		...id(),
