@@ -207,6 +207,12 @@ export class MiNote {
 	})
 	public isDeleted: boolean;
 
+	@Column('timestamp with time zone', {
+		nullable: true,
+		comment: 'The date when the note was deleted.',
+	})
+	public deletedAt: Date | null;
+
 	@Index()
 	@Column({
 		...id(),
@@ -267,6 +273,14 @@ export class MiNote {
 		comment: 'Geographic location as Point (lon/lat, WGS84).',
 	})
 	public location: string | null;
+
+	@Column({
+		...id(),
+		nullable: true,
+		comment: '[Denormalized]',
+	})
+	public renoteChannelId: MiChannel['id'] | null;
+	//#endregion
 
 	constructor(data: Partial<MiNote>) {
 		if (data == null) return;

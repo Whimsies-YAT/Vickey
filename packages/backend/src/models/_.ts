@@ -34,6 +34,7 @@ import { MiBubbleGameRecord } from '@/models/BubbleGameRecord.js';
 import { MiChannel } from '@/models/Channel.js';
 import { MiChannelFavorite } from '@/models/ChannelFavorite.js';
 import { MiChannelFollowing } from '@/models/ChannelFollowing.js';
+import { MiChannelMuting } from "@/models/ChannelMuting.js";
 import { MiChatApproval } from '@/models/ChatApproval.js';
 import { MiChatMessage } from '@/models/ChatMessage.js';
 import { MiChatRoom } from '@/models/ChatRoom.js';
@@ -134,9 +135,11 @@ export const miRepository = {
 		if (opt.replication) {
 			const queryRunner = this.manager.connection.createQueryRunner('master');
 			try {
-				return this.insertOneImpl(entity, findOptions, queryRunner);
+				return await this.insertOneImpl(entity, findOptions, queryRunner);
 			} finally {
-				await queryRunner.release();
+				if (queryRunner && !queryRunner.isReleased) {
+					await queryRunner.release();
+				}
 			}
 		} else {
 			return this.insertOneImpl(entity, findOptions);
@@ -194,6 +197,7 @@ export {
 	MiBlocking,
 	MiChannelFollowing,
 	MiChannelFavorite,
+	MiChannelMuting,
 	MiClip,
 	MiClipNote,
 	MiClipFavorite,
@@ -294,6 +298,7 @@ export type AuthSessionsRepository = MiRepositoryType<MiAuthSession>;
 export type BlockingsRepository = MiRepositoryType<MiBlocking>;
 export type ChannelFollowingsRepository = MiRepositoryType<MiChannelFollowing>;
 export type ChannelFavoritesRepository = MiRepositoryType<MiChannelFavorite>;
+export type ChannelMutingRepository = MiRepositoryType<MiChannelMuting>;
 export type ClipsRepository = MiRepositoryType<MiClip>;
 export type ClipNotesRepository = MiRepositoryType<MiClipNote>;
 export type ClipFavoritesRepository = MiRepositoryType<MiClipFavorite>;

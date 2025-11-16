@@ -1,0 +1,10 @@
+{
+	"_comment": "Endpoint auto-discovery configuration - only define exceptions here",
+	"_disabled_comment": "Add endpoint names to temporarily disable them",
+	"disabled": [
+	],
+
+	"_pathOverrides_comment": "Override endpoint names (key: custom name, value: file path without extension)",
+	"pathOverrides": {
+	}
+}

@@ -317,7 +317,7 @@ const translation = ref<Misskey.entities.NotesTranslateResponse | null>(null);
 const translating = ref(false);
 const showTicker = (prefer.s.instanceTicker === 'always') || (prefer.s.instanceTicker === 'remote' && appearNote.user.instance);
 const canRenote = computed(() => ['public', 'home'].includes(appearNote.visibility) || (appearNote.visibility === 'followers' && appearNote.userId === $i?.id));
-const convert = ref<string | null>(null);
+const convert = ref<Misskey.entities.DriveFile | null>(null);
 const converting = ref(false);
 const renoteCollapsed = ref(
 	prefer.s.collapseRenotes && isRenote && (
@@ -703,7 +703,7 @@ function emitUpdReaction(emoji: string, delta: number) {
 
 onUnmounted(() => {
 	if (convert.value) {
-		URL.revokeObjectURL(convert.value);
+		URL.revokeObjectURL(convert.value.url);
 	}
 });
 </script>

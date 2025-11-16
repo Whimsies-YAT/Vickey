@@ -124,7 +124,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 	</div>
 
-	<div v-if="mySeat !== null && game.phase !== 'ended'" class="_panel" style="padding: 16px; margin-top: 16px;">
+	<div v-if="mySeat !== null && !isGameEnded" class="_panel" style="padding: 16px; margin-top: 16px;">
 		<div style="font-weight: bold; margin-bottom: 12px; display: flex; align-items: center;">
 			<i class="ti ti-message-2" style="margin-right: 8px;"></i>
 			{{ currentChatTitle }}
@@ -571,11 +571,40 @@ import { AudioProcessor } from '@/composables/audio-processor';
 const $i = ensureSignin();
 const router = useRouter();
 
+function werewolfApi<T = unknown>(endpoint: string, params?: Record<string, unknown>) {
+	return misskeyApi(endpoint as any, params as any) as Promise<T>;
+}
+
 const props = defineProps<{
 	gameId: string;
 }>();
 
-const game = shallowRef<any | null>(null);
+type WerewolfRoleState = {
+	role: string;
+	uiState?: any;
+	window?: string;
+	windowRemaining?: number;
+	allowedActions?: string[];
+};
+
+type WerewolfGameState = Misskey.entities.WerewolfGameDetailed & {
+	readyPlayers: string[];
+	myRoleState?: WerewolfRoleState | null;
+};
+
+type PhaseChangedPayload = {
+	phase: string;
+	dayNumber?: number;
+	subPhase?: string;
+	voicePermissions?: Record<string, boolean>;
+};
+
+type SubPhaseChangedPayload = {
+	subPhase?: string;
+	voicePermissions?: Record<string, boolean>;
+};
+
+const game = shallowRef<WerewolfGameState | null>(null);
 const connection = shallowRef<Misskey.IChannelConnection<Misskey.Channels['werewolfGame']> | null>(null);
 const selectedTarget = ref<string | null>(null);
 const currentSpeaker = ref<string | null>(null);
@@ -627,6 +656,7 @@ const audioContext = shallowRef<AudioContext | null>(null);
 const localAnalyser = shallowRef<AnalyserNode | null>(null);
 
 const gameHistory = ref<any | null>(null);
+const isGameEnded = computed(() => game.value?.phase === 'ended');
 
 const isHost = computed(() => game.value?.hostId === $i.id);
 
@@ -692,7 +722,7 @@ async function handleSeatClick(seatNum: number) {
 	}
 
 	try {
-		await misskeyApi('werewolf/take-seat', {
+		await werewolfApi('werewolf/take-seat', {
 			gameId: props.gameId,
 			seatNumber: seatNum,
 		});
@@ -712,9 +742,9 @@ async function leaveSeat() {
 	try {
 		cleanupVoiceConnection();
 
-		await misskeyApi('werewolf/leave', {
-			gameId: props.gameId,
-		});
+			await werewolfApi('werewolf/leave', {
+				gameId: props.gameId,
+			});
 	} catch (err) {
 		os.alert({
 			type: 'error',
@@ -729,22 +759,23 @@ async function toggleReady() {
 
 	isTogglingReady.value = true;
 	const wasReady = isReady.value;
+	const currentGame = game.value;
 
 	try {
 		const newReadyPlayers = wasReady
-			? game.value.readyPlayers.filter((id: string) => id !== $i.id)
-			: [...game.value.readyPlayers, $i.id];
+			? currentGame.readyPlayers.filter((id: string) => id !== $i.id)
+			: [...currentGame.readyPlayers, $i.id];
 
 		game.value = {
-			...game.value,
+			...currentGame,
 			readyPlayers: newReadyPlayers,
 		};
 
-		if (wasReady) {
-			await misskeyApi('werewolf/unready', { gameId: props.gameId });
-		} else {
-			await misskeyApi('werewolf/ready', { gameId: props.gameId });
-		}
+			if (wasReady) {
+				await werewolfApi('werewolf/unready', { gameId: props.gameId });
+			} else {
+				await werewolfApi('werewolf/ready', { gameId: props.gameId });
+			}
 	} catch (err) {
 		await fetchGame();
 		os.alert({
@@ -969,7 +1000,9 @@ function formatEventDescription(event: any): string {
 	}
 }
 
-function getPhaseText(phase: string, subPhase?: string): string {
+function getPhaseText(phase?: string | null, subPhase?: string | null): string {
+	if (!phase) return 'Unknown';
+
 	if (phase === 'night' && subPhase) {
 		const subPhases: Record<string, string> = {
 			werewolf_turn: i18n.ts._werewolf.werewolfTurn,
@@ -991,7 +1024,7 @@ function getPhaseText(phase: string, subPhase?: string): string {
 		hunter_shooting: i18n.ts._werewolf.hunterShooting,
 		ended: i18n.ts._werewolf.ended,
 	};
-	return phases[phase] || phase;
+	return phases[phase] ?? phase ?? 'Unknown';
 }
 
 function getRoleText(role: string): string {
@@ -1027,14 +1060,17 @@ async function autoTakeSeat() {
 	if (firstEmptySeat) {
 		console.log('[Werewolf] Auto-taking seat:', firstEmptySeat.seatNumber);
 		try {
-			await misskeyApi('werewolf/take-seat', {
+			await werewolfApi('werewolf/take-seat', {
 				gameId: props.gameId,
 				seatNumber: firstEmptySeat.seatNumber,
 			});
-			const updated = await misskeyApi('werewolf/show', {
+			const updated = await werewolfApi<WerewolfGameState>('werewolf/show', {
 				gameId: props.gameId,
 			});
-			game.value = updated;
+			game.value = {
+				...updated,
+				readyPlayers: updated.readyPlayers ?? [],
+			};
 		} catch (err) {
 			console.error('[Werewolf] Auto-seat failed:', err);
 		}
@@ -1042,9 +1078,10 @@ async function autoTakeSeat() {
 }
 
 async function fetchGame() {
-	const fetchedGame = await misskeyApi('werewolf/show', {
+	const fetchedGame = await werewolfApi<WerewolfGameState | undefined>('werewolf/show', {
 		gameId: props.gameId,
 	});
+	if (!fetchedGame) return;
 
 	game.value = {
 		...fetchedGame,
@@ -1054,20 +1091,22 @@ async function fetchGame() {
 	if (fetchedGame.myRoleState) {
 		const roleState = fetchedGame.myRoleState;
 
-		if (roleState.role === 'witch' && roleState.uiState) {
-			witchUiState.value = roleState.uiState;
-			witchCurrentWindow.value = roleState.window;
-			witchWindowRemaining.value = roleState.windowRemaining;
-			witchAllowedActions.value = roleState.allowedActions || [];
+			if (roleState.role === 'witch' && roleState.uiState) {
+				witchUiState.value = roleState.uiState;
+				witchCurrentWindow.value = roleState.window ?? null;
+				witchWindowRemaining.value = roleState.windowRemaining ?? null;
+				witchAllowedActions.value = roleState.allowedActions || [];
+			}
 		}
-	}
 
-	if (game.value.phase === 'waiting' && mySeat.value === null && !hasAttemptedAutoSeat.value) {
+	const currentGame = game.value;
+
+	if (currentGame?.phase === 'waiting' && mySeat.value === null && !hasAttemptedAutoSeat.value) {
 		hasAttemptedAutoSeat.value = true;
 		await autoTakeSeat();
 	}
 
-	if (game.value.phase === 'waiting' && game.value.config.voiceEnabled && mySeat.value !== null && !voiceConnected.value) {
+	if (currentGame?.phase === 'waiting' && currentGame.config.voiceEnabled && mySeat.value !== null && !voiceConnected.value) {
 		initVoiceConnection();
 	}
 }
@@ -1109,18 +1148,21 @@ function initializeConnection() {
 	});
 
 	connection.value.on('gameStarted', (x) => {
-		game.value = x.game;
+		game.value = {
+			...x.game,
+			readyPlayers: x.game.readyPlayers ?? [],
+		};
 		countdown.value = null;
 	});
 
-	connection.value.on('phaseChanged', (x) => {
-		if (game.value) {
-			game.value = {
-				...game.value,
-				phase: x.phase,
-				dayNumber: x.dayNumber,
-				...(x.subPhase !== undefined ? { subPhase: x.subPhase } : {}),
-			};
+	connection.value.on('phaseChanged', (x: PhaseChangedPayload) => {
+			if (game.value) {
+				game.value = {
+					...game.value,
+					phase: x.phase,
+					...(x.dayNumber !== undefined ? { dayNumber: x.dayNumber } : {}),
+					...(x.subPhase !== undefined ? { subPhase: x.subPhase ?? null } : {}),
+				};
 			selectedTarget.value = null;
 
 			if (x.voicePermissions) {
@@ -1131,9 +1173,9 @@ function initializeConnection() {
 		}
 	});
 
-	connection.value.on('subPhaseChanged', (x) => {
+	connection.value.on('subPhaseChanged', (x: SubPhaseChangedPayload) => {
 		if (game.value) {
-			game.value.subPhase = x.subPhase;
+			game.value.subPhase = x.subPhase ?? null;
 			selectedTarget.value = null;
 
 			if (x.voicePermissions) {
@@ -1165,9 +1207,12 @@ function initializeConnection() {
 	});
 
 	connection.value.on('gameEnded', async (x) => {
-		game.value = x.game;
+		game.value = {
+			...x.game,
+			readyPlayers: x.game.readyPlayers ?? [],
+		};
 		try {
-			gameHistory.value = await misskeyApi('werewolf/game-history', {
+			gameHistory.value = await werewolfApi('werewolf/game-history', {
 				gameId: props.gameId,
 			});
 		} catch (err) {
@@ -1182,7 +1227,7 @@ function initializeConnection() {
 				type: 'error',
 				text: `${i18n.ts._werewolf.kickedFromGame}: ${x.reason === 'ready_timeout' ? i18n.ts._werewolf.readyTimeout : x.reason}`,
 			});
-			router.push('/werewolf');
+			router.push('/werewolf' as any);
 		} else {
 			fetchGame();
 		}
@@ -1194,7 +1239,7 @@ function initializeConnection() {
 			type: 'warning',
 			text: i18n.ts._werewolf.gameCanceled,
 		});
-		router.push('/werewolf');
+		router.push('/werewolf' as any);
 	});
 
 	connection.value.on('message', (x) => {
@@ -1260,20 +1305,20 @@ function initializeConnection() {
 	});
 
 	connection.value.on('nightPhaseTimeUpdate', (x) => {
-		nightPhaseTimeRemaining.value = x.remaining;
-		nightPhaseTotalTime.value = x.total;
+		nightPhaseTimeRemaining.value = x.remaining ?? null;
+		nightPhaseTotalTime.value = x.total ?? null;
 	});
 
 	connection.value.on('witchTimeWindowUpdate', (x) => {
-		witchCurrentWindow.value = x.window;
-		witchWindowRemaining.value = x.windowRemaining;
-		witchAllowedActions.value = x.allowedActions || [];
-		witchUiState.value = x.uiState || {};
+		witchCurrentWindow.value = x.window ?? null;
+		witchWindowRemaining.value = x.windowRemaining ?? null;
+		witchAllowedActions.value = x.allowedActions ?? [];
+		witchUiState.value = x.uiState ?? {};
 	});
 
 	connection.value.on('votingTimeUpdate', (x) => {
-		votingTimeRemaining.value = x.remaining;
-		votingTimeTotal.value = x.total;
+		votingTimeRemaining.value = x.remaining ?? null;
+		votingTimeTotal.value = x.total ?? null;
 
 		if (x.remaining === 0) {
 			votingTimeRemaining.value = null;
@@ -1281,7 +1326,11 @@ function initializeConnection() {
 		}
 	});
 
-	connection.value.on('transitionDelay', (x) => {
+	(connection.value as any).on('transitionDelay', (x: {
+		type: 'death_announcement' | 'speech_transition' | 'discussion_to_voting' | 'voting_results';
+		duration: number;
+		[key: string]: any;
+	}) => {
 		transitionDelay.value = {
 			type: x.type,
 			duration: x.duration,
@@ -1313,7 +1362,7 @@ function initializeConnection() {
 
 async function submitAction(action: string, target?: string) {
 	try {
-		await misskeyApi('werewolf/action', {
+		await werewolfApi('werewolf/action', {
 			gameId: props.gameId,
 			action,
 			target,
@@ -1329,7 +1378,7 @@ async function submitAction(action: string, target?: string) {
 
 async function skipSpeech() {
 	try {
-		await misskeyApi('werewolf/skip-speech', {
+		await werewolfApi('werewolf/skip-speech', {
 			gameId: props.gameId,
 		});
 	} catch (err) {
@@ -1348,7 +1397,7 @@ async function selfDestruct() {
 
 	if (!confirm.canceled) {
 		try {
-			await misskeyApi('werewolf/self-destruct', {
+			await werewolfApi('werewolf/self-destruct', {
 				gameId: props.gameId,
 			});
 		} catch (err) {
@@ -1361,14 +1410,14 @@ async function selfDestruct() {
 }
 
 function backToLobby() {
-	router.push('/werewolf');
+router.push('/werewolf' as any);
 }
 
 async function sendChatMessage() {
 	if (!chatInput.value.trim() || mySeat.value === null) return;
 
 	try {
-		await misskeyApi('werewolf/send-message', {
+		await werewolfApi('werewolf/send-message', {
 			gameId: props.gameId,
 			message: chatInput.value.trim(),
 			channelType: currentChannelType.value,
@@ -1463,7 +1512,7 @@ async function pullSingleRemoteTrack(userId: string, sessionId: string, trackNam
 		const currentOffer = await pc.createOffer();
 		await pc.setLocalDescription(currentOffer);
 
-		const pullResult = await misskeyApi('werewolf/voice-pull-single-track', {
+		const pullResult = await werewolfApi('werewolf/voice-pull-single-track', {
 			gameId: props.gameId,
 			remoteUserId: userId,
 			remoteSessionId: sessionId,
@@ -1484,7 +1533,7 @@ async function initVoiceConnection(retryCount = 0) {
 	if (voiceConnected.value || !game.value?.config.voiceEnabled) return;
 
 	try {
-		const creds = await misskeyApi('werewolf/get-voice-creds', {
+		const creds = await werewolfApi('werewolf/get-voice-creds', {
 			gameId: props.gameId,
 		}) as { sessionId: string; otherSessionIds: Record<string, string> };
 
@@ -1546,7 +1595,7 @@ async function initVoiceConnection(retryCount = 0) {
 			});
 		}
 
-		const pushResult = await misskeyApi('werewolf/voice-negotiate', {
+		const pushResult = await werewolfApi('werewolf/voice-negotiate', {
 			gameId: props.gameId,
 			offer: {
 				type: offer.type,

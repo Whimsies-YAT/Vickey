@@ -2692,11 +2692,15 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 						this.logger.info(`- Final result count: ${results.length}`);
 
 						stream.destroy();
-						resolve(results);
+						stream.once('close', () => {
+							resolve(results);
+						});
 					} catch (endError) {
 						this.logger.error('Error during stream end processing:', (endError as Error));
 						stream.destroy();
-						reject(endError);
+						stream.once('close', () => {
+							reject(endError);
+						});
 					}
 				});
 
@@ -2816,11 +2820,15 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 								}
 							}
 							stream.destroy();
-							resolve();
+							stream.once('close', () => {
+								resolve();
+							});
 						} catch (endError) {
 							this.logger.error('Error during stream end processing:', endError as Error);
 							stream.destroy();
-							reject(endError);
+							stream.once('close', () => {
+								reject(endError);
+							});
 						}
 					});
 

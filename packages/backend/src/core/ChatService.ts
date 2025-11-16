@@ -773,9 +773,10 @@ export class ChatService {
 			userId: userId,
 		} satisfies Partial<MiChatRoomMembership>;
 
-		// TODO: transaction
-		await this.chatRoomMembershipsRepository.insertOne(membership);
-		await this.chatRoomInvitationsRepository.delete(invitation.id);
+		await this.chatRoomMembershipsRepository.manager.transaction(async transactionalEntityManager => {
+			await transactionalEntityManager.getRepository(this.chatRoomMembershipsRepository.target).insert(membership);
+			await transactionalEntityManager.getRepository(this.chatRoomInvitationsRepository.target).delete(invitation.id);
+		});
 	}
 
 	@bindThis

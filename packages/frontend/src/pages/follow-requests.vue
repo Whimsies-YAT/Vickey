@@ -19,8 +19,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</div>
 							<div v-if="tab === 'list'" class="commands">
 								<MkButton class="command" rounded primary @click="accept(displayUser(req))"><i class="ti ti-check"/> {{ i18n.ts.accept }}</MkButton>
-								<MkButton v-if="req.ignored" class="command" rounded primary @click="display(req.follower)"><i class="ti ti-volume"/> {{ i18n.ts.display }}</MkButton>
-								<MkButton v-if="!req.ignored" class="command" rounded danger @click="ignore(req.follower)"><i class="ti ti-volume-3"/> {{ i18n.ts.ignore }}</MkButton>
+								<MkButton v-if="isRequestIgnored(req)" class="command" rounded primary @click="display(req.follower)"><i class="ti ti-volume"/> {{ i18n.ts.display }}</MkButton>
+								<MkButton v-if="!isRequestIgnored(req)" class="command" rounded danger @click="ignore(req.follower)"><i class="ti ti-volume-3"/> {{ i18n.ts.ignore }}</MkButton>
 								<MkButton class="command" rounded danger @click="reject(displayUser(req))"><i class="ti ti-x"/> {{ i18n.ts.reject }}</MkButton>
 							</div>
 							<div v-else class="commands">
@@ -46,6 +46,8 @@ import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import { $i } from '@/i.js';
 import { Paginator } from '@/utility/paginator.js';
+
+type FollowRequest = Misskey.Endpoints['following/requests/list']['res'][number];
 
 const tab = ref($i?.isLocked ? 'list' : 'sent');
 
@@ -91,6 +93,10 @@ function cancel(user: Misskey.entities.UserLite) {
 
 function displayUser(req) {
 	return tab.value === 'list' ? req.follower : req.followee;
+}
+
+function isRequestIgnored(req: FollowRequest): boolean {
+	return (req as { ignored?: boolean }).ignored ?? (req as { ignore?: boolean }).ignore ?? false;
 }
 
 const headerActions = computed(() => []);

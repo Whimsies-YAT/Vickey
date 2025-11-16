@@ -234,17 +234,22 @@ function releaseQueue() {
 	queuedNotes.value = [];
 }
 
-async function recordInteraction(noteId: string, type: string, context?: any) {
+type InteractionType = Misskey.Endpoints['notes/interaction']['req']['interactionType'];
+type InteractionContext = Record<string, unknown>;
+
+async function recordInteraction(noteId: string, type: InteractionType, context?: InteractionContext) {
 	if (!$i) return;
 
 	try {
-		await misskeyApi('notes/interaction', {
+		const payload = {
 			targetId: noteId,
 			targetType: 'note',
 			interactionType: type,
 			source: 'recommended_timeline',
 			...context,
-		});
+		} as Misskey.Endpoints['notes/interaction']['req'];
+
+		await misskeyApi('notes/interaction', payload);
 	} catch (err) {
 		console.warn('Failed to record interaction:', err);
 	}

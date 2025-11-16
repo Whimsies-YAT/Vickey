@@ -19,7 +19,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<XGallery v-else-if="tab === 'gallery'" :user="user"/>
 		<XRaw v-else-if="tab === 'raw'" :user="user"/>
 	</div>
-	<MkError v-else-if="error" @retry="fetchUser()"/>
+	<MkResult v-else-if="error === 'notFound'" type="notFound" :text="i18n.ts.noSuchUser">
+		<MkButton :class="$style.retryButton" rounded @click="fetchUser()">{{ i18n.ts.retry }}</MkButton>
+	</MkResult>
+	<MkError v-else-if="error === 'error'" @retry="fetchUser()"/>
 	<MkLoading v-else/>
 </PageWithHeader>
 </template>
@@ -33,6 +36,7 @@ import { definePage } from '@/page.js';
 import { i18n } from '@/i18n.js';
 import { $i } from '@/i.js';
 import { serverContext, assertServerContext } from '@/server-context.js';
+import MkButton from '@/components/MkButton.vue';
 
 const XHome = defineAsyncComponent(() => import('./home.vue'));
 const XNotes = defineAsyncComponent(() => import('./notes.vue'));
@@ -60,7 +64,7 @@ const props = withDefaults(defineProps<{
 const tab = ref(props.page);
 
 const user = ref<null | Misskey.entities.UserDetailed>(CTX_USER);
-const error = ref<any>(null);
+const error = ref<'notFound' | 'error' | null>(null);
 
 function fetchUser(): void {
 	if (props.acct == null) return;
@@ -77,9 +81,14 @@ function fetchUser(): void {
 		username,
 		host,
 	}).then(u => {
-		user.value = u;
+		user.value = u as Misskey.entities.UserDetailed;
+		error.value = null;
 	}).catch(err => {
-		error.value = err;
+		if (err.code === 'NO_SUCH_USER') {
+			error.value = 'notFound';
+		} else {
+			error.value = 'error';
+		}
 	});
 }
 
@@ -154,3 +163,9 @@ definePage(() => ({
 	} : {},
 }));
 </script>
+
+<style lang="scss" module>
+.retryButton {
+	margin: 0 auto;
+}
+</style>

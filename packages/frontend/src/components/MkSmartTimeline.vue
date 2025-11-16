@@ -342,16 +342,22 @@ function releaseQueue() {
 	queuedNotes.value = [];
 }
 
-async function recordInteraction(noteId: string, type: string, context?: any) {
+type InteractionType = Misskey.Endpoints['notes/interaction']['req']['interactionType'];
+type InteractionContext = Record<string, unknown>;
+
+async function recordInteraction(noteId: string, type: InteractionType, context?: InteractionContext) {
 	if (!$i) return;
 
 	try {
-		await misskeyApi('notes/interaction', {
+		const payload = {
 			targetId: noteId,
 			interactionType: type,
 			targetType: 'note',
 			source: context?.source || 'smart-timeline',
-		});
+			...context,
+		} as Misskey.Endpoints['notes/interaction']['req'];
+
+		await misskeyApi('notes/interaction', payload);
 	} catch (err) {
 		console.debug('Failed to record interaction:', err);
 		// Don't show error to user for interaction recording failures
@@ -422,15 +428,17 @@ async function openSettings() {
 		},
 	});
 
-	if (!canceled) {
-		try {
-			await misskeyApi('i/update-timeline-preferences', {
-				algorithm: result.algorithm,
-				diversityLevel: result.diversityLevel,
-				freshnessWeight: result.freshnessWeight,
-				qualityThreshold: result.qualityThreshold,
-				showScoreIndicator: result.showScoreIndicator,
-			});
+		if (!canceled) {
+			try {
+				const payload: Misskey.Endpoints['i/update-timeline-preferences']['req'] = {
+					algorithm: result.algorithm as 'smart' | 'hybrid' | 'social' | 'discovery',
+					diversityLevel: result.diversityLevel as 'low' | 'medium' | 'high',
+					freshnessWeight: result.freshnessWeight,
+					qualityThreshold: result.qualityThreshold,
+					showScoreIndicator: result.showScoreIndicator,
+				};
+
+				await misskeyApi('i/update-timeline-preferences', payload);
 
 			Object.assign(props, result);
 

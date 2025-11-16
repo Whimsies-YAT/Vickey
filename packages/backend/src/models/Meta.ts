@@ -109,6 +109,16 @@ export class MiMeta {
 	public mediaSilencedHosts: string[];
 
 	@Column('varchar', {
+		length: 1024, array: true, default: '{}',
+	})
+	public deletedNoteCollectionInstances: string[];
+
+	@Column('integer', {
+		default: 72,
+	})
+	public deletedNoteRetentionHours: number;
+
+	@Column('varchar', {
 		length: 1024,
 		nullable: true,
 	})

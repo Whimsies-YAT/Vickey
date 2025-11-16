@@ -403,6 +403,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 	})();
 
 	if (instance.sentryForFrontend) {
+		const sentryConfig = instance.sentryForFrontend;
 		const initSentryIsolated = async () => {
 			try {
 				const setupSentry = async () => {
@@ -415,6 +416,39 @@ export async function common(createVue: () => Promise<App<Element>>) {
 						if (!Sentry) return null;
 
 						try {
+							const integrations = [
+								...(sentryConfig.vueIntegration !== undefined
+									? [(() => {
+										try {
+											return Sentry.vueIntegration(sentryConfig.vueIntegration ?? undefined);
+										} catch (e) {
+											console.warn('Sentry Vue integration failed:', e);
+											return null;
+										}
+									})()].filter((x): x is NonNullable<typeof x> => x !== null)
+									: []),
+								...(sentryConfig.browserTracingIntegration !== undefined
+									? [(() => {
+										try {
+											return Sentry.browserTracingIntegration(sentryConfig.browserTracingIntegration ?? undefined);
+										} catch (e) {
+											console.warn('Sentry browser tracing integration failed:', e);
+											return null;
+										}
+									})()].filter((x): x is NonNullable<typeof x> => x !== null)
+									: []),
+								...(sentryConfig.replayIntegration !== undefined
+									? [(() => {
+										try {
+											return Sentry.replayIntegration(sentryConfig.replayIntegration ?? undefined);
+										} catch (e) {
+											console.warn('Sentry replay integration failed:', e);
+											return null;
+										}
+									})()].filter((x): x is NonNullable<typeof x> => x !== null)
+									: []),
+							];
+
 							const sentryInstance = Sentry.init({
 								app,
 								beforeSend(event) {
@@ -429,42 +463,11 @@ export async function common(createVue: () => Promise<App<Element>>) {
 										return null;
 									}
 								},
-								integrations: [
-									...(instance.sentryForFrontend.vueIntegration !== undefined
-										? [(() => {
-											try {
-												return Sentry.vueIntegration(instance.sentryForFrontend.vueIntegration ?? undefined);
-											} catch (e) {
-												console.warn('Sentry Vue integration failed:', e);
-												return null;
-											}
-										})()].filter(Boolean)
-										: []),
-									...(instance.sentryForFrontend.browserTracingIntegration !== undefined
-										? [(() => {
-											try {
-												return Sentry.browserTracingIntegration(instance.sentryForFrontend.browserTracingIntegration ?? undefined);
-											} catch (e) {
-												console.warn('Sentry browser tracing integration failed:', e);
-												return null;
-											}
-										})()].filter(Boolean)
-										: []),
-									...(instance.sentryForFrontend.replayIntegration !== undefined
-										? [(() => {
-											try {
-												return Sentry.replayIntegration(instance.sentryForFrontend.replayIntegration ?? undefined);
-											} catch (e) {
-												console.warn('Sentry replay integration failed:', e);
-												return null;
-											}
-										})()].filter(Boolean)
-										: []),
-								].filter(Boolean),
-								tracesSampleRate: instance.sentryForFrontend.tracesSampleRate ?? 0.2,
-								replaysSessionSampleRate: instance.sentryForFrontend.replaysSessionSampleRate ?? 0.1,
-								replaysOnErrorSampleRate: instance.sentryForFrontend.replaysOnErrorSampleRate ?? 0.5,
-								...instance.sentryForFrontend.options,
+								integrations,
+								tracesSampleRate: (sentryConfig.options as Record<string, unknown>).tracesSampleRate as number | undefined ?? 0.2,
+								replaysSessionSampleRate: (sentryConfig.options as Record<string, unknown>).replaysSessionSampleRate as number | undefined ?? 0.1,
+								replaysOnErrorSampleRate: (sentryConfig.options as Record<string, unknown>).replaysOnErrorSampleRate as number | undefined ?? 0.5,
+								...sentryConfig.options,
 							});
 
 							const safeCapture = (exception, extras = {}) => {

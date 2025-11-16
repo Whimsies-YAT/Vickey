@@ -100,7 +100,10 @@ const menu = (ev: MouseEvent) => {
 		icon: 'ti ti-upload',
 		text: i18n.ts.import,
 		action: async () => {
-			const file = await selectFile(ev.currentTarget ?? ev.target);
+			const file = await selectFile({
+				anchorElement: ev.currentTarget ?? ev.target,
+				multiple: false,
+			});
 			misskeyApi('admin/avatar-decorations/import-zip', {
 				fileId: file.id,
 			})
@@ -126,6 +129,7 @@ const headerActions = computed(() => [{
 	handler: add,
 }, {
 	icon: 'ti ti-dots',
+	text: i18n.ts.more,
 	handler: menu,
 }]);
 

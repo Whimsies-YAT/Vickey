@@ -348,7 +348,19 @@ export class ApiCallService implements OnApplicationShutdown {
 
 			if (factor > 0) {
 				// Rate limit
-				const rateLimit = await this.rateLimiterService.limit(limit as IEndpointMeta['limit'] & { key: NonNullable<string> }, limitActor, factor);
+				const rateLimit = await this.rateLimiterService.limit(
+					limit as IEndpointMeta['limit'] & { key: NonNullable<string> },
+					limitActor,
+					factor,
+					{
+						userId: user?.id,
+						ip: request.ip ?? null,
+						endpoint: ep.name,
+						limitKey: limit.key as string,
+						reason: 'RATE_LIMIT_EXCEEDED',
+						actor: limitActor,
+					}
+				);
 				if (rateLimit != null) {
 					throw new ApiError({
 						message: 'Rate limit exceeded. Please try again later.',

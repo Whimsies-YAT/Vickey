@@ -203,6 +203,19 @@ export const paramDef = {
 				type: 'string',
 			},
 		},
+		deletedNoteCollectionInstances: {
+			type: 'array',
+			nullable: true,
+			items: {
+				type: 'string',
+			},
+		},
+		deletedNoteRetentionHours: {
+			type: 'integer',
+			nullable: true,
+			minimum: 1,
+			maximum: 72,
+		},
 		summalyProxy: {
 			type: 'string', nullable: true,
 			description: '[Deprecated] Use "urlPreviewSummaryProxyUrl" instead.',
@@ -323,6 +336,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					lastValue = h;
 					return h !== '' && h !== lv && !set.blockedHosts?.includes(h);
 				});
+			}
+			if (Array.isArray(ps.deletedNoteCollectionInstances)) {
+				set.deletedNoteCollectionInstances = ps.deletedNoteCollectionInstances.filter(Boolean).map(x => x.toLowerCase());
+			}
+			if (ps.deletedNoteRetentionHours !== undefined && ps.deletedNoteRetentionHours !== null) {
+				set.deletedNoteRetentionHours = Math.max(1, Math.min(72, ps.deletedNoteRetentionHours));
 			}
 			if (Array.isArray(ps.banCountry)) {
 				set.banCountry = ps.banCountry.filter(Boolean);

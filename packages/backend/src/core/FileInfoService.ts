@@ -20,10 +20,10 @@ import { AiService } from '@/core/AiService.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import type Logger from '@/logger.js';
 import { bindThis } from '@/decorators.js';
-import type { PredictionType } from 'nsfwjs';
 import { isMimeImage } from '@/misc/is-mime-image.js';
 import { promisify } from "node:util";
 import { fileTypeFromFile as FileType } from "file-type";
+import type { PredictionType } from 'nsfwjs';
 
 export type FileInfo = {
 	size: number;

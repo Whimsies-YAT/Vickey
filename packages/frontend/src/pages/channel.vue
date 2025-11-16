@@ -6,7 +6,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <PageWithHeader v-model:tab="tab" :actions="headerActions" :tabs="headerTabs" :swipable="true">
 	<div class="_spacer" style="--MI_SPACER-w: 700px;">
-		<div v-if="channel && tab === 'overview'" class="_gaps">
+		<MkResult v-if="error === 'notFound'" type="notFound" :text="i18n.ts.noSuchChannel">
+			<MkButton :class="$style.retryButton" rounded @click="fetchChannel()">{{ i18n.ts.retry }}</MkButton>
+		</MkResult>
+		<MkError v-else-if="error === 'error'" @retry="fetchChannel()"/>
+		<div v-else-if="channel && tab === 'overview'" class="_gaps">
 			<div class="_panel" :class="$style.bannerContainer">
 				<XChannelFollowButton :channel="channel" :full="true" :class="$style.subscribe"/>
 				<MkButton v-if="favorited" v-tooltip="i18n.ts.unfavorite" asLike class="button" rounded primary :class="$style.favorite" @click="unfavorite()"><i class="ti ti-star"></i></MkButton>
@@ -15,6 +19,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<div :class="$style.bannerStatus">
 						<div><i class="ti ti-users ti-fw"></i><I18n :src="i18n.ts._channel.usersCount" tag="span" style="margin-left: 4px;"><template #n><b>{{ channel.usersCount }}</b></template></I18n></div>
 						<div><i class="ti ti-pencil ti-fw"></i><I18n :src="i18n.ts._channel.notesCount" tag="span" style="margin-left: 4px;"><template #n><b>{{ channel.notesCount }}</b></template></I18n></div>
+						<div v-if="$i != null && channel != null && $i.id === channel.userId" style="color: var(--MI_THEME-warn)"><i class="ti ti-user-star ti-fw"></i><span style="margin-left: 4px;">{{ i18n.ts.youAreAdmin }}</span></div>
 					</div>
 					<div v-if="channel.isSensitive" :class="$style.sensitiveIndicator">{{ i18n.ts.sensitive }}</div>
 					<div :class="$style.bannerFade"></div>
@@ -108,6 +113,7 @@ const props = defineProps<{
 const tab = ref('overview');
 
 const channel = ref<Misskey.entities.Channel | null>(null);
+const error = ref<'notFound' | 'error' | null>(null);
 const favorited = ref(false);
 const searchQuery = ref('');
 const searchPaginator = shallowRef();
@@ -127,26 +133,38 @@ useInterval(() => {
 	afterMounted: true,
 });
 
-watch(() => props.channelId, async () => {
-	channel.value = await misskeyApi('channels/show', {
-		channelId: props.channelId,
-	});
-	if (channel.value == null) return; // TSを黙らすため
+async function fetchChannel() {
+	try {
+		const _channel = await misskeyApi('channels/show', {
+			channelId: props.channelId,
+		});
 
-	favorited.value = channel.value.isFavorited ?? false;
-	if (favorited.value || channel.value.isFollowing) {
-		tab.value = 'timeline';
-	}
+		favorited.value = _channel.isFavorited ?? false;
+		if (favorited.value || _channel.isFollowing) {
+			tab.value = 'timeline';
+		}
 
-	if ((favorited.value || channel.value.isFollowing) && channel.value.lastNotedAt) {
-		const lastReadedAt: number = miLocalStorage.getItemAsJson(`channelLastReadedAt:${channel.value.id}`) ?? 0;
-		const lastNotedAt = Date.parse(channel.value.lastNotedAt);
+		if ((favorited.value || _channel.isFollowing) && _channel.lastNotedAt) {
+			const lastReadedAt: number = miLocalStorage.getItemAsJson(`channelLastReadedAt:${_channel.id}`) ?? 0;
+			const lastNotedAt = Date.parse(_channel.lastNotedAt);
 
-		if (lastNotedAt > lastReadedAt) {
-			miLocalStorage.setItemAsJson(`channelLastReadedAt:${channel.value.id}`, lastNotedAt);
+			if (lastNotedAt > lastReadedAt) {
+				miLocalStorage.setItemAsJson(`channelLastReadedAt:${_channel.id}`, lastNotedAt);
+			}
+		}
+
+		channel.value = _channel;
+		error.value = null;
+	} catch (err: any) {
+		if (err.code === 'NO_SUCH_CHANNEL') {
+			error.value = 'notFound';
+		} else {
+			error.value = 'error';
 		}
 	}
-}, { immediate: true });
+}
+
+watch(() => props.channelId, fetchChannel, { immediate: true });
 
 function edit() {
 	router.push('/channels/:channelId/edit', {
@@ -186,6 +204,53 @@ async function unfavorite() {
 	}).then(() => {
 		favorited.value = false;
 		favoritedChannelsCache.delete();
+	});
+}
+
+async function mute() {
+	if (!channel.value) return;
+	const _channel = channel.value;
+
+	const { canceled, result: period } = await os.select({
+		title: i18n.ts.mutePeriod,
+		items: [{
+			value: 'indefinitely', label: i18n.ts.indefinitely,
+		}, {
+			value: 'tenMinutes', label: i18n.ts.tenMinutes,
+		}, {
+			value: 'oneHour', label: i18n.ts.oneHour,
+		}, {
+			value: 'oneDay', label: i18n.ts.oneDay,
+		}, {
+			value: 'oneWeek', label: i18n.ts.oneWeek,
+		}],
+		default: 'indefinitely',
+	});
+	if (canceled) return;
+
+	const expiresAt = period === 'indefinitely' ? null
+		: period === 'tenMinutes' ? Date.now() + (1000 * 60 * 10)
+		: period === 'oneHour' ? Date.now() + (1000 * 60 * 60)
+		: period === 'oneDay' ? Date.now() + (1000 * 60 * 60 * 24)
+		: period === 'oneWeek' ? Date.now() + (1000 * 60 * 60 * 24 * 7)
+		: null;
+
+	os.apiWithDialog('channels/mute/create', {
+		channelId: _channel.id,
+		expiresAt,
+	}).then(() => {
+		_channel.isMuting = true;
+	});
+}
+
+async function unmute() {
+	if (!channel.value) return;
+	const _channel = channel.value;
+
+	os.apiWithDialog('channels/mute/delete', {
+		channelId: _channel.id,
+	}).then(() => {
+		_channel.isMuting = false;
 	});
 }
 
@@ -238,6 +303,24 @@ const headerActions = computed(() => {
 						text: channel.value.description ?? undefined,
 						url: `${url}/channels/${channel.value.id}`,
 					});
+				},
+			});
+		}
+
+		if (!channel.value.isMuting) {
+			headerItems.push({
+				icon: 'ti ti-volume',
+				text: i18n.ts.mute,
+				handler: async (): Promise<void> => {
+					await mute();
+				},
+			});
+		} else {
+			headerItems.push({
+				icon: 'ti ti-volume-off',
+				text: i18n.ts.unmute,
+				handler: async (): Promise<void> => {
+					await unmute();
 				},
 			});
 		}
@@ -349,5 +432,9 @@ definePage(() => ({
 	font-weight: bold;
 	font-size: 1em;
 	padding: 4px 7px;
+}
+
+.retryButton {
+	margin: 0 auto;
 }
 </style>

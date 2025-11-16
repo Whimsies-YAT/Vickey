@@ -19,7 +19,8 @@ export type RiskEventType =
 	| 'high_risk_message'
 	| 'multi_account_detected'
 	| 'risk_level_changed'
-	| 'suspicious_activity';
+	| 'suspicious_activity'
+	| 'rate_limit_violation';
 
 export interface RiskEventData {
 	userId: string;
@@ -28,6 +29,20 @@ export interface RiskEventData {
 	riskLevel: 'poor' | 'fair' | 'good' | 'veryGood' | 'excellent';
 	details: Record<string, any>;
 	timestamp: Date;
+	severity?: number;
+	decayHalfLifeDays?: number;
+}
+
+export interface RiskEventImpact {
+	totalImpact: number;
+	breakdown: Array<{
+		id: string;
+		eventType: RiskEventType;
+		severity: number;
+		decayFactor: number;
+		impact: number;
+		timestamp: string;
+	}>;
 }
 
 @Injectable()
@@ -53,7 +68,11 @@ export class RiskEventLogService {
 				eventType: event.eventType,
 				riskScore: event.riskScore,
 				riskLevel: event.riskLevel,
-				details: event.details,
+				details: {
+					severity: event.severity,
+					decayHalfLifeDays: event.decayHalfLifeDays,
+					...event.details,
+				},
 			} as any,
 		});
 
@@ -73,6 +92,8 @@ export class RiskEventLogService {
 				...details,
 			},
 			timestamp: new Date(),
+			severity: details?.severity ?? 8,
+			decayHalfLifeDays: details?.decayHalfLifeDays ?? 14,
 		});
 	}
 
@@ -85,6 +106,8 @@ export class RiskEventLogService {
 			riskLevel: riskLevel as 'poor' | 'fair' | 'good' | 'veryGood' | 'excellent',
 			details,
 			timestamp: new Date(),
+			severity: details?.severity ?? 6,
+			decayHalfLifeDays: details?.decayHalfLifeDays ?? 10,
 		});
 	}
 
@@ -99,6 +122,8 @@ export class RiskEventLogService {
 				noteId,
 			},
 			timestamp: new Date(),
+			severity: 12,
+			decayHalfLifeDays: 21,
 		});
 	}
 
@@ -113,6 +138,8 @@ export class RiskEventLogService {
 				followeeId,
 			},
 			timestamp: new Date(),
+			severity: 10,
+			decayHalfLifeDays: 14,
 		});
 	}
 
@@ -127,6 +154,8 @@ export class RiskEventLogService {
 				toUserId,
 			},
 			timestamp: new Date(),
+			severity: 10,
+			decayHalfLifeDays: 14,
 		});
 	}
 
@@ -141,6 +170,8 @@ export class RiskEventLogService {
 				linkedAccounts,
 			},
 			timestamp: new Date(),
+			severity: 15,
+			decayHalfLifeDays: 30,
 		});
 	}
 
@@ -157,6 +188,8 @@ export class RiskEventLogService {
 				changeAmount: newScore - oldScore,
 			},
 			timestamp: new Date(),
+			severity: Math.max(5, Math.min(20, Math.abs(newScore - oldScore))),
+			decayHalfLifeDays: 21,
 		});
 	}
 
@@ -178,6 +211,79 @@ export class RiskEventLogService {
 		} catch (error) {
 			console.error(`Failed to send risk event webhook:`, error);
 		}
+	}
+
+	@bindThis
+	private estimateSeverity(info: any): number {
+		if (info?.details?.severity != null) {
+			return Number(info.details.severity) || 0;
+		}
+
+		if (info?.details?.changeAmount != null) {
+			return Math.min(25, Math.max(5, Math.abs(info.details.changeAmount)));
+		}
+
+		if (info?.riskScore != null) {
+			return Math.min(20, Math.max(6, 100 - info.riskScore));
+		}
+
+		return 8;
+	}
+
+	@bindThis
+	private getDecayHalfLife(info: any): number {
+		if (info?.details?.decayHalfLifeDays != null) {
+			return Math.max(1, Number(info.details.decayHalfLifeDays));
+		}
+
+		return 14;
+	}
+
+	@bindThis
+	public async calculateDecayedImpact(userId: string, options: { lookbackDays?: number; limit?: number } = {}): Promise<RiskEventImpact> {
+		const lookbackDays = options.lookbackDays ?? 60;
+		const limit = options.limit ?? 200;
+		const since = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000);
+		const sinceId = this.idService.gen(since.getTime());
+
+		const logs = await this.moderationLogsRepository.createQueryBuilder('log')
+			.where('log.type = :type', { type: 'riskEvent' })
+			.andWhere('log.userId = :userId', { userId })
+			.andWhere('log.id > :sinceId', { sinceId })
+			.orderBy('log.id', 'DESC')
+			.take(limit)
+			.getMany();
+
+		const now = Date.now();
+		const breakdown: RiskEventImpact['breakdown'] = [];
+		let totalImpact = 0;
+
+		for (const log of logs) {
+			const timestamp = this.idService.parse(log.id).date;
+			const info = log.info as any;
+			const severity = this.estimateSeverity(info);
+			if (severity <= 0) continue;
+
+			const halfLifeDays = this.getDecayHalfLife(info);
+			const ageDays = (now - timestamp.getTime()) / (24 * 60 * 60 * 1000);
+			const decayFactor = Math.pow(0.5, ageDays / halfLifeDays);
+			const impact = severity * decayFactor;
+
+			totalImpact += impact;
+			breakdown.push({
+				id: log.id,
+				eventType: info.eventType as RiskEventType,
+				severity,
+				decayFactor,
+				impact,
+				timestamp: timestamp.toISOString(),
+			});
+		}
+
+		return {
+			totalImpact,
+			breakdown,
+		};
 	}
 
 	@bindThis

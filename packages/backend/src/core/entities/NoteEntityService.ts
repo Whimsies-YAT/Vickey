@@ -132,7 +132,11 @@ export class NoteEntityService implements OnModuleInit {
 	}
 
 	@bindThis
-	public async hideNote(packedNote: Packed<'Note'>, meId: MiUser['id'] | null): Promise<void> {
+	public async hideNote(
+		packedNote: Packed<'Note'>,
+		meId: MiUser['id'] | null,
+		followingsMap?: Map<MiUser['id'], boolean>,
+	): Promise<void> {
 		// TODO: isVisibleForMe を使うようにしても良さそう(型違うけど)
 		let hide = false;
 
@@ -185,15 +189,18 @@ export class NoteEntityService implements OnModuleInit {
 					hide = false;
 				} else {
 					// フォロワーかどうか
-					// TODO: 当関数呼び出しごとにクエリが走るのは重そうだからなんとかする
-					const isFollowing = await this.followingsRepository.exists({
-						where: {
-							followeeId: packedNote.userId,
-							followerId: meId,
-						},
-					});
-
-					hide = !isFollowing;
+					// FIXED: N+1 query - now using preloaded followingsMap from packMany()
+					if (followingsMap) {
+						hide = !followingsMap.get(packedNote.userId);
+					} else {
+						const isFollowing = await this.followingsRepository.exists({
+							where: {
+								followeeId: packedNote.userId,
+								followerId: meId,
+							},
+						});
+						hide = !isFollowing;
+					}
 				}
 			}
 		}
@@ -269,33 +276,48 @@ export class NoteEntityService implements OnModuleInit {
 	}
 
 	@bindThis
-	private async populatePoll(note: MiNote, meId: MiUser['id'] | null) {
-		const poll = await this.pollsRepository.findOneByOrFail({ noteId: note.id });
-		const choices = poll.choices.map(c => ({
+	private async populatePoll(
+		note: MiNote,
+		meId: MiUser['id'] | null,
+		hint?: {
+			polls?: Map<MiNote['id'], any>;
+			myPollVotes?: Map<MiNote['id'], any[]>;
+		},
+	) {
+		const poll = hint?.polls?.get(note.id) ?? await this.pollsRepository.findOneByOrFail({ noteId: note.id });
+		const choices = poll.choices.map((c: any) => ({
 			text: c,
 			votes: poll.votes[poll.choices.indexOf(c)],
 			isVoted: false,
 		}));
 
 		if (meId) {
-			if (poll.multiple) {
-				const votes = await this.pollVotesRepository.findBy({
-					userId: meId,
-					noteId: note.id,
-				});
-
-				const myChoices = votes.map(v => v.choice);
-				for (const myChoice of myChoices) {
-					choices[myChoice].isVoted = true;
+			if (hint?.myPollVotes) {
+				const votes = hint.myPollVotes.get(note.id) ?? [];
+				for (const vote of votes) {
+					choices[vote.choice].isVoted = true;
 				}
 			} else {
-				const vote = await this.pollVotesRepository.findOneBy({
-					userId: meId,
-					noteId: note.id,
-				});
+				// Fallback to individual queries
+				if (poll.multiple) {
+					const votes = await this.pollVotesRepository.findBy({
+						userId: meId,
+						noteId: note.id,
+					});
 
-				if (vote) {
-					choices[vote.choice].isVoted = true;
+					const myChoices = votes.map(v => v.choice);
+					for (const myChoice of myChoices) {
+						choices[myChoice].isVoted = true;
+					}
+				} else {
+					const vote = await this.pollVotesRepository.findOneBy({
+						userId: meId,
+						noteId: note.id,
+					});
+
+					if (vote) {
+						choices[vote.choice].isVoted = true;
+					}
 				}
 			}
 		}
@@ -452,9 +474,12 @@ export class NoteEntityService implements OnModuleInit {
 				bufferedReactions: Map<MiNote['id'], { deltas: Record<string, number>; pairs: ([MiUser['id'], string])[] }> | null;
 				myReactions: Map<MiNote['id'], string | null>;
 				packedFiles: Map<MiNote['fileIds'][number], Packed<'DriveFile'> | null>;
-				packedUsers: Map<MiUser['id'], Packed<'UserLite'>>
-			removeHide?: boolean;
+				packedUsers: Map<MiUser['id'], Packed<'UserLite'>>;
+				followingsMap?: Map<MiUser['id'], boolean>;
+				polls?: Map<MiNote['id'], any>;
+				myPollVotes?: Map<MiNote['id'], any[]>;
 			};
+			removeHide?: boolean;
 		},
 	): Promise<Packed<'Note'>> {
 		const opts = Object.assign({
@@ -552,7 +577,7 @@ export class NoteEntityService implements OnModuleInit {
 					_hint_: options?._hint_,
 				})) : undefined,
 
-				poll: note.hasPoll ? this.populatePoll(note, meId) : undefined,
+				poll: note.hasPoll ? this.populatePoll(note, meId, options?._hint_) : undefined,
 
 				...(meId && Object.keys(reactions).length > 0 ? {
 					myReaction: this.populateMyReaction({
@@ -567,7 +592,7 @@ export class NoteEntityService implements OnModuleInit {
 		this.treatVisibility(packed);
 
 		if (!opts.skipHide) {
-			await this.hideNote(packed, meId);
+			await this.hideNote(packed, meId, options?._hint_?.followingsMap);
 		}
 
 		return packed;
@@ -655,17 +680,122 @@ export class NoteEntityService implements OnModuleInit {
 		const packedUsers = await this.userEntityService.packMany(users, me)
 			.then(users => new Map(users.map(u => [u.id, u])));
 
-		const packedNotes = await Promise.all(
-			notes.map(n => this.pack(n, me, {
-				...options,
-				_hint_: {
-					bufferedReactions,
-					myReactions: myReactionsMap,
-					packedFiles,
-					packedUsers,
-				},
-			}))
-		);
+		const followingsMap = new Map<MiUser['id'], boolean>();
+		if (meId && !options?.skipHide) {
+			const authorIds = new Set<MiUser['id']>();
+			for (const note of notes) {
+				if (note.visibility === 'followers' && note.userId !== meId) {
+					authorIds.add(note.userId);
+				}
+			}
+
+			if (authorIds.size > 0) {
+				const followings = await this.followingsRepository.findBy({
+					followerId: meId,
+					followeeId: In(Array.from(authorIds)),
+				});
+
+				const followingSet = new Set(followings.map(f => f.followeeId));
+				for (const authorId of authorIds) {
+					followingsMap.set(authorId, followingSet.has(authorId));
+				}
+			}
+		}
+
+		const pollsMap = new Map<MiNote['id'], any>();
+		const myPollVotesMap = new Map<MiNote['id'], any[]>();
+
+		if (options?.detail !== false) {
+			const noteIdsWithPoll = notes
+				.filter(note => note.hasPoll)
+				.map(note => note.id);
+
+			if (noteIdsWithPoll.length > 0) {
+				const polls = await this.pollsRepository.findBy({
+					noteId: In(noteIdsWithPoll),
+				});
+
+				for (const poll of polls) {
+					pollsMap.set(poll.noteId, poll);
+				}
+
+				if (meId) {
+					const myVotes = await this.pollVotesRepository.findBy({
+						userId: meId,
+						noteId: In(noteIdsWithPoll),
+					});
+
+					for (const vote of myVotes) {
+						const existing = myPollVotesMap.get(vote.noteId) ?? [];
+						existing.push(vote);
+						myPollVotesMap.set(vote.noteId, existing);
+					}
+				}
+			}
+		}
+
+		const useCache = options?.detail !== false && options?.skipHide !== true;
+		let packedNotes: Packed<'Note'>[];
+
+		if (useCache) {
+			const cacheKeys = notes.map(note => `${note.id}:${meId ?? 'anon'}`);
+			const cachedPacked = await Promise.all(
+				cacheKeys.map(key => this.cacheService.packedNoteCache.get(key)),
+			);
+
+			const missIndexes: number[] = [];
+			for (let i = 0; i < cachedPacked.length; i++) {
+				if (!cachedPacked[i]) missIndexes.push(i);
+			}
+
+			if (missIndexes.length > 0) {
+				const missedNotes = missIndexes.map(i => notes[i]);
+				const newlyPacked = await Promise.all(
+					missedNotes.map(n => this.pack(n, me, {
+						...options,
+						_hint_: {
+							bufferedReactions,
+							myReactions: myReactionsMap,
+							packedFiles,
+							packedUsers,
+							followingsMap,
+							polls: pollsMap,
+							myPollVotes: myPollVotesMap,
+						},
+					})),
+				);
+
+				Promise.all(
+					missIndexes.map((originalIdx, newIdx) => {
+						const cacheKey = cacheKeys[originalIdx];
+						return this.cacheService.packedNoteCache.set(cacheKey, newlyPacked[newIdx]);
+					}),
+				).catch(err => {
+					console.error('Failed to cache packed notes:', err);
+				});
+
+				for (let i = 0; i < missIndexes.length; i++) {
+					cachedPacked[missIndexes[i]] = newlyPacked[i];
+				}
+			}
+
+			packedNotes = cachedPacked as Packed<'Note'>[];
+		} else {
+			packedNotes = await Promise.all(
+				notes.map(n => this.pack(n, me, {
+					...options,
+					_hint_: {
+						bufferedReactions,
+						myReactions: myReactionsMap,
+						packedFiles,
+						packedUsers,
+						followingsMap,
+						polls: pollsMap,
+						myPollVotes: myPollVotesMap,
+					},
+				})),
+			);
+		}
 
 		if (options?.removeHide) {
 			return packedNotes.filter(note => !note.isHidden);

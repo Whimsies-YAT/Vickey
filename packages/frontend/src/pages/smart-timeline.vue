@@ -64,19 +64,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<MkFolder>
 							<template #label>{{ i18n.ts._smartTimeline.algorithmSettings }}</template>
 							<div class="_gaps_s">
-								<MkSelect v-model="preferences.algorithm" @update:modelValue="savePreferences">
+								<MkSelect v-model="preferences.algorithm" :items="algorithmOptions" @update:modelValue="savePreferences">
 									<template #label>{{ i18n.ts._smartTimeline.algorithm }}</template>
-									<option value="smart">{{ i18n.ts._smartTimeline.smart }}</option>
-									<option value="hybrid">{{ i18n.ts._smartTimeline.hybrid }}</option>
-									<option value="social">{{ i18n.ts._smartTimeline.social }}</option>
-									<option value="discovery">{{ i18n.ts._smartTimeline.discovery }}</option>
 								</MkSelect>
 
-								<MkSelect v-model="preferences.diversityLevel" @update:modelValue="savePreferences">
+								<MkSelect v-model="preferences.diversityLevel" :items="diversityOptions" @update:modelValue="savePreferences">
 									<template #label>{{ i18n.ts._smartTimeline.diversityLevel }}</template>
-									<option value="low">{{ i18n.ts.low }}</option>
-									<option value="medium">{{ i18n.ts.medium }}</option>
-									<option value="high">{{ i18n.ts.high }}</option>
 								</MkSelect>
 
 								<MkRange v-model="preferences.freshnessWeight" :min="0" :max="1" :step="0.1" @update:modelValue="savePreferences">
@@ -162,6 +155,7 @@ import MkPostForm from '@/components/MkPostForm.vue';
 import MkTip from '@/components/global/MkTip.vue';
 import MkFolder from '@/components/MkFolder.vue';
 import MkSelect from '@/components/MkSelect.vue';
+import type { MkSelectItem } from '@/components/MkSelect.vue';
 import MkRange from '@/components/MkRange.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkButton from '@/components/MkButton.vue';
@@ -172,9 +166,42 @@ import { definePage } from '@/page.js';
 import { prefer } from '@/preferences.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 
+const ALGORITHMS = ['smart', 'hybrid', 'social', 'discovery'] as const;
+type Algorithm = typeof ALGORITHMS[number];
+const DIVERSITY_LEVELS = ['low', 'medium', 'high'] as const;
+type DiversityLevel = typeof DIVERSITY_LEVELS[number];
+
+interface SmartTimelinePreferences {
+	algorithm: Algorithm;
+	diversityLevel: DiversityLevel;
+	freshnessWeight: number;
+	qualityThreshold: number;
+	showScoreIndicator: boolean;
+	adaptiveMode: boolean;
+}
+
+type TimelinePreferencesResponse = Partial<SmartTimelinePreferences> & {
+	analytics?: {
+		currentMode: { type: string };
+		performanceMetrics: {
+			cacheHitRate: number;
+			contentDiversity: number;
+			averageLoadTime: number;
+		};
+	};
+};
+
+function isAlgorithm(value: unknown): value is Algorithm {
+	return typeof value === 'string' && (ALGORITHMS as readonly string[]).includes(value);
+}
+
+function isDiversityLevel(value: unknown): value is DiversityLevel {
+	return typeof value === 'string' && (DIVERSITY_LEVELS as readonly string[]).includes(value);
+}
+
 const smartTimelineRef = ref();
 const recommendedTimelineRef = ref();
-const currentTab = ref('smart');
+const currentTab = ref<'smart' | 'recommended' | 'settings'>('smart');
 const analytics = ref<{
 	currentMode: { type: string };
 	performanceMetrics: {
@@ -184,7 +211,7 @@ const analytics = ref<{
 	};
 } | null>(null);
 
-const preferences = ref({
+const preferences = ref<SmartTimelinePreferences>({
 	algorithm: 'smart',
 	diversityLevel: 'medium',
 	freshnessWeight: 0.3,
@@ -192,6 +219,19 @@ const preferences = ref({
 	showScoreIndicator: false,
 	adaptiveMode: true,
 });
+
+const algorithmOptions = computed<MkSelectItem<Algorithm>[]>(() => [
+	{ label: i18n.ts._smartTimeline.smart, value: 'smart' },
+	{ label: i18n.ts._smartTimeline.hybrid, value: 'hybrid' },
+	{ label: i18n.ts._smartTimeline.social, value: 'social' },
+	{ label: i18n.ts._smartTimeline.discovery, value: 'discovery' },
+]);
+
+const diversityOptions = computed<MkSelectItem<DiversityLevel>[]>(() => [
+	{ label: i18n.ts.low, value: 'low' },
+	{ label: i18n.ts.medium, value: 'medium' },
+	{ label: i18n.ts.high, value: 'high' },
+]);
 
 const headerTabs = computed(() => [
 	{
@@ -235,21 +275,21 @@ async function loadPreferences() {
 	if (!$i) return;
 
 	try {
-		const loadPromise = misskeyApi('i/timeline-preferences', {});
+		const loadPromise = misskeyApi<TimelinePreferencesResponse>('i/timeline-preferences', {});
 		const timeoutPromise = new Promise((_, reject) =>
 			window.setTimeout(() => reject(new Error('Request timeout')), 8000)
 		);
 
-		const result = await Promise.race([loadPromise, timeoutPromise]);
+		const result = await Promise.race([loadPromise, timeoutPromise]) as TimelinePreferencesResponse;
 		preferences.value = {
-			algorithm: result.algorithm || 'smart',
-			diversityLevel: result.diversityLevel || 'medium',
+			algorithm: isAlgorithm(result.algorithm) ? result.algorithm : 'smart',
+			diversityLevel: isDiversityLevel(result.diversityLevel) ? result.diversityLevel : 'medium',
 			freshnessWeight: result.freshnessWeight ?? 0.3,
 			qualityThreshold: result.qualityThreshold ?? 0.4,
 			showScoreIndicator: result.showScoreIndicator ?? false,
 			adaptiveMode: result.adaptiveMode ?? true,
 		};
-		analytics.value = result.analytics;
+		analytics.value = result.analytics ?? null;
 	} catch (err) {
 		console.error('Failed to load preferences:', err);
 		preferences.value = {
@@ -353,15 +393,10 @@ async function onNote(note: any) {
 
 	try {
 		await misskeyApi('notes/interaction', {
-			noteId: note.id,
-			interactionType: 'view',
+			targetId: note.id,
 			targetType: 'note',
-			context: {
-				source: 'smart-timeline-page',
-				algorithm: preferences.value.algorithm,
-				diversityLevel: preferences.value.diversityLevel
-			},
-			implicit: true,
+			interactionType: 'view',
+			source: 'smart-timeline-page',
 		});
 	} catch (err) {
 		console.debug('Failed to record note interaction:', err);

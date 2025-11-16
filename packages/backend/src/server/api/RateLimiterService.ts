@@ -11,6 +11,7 @@ import type Logger from '@/logger.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import { bindThis } from '@/decorators.js';
 import type { IEndpointMeta } from './endpoints.js';
+import { RateLimitPenaltyService, RateLimitViolationContext } from './RateLimitPenaltyService.js';
 
 type RateLimitInfo = {
 	code: 'BRIEF_REQUEST_INTERVAL',
@@ -30,6 +31,7 @@ export class RateLimiterService {
 		private redisClient: Redis.Redis,
 
 		private loggerService: LoggerService,
+		private rateLimitPenaltyService: RateLimitPenaltyService,
 	) {
 		this.logger = this.loggerService.getLogger('limiter');
 
@@ -51,7 +53,12 @@ export class RateLimiterService {
 	}
 
 	@bindThis
-	public async limit(limitation: IEndpointMeta['limit'] & { key: NonNullable<string> }, actor: string, factor = 1): Promise<RateLimitInfo | null> {
+	public async limit(
+		limitation: IEndpointMeta['limit'] & { key: NonNullable<string> },
+		actor: string,
+		factor = 1,
+		context?: Partial<RateLimitViolationContext>
+	): Promise<RateLimitInfo | null> {
 		if (this.disabled) {
 			return null;
 		}
@@ -68,6 +75,7 @@ export class RateLimiterService {
 			this.logger.debug(`${actor} ${limitation.key} min remaining: ${info.remaining}`);
 
 			if (info.remaining === 0) {
+				await this.registerViolation('BRIEF_REQUEST_INTERVAL', limitation.key, actor, context);
 				return { code: 'BRIEF_REQUEST_INTERVAL', info };
 			}
 		}
@@ -84,10 +92,29 @@ export class RateLimiterService {
 			this.logger.debug(`${actor} ${limitation.key} max remaining: ${info.remaining}`);
 
 			if (info.remaining === 0) {
+				await this.registerViolation('RATE_LIMIT_EXCEEDED', limitation.key, actor, context);
 				return { code: 'RATE_LIMIT_EXCEEDED', info };
 			}
 		}
 
 		return null;
+	}
+
+	@bindThis
+	private async registerViolation(
+		reason: RateLimitInfo['code'],
+		limitKey: string,
+		actor: string,
+		context?: Partial<RateLimitViolationContext>,
+	): Promise<void> {
+		if (!context) return;
+		await this.rateLimitPenaltyService.recordViolation({
+			userId: context.userId ?? null,
+			ip: context.ip ?? null,
+			endpoint: context.endpoint ?? limitKey,
+			limitKey,
+			reason,
+			actor,
+		});
 	}
 }

@@ -1,12 +1,12 @@
 {
 	"name": "vickey",
-	"version": "2025.10.2",
+	"version": "2025.11.0",
 	"codename": "astra",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Whimsies-YAT/Vickey"
 	},
-	"packageManager": "pnpm@10.18.2",
+	"packageManager": "pnpm@10.20.0",
 	"workspaces": [
 		"packages/frontend-shared",
 		"packages/frontend",
@@ -22,9 +22,11 @@
 	"scripts": {
 		"build-pre": "node ./scripts/build-pre.js",
 		"build-assets": "node ./scripts/build-assets.mjs",
-		"build": "pnpm build-pre && pnpm -r build && pnpm build-assets",
+		"build": "node ./scripts/smart-build.js",
+		"build:legacy": "pnpm build-pre && pnpm -r build && pnpm build-assets",
 		"build-storybook": "pnpm --filter frontend build-storybook",
 		"build-misskey-js-with-types": "pnpm build-pre && pnpm --filter backend... --filter=!misskey-js build && pnpm --filter backend generate-api-json --no-build && ncp packages/backend/built/api.json packages/misskey-js/generator/api.json && pnpm --filter misskey-js update-autogen-code && pnpm --filter misskey-js build && pnpm --filter misskey-js api",
+		"build-misskey-js-only": "pnpm --filter backend generate-api-json --no-build && ncp packages/backend/built/api.json packages/misskey-js/generator/api.json && pnpm --filter misskey-js update-autogen-code && pnpm --filter misskey-js build && pnpm --filter misskey-js api",
 		"start": "pnpm check:connect && cd packages/backend && node ./built/boot/entry.js",
 		"start:test": "ncp ./.github/misskey/test.yml ./.config/test.yml && cd packages/backend && cross-env NODE_ENV=test node ./built/boot/entry.js",
 		"cli": "cd packages/backend && pnpm cli",
@@ -54,34 +56,35 @@
 	},
 	"dependencies": {
 		"cld": "2.10.1",
-		"cssnano": "7.1.1",
-		"esbuild": "0.25.10",
+		"cssnano": "7.1.2",
+		"esbuild": "0.25.11",
 		"execa": "9.6.0",
 		"fast-glob": "3.3.3",
 		"file-type": "21.0.0",
 		"glob": "11.0.3",
 		"ignore-walk": "8.0.0",
-		"isolated-vm": "5.0.4",
+		"isolated-vm": "6.0.2",
 		"js-yaml": "4.1.0",
 		"nanoid": "5.1.5",
 		"postcss": "8.5.6",
-		"tar": "7.5.1",
+		"tar": "7.5.2",
 		"terser": "5.44.0",
 		"typescript": "5.9.3",
 		"ulid": "3.0.1"
 	},
 	"devDependencies": {
+		"@eslint/js": "9.39.0",
 		"@misskey-dev/eslint-plugin": "2.1.0",
 		"@types/js-yaml": "4.0.9",
-		"@types/node": "22.18.10",
-		"@typescript-eslint/eslint-plugin": "8.46.1",
-		"@typescript-eslint/parser": "8.46.1",
+		"@types/node": "24.9.2",
+		"@typescript-eslint/eslint-plugin": "8.46.2",
+		"@typescript-eslint/parser": "8.46.2",
 		"cross-env": "10.1.0",
-		"cypress": "15.4.0",
-		"eslint": "9.37.0",
-		"globals": "16.4.0",
+		"cypress": "15.5.0",
+		"eslint": "9.39.0",
+		"globals": "16.5.0",
 		"ncp": "2.0.0",
-		"pnpm": "10.18.2",
+		"pnpm": "10.20.0",
 		"start-server-and-test": "2.1.2"
 	},
 	"optionalDependencies": {
@@ -94,7 +97,6 @@
 		"onlyBuiltDependencies": [
 			"@nestjs/core",
 			"@parcel/watcher",
-			"@sentry-internal/node-cpu-profiler",
 			"@sentry/profiling-node",
 			"@swc/core",
 			"@tensorflow/tfjs-node",
@@ -104,17 +106,19 @@
 			"core-js",
 			"cypress",
 			"esbuild",
-			"isolated-vm",
 			"msgpackr-extract",
 			"msw",
 			"nice-napi",
-			"onnxruntime-node",
 			"protobufjs",
 			"re2",
 			"sharp",
 			"utf-8-validate",
 			"v-code-diff",
 			"vue-demi"
+		],
+		"ignoredBuiltDependencies": [
+			"@sentry-internal/node-cpu-profiler",
+			"exifreader"
 		]
 	}
 }

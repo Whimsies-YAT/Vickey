@@ -550,5 +550,24 @@ export type ModerationLogPayloads = {
 	updateProxyAccountDescription: {
 		before: string | null;
 		after: string | null;
-	}
+	};
+	viewDeletedNote: {
+		noteId: string;
+		noteUserId: string;
+		noteUserUsername: string;
+		noteUserHost: string | null;
+		noteText: string;
+	};
+	listDeletedNotes: {
+		count: number;
+		userId?: string | null;
+		deletedAfter?: string | null;
+		deletedBefore?: string | null;
+	};
+	hardDeleteNote: {
+		noteId: string;
+		noteUserId: string;
+		noteUserUsername: string;
+		noteUserHost: string | null;
+	};
 };

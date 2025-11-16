@@ -22,6 +22,7 @@ import {
 	MiChannel,
 	MiChannelFavorite,
 	MiChannelFollowing,
+	MiChannelMuting,
 	MiClip,
 	MiClipFavorite,
 	MiClipNote,
@@ -209,6 +210,7 @@ const repositoryMappings = [
 	{ token: DI.gomokuGamesRepository, entity: MiGomokuGame },
 	{ token: DI.werewolfGamesRepository, entity: MiWerewolfGame },
 	{ token: DI.elasticsearchReindexStatesRepository, entity: MiElasticsearchReindexState },
+	{ token: DI.channelMutingRepository, entity: MiChannelMuting },
 ] as const;
 
 const providers = repositoryMappings.map(({ token, entity }) =>

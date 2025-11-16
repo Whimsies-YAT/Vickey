@@ -48,11 +48,7 @@ async function buildSrc() {
 			process.exit(1);
 		});
 
-	if (process.env.NODE_ENV === 'production') {
-		console.log(`[${_package.name}] skip building d.ts because NODE_ENV is production.`);
-	} else {
-		await buildDts();
-	}
+	await buildDts();
 
 	console.log(`[${_package.name}] finish building.`);
 }

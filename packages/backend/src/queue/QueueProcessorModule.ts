@@ -20,6 +20,7 @@ import { CleanChartsProcessorService } from './processors/CleanChartsProcessorSe
 import { CleanProcessorService } from './processors/CleanProcessorService.js';
 import { CheckModeratorsActivityProcessorService } from './processors/CheckModeratorsActivityProcessorService.js';
 import { CleanRemoteNotesProcessorService } from './processors/CleanRemoteNotesProcessorService.js';
+import { CleanDeletedNotesProcessorService } from './processors/CleanDeletedNotesProcessorService.js';
 import { CleanRemoteFilesProcessorService } from './processors/CleanRemoteFilesProcessorService.js';
 import { DeleteAccountProcessorService } from './processors/DeleteAccountProcessorService.js';
 import { DeleteDriveFilesProcessorService } from './processors/DeleteDriveFilesProcessorService.js';
@@ -99,6 +100,7 @@ import { GeocodingProcessorService } from './processors/GeocodingProcessorServic
 		CheckExpiredMutingsProcessorService,
 		CheckModeratorsActivityProcessorService,
 		CleanRemoteNotesProcessorService,
+		CleanDeletedNotesProcessorService,
 		QueueProcessorService,
 		CheckSecurityReleaseProcessorService,
 		DefaultSecCheckSecurityReleaseProcessorService,

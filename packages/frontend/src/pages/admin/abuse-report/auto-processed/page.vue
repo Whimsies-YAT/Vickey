@@ -7,9 +7,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<PageWithHeader :tabs="headerTabs">
 		<MkSpacer :contentMax="900">
 			<div :class="$style.root" class="_gaps">
-				<MkPagination v-slot="{ items }" ref="reports" :pagination="pagination">
+				<MkPagination v-slot="{ items }" :paginator="paginator">
 					<div class="_gaps">
-						<MkFolder v-for="item in items">
+						<MkFolder v-for="item in items" :key="item.id">
 							<template #label>{{ item.id }}</template>
 							<template #icon>
 								<i v-if="item.detail.status === 0" class="ti ti-info-circle"></i>
@@ -17,7 +17,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<i v-else-if="item.detail.status === 2" class="ti ti-circle-x" style="color: var(--MI_THEME-error);"></i>
 							</template>
 							<div class="_gaps">
-								<MkInfo>ID: {{item.detail.id}}}</MkInfo>
+								<MkInfo>ID: {{ item.detail.id }}</MkInfo>
 								<MkFolder :defaultOpen="true">
 									<template #icon><i class="ti ti-message-2"></i></template>
 									<template #label>{{ i18n.ts.details }}</template>
@@ -43,7 +43,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, shallowRef } from 'vue';
+import { computed, markRaw } from 'vue';
 import MkPagination from '@/components/MkPagination.vue';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
@@ -51,13 +51,14 @@ import MkInfo from '@/components/MkInfo.vue';
 import * as os from "@/os";
 import { misskeyApi } from "@/utility/misskey-api";
 import MkFolder from "@/components/MkFolder.vue";
+import * as Misskey from 'misskey-js';
+import { Paginator } from '@/utility/paginator.js';
 
-const reports = shallowRef<InstanceType<typeof MkPagination>>();
+type AutoProcessedReport = Misskey.Endpoints['admin/abuse-report/auto-processed/show']['res'][number];
 
-const pagination = {
-	endpoint: 'admin/abuse-report/auto-processed/show' as const,
+const paginator = markRaw(new Paginator('admin/abuse-report/auto-processed/show', {
 	limit: 10,
-};
+}));
 
 const menu = (ev: MouseEvent) => {
 	os.popupMenu([{

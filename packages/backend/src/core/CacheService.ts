@@ -31,6 +31,7 @@ export class CacheService implements OnModuleInit, OnApplicationShutdown, Before
 	public checkIPCache: RedisKVCache<boolean>;
 	public checkLocationCache: RedisKVCache<string[]>;
 	public abuseAutoIgnoreCache: RedisKVCache<Set<string>>;
+	public packedNoteCache: RedisKVCache<any>; // AGGRESSIVE CACHING: Cache serialized Note objects
 
 	constructor(
 		@Inject(DI.redis)
@@ -160,6 +161,16 @@ export class CacheService implements OnModuleInit, OnApplicationShutdown, Before
 			fromRedisConverter: (value) => new Set(JSON.parse(value)),
 		});
 
+		this.packedNoteCache = new RedisKVCache<any>(this.redisClient, 'packedNote', {
+			lifetime: 1000 * 60 * 60 * 2,
+			memoryCacheLifetime: 1000 * 60 * 5,
+			fetcher: async (noteId) => {
+				return null;
+			},
+			toRedisConverter: (value) => JSON.stringify(value),
+			fromRedisConverter: (value) => JSON.parse(value),
+		});
+
 		// NOTE: チャンネルのフォロー状況キャッシュはChannelFollowingServiceで行っている
 
 		this.redisForSub.on('message', this.onMessage);
@@ -248,6 +259,10 @@ export class CacheService implements OnModuleInit, OnApplicationShutdown, Before
 					this.userFollowingsCache.delete(body.followerId);
 					break;
 				}
+				case 'noteDeleted': {
+					this.packedNoteCache.delete(body.noteId);
+					break;
+				}
 				default:
 					break;
 			}
@@ -274,6 +289,7 @@ export class CacheService implements OnModuleInit, OnApplicationShutdown, Before
 		this.userFollowingsCache.dispose();
 		this.systemStatusCache.dispose();
 		this.abuseAutoIgnoreCache.dispose();
+		this.packedNoteCache.dispose();
 	}
 
 	@bindThis

@@ -34,14 +34,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<header>
 									<i v-if="item.success" class="ti ti-check icon succ"></i>
 									<i v-else class="ti ti-circle-x icon fail"></i>
-									<code class="ip _monospace">{{ item.ip[0] }}</code>
-									<code class="location _monospace">
-										{{
-											isLocationDataUnavailable(item.ip)
-												? '-'
-												: `${item.ip[5]}, ${item.ip[4]}, ${item.ip[2]}`
-										}}
-									</code>
+									<code class="ip _monospace">{{ formatIpAddress(item.ip) }}</code>
+									<code class="location _monospace">{{ formatLocation(item.ip) }}</code>
 									<MkTime :time="item.createdAt" class="time"/>
 								</header>
 							</div>
@@ -83,12 +77,28 @@ const paginator = markRaw(new Paginator('i/signin-history', {
 	limit: 3,
 }));
 
+function normalizeIpData(ipData: string | string[]): string[] {
+	return Array.isArray(ipData) ? ipData : [ipData];
+}
+
 function isLocationDataUnavailable(ipData: string[]): boolean {
 	const unavailableValues = ['-', 'Unknown', 'MISSING_FILE', 'MISSING FILE', '', null, undefined];
 
 	return [ipData[5], ipData[4], ipData[2]].every(value =>
 		unavailableValues.includes(value as any) || value.includes('MISSING')
 	);
+}
+
+function formatIpAddress(ipData: string | string[]): string {
+	const normalized = normalizeIpData(ipData);
+	return normalized[0] ?? '-';
+}
+
+function formatLocation(ipData: string | string[]): string {
+	const normalized = normalizeIpData(ipData);
+	return isLocationDataUnavailable(normalized)
+		? '-'
+		: `${normalized[5] ?? ''}, ${normalized[4] ?? ''}, ${normalized[2] ?? ''}`;
 }
 
 async function change() {
@@ -135,7 +145,7 @@ async function regenerateToken() {
 			current: false,
 		});
 
-		if (result && typeof result === 'object' && 'token' in result && $i) {
+		if (isTokenResponse(result) && $i) {
 			// Update all token references immediately
 			const newToken = result.token;
 			$i.token = newToken;
@@ -163,15 +173,15 @@ async function regenerateToken() {
 	}
 }
 
-async function showIP(item: string[]) {
-	// 使用相同的检查逻辑
-	const locationText = isLocationDataUnavailable(item)
+async function showIP(item: string | string[]) {
+	const normalized = normalizeIpData(item);
+	const locationText = isLocationDataUnavailable(normalized)
 		? '-'
-		: `${item[5]}, ${item[4]}, ${item[2]}`;
+		: `${normalized[5] ?? ''}, ${normalized[4] ?? ''}, ${normalized[2] ?? ''}`;
 
 	await os.alert({
 		type: 'info',
-		text: `IP: ${item[0]}\nLocation: ${locationText}`,
+		text: `IP: ${normalized[0] ?? '-'}\nLocation: ${locationText}`,
 	});
 }
 
@@ -183,6 +193,10 @@ definePage(() => ({
 	title: i18n.ts.security,
 	icon: 'ti ti-lock',
 }));
+
+function isTokenResponse(result: unknown): result is { token: string } {
+	return typeof result === 'object' && result !== null && typeof (result as { token?: unknown }).token === 'string';
+}
 </script>
 
 <style lang="scss" scoped>

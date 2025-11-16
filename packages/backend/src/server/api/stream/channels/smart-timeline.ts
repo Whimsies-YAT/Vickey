@@ -58,18 +58,12 @@ class SmartTimelineChannel extends Channel {
 		if (this.isNoteMutedOrBlocked(note)) return;
 
 		try {
-			const shouldInclude = await this.smartTimelineService.shouldIncludeInRealTimeStream(
-				this.user,
-				note,
-				{
-					algorithm: this.algorithm,
-					diversityLevel: this.diversityLevel,
-					freshnessWeight: this.freshnessWeight,
-					qualityThreshold: this.qualityThreshold,
-				}
-			);
-
-			if (!shouldInclude) return;
+			if (note.visibility === 'followers') {
+				const isMe = this.user.id === note.userId;
+				if (!isMe && !Object.hasOwn(this.following, note.userId)) return;
+			} else if (note.visibility === 'specified') {
+				if (!note.visibleUserIds!.includes(this.user.id)) return;
+			}
 
 			if (note.reply) {
 				const reply = note.reply;
@@ -94,12 +88,18 @@ class SmartTimelineChannel extends Channel {
 				}
 			}
 
-			if (note.visibility === 'followers') {
-				const isMe = this.user.id === note.userId;
-				if (!isMe && !Object.hasOwn(this.following, note.userId)) return;
-			} else if (note.visibility === 'specified') {
-				if (!note.visibleUserIds!.includes(this.user.id)) return;
-			}
+			const shouldInclude = await this.smartTimelineService.shouldIncludeInRealTimeStream(
+				this.user,
+				note,
+				{
+					algorithm: this.algorithm,
+					diversityLevel: this.diversityLevel,
+					freshnessWeight: this.freshnessWeight,
+					qualityThreshold: this.qualityThreshold,
+				}
+			);
+
+			if (!shouldInclude) return;
 
 			if (this.user && note.renoteId && !note.text) {
 				if (note.renote && Object.keys(note.renote.reactions).length > 0) {

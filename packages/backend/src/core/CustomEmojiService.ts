@@ -15,6 +15,7 @@ import { bindThis } from '@/decorators.js';
 import { DI } from '@/di-symbols.js';
 import { MemoryKVCache, RedisSingleCache } from '@/misc/cache.js';
 import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
+import { pMap } from '@/misc/p-limit.js';
 import type { EmojisRepository, MiRole, MiUser } from '@/models/_.js';
 import type { MiEmoji } from '@/models/Emoji.js';
 import type { Serialized } from '@/types.js';
@@ -399,7 +400,7 @@ export class CustomEmojiService implements OnApplicationShutdown {
 	 */
 	@bindThis
 	public async populateEmojis(emojiNames: string[], noteUserHost: string | null): Promise<Record<string, string>> {
-		const emojis = await Promise.all(emojiNames.map(x => this.populateEmoji(x, noteUserHost)));
+		const emojis = await pMap(emojiNames, x => this.populateEmoji(x, noteUserHost), 10);
 		const res = {} as Record<string, string>;
 		for (let i = 0; i < emojiNames.length; i++) {
 			const resolvedEmoji = emojis[i];
