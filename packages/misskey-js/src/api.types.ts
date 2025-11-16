@@ -18,6 +18,7 @@ import {
 	SignupPendingResponse,
 	SignupRequest,
 	SignupResponse,
+	AutoProcessedAbuseReport,
 } from './entities.js';
 
 type Overwrite<T, U extends { [Key in keyof T]?: unknown }> = Omit<
@@ -112,6 +113,24 @@ export type Endpoints = Overwrite<
 		'admin/roles/create': {
 			req: Overwrite<AdminRolesCreateRequest, { policies: PartialRolePolicyOverride }>;
 			res: AdminRolesCreateResponse;
+		},
+		'admin/abuse-report/auto-processed/show': {
+			req: Gen['admin/abuse-report/auto-processed/show']['req'];
+			res: AutoProcessedAbuseReport[];
+		},
+		'admin/show-user': {
+			req: Gen['admin/show-user']['req'];
+			res: Gen['admin/show-user']['res'] & { approved?: boolean };
+		},
+		'admin/show-pending': {
+			req: Gen['admin/show-pending']['req'];
+			res: Gen['admin/show-pending']['res'] & {
+				signupReason?: string | null;
+				time?: string;
+				isProcessed?: boolean;
+				result?: string | null;
+				ip?: string | null;
+			};
 		},
 		'clear-browser-cache': {
 			req: EmptyRequest;

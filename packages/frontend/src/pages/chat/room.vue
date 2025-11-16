@@ -7,7 +7,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 <PageWithHeader v-model:tab="tab" :reversed="tab === 'chat'" :tabs="headerTabs" :actions="headerActions">
 	<div v-if="tab === 'chat'" class="_spacer" style="--MI_SPACER-w: 700px;">
 		<div class="_gaps">
-			<div v-if="initializing">
+			<MkResult v-if="error === 'notFoundUser'" type="notFound" :text="i18n.ts.noSuchUser">
+				<MkButton :class="$style.retryButton" rounded @click="initialize()">{{ i18n.ts.retry }}</MkButton>
+			</MkResult>
+			<MkResult v-else-if="error === 'notFoundRoom'" type="notFound" :text="i18n.ts.noSuchRoom">
+				<MkButton :class="$style.retryButton" rounded @click="initialize()">{{ i18n.ts.retry }}</MkButton>
+			</MkResult>
+			<MkError v-else-if="error === 'error'" @retry="initialize()"/>
+
+			<div v-else-if="initializing">
 				<MkLoading/>
 			</div>
 
@@ -207,6 +215,7 @@ const user = ref<Misskey.entities.UserDetailed | null>(null);
 const room = ref<Misskey.entities.ChatRoom | null>(null);
 const connection = ref<Misskey.IChannelConnection<Misskey.Channels['chatUser']> | Misskey.IChannelConnection<Misskey.Channels['chatRoom']> | null>(null);
 const showIndicator = ref(false);
+const error = ref<'notFoundUser' | 'notFoundRoom' | 'error' | null>(null);
 const timelineEl = useTemplateRef('timelineEl');
 const timeline = makeDateSeparatedTimelineComputedRef(messages);
 
@@ -249,25 +258,36 @@ async function initialize() {
 	initialized.value = false;
 
 	if (props.userId) {
-		const [u, m] = await Promise.all([
-			misskeyApi('users/show', { userId: props.userId }),
-			misskeyApi('chat/messages/user-timeline', { userId: props.userId, limit: LIMIT }),
-		]);
+		try {
+			const [u, m] = await Promise.all([
+				misskeyApi('users/show', { userId: props.userId }),
+				misskeyApi('chat/messages/user-timeline', { userId: props.userId, limit: LIMIT }),
+			]);
 
-		user.value = u;
-		messages.value = m.map(x => normalizeMessage(x));
+			user.value = u as Misskey.entities.UserDetailed;
+			messages.value = m.map(x => normalizeMessage(x));
+			error.value = null;
 
-		if (messages.value.length === LIMIT) {
-			canFetchMore.value = true;
+			if (messages.value.length === LIMIT) {
+				canFetchMore.value = true;
+			}
+
+			connection.value = useStream().useChannel('chatUser', {
+				otherId: user.value.id,
+			});
+			connection.value.on('message', onMessage);
+			connection.value.on('deleted', onDeleted);
+			connection.value.on('react', onReact);
+			connection.value.on('unreact', onUnreact);
+		} catch (err: any) {
+			if (err.code === 'NO_SUCH_USER') {
+				error.value = 'notFoundUser';
+			} else {
+				error.value = 'error';
+			}
+			initializing.value = false;
+			return;
 		}
-
-		connection.value = useStream().useChannel('chatUser', {
-			otherId: user.value.id,
-		});
-		connection.value.on('message', onMessage);
-		connection.value.on('deleted', onDeleted);
-		connection.value.on('react', onReact);
-		connection.value.on('unreact', onUnreact);
 	} else if (props.roomId) {
 		const [rResult, mResult] = await Promise.allSettled([
 			misskeyApi('chat/rooms/show', { roomId: props.roomId }),
@@ -275,15 +295,18 @@ async function initialize() {
 		]);
 
 		if (rResult.status === 'rejected') {
-			os.alert({
-				type: 'error',
-				text: i18n.ts.somethingHappened,
-			});
+			const err: any = rResult.reason;
+			if (err.code === 'NO_SUCH_ROOM') {
+				error.value = 'notFoundRoom';
+			} else {
+				error.value = 'error';
+			}
 			initializing.value = false;
 			return;
 		}
 
 		const r = rResult.value as Misskey.entities.ChatRoomsShowResponse;
+		error.value = null;
 
 		if (r.invitationExists) {
 			const confirm = await os.confirm({
@@ -1104,5 +1127,9 @@ definePage(computed(() => {
 	&:active {
 		transform: scale(0.95);
 	}
+}
+
+.retryButton {
+	margin: 0 auto;
 }
 </style>

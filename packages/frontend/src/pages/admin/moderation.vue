@@ -144,6 +144,25 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</MkFolder>
 				</SearchMarker>
 
+				<SearchMarker :keywords="['deleted', 'note', 'collection', 'retention']">
+					<MkFolder>
+						<template #icon><SearchIcon><i class="ti ti-trash"></i></SearchIcon></template>
+						<template #label><SearchLabel>{{ i18n.ts.deletedNoteCollection }}</SearchLabel></template>
+
+						<div class="_gaps">
+							<MkTextarea v-model="deletedNoteCollectionInstances">
+								<template #label>{{ i18n.ts.deletedNoteCollectionInstances }}</template>
+								<template #caption>{{ i18n.ts.deletedNoteCollectionInstancesDescription }}</template>
+							</MkTextarea>
+							<MkInput v-model.number="deletedNoteRetentionHours" type="number" :min="1" :max="72">
+								<template #label>{{ i18n.ts.deletedNoteRetentionHours }}</template>
+								<template #caption>{{ i18n.ts.deletedNoteRetentionHoursDescription }}</template>
+							</MkInput>
+							<MkButton primary @click="save_deletedNoteCollection">{{ i18n.ts.save }}</MkButton>
+						</div>
+					</MkFolder>
+				</SearchMarker>
+
 				<SearchMarker :keywords="['blocked', 'servers', 'hosts']">
 					<MkFolder>
 						<template #icon><SearchIcon><i class="ti ti-ban"></i></SearchIcon></template>
@@ -237,6 +256,8 @@ const preservedUsernames = ref(meta.preservedUsernames.join('\n'));
 const blockedHosts = ref(meta.blockedHosts.join('\n'));
 const silencedHosts = ref(meta.silencedHosts?.join('\n') ?? '');
 const mediaSilencedHosts = ref(meta.mediaSilencedHosts.join('\n'));
+const deletedNoteCollectionInstances = ref(meta.deletedNoteCollectionInstances?.join('\n') ?? '');
+const deletedNoteRetentionHours = ref(meta.deletedNoteRetentionHours ?? 72);
 const abuseMLCheck = ref(meta.abuseMLCheck ?? false);
 const abuseReportMLAction = ref(meta.abuseReportMLAction ?? 'record');
 const abuseMLInfoUrl = ref(meta.abuseMLInfoUrl ?? '');
@@ -344,6 +365,15 @@ function save_silencedHosts() {
 function save_mediaSilencedHosts() {
 	os.apiWithDialog('admin/update-meta', {
 		mediaSilencedHosts: mediaSilencedHosts.value.split('\n') || [],
+	}).then(() => {
+		fetchInstance(true);
+	});
+}
+
+function save_deletedNoteCollection() {
+	os.apiWithDialog('admin/update-meta', {
+		deletedNoteCollectionInstances: deletedNoteCollectionInstances.value.split('\n').filter(Boolean) || [],
+		deletedNoteRetentionHours: Number(deletedNoteRetentionHours.value),
 	}).then(() => {
 		fetchInstance(true);
 	});

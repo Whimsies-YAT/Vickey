@@ -100,7 +100,7 @@ export async function masterMain() {
 			tracesSampleRate: 1.0, //  Capture 100% of the transactions
 
 			// Set sampling rate for profiling - this is relative to tracesSampleRate
-			profilesSampleRate: 1.0,
+			profileSessionSampleRate: 1.0,
 
 			maxBreadcrumbs: 0,
 
@@ -119,6 +119,7 @@ export async function masterMain() {
 
 	if (!envOption.disableClustering) {
 		// clusterモジュール有効時
+		// Master process only manages workers in default mode
 
 		if (envOption.onlyServer) {
 			// onlyServer かつ enableCluster な場合、メインプロセスはforkのみに制限する(listenしない)。
@@ -127,10 +128,7 @@ export async function masterMain() {
 			// see: https://nodejs.org/api/cluster.html#cluster
 		} else if (envOption.onlyQueue) {
 			await jobQueue();
-		} else {
-			await server();
 		}
-
 		await spawnWorkers(config.clusterLimit);
 	} else {
 		// clusterモジュール無効時
@@ -216,7 +214,7 @@ async function spawnWorkers(limit = 1) {
 	bootLogger.succ('All workers started');
 }
 
-function spawnWorker(): Promise<void> {
+export function spawnWorker(): Promise<void> {
 	return new Promise(res => {
 		const worker = cluster.fork();
 		worker.on('message', message => {

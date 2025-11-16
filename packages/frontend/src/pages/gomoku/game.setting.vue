@@ -84,6 +84,10 @@ const props = defineProps<{
 	connection: Misskey.IChannelConnection<Misskey.Channels['gomokuGame']>;
 }>();
 
+type GomokuConnection = Misskey.IChannelConnection<Misskey.Channels['gomokuGame']> & {
+	send: (type: string, payload: any) => void;
+};
+
 const shareWhenStart = defineModel<boolean>('shareWhenStart', { default: false });
 
 const game = ref<Misskey.entities.GomokuGameDetailed>(deepClone(props.game));
@@ -110,17 +114,17 @@ async function cancel() {
 	});
 	if (canceled) return;
 
-	props.connection.send('cancel', {});
+	(props.connection as GomokuConnection).send('cancel', {});
 
 	router.push('/gomoku');
 }
 
 function ready() {
-	props.connection.send('ready', true);
+	(props.connection as GomokuConnection).send('ready', true);
 }
 
 function unready() {
-	props.connection.send('ready', false);
+	(props.connection as GomokuConnection).send('ready', false);
 }
 
 function onChangeReadyStates(states) {
@@ -128,10 +132,11 @@ function onChangeReadyStates(states) {
 	game.value.user2Ready = states.user2;
 }
 
-props.connection.on('changeReadyStates', onChangeReadyStates);
+const conn = props.connection as any;
+conn.on('changeReadyStates', onChangeReadyStates);
 
 onUnmounted(() => {
-	props.connection.off('changeReadyStates', onChangeReadyStates);
+	conn.off('changeReadyStates', onChangeReadyStates);
 });
 </script>
 

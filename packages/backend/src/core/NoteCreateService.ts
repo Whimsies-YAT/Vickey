@@ -11,6 +11,7 @@ import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
 import { extractMentions } from '@/misc/extract-mentions.js';
 import { extractCustomEmojisFromMfm } from '@/misc/extract-custom-emojis-from-mfm.js';
 import { extractHashtags } from '@/misc/extract-hashtags.js';
+import { pMap } from '@/misc/p-limit.js';
 import type { IMentionedRemoteUsers } from '@/models/Note.js';
 import { MiNote } from '@/models/Note.js';
 import type { BlockingsRepository, ChannelFollowingsRepository, ChannelsRepository, DriveFilesRepository, FollowingsRepository, InstancesRepository, MiFollowing, MiMeta, MutingsRepository, NotesRepository, NoteThreadMutingsRepository, UserListMembershipsRepository, UserProfilesRepository, UsersRepository } from '@/models/_.js';
@@ -687,6 +688,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 			replyUserHost: data.reply ? data.reply.userHost : null,
 			renoteUserId: data.renote ? data.renote.userId : null,
 			renoteUserHost: data.renote ? data.renote.userHost : null,
+			renoteChannelId: data.renote ? data.renote.channelId : null,
 			userHost: user.host,
 		});
 
@@ -1064,17 +1066,17 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 	@bindThis
 	private async createMentionedEvents(mentionedUsers: MinimumUser[], note: MiNote, nm: NotificationManager) {
-		for (const u of mentionedUsers.filter(u => this.userEntityService.isLocalUser(u))) {
-			const isThreadMuted = await this.noteThreadMutingsRepository.exists({
-				where: {
-					userId: u.id,
-					threadId: note.threadId ?? note.id,
-				},
-			});
+		const localUsers = mentionedUsers.filter(u => this.userEntityService.isLocalUser(u));
+		if (localUsers.length === 0) return;
 
-			if (isThreadMuted) {
-				continue;
-			}
+		const threadMutes = await this.noteThreadMutingsRepository.findBy({
+			userId: In(localUsers.map(u => u.id)),
+			threadId: note.threadId ?? note.id,
+		});
+		const mutedUserIds = new Set(threadMutes.map(m => m.userId));
+
+		for (const u of localUsers) {
+			if (mutedUserIds.has(u.id)) continue;
 
 			const detailPackedNote = await this.noteEntityService.pack(note, u, {
 				detail: true,
@@ -1083,7 +1085,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 			this.globalEventService.publishMainStream(u.id, 'mention', detailPackedNote);
 			this.webhookService.enqueueUserWebhook(u.id, 'mention', { note: detailPackedNote });
 
-			// Create notification
 			nm.push(u.id, 'mention');
 		}
 	}
@@ -1134,9 +1135,10 @@ export class NoteCreateService implements OnApplicationShutdown {
 		if (tokens == null) return [];
 
 		const mentions = extractMentions(tokens);
-		let mentionedUsers = (await Promise.all(mentions.map(m =>
+		let mentionedUsers = (await pMap(mentions, m =>
 			this.remoteUserResolveService.resolveUser(m.username, m.host ?? user.host).catch(() => null),
-		))).filter(x => x != null);
+			10,
+		)).filter(x => x != null);
 
 		// Drop duplicate users
 		mentionedUsers = mentionedUsers.filter((u, i, self) =>

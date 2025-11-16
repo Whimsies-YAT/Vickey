@@ -96,7 +96,7 @@ export class MLReportService {
 								host: null,
 								isBot: true,
 							} as MiUser;
-							await this.noteDeleteService.delete(virtualUser, note, false);
+							await this.noteDeleteService.delete(virtualUser, note, false, undefined, true);
 						} catch (err) {
 							console.error(err);
 						}

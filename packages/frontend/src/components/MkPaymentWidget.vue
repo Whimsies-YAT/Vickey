@@ -306,14 +306,19 @@ const processOneTimePayment = async () => {
 		amount: number;
 		description?: string;
 		useCheckout: boolean;
-		billingDetails?: {
-			firstName?: string;
-			lastName?: string;
-			email?: string;
+		billingDetails: {
+			firstName: string;
+			lastName: string;
+			email: string;
 		};
 	} = {
 		amount: amount.value * 100,
 		useCheckout: props.useCheckout,
+		billingDetails: {
+			firstName: '',
+			lastName: '',
+			email: '',
+		},
 	};
 
 	if (description.value) {
@@ -321,9 +326,9 @@ const processOneTimePayment = async () => {
 	}
 
 	requestData.billingDetails = {
-		firstName: billingInfo.value.firstName || undefined,
-		lastName: billingInfo.value.lastName || undefined,
-		email: billingInfo.value.email || undefined,
+		firstName: billingInfo.value.firstName || '',
+		lastName: billingInfo.value.lastName || '',
+		email: billingInfo.value.email || '',
 	};
 
 	const intentResponse = await misskeyApi('payment/create-intent', requestData) as {

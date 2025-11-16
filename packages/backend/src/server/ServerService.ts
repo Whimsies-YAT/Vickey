@@ -163,12 +163,23 @@ export class ServerService implements OnApplicationShutdown {
 		fastify.register(this.oauth2ProviderService.createRevokeServer, { prefix: '/oauth/revoke' });
 		await fastify.register(async (fastify) => {
 			fastify.addHook('preHandler', async (request, reply) => {
-				const rateLimit = await this.rateLimiterService.limit({
-					key: 'oauth-general',
-					duration: 60 * 60 * 1000,
-					max: 300,
-					minInterval: 250
-				}, getIpHash(request.ip));
+				const ipHash = getIpHash(request.ip);
+				const rateLimit = await this.rateLimiterService.limit(
+					{
+						key: 'oauth-general',
+						duration: 60 * 60 * 1000,
+						max: 300,
+						minInterval: 250,
+					},
+					ipHash,
+					1,
+					{
+						ip: request.ip ?? null,
+						endpoint: 'oauth',
+						limitKey: 'oauth-general',
+						actor: ipHash,
+					}
+				);
 
 				if (rateLimit != null) {
 					reply.code(429);

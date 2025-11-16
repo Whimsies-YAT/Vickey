@@ -165,7 +165,7 @@ onMounted(async () => {
 				let h = media.properties.height;
 
 				if (media.type === 'image/heic' || media.type === 'image/heif') {
-					const converted = await convertHeicToJpeg(media.url, media.thumbnailUrl);
+					const converted = await convertHeicToJpeg(media.url, media.thumbnailUrl ?? undefined);
 					src = converted.url;
 					w = converted.width;
 					h = converted.height;

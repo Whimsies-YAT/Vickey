@@ -65,9 +65,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts">
-type SupportedTypes = 'text' | 'password' | 'email' | 'url' | 'tel' | 'number' | 'search' | 'date' | 'time' | 'datetime-local' | 'color';
+type SupportedTypes = 'text' | 'password' | 'email' | 'url' | 'tel' | 'number' | 'search' | 'date' | 'time' | 'datetime-local' | 'color' | 'range';
 type ModelValueType<T extends SupportedTypes> =
-	T extends 'number' ? number :
+	T extends 'number' | 'range' ? number :
 	T extends 'text' | 'password' | 'email' | 'url' | 'tel' | 'search' | 'date' | 'time' | 'datetime-local' | 'color' ? string :
 	never;
 </script>
@@ -107,6 +107,7 @@ const props = defineProps<{
 	manualSave?: boolean;
 	small?: boolean;
 	large?: boolean;
+	modelModifiers?: Record<string, boolean>;
 }>();
 
 const emit = defineEmits<{

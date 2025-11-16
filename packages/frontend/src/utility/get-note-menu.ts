@@ -183,7 +183,7 @@ export function getNoteMenu(props: {
 	note: Misskey.entities.Note;
 	translation: Ref<Misskey.entities.NotesTranslateResponse | null>;
 	translating: Ref<boolean>;
-	convert: Ref<string | null>;
+	convert: Ref<Misskey.entities.DriveFile | null>;
 	converting: Ref<boolean>;
 	currentClip?: Misskey.entities.Clip;
 }) {
@@ -338,7 +338,13 @@ export function getNoteMenu(props: {
 	}
 
 	async function convert(): Promise<void> {
-		if (props.convert.value != null) return;
+		if (props.converting.value) return;
+		if (props.convert.value) {
+			if (props.convert.value.url) {
+				URL.revokeObjectURL(props.convert.value.url);
+			}
+			props.convert.value = null;
+		}
 		props.converting.value = true;
 
 		const res = await misskeyApi('notes/tts', {
@@ -356,12 +362,28 @@ export function getNoteMenu(props: {
 					chunks.push(value);
 				}
 
-				const audioBlob = new Blob(chunks, { type: 'audio/flac' });
+				const blobParts: BlobPart[] = chunks.map(chunk => chunk.slice().buffer);
+				const audioBlob = new Blob(blobParts, { type: 'audio/flac' });
 
-				if (props.convert.value) {
-					URL.revokeObjectURL(props.convert.value);
-				}
-				props.convert.value = URL.createObjectURL(audioBlob);
+				const audioUrl = URL.createObjectURL(audioBlob);
+				props.convert.value = {
+					id: `convert-${appearNote.id}`,
+					createdAt: new Date().toISOString(),
+					name: 'tts-audio.flac',
+					type: 'audio/flac',
+					md5: '',
+					size: audioBlob.size,
+					isSensitive: false,
+					blurhash: null,
+					properties: {},
+					url: audioUrl,
+					thumbnailUrl: null,
+					comment: null,
+					folderId: null,
+					folder: null,
+					userId: null,
+					user: null,
+				} as Misskey.entities.DriveFile;
 			} else {
 				console.error('Response body is not a ReadableStream');
 			}

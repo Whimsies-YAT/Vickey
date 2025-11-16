@@ -5,8 +5,13 @@
 
 import { permissions } from 'misskey-js';
 import type { KeyOf, Schema } from '@/misc/json-schema.js';
-
 import * as endpointsObject from './endpoint-list.js';
+
+type EndpointModule = {
+	default: new (...args: any[]) => any;
+	meta?: IEndpointMeta;
+	paramDef?: Schema;
+};
 
 interface IEndpointMetaBase {
 	readonly stability?: 'deprecated' | 'experimental' | 'stable';
@@ -130,14 +135,14 @@ export interface IEndpoint {
 	params: Schema;
 }
 
-const endpoints: IEndpoint[] = Object.entries(endpointsObject).map(([name, ep]) => {
+const endpoints: IEndpoint[] = Object.entries(endpointsObject as Record<string, EndpointModule>).map(([name, ep]) => {
 	return {
 		name: name,
 		get meta() {
 			return ep.meta ?? {};
 		},
 		get params() {
-			return ep.paramDef;
+			return ep.paramDef ?? { type: 'object', properties: {} };
 		},
 	};
 });

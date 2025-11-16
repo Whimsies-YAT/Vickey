@@ -73,6 +73,9 @@ tsdoc-metadata.json
 misskey-assets
 sync-from-misskey.sh
 
+# Auto-generated endpoint list (see endpoint-config.json)
+# /packages/backend/src/server/api/endpoint-list.ts
+
 # Vite temporary files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
@@ -107,3 +110,6 @@ vite.config.local-dev.ts.timestamp-*
 
 # If using Claude
 CLAUDE.local.md
+
+# If using Codex
+AGENTS.md

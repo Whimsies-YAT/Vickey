@@ -306,17 +306,10 @@ export async function mainBoot() {
 		 */
 
 		const modifiedVersionMustProminentlyOfferInAgplV3Section13Read = miLocalStorage.getItem('modifiedVersionMustProminentlyOfferInAgplV3Section13ReadAndApplyToVk');
-		if (modifiedVersionMustProminentlyOfferInAgplV3Section13Read !== 'true' && instance.repositoryUrl.toLowerCase() !== 'https://github.com/whimsies-yat/vickey') {
+		if (modifiedVersionMustProminentlyOfferInAgplV3Section13Read !== 'true' && instance.repositoryUrl?.toLowerCase() !== 'https://github.com/whimsies-yat/vickey') {
 			const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSourceCodeAvailablePopup.vue')), {}, {
 				closed: () => dispose(),
 			});
-		}
-
-		if ('Notification' in window) {
-			// 許可を得ていなかったらリクエスト
-			if (Notification.permission === 'default') {
-				Notification.requestPermission();
-			}
 		}
 
 		if (store.s.realtimeMode) {
@@ -429,7 +422,7 @@ export async function mainBoot() {
 			main.on('announcementCreated', onAnnouncementCreated);
 
 			// Token refresh notification from server
-			main.on('tokenRefreshNeeded', () => {
+			(main as any).on('tokenRefreshNeeded', () => {
 				console.log('WebSocket: Token refresh needed');
 				silentTokenRefresh().catch(error => {
 					console.warn('WebSocket-triggered token refresh failed:', error);

@@ -27,6 +27,7 @@ import { MiAuthSession } from '@/models/AuthSession.js';
 import { MiBlocking } from '@/models/Blocking.js';
 import { MiChannelFollowing } from '@/models/ChannelFollowing.js';
 import { MiChannelFavorite } from '@/models/ChannelFavorite.js';
+import { MiChannelMuting } from "@/models/ChannelMuting.js";
 import { MiClip } from '@/models/Clip.js';
 import { MiClipNote } from '@/models/ClipNote.js';
 import { MiClipFavorite } from '@/models/ClipFavorite.js';
@@ -261,6 +262,7 @@ export const entities = [
 	MiChannel,
 	MiChannelFollowing,
 	MiChannelFavorite,
+	MiChannelMuting,
 	MiRegistryItem,
 	MiAd,
 	MiPasswordResetRequest,
@@ -312,11 +314,11 @@ export function createPostgresDataSource(config: Config) {
 		password: config.db.pass,
 		database: config.db.db,
 		extra: {
-			max: 50,
+			max: 100,
 			min: 10,
 			idleTimeoutMillis: 30000,
 			connectionTimeoutMillis: 10000,
-			statement_timeout: 30000,
+			statement_timeout: 120000,
 			keepAlive: true,
 			keepAliveInitialDelayMillis: 10000,
 			...config.db.extra,

@@ -104,15 +104,17 @@ export class NotificationEntityService implements OnModuleInit {
 
 		//#region Grouped notifications
 		if (notification.type === 'reaction:grouped') {
-			const reactions = (await Promise.all(notification.reactions.map(async reaction => {
-				const user = hint?.packedUsers != null
-					? hint.packedUsers.get(reaction.userId)!
-					: await this.userEntityService.pack(reaction.userId, { id: meId });
-				return {
-					user,
-					reaction: reaction.reaction,
-				};
-			}))).filter(r => r.user != null);
+			const reactions = notification.reactions
+				.map(reaction => {
+					const user = hint?.packedUsers?.get(reaction.userId);
+					if (!user) return null;
+					return {
+						user,
+						reaction: reaction.reaction,
+					};
+				})
+				.filter((r): r is NonNullable<typeof r> => r != null);
+
 			// if all users have been deleted, don't show this notification
 			if (reactions.length === 0) {
 				return null;
@@ -126,14 +128,10 @@ export class NotificationEntityService implements OnModuleInit {
 				reactions,
 			});
 		} else if (notification.type === 'renote:grouped') {
-			const users = (await Promise.all(notification.userIds.map(userId => {
-				const packedUser = hint?.packedUsers != null ? hint.packedUsers.get(userId) : null;
-				if (packedUser) {
-					return packedUser;
-				}
+			const users = notification.userIds
+				.map(userId => hint?.packedUsers?.get(userId))
+				.filter((x): x is NonNullable<typeof x> => x != null);
 
-				return this.userEntityService.pack(userId, { id: meId });
-			}))).filter(x => x != null);
 			// if all users have been deleted, don't show this notification
 			if (users.length === 0) {
 				return null;

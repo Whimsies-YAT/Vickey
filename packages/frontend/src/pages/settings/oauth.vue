@@ -107,14 +107,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { markRaw } from 'vue';
+import * as Misskey from 'misskey-js';
 import MkPagination from '@/components/MkPagination.vue';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { definePage } from '@/page.js';
 import MkKeyValue from '@/components/MkKeyValue.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkFolder from '@/components/MkFolder.vue';
-import MkResult from '@/components/global/MkResult.vue';
-import MkTime from '@/components/global/MkTime.vue';
 import MkInfo from '@/components/MkInfo.vue';
 import { Paginator } from '@/utility/paginator.js';
 import * as os from '@/os.js';
@@ -188,12 +187,12 @@ async function createOAuthApp() {
 			iconUrl: basicInfo.iconUrl || null,
 			websiteUrl: basicInfo.websiteUrl || null,
 			permission: permissionResult.permissions,
-		});
+		}) as Misskey.entities.App;
 
 		await os.alert({
 			type: 'success',
 			title: i18n.ts._oauthAppVK.created,
-			text: `${ i18n.ts._oauthAppVK.idAlt } ${ createdApp.id }\n\n${ i18n.ts._oauthAppVK.secretAlt } ${ createdApp.fullSecret }\n\n⚠️ ${ i18n.ts._oauthAppVK.firstTime }`,
+			text: `${ i18n.ts._oauthAppVK.idAlt } ${ createdApp.id }\n\n${ i18n.ts._oauthAppVK.secretAlt } ${ createdApp.fullSecret ?? '' }\n\n⚠️ ${ i18n.ts._oauthAppVK.firstTime }`,
 		});
 
 		oauthAppsPaginator.reload();

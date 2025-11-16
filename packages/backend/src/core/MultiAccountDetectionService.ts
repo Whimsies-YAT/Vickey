@@ -54,10 +54,10 @@ export class MultiAccountDetectionService {
 		@Inject(DI.userSessionsRepository)
 		private userSessionsRepository: UserSessionsRepository,
 
-		@Inject(DI.followingsRepository)
+	@Inject(DI.followingsRepository)
 		private followingsRepository: FollowingsRepository,
 
-		@Inject(DI.noteReactionsRepository)
+	@Inject(DI.noteReactionsRepository)
 		private noteReactionsRepository: NoteReactionsRepository,
 
 		private idService: IdService,
@@ -714,18 +714,37 @@ export class MultiAccountDetectionService {
 		const links = await this.getAccountLinks(userId);
 		if (links.length === 0) return baseScore;
 
-		let maxPenalty = 1.0;
-		for (const link of links) {
-			if (!link.expiresAt || link.expiresAt > new Date()) {
-				maxPenalty = Math.max(maxPenalty, link.penaltyMultiplier);
-			}
+		const activeLinks = links.filter(link => !link.expiresAt || link.expiresAt > new Date());
+		if (activeLinks.length === 0) return baseScore;
+
+		let aggregatePenalty = 0;
+		for (const link of activeLinks) {
+			const multiplier = this.calculateCurrentPenalty(link);
+			const effectiveDelta = Math.max(0, multiplier - 1);
+			const confidenceWeight = Math.max(0.5, link.confidence);
+			const manualWeight = link.isManual ? 1.2 : 1;
+			aggregatePenalty += effectiveDelta * confidenceWeight * manualWeight;
 		}
 
-		if (baseScore > 65) {
-			return baseScore / maxPenalty;
-		} else {
-			return baseScore * maxPenalty;
+		const clampedPenalty = Math.min(30, aggregatePenalty * 6);
+		return Math.max(0, baseScore - clampedPenalty);
+	}
+
+	@bindThis
+	public async calculateLinkRiskPressure(userId: string): Promise<number> {
+		const links = await this.getAccountLinks(userId);
+		if (links.length === 0) return 0;
+
+		let pressure = 0;
+		for (const link of links) {
+			const penalty = this.calculateCurrentPenalty(link);
+			const isExpired = link.expiresAt && link.expiresAt < new Date();
+			if (isExpired) continue;
+			const normalizedPenalty = Math.max(0, penalty - 1);
+			pressure += normalizedPenalty * Math.max(0.5, link.confidence);
 		}
+
+		return pressure;
 	}
 
 	@bindThis

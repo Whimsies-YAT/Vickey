@@ -5,7 +5,7 @@
 
 import { ref, shallowRef, triggerRef } from 'vue';
 import * as Misskey from 'misskey-js';
-import type { ComputedRef, Ref, ShallowRef } from 'vue';
+import type { ComputedRef, Ref, ShallowRef, UnwrapRef } from 'vue';
 import { misskeyApi } from '@/utility/misskey-api.js';
 
 const MAX_ITEMS = 30;
@@ -19,13 +19,38 @@ export type MisskeyEntity = {
 	_shouldInsertAd_?: boolean;
 };
 
-type FilterByEpRes<E extends Record<string, any>> = {
+type AbsEndpointType = {
+	req: unknown;
+	res: unknown;
+};
+
+type FilterByEpRes<E extends Record<string, AbsEndpointType>> = {
 	[K in keyof E]: E[K]['res'] extends Array<{ id: string }> ? K : never
 }[keyof E];
-export type PaginatorCompatibleEndpointPaths = FilterByEpRes<Misskey.Endpoints>;
-export type PaginatorCompatibleEndpoints = {
-	[K in PaginatorCompatibleEndpointPaths]: Misskey.Endpoints[K];
+
+type BasePaginatorEndpointPaths = FilterByEpRes<Misskey.Endpoints>;
+
+type AdditionalPaginatorEndpoints = 'notes/smart-timeline';
+
+type BasePaginatorEndpoints = {
+	[K in BasePaginatorEndpointPaths]: Misskey.Endpoints[K];
 };
+
+type AdditionalPaginatorEndpointMap = {
+	'notes/smart-timeline': {
+		req: Misskey.Endpoints['notes/smart-timeline']['req'];
+		res: Misskey.entities.Note[];
+	};
+};
+
+type CombinedPaginatorEndpoints = BasePaginatorEndpoints & AdditionalPaginatorEndpointMap;
+
+export type PaginatorCompatibleEndpointPaths = keyof CombinedPaginatorEndpoints;
+export type PaginatorCompatibleEndpoints = {
+	[K in keyof CombinedPaginatorEndpoints]: CombinedPaginatorEndpoints[K];
+};
+
+export type ExtractorFunction<P extends IPaginator, T> = (item: UnwrapRef<P['items']>[number]) => T;
 
 export interface IPaginator<T = unknown, _T = T & MisskeyEntity> {
 	/**
@@ -281,7 +306,7 @@ export class Paginator<
 			}),
 		};
 
-		const apiRes = (await misskeyApi<T[]>(this.endpoint, data).catch(err => {
+		const apiRes = (await misskeyApi<T[]>(this.endpoint, data as E['req'] & { i?: string | null }).catch(err => {
 			return null;
 		})) as T[] | null;
 
@@ -334,7 +359,7 @@ export class Paginator<
 			}),
 		};
 
-		const apiRes = (await misskeyApi<T[]>(this.endpoint, data).catch(err => {
+		const apiRes = (await misskeyApi<T[]>(this.endpoint, data as E['req'] & { i?: string | null }).catch(err => {
 			return null;
 		})) as T[] | null;
 

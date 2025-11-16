@@ -18,10 +18,34 @@ export function misskeyApi<
 	_ResT = ResT extends void ? Misskey.api.SwitchCaseResponseType<E, P> : ResT,
 >(
 	endpoint: E,
-	data: P & { i?: string | null; } = {} as any,
+	data?: P & { i?: string | null; },
 	token?: string | null | undefined,
 	signal?: AbortSignal,
-	returnResponse: boolean = false
+	returnResponse?: false
+): Promise<_ResT>;
+export function misskeyApi<
+	ResT = void,
+	E extends keyof Misskey.Endpoints = keyof Misskey.Endpoints,
+	P extends Misskey.Endpoints[E]['req'] = Misskey.Endpoints[E]['req'],
+	_ResT = ResT extends void ? Misskey.api.SwitchCaseResponseType<E, P> : ResT,
+>(
+	endpoint: E,
+	data: P & { i?: string | null; },
+	token: string | null | undefined,
+	signal: AbortSignal | undefined,
+	returnResponse: true
+): Promise<Response>;
+export function misskeyApi<
+	ResT = void,
+	E extends keyof Misskey.Endpoints = keyof Misskey.Endpoints,
+	P extends Misskey.Endpoints[E]['req'] = Misskey.Endpoints[E]['req'],
+	_ResT = ResT extends void ? Misskey.api.SwitchCaseResponseType<E, P> : ResT,
+>(
+	endpoint: E,
+	data?: P & { i?: string | null; },
+	token?: string | null | undefined,
+	signal?: AbortSignal,
+	returnResponse?: boolean
 ): Promise<_ResT | Response> {
 	if (endpoint.includes('://')) throw new Error('invalid endpoint');
 	pendingApiRequestsCount.value++;
@@ -31,14 +55,16 @@ export function misskeyApi<
 	};
 
 	const promise = new Promise<_ResT | Response>((resolve, reject) => {
+		const requestData = (data ?? {}) as P & { i?: string | null; };
+
 		// Append a credential
-		if ($i) data.i = $i.token;
-		if (token !== undefined) data.i = token;
+		if ($i) requestData.i = $i.token;
+		if (token !== undefined) requestData.i = token;
 		let bodyJSON;
 		try {
-			bodyJSON = safeStringify(data);
+			bodyJSON = safeStringify(requestData);
 		} catch (error) {
-			console.error(error, data, endpoint);
+			console.error(error, requestData, endpoint);
 			return;
 		}
 
@@ -114,7 +140,27 @@ export function misskeyApiGet<
 	_ResT = ResT extends void ? Misskey.api.SwitchCaseResponseType<E, P> : ResT,
 >(
 	endpoint: E,
-	data: P = {} as any,
+	data?: P,
+	returnResponse?: false
+): Promise<_ResT>;
+export function misskeyApiGet<
+	ResT = void,
+	E extends keyof Misskey.Endpoints = keyof Misskey.Endpoints,
+	P extends Misskey.Endpoints[E]['req'] = Misskey.Endpoints[E]['req'],
+	_ResT = ResT extends void ? Misskey.api.SwitchCaseResponseType<E, P> : ResT,
+>(
+	endpoint: E,
+	data: P,
+	returnResponse: true
+): Promise<Response>;
+export function misskeyApiGet<
+	ResT = void,
+	E extends keyof Misskey.Endpoints = keyof Misskey.Endpoints,
+	P extends Misskey.Endpoints[E]['req'] = Misskey.Endpoints[E]['req'],
+	_ResT = ResT extends void ? Misskey.api.SwitchCaseResponseType<E, P> : ResT,
+>(
+	endpoint: E,
+	data?: P,
 	returnResponse: boolean = false
 ): Promise<_ResT | Response> {
 	pendingApiRequestsCount.value++;
@@ -123,7 +169,8 @@ export function misskeyApiGet<
 		pendingApiRequestsCount.value--;
 	};
 
-	const query = new URLSearchParams(data as any);
+	const requestData = (data ?? {}) as Record<string, unknown>;
+	const query = new URLSearchParams(requestData as Record<string, string>);
 
 	const promise = new Promise<_ResT | Response>((resolve, reject) => {
 		// Send request
@@ -151,14 +198,10 @@ export function misskeyApiGet<
 				} else {
 					if (body.error && body.error.id === 'b0a7f5f8-dc2f-4171-b91f-de88ad238e14') {
 						// Only clear localStorage and reload if this is the current user's token
-						if ($i && (token === undefined || token === $i.token)) {
+						if ($i) {
 							localStorage.clear();
 							window.location.reload();
 							return;
-						} else {
-							// Don't immediately clear localStorage and reload during account switching
-							// Let the account switching logic handle the error gracefully
-							console.warn('Authentication failed for non-current account, token may be expired:', body.error);
 						}
 					}
 					reject(body.error);

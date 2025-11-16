@@ -6,6 +6,7 @@ import {
 	DriveFolder,
 	Note,
 	Notification,
+	GomokuGameDetailed,
 	Signin,
 	User,
 	UserDetailed,
@@ -57,6 +58,7 @@ export type Channels = {
 			readAllNotifications: () => void;
 			unreadNotification: (payload: Notification) => void;
 			notificationFlushed: () => void;
+			notificationDeleted: (payload: { notificationId: string; notifierId?: string; reaction?: string; }) => void;
 			unreadAntenna: (payload: Antenna) => void;
 			newChatMessage: (payload: ChatMessage) => void;
 			readAllAnnouncements: () => void;
@@ -163,6 +165,21 @@ export type Channels = {
 			withRenotes?: boolean;
 			withReplies?: boolean;
 			withFiles?: boolean;
+		};
+		events: {
+			note: (payload: Note) => void;
+		};
+		receives: null;
+	};
+	smartTimeline: {
+		params: {
+			withRenotes?: boolean;
+			withReplies?: boolean;
+			withFiles?: boolean;
+			algorithm?: 'smart' | 'hybrid' | 'social' | 'discovery';
+			diversityLevel?: 'low' | 'medium' | 'high';
+			freshnessWeight?: number;
+			qualityThreshold?: number;
 		};
 		events: {
 			note: (payload: Note) => void;
@@ -354,6 +371,24 @@ export type Channels = {
 				id: ChatMessageLite['id'];
 			};
 		};
+	};
+	gomoku: {
+		params: null;
+		events: {
+			matched: (payload: { game: GomokuGameDetailed }) => void;
+			invited: (payload: { user: UserLite }) => void;
+		};
+		receives: null;
+	};
+	gomokuGame: {
+		params: {
+			gameId: string;
+		};
+		events: {
+			started: (payload: { game: GomokuGameDetailed }) => void;
+			canceled: (payload: { userId: string }) => void;
+		};
+		receives: null;
 	};
 	werewolf: {
 		params: null;

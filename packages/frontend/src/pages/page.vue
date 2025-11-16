@@ -73,7 +73,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<MkUserName :user="page.user" :class="$style.name"/>
 							<MkAcct :user="page.user" :class="$style.acct"/>
 						</MkA>
-						<MkFollowButton v-if="!$i || $i.id != page.user.id" :user="page.user!" :inline="true" :transparent="false" :full="true" :class="$style.follow"/>
+						<!--<MkFollowButton v-if="!$i || $i.id != page.user.id" :user="page.user!" :inline="true" :transparent="false" :full="true" :class="$style.follow"/>-->
 					</div>
 					<div :class="$style.pageDate">
 						<div><i class="ti ti-clock"></i> {{ i18n.ts.createdAt }}: <MkTime :time="page.createdAt" mode="detail"/></div>
@@ -89,7 +89,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</MkPagination>
 				</MkContainer>
 			</div>
-			<MkError v-else-if="error" @retry="fetchPage()"/>
+			<MkResult v-else-if="error === 'notFound'" type="notFound" :text="i18n.ts.noSuchPage">
+				<MkButton :class="$style.retryButton" rounded @click="fetchPage()">{{ i18n.ts.retry }}</MkButton>
+			</MkResult>
+			<MkError v-else-if="error === 'error'" @retry="fetchPage()"/>
 			<MkLoading v-else/>
 		</Transition>
 	</div>
@@ -132,7 +135,7 @@ const props = defineProps<{
 }>();
 
 const page = ref<Misskey.entities.Page | null>(null);
-const error = ref<any>(null);
+const error = ref<'notFound' | 'error' | null>(null);
 const otherPostsPaginator = markRaw(new Paginator('users/pages', {
 	limit: 6,
 	computedParams: computed(() => page.value ? ({
@@ -148,6 +151,7 @@ function fetchPage() {
 		username: props.username,
 	}).then(async _page => {
 		page.value = _page;
+		error.value = null;
 
 		// plugin
 		const pageViewInterruptors = getPluginHandlers('page_view_interruptor');
@@ -159,7 +163,11 @@ function fetchPage() {
 			page.value = result;
 		}
 	}).catch(err => {
-		error.value = err;
+		if (err.code === 'NO_SUCH_PAGE') {
+			error.value = 'notFound';
+		} else {
+			error.value = 'error';
+		}
 	});
 }
 
@@ -537,5 +545,9 @@ definePage(() => ({
 
 .relatedPagesItem > article {
 	background-color: var(--MI_THEME-panelHighlight) !important;
+}
+
+.retryButton {
+	margin: 0 auto;
 }
 </style>

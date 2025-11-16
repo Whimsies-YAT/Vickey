@@ -7,6 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { DI } from '@/di-symbols.js';
 import { bindThis } from '@/decorators.js';
 import * as Redis from 'ioredis';
+import { pMap } from '@/misc/p-limit.js';
 import { RiskScoreAlgorithmsService } from './RiskScoreAlgorithmsService.js';
 
 export interface CacheStrategy {
@@ -265,7 +266,7 @@ export class RiskScoreCacheService {
 		for (let i = 0; i < userIds.length; i += batchSize) {
 			const batch = userIds.slice(i, i + batchSize);
 
-			await Promise.all(batch.map(async userId => {
+			await pMap(batch, async userId => {
 				const key = `user:risk-score:${userId}`;
 				const cached = await this.get(key, 'user-score');
 
@@ -276,7 +277,7 @@ export class RiskScoreCacheService {
 						userId
 					);
 				}
-			}));
+			}, 10);
 		}
 	}
 

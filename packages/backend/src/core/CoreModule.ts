@@ -17,6 +17,7 @@ import { SystemWebhookService } from '@/core/SystemWebhookService.js';
 import { UserSearchService } from '@/core/UserSearchService.js';
 import { WebhookTestService } from '@/core/WebhookTestService.js';
 import { FlashService } from '@/core/FlashService.js';
+import { ChannelMutingService } from '@/core/ChannelMutingService.js';
 
 import { AccountMoveService } from './AccountMoveService.js';
 import { AccountUpdateService } from './AccountUpdateService.js';
@@ -224,7 +225,7 @@ const serviceClasses = [
 	UtilityService, ContentRecommendationService, RecommendationAlgorithms, SmartTimelineService,
 	HybridTimelineService, LocalAIContentAnalysisService, FileInfoService, FlashService,
 	SearchService, OfflineGeocodingService, ClipService, FeaturedService, FanoutTimelineService, FanoutTimelineEndpointService,
-	ChannelFollowingService, ChatService, RegistryApiService, ReversiService, GomokuService, WerewolfService, UserSessionsService,
+	ChannelFollowingService, ChannelMutingService, ChatService, RegistryApiService, ReversiService, GomokuService, WerewolfService, UserSessionsService,
 	PageService, ChartLoggerService, FederationChart, NotesChart, UsersChart, ActiveUsersChart,
 	InstanceChart, PerUserNotesChart, PerUserPvChart, DriveChart, PerUserReactionsChart,
 	PerUserFollowingChart, PerUserDriveChart, ApRequestChart, ChartManagementService,

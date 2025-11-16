@@ -246,6 +246,8 @@ const props = withDefaults(defineProps<{
 	initialTab: 'overview',
 });
 
+type AdminShowUserResponse = Misskey.Endpoints['admin/show-user']['res'] & { approved?: boolean };
+
 const result = await _fetch_();
 
 const tab = ref(props.initialTab);
@@ -259,12 +261,12 @@ const {
 	initialValue: 'per-user-notes',
 });
 const user = ref(result.user);
-const info = ref(result.info);
+const info = ref<AdminShowUserResponse>(result.info as AdminShowUserResponse);
 const ips = ref(result.ips);
-const ap = ref<any>(null);
+const ap = ref<Misskey.entities.ApGetResponse | null>(null);
 const moderator = ref(info.value.isModerator);
 const silenced = ref(info.value.isSilenced);
-const approved = ref(info.value.approved);
+const approved = ref(info.value.approved ?? false);
 const suspended = ref(info.value.isSuspended);
 const isSystem = ref(user.value.host == null && user.value.username.includes('.'));
 const moderationNote = ref(info.value.moderationNote);
@@ -304,7 +306,7 @@ function _fetch_() {
 		userId: props.userId,
 	}) : Promise.resolve(null)]).then(([_user, _info, _ips]) => ({
 		user: _user,
-		info: _info,
+		info: _info as AdminShowUserResponse,
 		ips: _ips,
 	}));
 }
@@ -321,7 +323,7 @@ async function refreshUser() {
 	ips.value = result.ips;
 	moderator.value = info.value.isModerator;
 	silenced.value = info.value.isSilenced;
-	approved.value = info.value.approved;
+	approved.value = info.value.approved ?? false;
 	suspended.value = info.value.isSuspended;
 	isSystem.value = user.value.host == null && user.value.username.includes('.');
 	moderationNote.value = info.value.moderationNote;

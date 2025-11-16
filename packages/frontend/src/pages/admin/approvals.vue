@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkPagination ref="paginationComponent" :paginator="paginator">
 					<template #default="{ items }">
 						<div class="_gaps_s">
-							<MkApprovalUser v-for="item in items" :key="item.id" :user="(item as any)" :onDeleted="deleted"/>
+							<MkApprovalUser v-for="item in items" :key="item.id" :user="(item as Misskey.entities.User)" :onDeleted="deleted"/>
 						</div>
 					</template>
 				</MkPagination>
@@ -23,6 +23,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, markRaw } from 'vue';
+import type * as Misskey from 'misskey-js';
 import MkPagination from '@/components/MkPagination.vue';
 import MkApprovalUser from '@/components/MkApprovalUser.vue';
 import { i18n } from '@/i18n.js';

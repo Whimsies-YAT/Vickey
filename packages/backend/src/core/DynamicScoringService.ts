@@ -284,12 +284,14 @@ export class DynamicScoringService {
 		const population = context.userPopulation.total;
 		let factor = 1;
 
-		if (population < 100) {
-			factor = 0.7;
+		if (population < 200) {
+			return 1;
 		} else if (population < 1000) {
-			factor = 0.85;
+			factor = 0.97;
 		} else if (population < 10000) {
-			factor = 0.95;
+			factor = 0.9;
+		} else {
+			factor = 0.85;
 		}
 
 		if (distribution.std / distribution.mean > 2) {
@@ -357,19 +359,19 @@ export class DynamicScoringService {
 		factors: Record<string, number>,
 		context: DynamicScoreContext
 	): number {
-		let score = (normalizedValue + 3) / 6 * 10;
-		score = Math.max(0, Math.min(10, score));
+		const boundedZ = Math.max(-4, Math.min(4, normalizedValue));
+		let score = 5 + 4.5 * Math.tanh(boundedZ / 2.2);
 
+		let factorProduct = 1;
 		for (const factor of Object.values(factors)) {
-			score *= factor;
+			const boundedFactor = Math.max(0.7, Math.min(1.3, factor));
+			factorProduct *= boundedFactor;
 		}
+		factorProduct = Math.max(0.6, Math.min(1.4, factorProduct));
+		score *= factorProduct;
 
-		const { relativePosition } = context;
-		if (relativePosition.percentile < 10) {
-			score *= 0.9;
-		} else if (relativePosition.percentile > 90) {
-			score *= 1.1;
-		}
+		const percentileOffset = (context.relativePosition.percentile - 50) / 50;
+		score += percentileOffset * 1.2;
 
 		return Math.max(0, Math.min(10, score));
 	}
@@ -383,11 +385,11 @@ export class DynamicScoringService {
 
 		const sampleSize = context.userPopulation.active;
 		if (sampleSize < 30) {
-			confidence *= 0.5;
+			confidence *= 0.85;
 		} else if (sampleSize < 100) {
-			confidence *= 0.7;
-		} else if (sampleSize < 1000) {
 			confidence *= 0.9;
+		} else if (sampleSize < 1000) {
+			confidence *= 0.95;
 		}
 
 		const cv = distribution.std / (distribution.mean || 1);

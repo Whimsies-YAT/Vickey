@@ -19,6 +19,7 @@ import { ApiLoggerService } from './api/ApiLoggerService.js';
 import { ApiServerService } from './api/ApiServerService.js';
 import { AuthenticateService } from './api/AuthenticateService.js';
 import { RateLimiterService } from './api/RateLimiterService.js';
+import { RateLimitPenaltyService } from './api/RateLimitPenaltyService.js';
 import { SigninApiService } from './api/SigninApiService.js';
 import { SigninService } from './api/SigninService.js';
 import { SignupApiService } from './api/SignupApiService.js';
@@ -81,6 +82,7 @@ import { SigninWithPasskeyApiService } from './api/SigninWithPasskeyApiService.j
 		ApiServerService,
 		AuthenticateService,
 		RateLimiterService,
+		RateLimitPenaltyService,
 		SigninApiService,
 		SigninWithPasskeyApiService,
 		SigninService,

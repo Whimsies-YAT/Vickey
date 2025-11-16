@@ -189,11 +189,9 @@ async function createGame(mode: 'preset_6' | 'preset_9') {
 		}) as Misskey.entities.WerewolfGameDetailed;
 
 		if (game) {
-			router.push('/werewolf/g/:gameId', {
-				params: {
-					gameId: game.id,
-				},
-			});
+			router.push({
+				path: `/werewolf/g/${game.id}`,
+			} as any);
 		}
 	}
 }

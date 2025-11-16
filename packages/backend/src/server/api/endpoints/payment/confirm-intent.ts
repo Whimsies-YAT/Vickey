@@ -9,6 +9,78 @@ import { StripeService } from '@/core/StripeService.js';
 import { ApiError } from '../../error.js';
 import type { StripePaymentsRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
+import type Stripe from 'stripe';
+
+const sanitizePaymentMethodDetails = (details: any) => {
+	if (!details) return null;
+	const card = details.card
+		? {
+			brand: details.card.brand,
+			funding: details.card.funding,
+			country: details.card.country,
+			last4: details.card.last4,
+			expMonth: details.card.exp_month,
+			expYear: details.card.exp_year,
+		}
+		: undefined;
+	return {
+		type: details.type,
+		card,
+		wallet: details.wallet?.type ? { type: details.wallet.type } : undefined,
+	};
+};
+
+const sanitizePaymentMethodReference = (method: string | Stripe.PaymentMethod | null | undefined) => {
+	if (!method) return null;
+	if (typeof method === 'string') {
+		return { id: method };
+	}
+	return {
+		id: method.id,
+		type: method.type,
+		card: method.card ? {
+			brand: method.card.brand,
+			last4: method.card.last4,
+			expMonth: method.card.exp_month,
+			expYear: method.card.exp_year,
+		} : undefined,
+	};
+};
+
+const sanitizePaymentIntentSummary = (intent: any) => {
+	if (!intent) return null;
+	return {
+		id: intent.id,
+		status: intent.status,
+		amount: intent.amount,
+		currency: intent.currency,
+		captureMethod: intent.capture_method,
+		paymentMethodTypes: intent.payment_method_types,
+		created: intent.created,
+	};
+};
+
+const sanitizeCheckoutSessionSummary = (session: any) => {
+	if (!session) return null;
+	return {
+		id: session.id,
+		mode: session.mode,
+		status: session.status,
+		paymentStatus: session.payment_status,
+		amountTotal: session.amount_total,
+		currency: session.currency,
+		expiresAt: session.expires_at,
+	};
+};
+
+const sanitizeCustomerDetails = (details: any) => {
+	if (!details) return null;
+	return {
+		email: details.email,
+		phone: details.phone,
+		addressCountry: details.address?.country,
+	};
+};
 
 export const meta = {
 	tags: ['payment'],
@@ -112,6 +184,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					throw new ApiError(meta.errors.paymentNotFound);
 				}
 
+				if (dbPayment.userId !== me.id) {
+					throw new ApiError(meta.errors.paymentNotFound);
+				}
+
+				const baseMetadata = dbPayment.metadata && typeof dbPayment.metadata === 'object'
+					? JSON.parse(JSON.stringify(dbPayment.metadata))
+					: {};
 				let status: string;
 				let paymentIntentId: string | null = null;
 				let checkoutSessionId: string | null = null;
@@ -123,16 +202,17 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					const checkoutSession = await this.stripeService.getCheckoutSession(ps.checkoutSessionId);
 
 					checkoutSessionId = checkoutSession.id;
-					updateData.metadata = checkoutSession.metadata ? JSON.parse(JSON.stringify(checkoutSession.metadata)) : {};
-
-					updateData.metadata.stripeCheckoutSessionRaw = JSON.parse(JSON.stringify(checkoutSession));
+					const metadataPayload: Record<string, any> = { ...baseMetadata };
+					if (checkoutSession.metadata) {
+						metadataPayload.checkoutSessionMetadata = { ...checkoutSession.metadata };
+					}
+					metadataPayload.checkoutSession = sanitizeCheckoutSessionSummary(checkoutSession);
 
 					if (checkoutSession.payment_status === 'unpaid') {
 						status = 'requires_payment_method';
 						updateData.status = status;
 					} else if (checkoutSession.payment_intent) {
 						let actualPaymentIntent;
-
 						if (typeof checkoutSession.payment_intent === 'string') {
 							actualPaymentIntent = await this.stripeService.getPaymentIntent(checkoutSession.payment_intent);
 							updateData.stripePaymentIntentId = checkoutSession.payment_intent;
@@ -146,22 +226,17 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 						status = actualPaymentIntent.status;
 						updateData.status = status;
 
-						updateData.metadata.stripePaymentIntentRaw = JSON.parse(JSON.stringify(actualPaymentIntent));
-
+						metadataPayload.paymentIntent = sanitizePaymentIntentSummary(actualPaymentIntent);
 						if (actualPaymentIntent.payment_method) {
 							const paymentMethod = actualPaymentIntent.payment_method;
-							if (typeof paymentMethod === 'object' && paymentMethod.type) {
-								updateData.metadata.paymentMethod = {
-									type: paymentMethod.type,
-									id: paymentMethod.id,
-								};
-							} else if (typeof paymentMethod === 'string') {
-								updateData.metadata.paymentMethodId = paymentMethod;
+							const sanitizedMethod = sanitizePaymentMethodReference(paymentMethod);
+							if (sanitizedMethod) {
+								metadataPayload.paymentMethod = sanitizedMethod;
 							}
 						}
 
 						if (actualPaymentIntent.metadata) {
-							updateData.metadata = { ...updateData.metadata, ...actualPaymentIntent.metadata };
+							metadataPayload.paymentIntentMetadata = { ...actualPaymentIntent.metadata };
 						}
 
 						const paymentData = actualPaymentIntent as any;
@@ -173,7 +248,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 							}
 
 							if (charge.payment_method_details) {
-								updateData.metadata.paymentMethodDetails = charge.payment_method_details;
+								const sanitizedDetails = sanitizePaymentMethodDetails(charge.payment_method_details);
+								if (sanitizedDetails) {
+									metadataPayload.paymentMethodDetails = sanitizedDetails;
+								}
 							}
 						}
 					} else {
@@ -181,72 +259,80 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 						  checkoutSession.payment_status === 'no_payment_required' ? 'succeeded' :
 							checkoutSession.payment_status === 'unpaid' ? 'requires_payment_method' :
 							checkoutSession.status as any;
-						updateData.status = status;
-					}
-
-					if (checkoutSession.customer_details) {
-						updateData.metadata.customerDetails = checkoutSession.customer_details;
-					}
-				} else if (ps.paymentIntentId) {
-					let paymentIntent = await this.stripeService.getPaymentIntent(ps.paymentIntentId);
-
-					if (paymentIntent.status === 'requires_confirmation' ||
-						(paymentIntent.status === 'requires_payment_method' && ps.paymentMethodId)) {
-						const confirmParams: any = {};
-						if (ps.paymentMethodId) {
-							confirmParams.payment_method = ps.paymentMethodId;
+							updateData.status = status;
 						}
 
-						try {
-							paymentIntent = await this.stripeService.confirmPaymentIntent(
-								ps.paymentIntentId,
-								confirmParams,
-							);
-						} catch (confirmError) {
-							paymentIntent = await this.stripeService.getPaymentIntent(ps.paymentIntentId);
-
-							if (paymentIntent.status === 'requires_payment_method' && !ps.paymentMethodId) {
-								throw new ApiError(meta.errors.paymentMethodRequired);
+						if (checkoutSession.customer_details) {
+							const sanitizedCustomer = sanitizeCustomerDetails(checkoutSession.customer_details);
+							if (sanitizedCustomer) {
+								metadataPayload.customerDetails = sanitizedCustomer;
 							}
 						}
-					} else if (paymentIntent.status === 'requires_payment_method' && !ps.paymentMethodId) {
-						throw new ApiError(meta.errors.paymentMethodRequired);
-					}
 
-					status = paymentIntent.status;
-					paymentIntentId = paymentIntent.id;
-					updateData.status = status;
-					updateData.metadata = paymentIntent.metadata ? JSON.parse(JSON.stringify(paymentIntent.metadata)) : {};
+					updateData.metadata = metadataPayload;
+					} else if (ps.paymentIntentId) {
+						let paymentIntent = await this.stripeService.getPaymentIntent(ps.paymentIntentId);
 
-					updateData.metadata.stripePaymentIntentRaw = JSON.parse(JSON.stringify(paymentIntent));
+						if (paymentIntent.status === 'requires_confirmation' ||
+							(paymentIntent.status === 'requires_payment_method' && ps.paymentMethodId)) {
+							const confirmParams: any = {};
+							if (ps.paymentMethodId) {
+								confirmParams.payment_method = ps.paymentMethodId;
+							}
 
-					if (paymentIntent.payment_method) {
-						const paymentMethod = paymentIntent.payment_method;
-						if (typeof paymentMethod === 'object' && paymentMethod.type) {
-							updateData.metadata.paymentMethod = {
-								type: paymentMethod.type,
-								id: paymentMethod.id,
-							};
-						} else if (typeof paymentMethod === 'string') {
-							updateData.metadata.paymentMethodId = paymentMethod;
-						}
-					}
+							try {
+								paymentIntent = await this.stripeService.confirmPaymentIntent(
+									ps.paymentIntentId,
+									confirmParams,
+								);
+							} catch (confirmError) {
+								paymentIntent = await this.stripeService.getPaymentIntent(ps.paymentIntentId);
 
-					const paymentData = paymentIntent as any;
-					if (paymentData.charges && paymentData.charges.data && paymentData.charges.data.length > 0) {
-						const charge = paymentData.charges.data[0];
-						if (charge.outcome) {
-							updateData.stripeRiskLevel = charge.outcome.risk_level || null;
-							updateData.stripeRiskScore = charge.outcome.risk_score || null;
+								if (paymentIntent.status === 'requires_payment_method' && !ps.paymentMethodId) {
+									throw new ApiError(meta.errors.paymentMethodRequired);
+								}
+							}
+						} else if (paymentIntent.status === 'requires_payment_method' && !ps.paymentMethodId) {
+							throw new ApiError(meta.errors.paymentMethodRequired);
 						}
 
-						if (charge.payment_method_details) {
-							updateData.metadata.paymentMethodDetails = charge.payment_method_details;
+						status = paymentIntent.status;
+						paymentIntentId = paymentIntent.id;
+						updateData.status = status;
+						const metadataPayload: Record<string, any> = { ...baseMetadata };
+						if (paymentIntent.metadata) {
+							metadataPayload.paymentIntentMetadata = { ...paymentIntent.metadata };
 						}
+						metadataPayload.paymentIntent = sanitizePaymentIntentSummary(paymentIntent);
+
+						if (paymentIntent.payment_method) {
+							const paymentMethod = paymentIntent.payment_method;
+							const sanitizedMethod = sanitizePaymentMethodReference(paymentMethod);
+							if (sanitizedMethod) {
+								metadataPayload.paymentMethod = sanitizedMethod;
+							}
+						}
+
+						const paymentData = paymentIntent as any;
+						if (paymentData.charges && paymentData.charges.data && paymentData.charges.data.length > 0) {
+							const charge = paymentData.charges.data[0];
+							if (charge.outcome) {
+								updateData.stripeRiskLevel = charge.outcome.risk_level || null;
+								updateData.stripeRiskScore = charge.outcome.risk_score || null;
+							}
+
+							if (charge.payment_method_details) {
+								const sanitizedDetails = sanitizePaymentMethodDetails(charge.payment_method_details);
+								if (sanitizedDetails) {
+									metadataPayload.paymentMethodDetails = sanitizedDetails;
+								}
+							}
+						}
+
+						updateData.metadata = metadataPayload;
+					} else {
+						throw new ApiError(meta.errors.paymentNotFound);
 					}
-				} else {
-					throw new ApiError(meta.errors.paymentNotFound);
-				}
 
 				await this.stripePaymentsRepository.update(dbPayment.id, updateData);
 

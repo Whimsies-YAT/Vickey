@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.4
 
-ARG NODE_VERSION=22.19.0
+ARG NODE_VERSION=24
 
 # build assets & compile TypeScript
 
@@ -31,6 +31,7 @@ COPY --link ["packages/frontend-builder/package.json", "./packages/frontend-buil
 COPY --link ["packages/icons-subsetter/package.json", "./packages/icons-subsetter/"]
 COPY --link ["packages/sw/package.json", "./packages/sw/"]
 COPY --link ["packages/misskey-js/package.json", "./packages/misskey-js/"]
+COPY --link ["packages/misskey-js/generator/package.json", "./packages/misskey-js/generator/"]
 COPY --link ["packages/misskey-reversi/package.json", "./packages/misskey-reversi/"]
 COPY --link ["packages/misskey-bubble-game/package.json", "./packages/misskey-bubble-game/"]
 
@@ -40,6 +41,9 @@ RUN node -e "console.log(JSON.parse(require('node:fs').readFileSync('./package.j
 
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store,sharing=locked \
 	pnpm i --frozen-lockfile --aggregate-output
+
+# Copy example config for build-time (will be overridden by volume mount at runtime)
+COPY --link [".config/example.yml", "./.config/default.yml"]
 
 COPY --link . ./
 
@@ -66,6 +70,7 @@ COPY --link ["scripts", "./scripts"]
 COPY --link ["patches", "./patches"]
 COPY --link ["packages/backend/package.json", "./packages/backend/"]
 COPY --link ["packages/misskey-js/package.json", "./packages/misskey-js/"]
+COPY --link ["packages/misskey-js/generator/package.json", "./packages/misskey-js/generator/"]
 COPY --link ["packages/misskey-reversi/package.json", "./packages/misskey-reversi/"]
 COPY --link ["packages/misskey-bubble-game/package.json", "./packages/misskey-bubble-game/"]
 
