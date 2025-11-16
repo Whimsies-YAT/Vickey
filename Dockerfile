@@ -48,7 +48,7 @@ COPY --link [".config/example.yml", "./.config/default.yml"]
 COPY --link . ./
 
 RUN git submodule update --init
-RUN pnpm build
+RUN pnpm build:legacy
 RUN rm -rf .git/
 
 # build native dependencies for target platform
