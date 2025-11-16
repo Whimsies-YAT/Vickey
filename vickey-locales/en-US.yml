@@ -248,7 +248,7 @@ _aboutVickey:
   translation: "Translate Vickey"
   donate: "Donate to Vickey"
   source: "Source code"
-  original: "Original"
+  original: "original"
   thisIsModifiedVersionVK: "{name} uses a modified version of the original Vickey."
 _donation:
   title: "Support this Instance"
