@@ -71,6 +71,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			const query = this.notesRepository.createQueryBuilder('note')
 				.where('note.isDeleted = TRUE')
+				.andWhere('note.deletedAt IS NOT NULL')
 				.leftJoinAndSelect('note.user', 'user')
 				.leftJoinAndSelect('note.reply', 'reply')
 				.leftJoinAndSelect('note.renote', 'renote')
