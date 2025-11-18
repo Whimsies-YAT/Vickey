@@ -734,68 +734,25 @@ export class NoteEntityService implements OnModuleInit {
 			}
 		}
 
-		const useCache = options?.detail !== false && options?.skipHide !== true;
-		let packedNotes: Packed<'Note'>[];
+		// DISABLED: Aggressive caching disabled due to connection pool exhaustion
+		// The caching mechanism caused massive concurrent database connections
+		// Need to redesign with proper connection pooling before re-enabling
+		// TODO: Implement connection-aware caching strategy
 
-		if (useCache) {
-			const cacheKeys = notes.map(note => `${note.id}:${meId ?? 'anon'}`);
-			const cachedPacked = await Promise.all(
-				cacheKeys.map(key => this.cacheService.packedNoteCache.get(key)),
-			);
-
-			const missIndexes: number[] = [];
-			for (let i = 0; i < cachedPacked.length; i++) {
-				if (!cachedPacked[i]) missIndexes.push(i);
-			}
-
-			if (missIndexes.length > 0) {
-				const missedNotes = missIndexes.map(i => notes[i]);
-				const newlyPacked = await Promise.all(
-					missedNotes.map(n => this.pack(n, me, {
-						...options,
-						_hint_: {
-							bufferedReactions,
-							myReactions: myReactionsMap,
-							packedFiles,
-							packedUsers,
-							followingsMap,
-							polls: pollsMap,
-							myPollVotes: myPollVotesMap,
-						},
-					})),
-				);
-
-				Promise.all(
-					missIndexes.map((originalIdx, newIdx) => {
-						const cacheKey = cacheKeys[originalIdx];
-						return this.cacheService.packedNoteCache.set(cacheKey, newlyPacked[newIdx]);
-					}),
-				).catch(err => {
-					console.error('Failed to cache packed notes:', err);
-				});
-
-				for (let i = 0; i < missIndexes.length; i++) {
-					cachedPacked[missIndexes[i]] = newlyPacked[i];
-				}
-			}
-
-			packedNotes = cachedPacked as Packed<'Note'>[];
-		} else {
-			packedNotes = await Promise.all(
-				notes.map(n => this.pack(n, me, {
-					...options,
-					_hint_: {
-						bufferedReactions,
-						myReactions: myReactionsMap,
-						packedFiles,
-						packedUsers,
-						followingsMap,
-						polls: pollsMap,
-						myPollVotes: myPollVotesMap,
-					},
-				})),
-			);
-		}
+		const packedNotes = await Promise.all(
+			notes.map(n => this.pack(n, me, {
+				...options,
+				_hint_: {
+					bufferedReactions,
+					myReactions: myReactionsMap,
+					packedFiles,
+					packedUsers,
+					followingsMap,
+					polls: pollsMap,
+					myPollVotes: myPollVotesMap,
+				},
+			})),
+		);
 
 		if (options?.removeHide) {
 			return packedNotes.filter(note => !note.isHidden);
