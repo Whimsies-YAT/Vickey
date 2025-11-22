@@ -1676,7 +1676,6 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	@bindThis
 	private async saveHistoricalData(userId: string, totalScore: number, dimensions: RiskScoreDimensions): Promise<void> {
 		try {
-
 			const scoreHistoryKey = `user:score:history:${userId}`;
 			await this.redisClient.lpush(scoreHistoryKey, totalScore.toString());
 			await this.redisClient.ltrim(scoreHistoryKey, 0, 99);

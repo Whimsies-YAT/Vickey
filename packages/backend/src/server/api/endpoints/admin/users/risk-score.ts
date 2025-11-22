@@ -30,6 +30,11 @@ export const meta = {
 			code: 'REMOTE_USER',
 			id: '5d3f3b3a-3c3f-4c3f-8c3f-3c3f3b3a3c3f',
 		},
+		unavailable: {
+			message: 'Risk score unavailable.',
+			code: 'UNAVAILABLE',
+			id: '6e4f4c4b-4d4f-5d4f-9d4f-4d4f4c4b4d4f',
+		},
 	},
 
 	res: {
@@ -130,6 +135,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			} else {
 				const cached = await this.userRiskScoreService.getCachedScore(user.id);
 				riskScore = cached ?? await this.userRiskScoreService.calculateUserRiskScore(user.id);
+			}
+
+			if (!riskScore) {
+				throw new ApiError(meta.errors.unavailable);
 			}
 
 			const linkedAccounts = await this.multiAccountDetectionService.getAccountLinks(user.id);

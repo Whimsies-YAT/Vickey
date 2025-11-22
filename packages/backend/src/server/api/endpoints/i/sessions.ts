@@ -49,7 +49,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			const sessions = await this.userSessionsService.listUserSessions(me.id);
 
 			return await this.userSessionEntityService.packMany(sessions, {
-				currentToken: rawToken,
+				currentToken: rawToken ?? undefined,
 			});
 		});
 	}

@@ -272,7 +272,7 @@ async function revokeAllOtherSessions() {
 		const result = await misskeyApi('i/delete-all-sessions', {
 			password: auth.result.password,
 			token: auth.result.token,
-		});
+		}) as { success: boolean; deletedCount: number; errors: number };
 
 		os.success();
 		await loadSessions(); // Reload sessions after deletion
