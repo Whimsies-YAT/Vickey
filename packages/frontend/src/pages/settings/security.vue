@@ -45,6 +45,52 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</FormSection>
 		</SearchMarker>
 
+		<SearchMarker :keywords="['session', 'device', 'active', 'sessions', 'devices']">
+			<FormSection>
+				<template #label><SearchLabel>{{ i18n.ts.activeSessions }}</SearchLabel></template>
+				<template #caption>{{ i18n.ts.activeSessionsDescription }}</template>
+
+				<div v-if="sessions === null" style="text-align: center; padding: 16px;">
+					<MkLoading/>
+				</div>
+
+				<div v-else-if="sessions.length === 0" style="text-align: center; padding: 16px; opacity: 0.7;">
+					{{ i18n.ts.noActiveSessions }}
+				</div>
+
+				<div v-else class="_gaps_s">
+					<div v-for="session in sessions" :key="session.id" v-panel class="session-item">
+						<div class="session-header">
+							<i v-if="session.deviceType === 'mobile'" class="ti ti-device-mobile icon"></i>
+							<i v-else-if="session.deviceType === 'desktop'" class="ti ti-device-desktop icon"></i>
+							<i v-else class="ti ti-devices icon"></i>
+							<div class="session-info">
+								<div class="device-name">{{ session.deviceName }}</div>
+								<div class="session-meta">
+									<code class="ip _monospace">{{ session.ip }}</code>
+									<span v-if="session.location !== '-'" class="location">· {{ session.location }}</span>
+								</div>
+								<div class="session-time">
+									<span>{{ i18n.ts.lastUsed }}: <MkTime :time="session.lastUsedAt" mode="relative"/></span>
+									<span class="separator">·</span>
+									<span>{{ i18n.ts.createdAt }}: <MkTime :time="session.createdAt" mode="relative"/></span>
+								</div>
+							</div>
+							<MkButton v-if="session.isCurrent" class="current-badge" small rounded disabled>
+								{{ i18n.ts.currentSession }}
+							</MkButton>
+							<MkButton v-else danger small rounded @click="revokeSession(session.id)">
+								<i class="ti ti-trash"></i> {{ i18n.ts.revoke }}
+							</MkButton>
+						</div>
+					</div>
+					<MkButton v-if="sessions.length > 1" danger rounded style="margin-top: 8px;" @click="revokeAllOtherSessions">
+						<i class="ti ti-trash"></i> {{ i18n.ts.revokeAllOtherSessions }}
+					</MkButton>
+				</div>
+			</FormSection>
+		</SearchMarker>
+
 		<SearchMarker :keywords="['regenerate', 'refresh', 'reset', 'token']">
 			<FormSection>
 				<FormSlot>
@@ -58,7 +104,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, markRaw } from 'vue';
+import { computed, markRaw, onMounted, ref } from 'vue';
 import X2fa from './2fa.vue';
 import FormSection from '@/components/form/section.vue';
 import FormSlot from '@/components/form/slot.vue';
@@ -76,6 +122,8 @@ import { miLocalStorage } from '@/local-storage.js';
 const paginator = markRaw(new Paginator('i/signin-history', {
 	limit: 3,
 }));
+
+const sessions = ref<any[] | null>(null);
 
 function normalizeIpData(ipData: string | string[]): string[] {
 	return Array.isArray(ipData) ? ipData : [ipData];
@@ -173,6 +221,77 @@ async function regenerateToken() {
 	}
 }
 
+async function loadSessions() {
+	try {
+		sessions.value = await misskeyApi('i/sessions');
+	} catch (e) {
+		console.error('Failed to load sessions:', e);
+		sessions.value = [];
+	}
+}
+
+async function revokeSession(sessionId: string) {
+	const { canceled } = await os.confirm({
+		type: 'warning',
+		text: i18n.ts.revokeSessionConfirm,
+	});
+	if (canceled) return;
+
+	const auth = await os.authenticateDialog();
+	if (auth.canceled) return;
+
+	try {
+		await misskeyApi('i/delete-session', {
+			sessionId,
+			password: auth.result.password,
+			token: auth.result.token,
+		});
+
+		os.success();
+		await loadSessions(); // Reload sessions after deletion
+	} catch (e) {
+		const error = e as any;
+		await os.alert({
+			type: 'error',
+			text: error.message || i18n.ts.failedToRevokeSession,
+		});
+	}
+}
+
+async function revokeAllOtherSessions() {
+	const { canceled } = await os.confirm({
+		type: 'warning',
+		text: i18n.ts.revokeAllOtherSessionsConfirm,
+	});
+	if (canceled) return;
+
+	const auth = await os.authenticateDialog();
+	if (auth.canceled) return;
+
+	try {
+		const result = await misskeyApi('i/delete-all-sessions', {
+			password: auth.result.password,
+			token: auth.result.token,
+		});
+
+		os.success();
+		await loadSessions(); // Reload sessions after deletion
+
+		if (result.deletedCount > 0) {
+			await os.alert({
+				type: 'success',
+				text: i18n.tsx.sessionsRevoked({ count: result.deletedCount }),
+			});
+		}
+	} catch (e) {
+		const error = e as any;
+		await os.alert({
+			type: 'error',
+			text: error.message || i18n.ts.failedToRevokeSessions,
+		});
+	}
+}
+
 async function showIP(item: string | string[]) {
 	const normalized = normalizeIpData(item);
 	const locationText = isLocationDataUnavailable(normalized)
@@ -184,6 +303,10 @@ async function showIP(item: string | string[]) {
 		text: `IP: ${normalized[0] ?? '-'}\nLocation: ${locationText}`,
 	});
 }
+
+onMounted(() => {
+	loadSessions();
+});
 
 const headerActions = computed(() => []);
 
@@ -261,6 +384,63 @@ function isTokenResponse(result: unknown): result is { token: string } {
 		> .time {
 			margin-left: auto;
 			opacity: 0.7;
+		}
+	}
+}
+
+.session-item {
+	padding: 16px;
+	border-radius: 8px;
+
+	.session-header {
+		display: flex;
+		align-items: flex-start;
+		gap: 12px;
+
+		> .icon {
+			font-size: 24px;
+			opacity: 0.7;
+			flex-shrink: 0;
+			margin-top: 2px;
+		}
+
+		.session-info {
+			flex: 1;
+			min-width: 0;
+
+			.device-name {
+				font-weight: 600;
+				margin-bottom: 4px;
+				font-size: 15px;
+			}
+
+			.session-meta {
+				font-size: 13px;
+				opacity: 0.7;
+				margin-bottom: 6px;
+
+				.ip {
+					font-size: 12px;
+				}
+
+				.location {
+					margin-left: 4px;
+				}
+			}
+
+			.session-time {
+				font-size: 12px;
+				opacity: 0.6;
+
+				.separator {
+					margin: 0 6px;
+				}
+			}
+		}
+
+		.current-badge {
+			flex-shrink: 0;
+			align-self: center;
 		}
 	}
 }

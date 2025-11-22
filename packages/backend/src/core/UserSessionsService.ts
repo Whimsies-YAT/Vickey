@@ -1460,6 +1460,45 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 		}
 	}
 
+	@bindThis
+	public async listUserSessions(userId: string): Promise<any[]> {
+		const sessions = await this.userSessionsRepository.find({
+			where: {
+				userId,
+				isActive: true,
+			},
+			order: {
+				lastUsedAt: 'DESC',
+			},
+		});
+
+		if (sessions.length === 0) return sessions;
+
+		const cacheKeys = sessions.map(s => `activeUserSession:${s.token}`);
+		const cacheValues = await this.redisClient.mget(cacheKeys);
+
+		for (let i = 0; i < sessions.length; i++) {
+			const cacheData = cacheValues[i];
+			if (cacheData) {
+				try {
+					const parsed = JSON.parse(cacheData) as ActiveUserSessionCacheData;
+					const cacheTime = new Date(parsed.lastUsedAt);
+					const dbTime = new Date(sessions[i].lastUsedAt);
+
+					if (cacheTime.getTime() > dbTime.getTime()) {
+						sessions[i].lastUsedAt = cacheTime;
+					}
+				} catch (e) {
+					this.logger.warn(`Failed to parse cache for token ${sessions[i].token.slice(-5)}:`, e as Error);
+				}
+			}
+		}
+
+		sessions.sort((a, b) => b.lastUsedAt.getTime() - a.lastUsedAt.getTime());
+
+		return sessions;
+	}
+
 	public async cleanupAllLocks(): Promise<void> {
 		try {
 			const locksToClean = [

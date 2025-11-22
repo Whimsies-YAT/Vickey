@@ -3,16 +3,39 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-const address = new URL(window.document.querySelector<HTMLMetaElement>('meta[property="instance_url"]')?.content || window.location.href);
+// Check if running in Capacitor (mobile)
+const isCapacitor = !!(window as any).Capacitor?.isNativePlatform?.();
+
+let serverUrl: string;
+let address: URL;
+
+if (isCapacitor) {
+	// Mobile: Get server URL from meta tag for API/WS, keep frontend on localhost
+	serverUrl = window.document.querySelector<HTMLMetaElement>('meta[property="instance_url"]')?.content || '';
+
+	if (!serverUrl || serverUrl === '__SERVER_URL_PLACEHOLDER__') {
+		throw new Error('Server URL not configured. Please restart the app.');
+	}
+
+	address = new URL(serverUrl);
+} else {
+	// Web: Use meta tag or current location
+	// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+	serverUrl = window.document.querySelector<HTMLMetaElement>('meta[property="instance_url"]')?.content || window.location.href;
+	address = new URL(serverUrl);
+}
+
 const siteName = window.document.querySelector<HTMLMetaElement>('meta[property="og:site_name"]')?.content;
 
+export const isMobileApp = isCapacitor;
 export const host = address.host;
 export const hostname = address.hostname;
-export const url = address.origin;
+// For mobile: url stays as localhost (current location), API goes to server
+export const url = isCapacitor ? window.location.origin : address.origin;
 export const port = address.port;
-export const apiUrl = window.location.origin + '/api';
-export const wsOrigin = window.location.origin;
+// API always points to server
+export const apiUrl = address.origin + '/api';
+export const wsOrigin = address.origin;
 export const lang = localStorage.getItem('lang') ?? 'en-US';
 export const langs = _LANGS_;
 export const version = _VERSION_;

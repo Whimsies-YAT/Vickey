@@ -606,6 +606,55 @@ export interface Locale extends ILocale {
      */
     "deletedNoteRetentionHoursDescription": string;
     /**
+     * Deleted notes older than {hours} hours will be permanently removed.
+     */
+    "deletedNoteRetentionHoursDescriptionWithValue": ParameterizedString<"hours">;
+    "mobile": {
+        "serverSetup": {
+            /**
+             * Welcome to Vickey
+             */
+            "title": string;
+            /**
+             * Enter your Misskey server URL to get started
+             */
+            "description": string;
+            /**
+             * https://your-server.example
+             */
+            "placeholder": string;
+            /**
+             * Connect
+             */
+            "connect": string;
+            /**
+             * Please enter a valid URL (e.g., https://misskey.io)
+             */
+            "invalidUrl": string;
+        };
+        "rootWarning": {
+            /**
+             * Root Detected
+             */
+            "title": string;
+            /**
+             * Your device has been rooted.
+             *
+             * Using this app on a rooted device may pose security risks, including but not limited to:
+             * • Data leakage
+             * • Account security compromise
+             * • Application malfunction
+             *
+             * By continuing, you acknowledge and accept these risks at your own responsibility.
+             */
+            "message": string;
+            /**
+             * I Understand, Continue
+             */
+            "proceed": string;
+        };
+    };
+    /**
      * エラー
      */
     "error": string;
@@ -5265,6 +5314,54 @@ export interface Locale extends ILocale {
         "bombExploded": string;
     };
     /**
+     * Active Sessions
+     */
+    "activeSessions": string;
+    /**
+     * Manage your active login sessions on different devices
+     */
+    "activeSessionsDescription": string;
+    /**
+     * No active sessions
+     */
+    "noActiveSessions": string;
+    /**
+     * Current Session
+     */
+    "currentSession": string;
+    /**
+     * Are you sure you want to revoke this session?
+     */
+    "revokeSessionConfirm": string;
+    /**
+     * Revoke All Other Sessions
+     */
+    "revokeAllOtherSessions": string;
+    /**
+     * Are you sure you want to revoke all other sessions? This will sign you out on all devices except this one.
+     */
+    "revokeAllOtherSessionsConfirm": string;
+    /**
+     * {count} session(s) revoked
+     */
+    "sessionsRevoked": ParameterizedString<"count">;
+    /**
+     * Failed to revoke session
+     */
+    "failedToRevokeSession": string;
+    /**
+     * Failed to revoke sessions
+     */
+    "failedToRevokeSessions": string;
+    /**
+     * 最後の使用
+     */
+    "lastUsed": string;
+    /**
+     * Revoke
+     */
+    "revoke": string;
+    /**
      * ノートでつながるネットワーク
      */
     "headlineMisskey": string;
@@ -7117,10 +7214,6 @@ export interface Locale extends ILocale {
      * セキュリティキー
      */
     "securityKey": string;
-    /**
-     * 最後の使用
-     */
-    "lastUsed": string;
     /**
      * 最後の使用: {t}
      */

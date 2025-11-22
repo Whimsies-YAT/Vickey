@@ -91,6 +91,10 @@
 		"wanakana": "5.3.1"
 	},
 	"devDependencies": {
+		"@capacitor/android": "7.4.4",
+		"@capacitor/cli": "7.4.4",
+		"@capacitor/core": "7.4.4",
+		"@capacitor/ios": "7.4.4",
 		"@misskey-dev/summaly": "5.2.5",
 		"@storybook/addon-essentials": "8.6.14",
 		"@storybook/addon-interactions": "8.6.14",

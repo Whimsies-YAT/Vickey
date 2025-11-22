@@ -6,8 +6,22 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <MkStickyContainer>
 	<template #header><MkPageHeader :actions="headerActions" :tabs="headerTabs"/></template>
-	<MkSpacer :contentMax="1200">
+	<div class="_spacer" style="--MI_SPACER-w: 1200px;">
 		<div class="_gaps">
+			<div style="padding: 12px; border-radius: 8px; border: 1px solid var(--MI_THEME-divider); background: var(--MI_THEME-panel);">
+				<div style="display: flex; gap: 10px; align-items: start;">
+					<i class="ti ti-info-circle" style="font-size: 16px; flex-shrink: 0; margin-top: 1px; opacity: 0.6;"></i>
+					<div style="flex: 1; font-size: 0.9em; line-height: 1.5;">
+						<div style="opacity: 0.8;">
+							{{ i18n.ts.deletedNoteCollectionInstancesDescription }}
+						</div>
+						<div style="margin-top: 6px; opacity: 0.65;">
+							{{ retentionHours ? i18n.tsx.deletedNoteRetentionHoursDescriptionWithValue({ hours: retentionHours }) : i18n.ts.deletedNoteRetentionHoursDescription }}
+						</div>
+					</div>
+				</div>
+			</div>
+
 			<div class="_panel" style="padding: 16px;">
 				<div class="_gaps_m">
 					<div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -78,13 +92,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</div>
 			</div>
 
-			<div v-if="hasMore" style="text-align: center; margin-top: 16px;">
+			<div v-if="hasMore" style="display: flex; justify-content: center; margin-top: 16px;">
 				<MkButton :loading="loadingMore" @click="loadMore">
 					<i class="ti ti-arrow-down"></i> {{ i18n.ts.loadMore }}
 				</MkButton>
 			</div>
 		</div>
-	</MkSpacer>
+	</div>
 </MkStickyContainer>
 </template>
 
@@ -110,6 +124,7 @@ const hasMore = ref(true);
 const userId = ref('');
 const deletedAfter = ref('');
 const deletedBefore = ref('');
+const retentionHours = ref<number | null>(null);
 
 const headerActions = computed(() => []);
 const headerTabs = computed(() => []);
@@ -235,7 +250,13 @@ ${fullNote.cw ? String(i18n.ts.cw) + ': ' + fullNote.cw + '\n\n' : ''}${fullNote
 	}
 }
 
-onMounted(() => {
+onMounted(async () => {
+	try {
+		const meta = await misskeyApi('admin/meta');
+		retentionHours.value = meta.deletedNoteRetentionHours ?? 72;
+	} catch (e) {
+		console.error('Failed to load meta:', e);
+	}
 	loadNotes(true);
 });
 

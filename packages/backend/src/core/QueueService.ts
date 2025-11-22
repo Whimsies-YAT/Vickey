@@ -90,8 +90,9 @@ const REPEATABLE_SYSTEM_JOB_DEF = [{
 	name: 'cleanDeletedNotes',
 	pattern: '0 * * * *',
 }, {
-	name: 'riskScoreUpdate',
-	pattern: '0 */6 * * *',
+	// Risk score batch job is temporarily disabled; keep placeholder for easy re-enable
+	// name: 'riskScoreUpdate',
+	// pattern: '0 */6 * * *',
 }];
 
 @Injectable()
@@ -113,7 +114,7 @@ export class QueueService {
 		@Inject('queue:geocoding') public geocodingQueue: GeocodingQueue,
 	) {
 		for (const def of REPEATABLE_SYSTEM_JOB_DEF) {
-			this.systemQueue.upsertJobScheduler(def.name, {
+			this.systemQueue.upsertJobScheduler(def.name!, {
 				pattern: def.pattern,
 				immediately: false,
 			}, {

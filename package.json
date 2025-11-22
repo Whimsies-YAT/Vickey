@@ -16,7 +16,8 @@
 		"packages/sw",
 		"packages/misskey-js",
 		"packages/misskey-reversi",
-		"packages/misskey-bubble-game"
+		"packages/misskey-bubble-game",
+		"packages/security-bridge"
 	],
 	"private": true,
 	"scripts": {
@@ -48,7 +49,12 @@
 		"test-and-coverage": "pnpm -r test-and-coverage",
 		"clean": "node ./scripts/clean.js",
 		"clean-all": "node ./scripts/clean-all.js",
-		"cleanall": "pnpm clean-all"
+		"cleanall": "pnpm clean-all",
+		"mobile:icons": "bash ./scripts/generate-icons.sh",
+		"mobile:build": "node ./scripts/build-mobile.mjs",
+		"mobile:build:android": "node ./scripts/build-mobile.mjs android",
+		"mobile:sync:android": "cd packages/frontend && pnpm exec cap sync android",
+		"mobile:open:android": "cd packages/frontend && pnpm exec cap open android"
 	},
 	"resolutions": {
 		"chokidar": "4.0.3",

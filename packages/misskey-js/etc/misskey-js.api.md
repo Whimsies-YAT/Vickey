@@ -2361,6 +2361,8 @@ declare namespace entities {
         IChangePasswordRequest,
         IClaimAchievementRequest,
         IDeleteAccountRequest,
+        IDeleteAllSessionsRequest,
+        IDeleteSessionRequest,
         IExportFollowingRequest,
         IFavoritesRequest,
         IFavoritesResponse,
@@ -2401,6 +2403,7 @@ declare namespace entities {
         IRegistryScopesWithDomainResponse,
         IRegistrySetRequest,
         IRevokeTokenRequest,
+        ISessionsResponse,
         ISigninHistoryRequest,
         ISigninHistoryResponse,
         ITimelinePreferencesResponse,
@@ -3110,6 +3113,12 @@ type ID = string;
 type IDeleteAccountRequest = operations['i___delete-account']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type IDeleteAllSessionsRequest = operations['i___delete-all-sessions']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type IDeleteSessionRequest = operations['i___delete-session']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type IExportFollowingRequest = operations['i___export-following']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -3252,6 +3261,9 @@ type IRevokeTokenRequest = operations['i___revoke-token']['requestBody']['conten
 
 // @public (undocumented)
 function isAPIError(reason: Record<PropertyKey, unknown>): reason is APIError;
+
+// @public (undocumented)
+type ISessionsResponse = operations['i___sessions']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type ISigninHistoryRequest = operations['i___signin-history']['requestBody']['content']['application/json'];

@@ -112,3 +112,9 @@ CLAUDE.local.md
 
 # If using Codex
 AGENTS.md
+
+# Mobile (Capacitor)
+# Note: android/ folder has its own .gitignore file
+# Capacitor CLI generated files are gitignored in platform folder
+# Mobile: generated index.html for Capacitor
+/built/_frontend_vite_/index.html
