@@ -95,14 +95,6 @@ class SecureHttpPlugin : Plugin() {
                 android.util.Log.w("SecureHttp", "Warning: Device is rooted")
             }
 
-            if (envChecker.isXposedActive()) {
-                throw IOException("Unsafe environment: Xposed framework detected")
-            }
-
-            if (envChecker.isFridaRunning()) {
-                throw IOException("Unsafe environment: Frida detected")
-            }
-
             return chain.proceed(chain.request())
         }
     }
