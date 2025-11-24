@@ -1590,6 +1590,9 @@ type ClipsListRequest = operations['clips___list']['requestBody']['content']['ap
 type ClipsListResponse = operations['clips___list']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type ClipsMyFavoritesRequest = operations['clips___my-favorites']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type ClipsMyFavoritesResponse = operations['clips___my-favorites']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
@@ -2203,6 +2206,7 @@ declare namespace entities {
         ClipsFavoriteRequest,
         ClipsListRequest,
         ClipsListResponse,
+        ClipsMyFavoritesRequest,
         ClipsMyFavoritesResponse,
         ClipsNotesRequest,
         ClipsNotesResponse,

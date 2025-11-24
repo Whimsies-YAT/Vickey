@@ -206,7 +206,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			}
 
 			const params = new URLSearchParams();
-			params.append('auth_key', this.serverSettings.deeplAuthKey);
 			params.append('text', note.text);
 			params.append('target_lang', ps.targetLang.includes('-') ? ps.targetLang.split('-')[0] : ps.targetLang);
 
@@ -215,6 +214,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			const res = await this.httpRequestService.send(endpoint, {
 				method: 'POST',
 				headers: {
+					'Authorization': `DeepL-Auth-Key ${this.serverSettings.deeplAuthKey}`,
 					'Content-Type': 'application/x-www-form-urlencoded',
 					Accept: 'application/json, */*',
 				},

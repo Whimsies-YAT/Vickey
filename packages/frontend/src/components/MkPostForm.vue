@@ -722,6 +722,7 @@ function removeVisibleUser(user) {
 
 function clear() {
 	text.value = '';
+	cw.value = null;
 	files.value = [];
 	poll.value = null;
 	quoteId.value = null;
