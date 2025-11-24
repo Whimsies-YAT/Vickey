@@ -616,7 +616,7 @@ export interface Locale extends ILocale {
              */
             "title": string;
             /**
-             * Enter your Misskey server URL to get started
+             * Enter your Vickey/Misskey server URL to get started
              */
             "description": string;
             /**
@@ -628,7 +628,7 @@ export interface Locale extends ILocale {
              */
             "connect": string;
             /**
-             * Please enter a valid URL (e.g., https://misskey.io)
+             * Please enter a valid URL
              */
             "invalidUrl": string;
         };

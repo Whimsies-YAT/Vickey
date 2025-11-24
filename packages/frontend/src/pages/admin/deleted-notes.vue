@@ -106,6 +106,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { ref, computed, onMounted } from 'vue';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
+import { $i } from '@/i.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import MkButton from '@/components/MkButton.vue';
 import MkInput from '@/components/MkInput.vue';
@@ -251,11 +252,13 @@ ${fullNote.cw ? String(i18n.ts.cw) + ': ' + fullNote.cw + '\n\n' : ''}${fullNote
 }
 
 onMounted(async () => {
-	try {
-		const meta = await misskeyApi('admin/meta');
-		retentionHours.value = meta.deletedNoteRetentionHours ?? 72;
-	} catch (e) {
-		console.error('Failed to load meta:', e);
+	if ($i?.isAdmin) {
+		try {
+			const meta = await misskeyApi('admin/meta');
+			retentionHours.value = meta.deletedNoteRetentionHours ?? 72;
+		} catch (e) {
+			console.error('Failed to load meta:', e);
+		}
 	}
 	loadNotes(true);
 });
