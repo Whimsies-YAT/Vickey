@@ -10,7 +10,32 @@ import {
 	User,
 	UserDetailedNotMe,
 } from './autogen/models.js';
-import type { AuthenticationResponseJSON, PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/types';
+export type AuthenticationResponseJSON = {
+	id: string;
+	rawId: string;
+	response: {
+		clientDataJSON: string;
+		authenticatorData: string;
+		signature: string;
+		userHandle?: string;
+	};
+	type: 'public-key';
+	clientExtensionResults?: Record<string, unknown>;
+	authenticatorAttachment?: 'platform' | 'cross-platform';
+};
+
+export type PublicKeyCredentialRequestOptionsJSON = {
+	challenge: string;
+	timeout?: number;
+	rpId?: string;
+	allowCredentials?: Array<{
+		id: string;
+		type: 'public-key';
+		transports?: Array<'usb' | 'nfc' | 'ble' | 'internal' | 'hybrid'>;
+	}>;
+	userVerification?: 'required' | 'preferred' | 'discouraged';
+	extensions?: Record<string, unknown>;
+};
 
 export * from './autogen/entities.js';
 export * from './autogen/models.js';
