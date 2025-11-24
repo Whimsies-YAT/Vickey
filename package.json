@@ -61,7 +61,7 @@
 		"execa": "9.6.0",
 		"fast-glob": "3.3.3",
 		"file-type": "21.0.0",
-		"glob": "11.0.3",
+		"glob": "11.1.0",
 		"ignore-walk": "8.0.0",
 		"isolated-vm": "6.0.2",
 		"js-yaml": "4.1.0",
