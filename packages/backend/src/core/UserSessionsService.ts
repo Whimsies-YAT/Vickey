@@ -439,7 +439,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				await Promise.all([
 					this.userSessionsRepository.update(
 						{ token, isActive: true },
-						{ expiresAt: expiredTime }
+						{ isActive: false, expiresAt: expiredTime }
 					),
 					this.redisClient.del(`activeUserSession:${token}`)
 				]);
@@ -501,7 +501,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				await Promise.all([
 					this.userSessionsRepository.update(
 						{ userId, isActive: true },
-						{ expiresAt: expiredTime }
+						{ isActive: false, expiresAt: expiredTime }
 					),
 					this.redisClient.del(...cacheKeys)
 				]);

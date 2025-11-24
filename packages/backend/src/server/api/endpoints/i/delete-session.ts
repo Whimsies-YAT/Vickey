@@ -13,6 +13,7 @@ import { DI } from '@/di-symbols.js';
 import { UserAuthService } from '@/core/UserAuthService.js';
 import { UserSessionsService } from '@/core/UserSessionsService.js';
 import { ApiError } from '../../error.js';
+import * as Redis from 'ioredis';
 
 export const meta = {
 	requireCredential: true,
@@ -60,6 +61,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		@Inject(DI.userSessionsRepository)
 		private userSessionsRepository: UserSessionsRepository,
+
+		@Inject(DI.redis)
+		private redisClient: Redis.Redis,
 
 		private userAuthService: UserAuthService,
 		private userSessionsService: UserSessionsService,
@@ -112,12 +116,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new ApiError(meta.errors.cannotDeleteCurrentSession);
 			}
 
-			// Invalidate the session
-			const result = await this.userSessionsService.invalidateTokenSafely(me.id, session.token);
-
-			if (!result.success) {
-				throw new Error('Failed to delete session');
-			}
+			const expiredTime = new Date(Date.now() - 1000);
+			await Promise.all([
+				this.userSessionsRepository.update(
+					{ id: ps.sessionId, userId: me.id, isActive: true },
+					{ isActive: false, expiresAt: expiredTime }
+				),
+				this.redisClient.del(`activeUserSession:${session.token}`)
+			]);
 
 			return {
 				success: true,

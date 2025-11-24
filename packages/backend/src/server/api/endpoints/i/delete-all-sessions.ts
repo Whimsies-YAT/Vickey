@@ -8,11 +8,13 @@ import * as argon2 from '@node-rs/argon2';
 import { getPasswordHashType } from '@/misc/password-hash-type.js';
 import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { UserProfilesRepository } from '@/models/_.js';
+import type { UserProfilesRepository, UserSessionsRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
 import { UserAuthService } from '@/core/UserAuthService.js';
 import { UserSessionsService } from '@/core/UserSessionsService.js';
 import { ApiError } from '../../error.js';
+import { Not } from 'typeorm';
+import * as Redis from 'ioredis';
 
 export const meta = {
 	requireCredential: true,
@@ -46,6 +48,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	constructor(
 		@Inject(DI.userProfilesRepository)
 		private userProfilesRepository: UserProfilesRepository,
+
+		@Inject(DI.userSessionsRepository)
+		private userSessionsRepository: UserSessionsRepository,
+
+		@Inject(DI.redis)
+		private redisClient: Redis.Redis,
 
 		private userAuthService: UserAuthService,
 		private userSessionsService: UserSessionsService,
@@ -81,29 +89,37 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			// Get all sessions except the current one
-			const sessions = await this.userSessionsService.listUserSessions(me.id);
+			const sessions = await this.userSessionsRepository.find({
+				where: {
+					userId: me.id,
+					isActive: true,
+					...(rawToken ? { token: Not(rawToken) } : {}),
+				},
+			});
 
-			let deletedCount = 0;
-			let errors = 0;
-
-			for (const session of sessions) {
-				// Skip current session
-				if (rawToken && session.token === rawToken) {
-					continue;
-				}
-
-				const result = await this.userSessionsService.invalidateTokenSafely(me.id, session.token);
-				if (result.success) {
-					deletedCount++;
-				} else {
-					errors++;
-				}
+			if (sessions.length === 0) {
+				return {
+					success: true,
+					deletedCount: 0,
+					errors: 0,
+				};
 			}
 
+			const expiredTime = new Date(Date.now() - 1000);
+			const cacheKeys = sessions.map(s => `activeUserSession:${s.token}`);
+
+			await Promise.all([
+				this.userSessionsRepository.update(
+					{ userId: me.id, isActive: true, ...(rawToken ? { token: Not(rawToken) } : {}) },
+					{ isActive: false, expiresAt: expiredTime }
+				),
+				this.redisClient.del(...cacheKeys)
+			]);
+
 			return {
-				success: errors === 0,
-				deletedCount,
-				errors,
+				success: true,
+				deletedCount: sessions.length,
+				errors: 0,
 			};
 		});
 	}

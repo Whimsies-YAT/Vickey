@@ -4,10 +4,8 @@
 
 ```ts
 
-import type { AuthenticationResponseJSON } from '@simplewebauthn/types';
 import { EventEmitter } from 'eventemitter3';
 import { Options } from 'reconnecting-websocket';
-import type { PublicKeyCredentialRequestOptionsJSON as PublicKeyCredentialRequestOptionsJSON_2 } from '@simplewebauthn/types';
 import _ReconnectingWebSocket from 'reconnecting-websocket';
 
 // Warning: (ae-forgotten-export) The symbol "components" needs to be exported by the entry point index.d.ts
@@ -692,6 +690,21 @@ type ApShowResponse = operations['ap___show']['responses']['200']['content']['ap
 
 // @public (undocumented)
 type AuthAcceptRequest = operations['auth___accept']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AuthenticationResponseJSON = {
+    id: string;
+    rawId: string;
+    response: {
+        clientDataJSON: string;
+        authenticatorData: string;
+        signature: string;
+        userHandle?: string;
+    };
+    type: 'public-key';
+    clientExtensionResults?: Record<string, unknown>;
+    authenticatorAttachment?: 'platform' | 'cross-platform';
+};
 
 // @public (undocumented)
 type AuthSessionGenerateRequest = operations['auth___session___generate']['requestBody']['content']['application/json'];
@@ -1870,6 +1883,8 @@ type EndpointsResponse = operations['endpoints']['responses']['200']['content'][
 
 declare namespace entities {
     export {
+        AuthenticationResponseJSON,
+        PublicKeyCredentialRequestOptionsJSON_2 as PublicKeyCredentialRequestOptionsJSON,
         ID,
         DateString,
         PureRenote,
@@ -3960,6 +3975,20 @@ type PinnedUsersResponse = operations['pinned-users']['responses']['200']['conte
 // @public (undocumented)
 type PromoReadRequest = operations['promo___read']['requestBody']['content']['application/json'];
 
+// @public (undocumented)
+type PublicKeyCredentialRequestOptionsJSON_2 = {
+    challenge: string;
+    timeout?: number;
+    rpId?: string;
+    allowCredentials?: Array<{
+        id: string;
+        type: 'public-key';
+        transports?: Array<'usb' | 'nfc' | 'ble' | 'internal' | 'hybrid'>;
+    }>;
+    userVerification?: 'required' | 'preferred' | 'discouraged';
+    extensions?: Record<string, unknown>;
+};
+
 // Warning: (ae-forgotten-export) The symbol "AllNullRecord" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "AllNullOrOptionalRecord" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "NonNullableRecord" needs to be exported by the entry point index.d.ts
@@ -4583,7 +4612,7 @@ type WerewolfVoicePullTracksRequest = operations['werewolf___voice-pull-tracks']
 
 // Warnings were encountered during analysis:
 //
-// src/entities.ts:55:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
+// src/entities.ts:80:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
 // src/streaming.ts:57:3 - (ae-forgotten-export) The symbol "ReconnectingWebSocket" needs to be exported by the entry point index.d.ts
 // src/streaming.types.ts:87:5 - (ae-forgotten-export) The symbol "IceServer" needs to be exported by the entry point index.d.ts
 // src/streaming.types.ts:313:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts

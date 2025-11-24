@@ -24,28 +24,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<X2fa/>
 
-		<SearchMarker :keywords="['signin', 'login', 'history', 'log']">
-			<FormSection>
-				<template #label><SearchLabel>{{ i18n.ts.signinHistory }}</SearchLabel></template>
-				<MkPagination :paginator="paginator" withControl>
-					<template #default="{items}">
-						<div>
-							<div v-for="item in items" :key="item.id" v-panel class="timnmucd" @click.stop="showIP(item.ip)">
-								<header>
-									<i v-if="item.success" class="ti ti-check icon succ"></i>
-									<i v-else class="ti ti-circle-x icon fail"></i>
-									<code class="ip _monospace">{{ formatIpAddress(item.ip) }}</code>
-									<code class="location _monospace">{{ formatLocation(item.ip) }}</code>
-									<MkTime :time="item.createdAt" class="time"/>
-								</header>
-							</div>
-						</div>
-					</template>
-				</MkPagination>
-			</FormSection>
-		</SearchMarker>
-
-		<SearchMarker :keywords="['session', 'device', 'active', 'sessions', 'devices']">
+		<SearchMarker v-if="sessionManagementSupported" :keywords="['session', 'device', 'active', 'sessions', 'devices']">
 			<FormSection>
 				<template #label><SearchLabel>{{ i18n.ts.activeSessions }}</SearchLabel></template>
 				<template #caption>{{ i18n.ts.activeSessionsDescription }}</template>
@@ -91,6 +70,27 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</FormSection>
 		</SearchMarker>
 
+		<SearchMarker :keywords="['signin', 'login', 'history', 'log']">
+			<FormSection>
+				<template #label><SearchLabel>{{ i18n.ts.signinHistory }}</SearchLabel></template>
+				<MkPagination :paginator="paginator" withControl>
+					<template #default="{items}">
+						<div>
+							<div v-for="item in items" :key="item.id" v-panel class="timnmucd" @click.stop="showIP(item.ip)">
+								<header>
+									<i v-if="item.success" class="ti ti-check icon succ"></i>
+									<i v-else class="ti ti-circle-x icon fail"></i>
+									<code class="ip _monospace">{{ formatIpAddress(item.ip) }}</code>
+									<code class="location _monospace">{{ formatLocation(item.ip) }}</code>
+									<MkTime :time="item.createdAt" class="time"/>
+								</header>
+							</div>
+						</div>
+					</template>
+				</MkPagination>
+			</FormSection>
+		</SearchMarker>
+
 		<SearchMarker :keywords="['regenerate', 'refresh', 'reset', 'token']">
 			<FormSection>
 				<FormSlot>
@@ -124,6 +124,7 @@ const paginator = markRaw(new Paginator('i/signin-history', {
 }));
 
 const sessions = ref<any[] | null>(null);
+const sessionManagementSupported = ref<boolean>(true);
 
 function normalizeIpData(ipData: string | string[]): string[] {
 	return Array.isArray(ipData) ? ipData : [ipData];
@@ -224,9 +225,17 @@ async function regenerateToken() {
 async function loadSessions() {
 	try {
 		sessions.value = await misskeyApi('i/sessions');
+		sessionManagementSupported.value = true;
 	} catch (e) {
-		console.error('Failed to load sessions:', e);
-		sessions.value = [];
+		const error = e as any;
+		if (error?.code === 'LEGACY_TOKEN_NOT_SUPPORTED') {
+			sessionManagementSupported.value = false;
+			sessions.value = null;
+		} else {
+			console.error('Failed to load sessions:', e);
+			sessions.value = [];
+			sessionManagementSupported.value = true;
+		}
 	}
 }
 
