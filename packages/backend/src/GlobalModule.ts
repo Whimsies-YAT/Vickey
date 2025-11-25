@@ -26,12 +26,22 @@ const $config: Provider = {
 const $db: Provider = {
 	provide: DI.db,
 	useFactory: async (config) => {
-		try {
-			const db = createPostgresDataSource(config);
-			return await db.initialize();
-		} catch (e) {
-			console.log(e);
-			throw e;
+		let retries = 0;
+		const maxRetries = 10;
+		const retryDelay = 3000; // 3 seconds
+
+		while (true) {
+			try {
+				const db = createPostgresDataSource(config);
+				return await db.initialize();
+			} catch (e) {
+				retries++;
+				console.error(`Failed to connect to database (attempt ${retries}/${maxRetries}):`, e);
+				if (retries >= maxRetries) {
+					throw e;
+				}
+				await new Promise(resolve => setTimeout(resolve, retryDelay));
+			}
 		}
 	},
 	inject: [DI.config],
@@ -75,10 +85,17 @@ const $elasticsearch: Provider = {
 	inject: [DI.config],
 };
 
+const redisRetryStrategy = (times: number) => {
+	return Math.min(times * 50, 2000);
+};
+
 const $redis: Provider = {
 	provide: DI.redis,
 	useFactory: (config: Config) => {
-		return new Redis.Redis(config.redis);
+		return new Redis.Redis({
+			...config.redis,
+			retryStrategy: redisRetryStrategy,
+		});
 	},
 	inject: [DI.config],
 };
@@ -86,7 +103,10 @@ const $redis: Provider = {
 const $redisForPub: Provider = {
 	provide: DI.redisForPub,
 	useFactory: (config: Config) => {
-		const redis = new Redis.Redis(config.redisForPubsub);
+		const redis = new Redis.Redis({
+			...config.redisForPubsub,
+			retryStrategy: redisRetryStrategy,
+		});
 		return redis;
 	},
 	inject: [DI.config],
@@ -95,7 +115,10 @@ const $redisForPub: Provider = {
 const $redisForSub: Provider = {
 	provide: DI.redisForSub,
 	useFactory: (config: Config) => {
-		const redis = new Redis.Redis(config.redisForPubsub);
+		const redis = new Redis.Redis({
+			...config.redisForPubsub,
+			retryStrategy: redisRetryStrategy,
+		});
 		redis.subscribe(config.host);
 		return redis;
 	},
@@ -105,7 +128,10 @@ const $redisForSub: Provider = {
 const $redisForTimelines: Provider = {
 	provide: DI.redisForTimelines,
 	useFactory: (config: Config) => {
-		return new Redis.Redis(config.redisForTimelines);
+		return new Redis.Redis({
+			...config.redisForTimelines,
+			retryStrategy: redisRetryStrategy,
+		});
 	},
 	inject: [DI.config],
 };
@@ -113,7 +139,10 @@ const $redisForTimelines: Provider = {
 const $redisForReactions: Provider = {
 	provide: DI.redisForReactions,
 	useFactory: (config: Config) => {
-		return new Redis.Redis(config.redisForReactions);
+		return new Redis.Redis({
+			...config.redisForReactions,
+			retryStrategy: redisRetryStrategy,
+		});
 	},
 	inject: [DI.config],
 };
