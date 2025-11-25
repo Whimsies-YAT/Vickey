@@ -180,13 +180,15 @@ export class QueueService {
 			}, {
 				name: 'syncOfflineGeoData',
 				data: { jobType: 'syncOfflineGeoData' },
-				removeOnComplete: {
-					age: 3600 * 24 * 30,
-					count: 3,
-				},
-				removeOnFail: {
-					age: 3600 * 24 * 30,
-					count: 5,
+				opts: {
+					removeOnComplete: {
+						age: 3600 * 24 * 30,
+						count: 3,
+					},
+					removeOnFail: {
+						age: 3600 * 24 * 30,
+						count: 5,
+					},
 				},
 			});
 
@@ -195,13 +197,15 @@ export class QueueService {
 			}, {
 				name: 'performIncrementalUpdate',
 				data: { jobType: 'performIncrementalUpdate' },
-				removeOnComplete: {
-					age: 3600 * 24,
-					count: 10,
-				},
-				removeOnFail: {
-					age: 3600 * 24,
-					count: 20,
+				opts: {
+					removeOnComplete: {
+						age: 3600 * 24,
+						count: 10,
+					},
+					removeOnFail: {
+						age: 3600 * 24,
+						count: 20,
+					},
 				},
 			});
 
@@ -210,13 +214,15 @@ export class QueueService {
 			}, {
 				name: 'precomputeHotSpots',
 				data: { jobType: 'precomputeHotSpots', hotSpots: [] },
-				removeOnComplete: {
-					age: 3600 * 24 * 7,
-					count: 5,
-				},
-				removeOnFail: {
-					age: 3600 * 24 * 7,
-					count: 10,
+				opts: {
+					removeOnComplete: {
+						age: 3600 * 24 * 7,
+						count: 5,
+					},
+					removeOnFail: {
+						age: 3600 * 24 * 7,
+						count: 10,
+					},
 				},
 			});
 		}

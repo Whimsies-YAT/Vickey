@@ -199,7 +199,6 @@ async function addSecurityKey() {
 	const auth = await os.authenticateDialog();
 	if (auth.canceled) return;
 
-	// @ts-expect-error misskey-js側に型がない
 	const publicKey = await os.apiWithDialog('i/2fa/register-key', {
 		password: auth.result.password,
 		token: auth.result.token,
@@ -214,9 +213,18 @@ async function addSecurityKey() {
 	});
 	if (name.canceled) return;
 
-	const publicKeyOptions = window.PublicKeyCredential.parseCreationOptionsFromJSON({
-		publicKey,
-	});
+	const creationOptionsJson = {
+		...publicKey,
+		attestation: publicKey.attestation ?? undefined,
+		authenticatorSelection: publicKey.authenticatorSelection ?? undefined,
+		excludeCredentials: publicKey.excludeCredentials ?? undefined,
+		extensions: publicKey.extensions ?? undefined,
+		timeout: publicKey.timeout ?? undefined,
+		pubKeyCredParams: publicKey.pubKeyCredParams.map(p => ({ ...p, type: 'public-key' as const })),
+	};
+
+	const publicKeyOptions = window.PublicKeyCredential
+		.parseCreationOptionsFromJSON(creationOptionsJson as PublicKeyCredentialCreationOptionsJSON);
 
 	const credential = await os.promiseDialog(
 		navigator.credentials.create({ publicKey: publicKeyOptions }).then(cred => {
@@ -236,7 +244,6 @@ async function addSecurityKey() {
 		password: auth.result.password,
 		token: auth.result.token,
 		name: name.result,
-		// @ts-expect-error misskey-js側に型がない
 		credential,
 	});
 }
