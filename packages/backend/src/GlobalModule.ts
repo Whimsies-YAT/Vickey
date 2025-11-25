@@ -27,9 +27,8 @@ const $db: Provider = {
 	provide: DI.db,
 	useFactory: async (config) => {
 		let retries = 0;
-		const maxRetries = 10;
-		const retryDelay = 3000; // 3 seconds
-
+		const maxRetries = 5;
+		const retryDelay = 3000;
 		while (true) {
 			try {
 				const db = createPostgresDataSource(config);
