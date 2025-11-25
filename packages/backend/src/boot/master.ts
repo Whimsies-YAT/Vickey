@@ -54,7 +54,7 @@ function greet() {
 		//#endregion
 
 		console.log(' Vickey Inspires Connection, Keeping Everyone Yours!');
-		console.log(chalk.rgb(255, 136, 0)(' If you like Vickey, please donate to support development. https://ko-fi.com/yateam'));
+		console.log(chalk.rgb(255, 136, 0)(' If you like Vickey, please consider donating to support dev. https://ko-fi.com/yateam'));
 
 		console.log('');
 		console.log(chalkTemplate`--- ${os.hostname()} {gray (PID: ${process.pid.toString()})} ---`);
