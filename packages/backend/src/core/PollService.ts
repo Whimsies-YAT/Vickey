@@ -81,7 +81,10 @@ export class PollService {
 
 		// Increment votes count
 		const index = choice + 1; // In SQL, array index is 1 based
-		await this.pollsRepository.query(`UPDATE poll SET votes[${index}] = votes[${index}] + 1 WHERE "noteId" = '${poll.noteId}'`);
+		await this.pollsRepository.query(
+			'UPDATE poll SET votes[$1::int] = votes[$1::int] + 1 WHERE "noteId" = $2',
+			[index, poll.noteId],
+		);
 
 		this.globalEventService.publishNoteStream(note.id, 'pollVoted', {
 			choice: choice,

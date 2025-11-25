@@ -113,23 +113,26 @@ class DeliverManager {
 		// Process follower recipes first to avoid duplication when processing direct recipes later.
 		if (this.recipes.some(r => isFollowers(r))) {
 			// followers deliver
-			// TODO: SELECT DISTINCT ON ("followerSharedInbox") "followerSharedInbox" みたいな問い合わせにすればよりパフォーマンス向上できそう
-			// ただ、sharedInboxがnullなリモートユーザーも稀におり、その対応ができなさそう？
-			const followers = await this.followingsRepository.find({
-				where: {
-					followeeId: this.actor.id,
-					followerHost: Not(IsNull()),
-				},
-				select: {
-					followerSharedInbox: true,
-					followerInbox: true,
-				},
-			});
+			const [sharedInboxes, personalInboxes] = await Promise.all([
+				this.followingsRepository.createQueryBuilder('following')
+					.select('DISTINCT following.followerSharedInbox', 'inbox')
+					.where('following.followeeId = :followeeId', { followeeId: this.actor.id })
+					.andWhere('following.followerSharedInbox IS NOT NULL')
+					.getRawMany(),
+				this.followingsRepository.createQueryBuilder('following')
+					.select('following.followerInbox', 'inbox')
+					.where('following.followeeId = :followeeId', { followeeId: this.actor.id })
+					.andWhere('following.followerSharedInbox IS NULL')
+					.andWhere('following.followerHost IS NOT NULL')
+					.getRawMany(),
+			]);
 
-			for (const following of followers) {
-				const inbox = following.followerSharedInbox ?? following.followerInbox;
-				if (inbox === null) throw new Error('inbox is null');
-				inboxes.set(inbox, following.followerSharedInbox != null);
+			for (const { inbox } of sharedInboxes) {
+				inboxes.set(inbox, true);
+			}
+
+			for (const { inbox } of personalInboxes) {
+				inboxes.set(inbox, false);
 			}
 		}
 

@@ -217,26 +217,42 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 					};
 				}
 
-				let updatedIpList = cacheData.ip;
-				if (clientIp) {
-					updatedIpList = this.updateIpList(cacheData.ip, clientIp);
+				let shouldUpdate = false;
+				const lastUsedAt = cacheData.lastUsedAt;
+				const cachedIpList = cacheData.ip;
+				let updatedIpList = cachedIpList;
+				const now = currentTime.getTime();
+
+				if (now - new Date(lastUsedAt).getTime() > 30 * 1000) {
+					shouldUpdate = true;
 				}
 
-				try {
-					const newCacheData = {
-						token: token,
-						userId: dbSession.userId,
-						lastUsedAt: currentTime,
-						ip: updatedIpList,
-					};
-					await this.redisClient.setex(
-						`activeUserSession:${token}`,
-						Math.floor(UserSessionsService.CACHE_TTL / 1000),
-						JSON.stringify(newCacheData),
-					);
-				} catch (e) {
-					const updateError = e as Error;
-					this.logger.warn(`Failed to update lastUsedAt for token ${token.slice(-5)}:`, updateError);
+				if (clientIp) {
+					const lastIp = cachedIpList && cachedIpList.length > 0 ? cachedIpList[0] : null;
+
+					if (!lastIp || lastIp.address !== clientIp) {
+						shouldUpdate = true;
+						updatedIpList = this.updateIpList(cachedIpList, clientIp);
+					}
+				}
+
+				if (shouldUpdate) {
+					try {
+						const newCacheData = JSON.stringify({
+							token,
+							userId: dbSession.userId,
+							lastUsedAt: currentTime,
+							ip: updatedIpList,
+						});
+
+						await this.redisClient.setex(
+							`activeUserSession:${token}`,
+							UserSessionsService.CACHE_TTL / 1000 | 0,
+							newCacheData,
+						);
+					} catch (err) {
+						this.logger.warn(`Failed to update lastUsedAt for token ${token.slice(-5)}:`, err as Error);
+					}
 				}
 
 				return {

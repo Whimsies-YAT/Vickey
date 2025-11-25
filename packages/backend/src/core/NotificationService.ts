@@ -117,35 +117,34 @@ export class NotificationService implements OnApplicationShutdown {
 				return null;
 			}
 
-			const mutings = await this.cacheService.userMutingsCache.fetch(notifieeId);
+			const [mutings, followings] = await Promise.all([
+				this.cacheService.userMutingsCache.fetch(notifieeId),
+				(recieveConfig?.type === 'following' || recieveConfig?.type === 'mutualFollow' || recieveConfig?.type === 'followingOrFollower')
+					? this.cacheService.userFollowingsCache.fetch(notifieeId)
+					: Promise.resolve(null),
+			]);
+
 			if (mutings.has(notifierId)) {
 				return null;
 			}
 
 			if (recieveConfig?.type === 'following') {
-				const isFollowing = await this.cacheService.userFollowingsCache.fetch(notifieeId).then(followings => Object.hasOwn(followings, notifierId));
-				if (!isFollowing) {
+				if (!followings || !Object.hasOwn(followings, notifierId)) {
 					return null;
 				}
 			} else if (recieveConfig?.type === 'follower') {
-				const isFollower = await this.cacheService.userFollowingsCache.fetch(notifierId).then(followings => Object.hasOwn(followings, notifieeId));
-				if (!isFollower) {
+				const followers = await this.cacheService.userFollowingsCache.fetch(notifierId);
+				if (!Object.hasOwn(followers, notifieeId)) {
 					return null;
 				}
 			} else if (recieveConfig?.type === 'mutualFollow') {
-				const [isFollowing, isFollower] = await Promise.all([
-					this.cacheService.userFollowingsCache.fetch(notifieeId).then(followings => Object.hasOwn(followings, notifierId)),
-					this.cacheService.userFollowingsCache.fetch(notifierId).then(followings => Object.hasOwn(followings, notifieeId)),
-				]);
-				if (!(isFollowing && isFollower)) {
+				const followers = await this.cacheService.userFollowingsCache.fetch(notifierId);
+				if (!followings || !Object.hasOwn(followings, notifierId) || !Object.hasOwn(followers, notifieeId)) {
 					return null;
 				}
 			} else if (recieveConfig?.type === 'followingOrFollower') {
-				const [isFollowing, isFollower] = await Promise.all([
-					this.cacheService.userFollowingsCache.fetch(notifieeId).then(followings => Object.hasOwn(followings, notifierId)),
-					this.cacheService.userFollowingsCache.fetch(notifierId).then(followings => Object.hasOwn(followings, notifieeId)),
-				]);
-				if (!isFollowing && !isFollower) {
+				const followers = await this.cacheService.userFollowingsCache.fetch(notifierId);
+				if ((!followings || !Object.hasOwn(followings, notifierId)) && !Object.hasOwn(followers, notifieeId)) {
 					return null;
 				}
 			} else if (recieveConfig?.type === 'list') {
