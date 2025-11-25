@@ -4,11 +4,11 @@
  */
 
 import { Inject, Injectable, OnModuleInit, OnApplicationShutdown } from '@nestjs/common';
-import { In } from 'typeorm';
+import { In, MoreThan } from 'typeorm';
+import * as Redis from 'ioredis';
 import { DI } from '@/di-symbols.js';
 import type { UserSessionsRepository } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
-import * as Redis from 'ioredis';
 import type Logger from '@/logger.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import { IdService } from '@/core/IdService.js';
@@ -52,7 +52,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			where: { isActive: true },
 			select: ['token', 'userId', 'lastUsedAt', 'expiresAt'],
 			order: { lastUsedAt: 'DESC' },
-			take: 1000
+			take: 1000,
 		});
 
 		if (sessions.length === 0) {
@@ -72,7 +72,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			const cacheData = JSON.stringify({
 				token: session.token,
 				userId: session.userId,
-				lastUsedAt: session.lastUsedAt
+				lastUsedAt: session.lastUsedAt,
 			});
 
 			pipeline.set(cacheKey, cacheData, 'PX', 1000 * 60 * 30);
@@ -123,7 +123,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			ipList.unshift({
 				address: newIp,
 				count: 1,
-				lastSeen: now
+				lastSeen: now,
 			});
 		}
 
@@ -149,7 +149,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				try {
 					await this.userSessionsRepository.update(
 						{ token, isActive: true },
-						{ isActive: false, expiresAt: new Date() }
+						{ isActive: false, expiresAt: new Date() },
 					);
 					await this.redisClient.del(`activeUserSession:${token}`);
 					this.logger.warn(`Invalidated expired token: ${token.slice(-5)}...`);
@@ -161,7 +161,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			return {
 				isValid: false,
 				needRefresh: false,
-				reason: 'Invalid or expired token format'
+				reason: 'Invalid or expired token format',
 			};
 		}
 
@@ -172,7 +172,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			if (cacheData) {
 				const dbSession = await this.userSessionsRepository.findOne({
 					where: { token, isActive: true },
-					select: ['token', 'userId', 'lastUsedAt', 'expiresAt', 'isActive', 'signInId', 'deviceId']
+					select: ['token', 'userId', 'lastUsedAt', 'expiresAt', 'isActive', 'signInId', 'deviceId'],
 				});
 
 				if (!dbSession) {
@@ -180,7 +180,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 					return {
 						isValid: false,
 						needRefresh: false,
-						reason: 'Token not found in database'
+						reason: 'Token not found in database',
 					};
 				}
 
@@ -194,7 +194,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 						isValid: false,
 						needRefresh: false,
 						isExpired: true,
-						reason: 'Token has expired'
+						reason: 'Token has expired',
 					};
 				}
 
@@ -204,7 +204,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 						isValid: false,
 						needRefresh: false,
 						isActive: false,
-						reason: 'Token is not active'
+						reason: 'Token is not active',
 					};
 				}
 
@@ -213,7 +213,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 						isValid: false,
 						needRefresh: false,
 						userId: dbSession.userId,
-						reason: 'Token does not belong to the expected user'
+						reason: 'Token does not belong to the expected user',
 					};
 				}
 
@@ -227,12 +227,12 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 						token: token,
 						userId: dbSession.userId,
 						lastUsedAt: currentTime,
-						ip: updatedIpList
+						ip: updatedIpList,
 					};
 					await this.redisClient.setex(
 						`activeUserSession:${token}`,
 						Math.floor(UserSessionsService.CACHE_TTL / 1000),
-						JSON.stringify(newCacheData)
+						JSON.stringify(newCacheData),
 					);
 				} catch (e) {
 					const updateError = e as Error;
@@ -248,7 +248,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 					deviceId: dbSession.deviceId,
 					userId: dbSession.userId,
 					lastUsedAt: currentTime,
-					ip: updatedIpList
+					ip: updatedIpList,
 				};
 			} else {
 				const dbSession = await this.userSessionsRepository.findOne({
@@ -260,7 +260,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 					return {
 						isValid: false,
 						needRefresh: false,
-						reason: 'Token not found'
+						reason: 'Token not found',
 					};
 				}
 
@@ -273,7 +273,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 						isValid: false,
 						needRefresh: false,
 						isExpired: true,
-						reason: 'Token has expired'
+						reason: 'Token has expired',
 					};
 				}
 
@@ -282,7 +282,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 						isValid: false,
 						needRefresh: false,
 						isActive: false,
-						reason: 'Token is not active'
+						reason: 'Token is not active',
 					};
 				}
 
@@ -291,26 +291,26 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 						isValid: false,
 						needRefresh: false,
 						userId: dbSession.userId,
-						reason: 'Token does not belong to the expected user'
+						reason: 'Token does not belong to the expected user',
 					};
 				}
 
 				if (clientIp) {
 					const session = await this.userSessionsRepository.findOne({
 						where: { token, isActive: true },
-						select: ['ip']
+						select: ['ip'],
 					});
 					if (session) {
 						const updatedIpList = this.updateIpList(session.ip, clientIp);
 						await this.userSessionsRepository.update(
 							{ token, isActive: true },
-							{ ip: updatedIpList, lastUsedAt: currentTime } as any
+							{ ip: updatedIpList, lastUsedAt: currentTime } as any,
 						);
 					}
 				} else {
 					await this.userSessionsRepository.update(
 						{ token, isActive: true },
-						{ lastUsedAt: currentTime }
+						{ lastUsedAt: currentTime },
 					);
 				}
 
@@ -318,7 +318,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				if (clientIp) {
 					const sessionForCache = await this.userSessionsRepository.findOne({
 						where: { token, isActive: true },
-						select: ['ip']
+						select: ['ip'],
 					});
 					ipListForCache = sessionForCache?.ip || null;
 				}
@@ -327,12 +327,12 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 					token: dbSession.token,
 					userId: dbSession.userId,
 					lastUsedAt: currentTime,
-					ip: ipListForCache
+					ip: ipListForCache,
 				};
 				await this.redisClient.setex(
 					`activeUserSession:${token}`,
 					Math.floor(UserSessionsService.CACHE_TTL / 1000),
-					JSON.stringify(cacheData)
+					JSON.stringify(cacheData),
 				);
 
 				return {
@@ -344,7 +344,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 					deviceId: dbSession.deviceId,
 					userId: dbSession.userId,
 					lastUsedAt: currentTime,
-					ip: ipListForCache
+					ip: ipListForCache,
 				};
 			}
 		} catch (e) {
@@ -353,7 +353,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			return {
 				isValid: false,
 				needRefresh: false,
-				reason: 'Internal validation error'
+				reason: 'Internal validation error',
 			};
 		}
 	}
@@ -377,7 +377,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 						token: parsed.token,
 						userId: parsed.userId,
 						lastUsedAt: new Date(parsed.lastUsedAt),
-						ip: parsed.ip || null
+						ip: parsed.ip || null,
 					});
 				}
 			} catch (err) {
@@ -392,7 +392,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				this.logger.info(`Flushed ${updates.length} cache entries to database before invalidation`);
 			} catch (e) {
 				const err = e as Error;
-				this.logger.warn(`Failed to flush cache to database:`, err);
+				this.logger.warn('Failed to flush cache to database:', err);
 			}
 		}
 	}
@@ -410,7 +410,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				return {
 					success: false,
 					invalidatedCount: 0,
-					reason: validation.reason
+					reason: validation.reason,
 				};
 			}
 
@@ -420,7 +420,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				process.pid.toString(),
 				'PX',
 				UserSessionsService.OPERATION_LOCK_TTL,
-				'NX'
+				'NX',
 			);
 
 			if (!lockAcquired) {
@@ -428,7 +428,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				return {
 					success: false,
 					invalidatedCount: 0,
-					reason: 'Could not acquire lock'
+					reason: 'Could not acquire lock',
 				};
 			}
 
@@ -439,14 +439,14 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				await Promise.all([
 					this.userSessionsRepository.update(
 						{ token, isActive: true },
-						{ isActive: false, expiresAt: expiredTime }
+						{ isActive: false, expiresAt: expiredTime },
 					),
-					this.redisClient.del(`activeUserSession:${token}`)
+					this.redisClient.del(`activeUserSession:${token}`),
 				]);
 
 				return {
 					success: true,
-					invalidatedCount: 1
+					invalidatedCount: 1,
 				};
 			} catch (e) {
 				const err = e as Error;
@@ -454,7 +454,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				return {
 					success: false,
 					invalidatedCount: 0,
-					reason: 'Database operation failed'
+					reason: 'Database operation failed',
 				};
 			} finally {
 				await this.redisClient.del(lockKey);
@@ -466,7 +466,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				process.pid.toString(),
 				'PX',
 				UserSessionsService.OPERATION_LOCK_TTL,
-				'NX'
+				'NX',
 			);
 
 			if (!lockAcquired) {
@@ -474,21 +474,21 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				return {
 					success: false,
 					invalidatedCount: 0,
-					reason: 'Could not acquire user lock'
+					reason: 'Could not acquire user lock',
 				};
 			}
 
 			try {
 				const activeSessions = await this.userSessionsRepository.find({
 					where: { userId, isActive: true },
-					select: ['token']
+					select: ['token'],
 				});
 
 				if (activeSessions.length === 0) {
 					return {
 						success: true,
 						invalidatedCount: 0,
-						reason: 'No active sessions found'
+						reason: 'No active sessions found',
 					};
 				}
 
@@ -501,14 +501,14 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				await Promise.all([
 					this.userSessionsRepository.update(
 						{ userId, isActive: true },
-						{ isActive: false, expiresAt: expiredTime }
+						{ isActive: false, expiresAt: expiredTime },
 					),
-					this.redisClient.del(...cacheKeys)
+					this.redisClient.del(...cacheKeys),
 				]);
 
 				return {
 					success: true,
-					invalidatedCount: activeSessions.length
+					invalidatedCount: activeSessions.length,
 				};
 			} catch (e) {
 				const err = e as Error;
@@ -516,7 +516,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				return {
 					success: false,
 					invalidatedCount: 0,
-					reason: 'Database operation failed'
+					reason: 'Database operation failed',
 				};
 			} finally {
 				await this.redisClient.del(userLockKey);
@@ -540,7 +540,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			process.pid.toString(),
 			'PX',
 			CLEANUP_LOCK_TTL,
-			'NX'
+			'NX',
 		);
 
 		if (!lockAcquired) {
@@ -548,7 +548,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			return {
 				success: false,
 				deletedCount: 0,
-				reason: 'Cleanup already in progress'
+				reason: 'Cleanup already in progress',
 			};
 		}
 
@@ -574,7 +574,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 
 				await Promise.all([
 					this.userSessionsRepository.delete(tokenIds),
-					cacheKeys.length > 0 ? this.redisClient.del(...cacheKeys) : Promise.resolve()
+					cacheKeys.length > 0 ? this.redisClient.del(...cacheKeys) : Promise.resolve(),
 				]);
 
 				totalDeleted += expiredTokens.length;
@@ -591,7 +591,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 
 			return {
 				success: true,
-				deletedCount: totalDeleted
+				deletedCount: totalDeleted,
 			};
 		} catch (e) {
 			const error = e as Error;
@@ -599,7 +599,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			return {
 				success: false,
 				deletedCount: totalDeleted,
-				reason: 'Database operation failed'
+				reason: 'Database operation failed',
 			};
 		} finally {
 			await this.redisClient.del(CLEANUP_LOCK_KEY);
@@ -617,7 +617,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				const [nextCursor, keys] = await this.redisClient.scan(
 					cursor,
 					'MATCH', 'activeUserSession:*',
-					'COUNT', SCAN_BATCH_SIZE.toString()
+					'COUNT', SCAN_BATCH_SIZE.toString(),
 				);
 				cursor = nextCursor;
 
@@ -670,7 +670,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			process.pid.toString(),
 			'PX',
 			UserSessionsService.OPERATION_LOCK_TTL,
-			'NX'
+			'NX',
 		);
 
 		if (!lockAcquired) {
@@ -693,7 +693,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				initialIpList = [{
 					address: sessionData.clientIp,
 					count: 1,
-					lastSeen: newTime
+					lastSeen: newTime,
 				}];
 			}
 
@@ -713,13 +713,13 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				token: token,
 				userId: sessionData.userId,
 				lastUsedAt: newTime,
-				ip: initialIpList
+				ip: initialIpList,
 			};
 
 			await this.redisClient.setex(
 				`activeUserSession:${token}`,
 				Math.floor(UserSessionsService.CACHE_TTL / 1000),
-				JSON.stringify(cacheData)
+				JSON.stringify(cacheData),
 			);
 
 			return token;
@@ -824,7 +824,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				select: ['token'],
 				order: { lastUsedAt: 'DESC' },
 				skip: offset,
-				take: batchSize
+				take: batchSize,
 			});
 
 			if (activeSessions.length === 0) {
@@ -911,7 +911,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 					process.pid.toString(),
 					'PX',
 					UserSessionsService.OPERATION_LOCK_TTL,
-					'NX'
+					'NX',
 				);
 				results.push(!!acquired);
 			} catch (e) {
@@ -966,7 +966,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			return await manager.find(this.userSessionsRepository.target, {
 				where: { token: In(tokens), isActive: true },
 				select: ['token', 'userId', 'lastUsedAt', 'expiresAt', 'ip'],
-				lock: { mode: 'pessimistic_read' }
+				lock: { mode: 'pessimistic_read' },
 			});
 		});
 
@@ -975,7 +975,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			dbMap.set(s.token, {
 				userId: s.userId,
 				lastUsedAt: s.lastUsedAt,
-				expiresAt: s.expiresAt
+				expiresAt: s.expiresAt,
 			});
 		}
 
@@ -1008,7 +1008,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 					token: entry.token,
 					userId: entry.userId,
 					lastUsedAt: cacheTime,
-					ip: entry.ip || null
+					ip: entry.ip || null,
 				});
 			} else {
 				// this.logger.info(`No update needed for token ${entry.token.slice(-8)}: cache time (${cacheTime.toISOString()}) is not newer than DB time (${dbTime.toISOString()})`);
@@ -1036,11 +1036,11 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 
 		await this.userSessionsRepository.manager.transaction(async (manager) => {
 			const lastUsedAtCases = updates.map((u, index) =>
-				`WHEN token = $${index * 4 + 1} AND "userId" = $${index * 4 + 2} THEN $${index * 4 + 3}`
+				`WHEN token = $${index * 4 + 1} AND "userId" = $${index * 4 + 2} THEN $${index * 4 + 3}`,
 			).join(' ');
 
 			const ipCases = updates.map((u, index) =>
-				`WHEN token = $${index * 4 + 1} AND "userId" = $${index * 4 + 2} THEN $${index * 4 + 4}`
+				`WHEN token = $${index * 4 + 1} AND "userId" = $${index * 4 + 2} THEN $${index * 4 + 4}`,
 			).join(' ');
 
 			const params: any[] = [];
@@ -1062,7 +1062,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			`;
 
 			const result = await manager.query(query, params);
-			this.logger.info(`Database sync query executed. Result:`, result);
+			this.logger.info('Database sync query executed. Result:', result);
 
 			if (Array.isArray(result) && result.length > 0) {
 				this.logger.info(`Database sync: ${result.length} operations completed`);
@@ -1088,7 +1088,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				process.pid.toString(),
 				'PX',
 				UserSessionsService.OPERATION_LOCK_TTL,
-				'NX'
+				'NX',
 			);
 
 			if (!lockAcquired) {
@@ -1139,14 +1139,14 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				timestamp: new Date(),
 				error: error.message,
 				lastProcessedCursor: lastProcessedCursor || '0',
-				partiallyProcessedCount: processedCount || 0
+				partiallyProcessedCount: processedCount || 0,
 			};
 
 			await this.redisClient.set(
 				'syncTokenCache:recovery:lastState',
 				JSON.stringify(recoveryState),
 				'EX',
-				60 * 60 * 24
+				60 * 60 * 24,
 			);
 
 			await this.cleanupCorruptedData();
@@ -1165,7 +1165,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			const [nextCursor, keys] = await this.redisClient.scan(
 				cursor,
 				'MATCH', 'activeUserSession:*',
-				'COUNT', '100'
+				'COUNT', '100',
 			);
 			cursor = nextCursor;
 
@@ -1249,13 +1249,13 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				token,
 				cacheData: 'invalid_json',
 				dbData: null,
-				issue: 'cache_invalid_json'
+				issue: 'cache_invalid_json',
 			};
 		}
 
 		const dbSession = await this.userSessionsRepository.findOne({
 			where: { token, isActive: true },
-			select: ['token', 'userId', 'lastUsedAt', 'expiresAt']
+			select: ['token', 'userId', 'lastUsedAt', 'expiresAt'],
 		});
 
 		if (!dbSession) {
@@ -1263,7 +1263,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				token,
 				cacheData: parsedCacheData,
 				dbData: null,
-				issue: 'cache_exists_db_missing'
+				issue: 'cache_exists_db_missing',
 			};
 		}
 
@@ -1272,7 +1272,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				token,
 				cacheData: parsedCacheData,
 				dbData: dbSession,
-				issue: 'db_session_expired'
+				issue: 'db_session_expired',
 			};
 		}
 
@@ -1281,13 +1281,13 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				token,
 				cacheData: parsedCacheData,
 				dbData: dbSession,
-				issue: 'userId_mismatch'
+				issue: 'userId_mismatch',
 			};
 		}
 
 		const timeDiff = Math.abs(
 			new Date(parsedCacheData.lastUsedAt).getTime() -
-			new Date(dbSession.lastUsedAt).getTime()
+			new Date(dbSession.lastUsedAt).getTime(),
 		);
 
 		if (timeDiff > 1000 * 60 * 60) {
@@ -1295,7 +1295,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				token,
 				cacheData: parsedCacheData,
 				dbData: dbSession,
-				issue: 'timestamp_drift_high'
+				issue: 'timestamp_drift_high',
 			};
 		}
 
@@ -1309,7 +1309,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			totalInconsistencies: inconsistencies.length,
 			inconsistencyRate: ((inconsistencies.length / sampleSize) * 100).toFixed(2) + '%',
 			issueBreakdown: this.analyzeInconsistencies(inconsistencies),
-			examples: inconsistencies.slice(-5)
+			examples: inconsistencies.slice(-5),
 		};
 
 		if (inconsistencies.length > 0) {
@@ -1322,7 +1322,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			`syncTokenCache:consistency:report:${Date.now()}`,
 			JSON.stringify(report),
 			'EX',
-			60 * 60 * 24 * 3
+			60 * 60 * 24 * 3,
 		);
 	}
 
@@ -1348,7 +1348,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				process.pid.toString(),
 				'PX',
 				UserSessionsService.CONSISTENCY_LOCK_TTL,
-				'NX'
+				'NX',
 			);
 
 			if (!lockAcquired) continue;
@@ -1372,13 +1372,13 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 							const cacheData = {
 								token: item.dbData.token,
 								userId: item.dbData.userId,
-								lastUsedAt: item.dbData.lastUsedAt
+								lastUsedAt: item.dbData.lastUsedAt,
 							};
 							await this.redisClient.set(
 								`activeUserSession:${item.token}`,
 								JSON.stringify(cacheData),
 								'PX',
-								Math.max(0, item.dbData.expiresAt.getTime() - Date.now())
+								Math.max(0, item.dbData.expiresAt.getTime() - Date.now()),
 							);
 							fixedCount++;
 						}
@@ -1404,7 +1404,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			const [nextCursor, keys] = await this.redisClient.scan(
 				cursor,
 				'MATCH', 'activeUserSession:*',
-				'COUNT', '100'
+				'COUNT', '100',
 			);
 			cursor = nextCursor;
 
@@ -1441,7 +1441,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				const [nextCursor, keys] = await this.redisClient.scan(
 					cursor,
 					'MATCH', 'activeUserSession:*',
-					'COUNT', BATCH_SIZE.toString()
+					'COUNT', BATCH_SIZE.toString(),
 				);
 				cursor = nextCursor;
 
@@ -1466,6 +1466,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			where: {
 				userId,
 				isActive: true,
+				expiresAt: MoreThan(new Date()),
 			},
 			order: {
 				lastUsedAt: 'DESC',
@@ -1517,7 +1518,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				const [nextCursor, keys] = await this.redisClient.scan(
 					cursor,
 					'MATCH', 'operation_lock:*',
-					'COUNT', '50'
+					'COUNT', '50',
 				);
 				cursor = nextCursor;
 
@@ -1532,7 +1533,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				const [nextCursor, keys] = await this.redisClient.scan(
 					cursor,
 					'MATCH', 'user_operation_lock:*',
-					'COUNT', '50'
+					'COUNT', '50',
 				);
 				cursor = nextCursor;
 
