@@ -107,6 +107,12 @@ vite.config.local-dev.ts.timestamp-*
 **/*.dll
 **/deps/
 
+# Backend native Rust module
+/packages/backend/native/target/
+/packages/backend/native/Cargo.lock
+/packages/backend/native/**/*.node
+/packages/backend/native/**/*.rs.bk
+
 # If using Claude
 CLAUDE.local.md
 

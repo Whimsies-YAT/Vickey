@@ -1,0 +1,22 @@
+[package]
+name = "vickey-native"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+napi = "2.16"
+napi-derive = "2.16"
+unicode-normalization = "0.1"
+
+[build-dependencies]
+napi-build = "2.1"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+opt-level = 3
+panic = "abort"
