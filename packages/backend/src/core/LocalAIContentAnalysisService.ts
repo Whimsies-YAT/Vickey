@@ -3,21 +3,21 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+import crypto from 'crypto';
+import * as fs from 'fs';
 import { Inject, Injectable, OnModuleInit, OnApplicationShutdown } from '@nestjs/common';
+import * as Redis from 'ioredis';
+import { type DataSource, type Repository, In } from 'typeorm';
+import cld from 'cld';
+import keywordExtractor from 'keyword-extractor';
 import { bindThis } from '@/decorators.js';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import type { MiNote } from '@/models/Note.js';
-import * as Redis from 'ioredis';
-import type { DataSource, Repository } from 'typeorm';
 import { MiContentEmbedding } from '@/models/ContentEmbedding.js';
 import { MiUserInterestEmbedding } from '@/models/UserInterestEmbedding.js';
 import { MiEmbeddingBatchQueue } from '@/models/EmbeddingBatchQueue.js';
 import { IdService } from '@/core/IdService.js';
-import cld from 'cld';
-import crypto from 'crypto';
-import keywordExtractor from 'keyword-extractor';
-import * as fs from 'fs';
 
 type ContentAnalysisResult = {
 	confidence: number;
@@ -57,9 +57,10 @@ export class LocalAIContentAnalysisService implements OnModuleInit, OnApplicatio
 	private readonly multiLangSentimentWords: Map<string, Map<string, number>> = new Map();
 	private readonly multiLangTopicKeywords: Map<string, Map<string, string[]>> = new Map();
 	private embeddingModel: any = null;
-	private isModelLoaded: boolean = false;
+	private isModelLoaded = false;
 	private batchProcessor: NodeJS.Timeout | null = null;
 	private persistenceScheduler: NodeJS.Timeout | null = null;
+	private isPersisting = false;
 	private readonly batchSize = 32;
 	private readonly maxBatchWaitTime = 5000;
 	private readonly persistenceInterval = 300000;
@@ -112,7 +113,7 @@ export class LocalAIContentAnalysisService implements OnModuleInit, OnApplicatio
 	}
 
 	@bindThis
-	public async analyzeContentWithStrategy(note: MiNote, isLocal: boolean = true): Promise<ContentAnalysisResult | null> {
+	public async analyzeContentWithStrategy(note: MiNote, isLocal = true): Promise<ContentAnalysisResult | null> {
 		if (!this.isEnabled) {
 			return null;
 		}
@@ -163,7 +164,7 @@ export class LocalAIContentAnalysisService implements OnModuleInit, OnApplicatio
 	}
 
 	@bindThis
-	public async getUserSimilarContent(userId: string, candidateNotes: MiNote[], topK: number = 20): Promise<MiNote[]> {
+	public async getUserSimilarContent(userId: string, candidateNotes: MiNote[], topK = 20): Promise<MiNote[]> {
 		if (!this.isEnabled || !this.isModelLoaded) {
 			return candidateNotes.slice(0, topK);
 		}
@@ -269,7 +270,7 @@ export class LocalAIContentAnalysisService implements OnModuleInit, OnApplicatio
 			sentimentScore * weights.sentiment +
 			qualityScore * weights.quality +
 			safetyScore * weights.safety +
-			topicScore * weights.topics
+			topicScore * weights.topics,
 		));
 	}
 
@@ -300,7 +301,7 @@ export class LocalAIContentAnalysisService implements OnModuleInit, OnApplicatio
 
 			const modelOptions = [
 				'Xenova/all-MiniLM-L6-v2',
-				'Xenova/all-MiniLM-L12-v2'
+				'Xenova/all-MiniLM-L12-v2',
 			];
 
 			let modelLoaded = false;
@@ -320,7 +321,7 @@ export class LocalAIContentAnalysisService implements OnModuleInit, OnApplicatio
 							progress_callback: (progress: any) => {
 								console.log(`Model loading progress (${modelName}):`, progress);
 							},
-						}
+						},
 					);
 
 					console.log(`Successfully loaded model: ${modelName}`);
@@ -618,7 +619,7 @@ export class LocalAIContentAnalysisService implements OnModuleInit, OnApplicatio
 			const batchIds = batches.map(b => b.id);
 			await this.embeddingBatchQueueRepository.update(
 				batchIds,
-				{ status: 'processing' }
+				{ status: 'processing' },
 			);
 
 			const texts = batches.map(b => b.contentText);
@@ -814,7 +815,7 @@ export class LocalAIContentAnalysisService implements OnModuleInit, OnApplicatio
 	private initializeMultiLangDictionaries(): void {
 		const enSentiment = new Map([
 			['good', 0.7], ['great', 0.8], ['excellent', 0.9], ['bad', -0.7], ['terrible', -0.8],
-			['love', 0.8], ['hate', -0.8], ['happy', 0.7], ['sad', -0.7], ['amazing', 0.9]
+			['love', 0.8], ['hate', -0.8], ['happy', 0.7], ['sad', -0.7], ['amazing', 0.9],
 		]);
 		this.multiLangSentimentWords.set('en', enSentiment);
 
@@ -845,38 +846,75 @@ export class LocalAIContentAnalysisService implements OnModuleInit, OnApplicatio
 
 	@bindThis
 	private async persistAllPendingEmbeddings(): Promise<void> {
+		if (this.isPersisting) return;
+		this.isPersisting = true;
+
 		try {
 			console.log('LocalAIContentAnalysisService: Persisting all pending embeddings...');
 
 			const persistKeys = await this.redisClient.keys('persist_embedding:*');
+			if (persistKeys.length === 0) return;
+
+			const BATCH_SIZE = 50;
 			let persistedCount = 0;
 
-			for (const key of persistKeys) {
-				try {
-					const data = await this.redisClient.get(key);
-					if (data) {
-						const embeddingData = JSON.parse(data);
+			for (let i = 0; i < persistKeys.length; i += BATCH_SIZE) {
+				const batchKeys = persistKeys.slice(i, i + BATCH_SIZE);
+				const batchValues = await this.redisClient.mget(batchKeys);
 
-						const existing = await this.contentEmbeddingRepository.findOne({
-							where: { contentHash: embeddingData.hash, modelVersion: 'distiluse-v1' },
-						});
+				const embeddingsToSave: MiContentEmbedding[] = [];
+				const hashesToCheck: string[] = [];
+				const keysToDelete: string[] = [];
+				const embeddingDataMap = new Map<string, { hash: string; embedding: number[] }>();
 
-						if (!existing) {
-							const contentEmbedding = this.contentEmbeddingRepository.create({
-								id: this.idService.gen(),
-								contentHash: embeddingData.hash,
-								embedding: embeddingData.embedding,
-								modelVersion: 'distiluse-v1',
-							});
-
-							await this.contentEmbeddingRepository.save(contentEmbedding);
-							persistedCount++;
+				for (let j = 0; j < batchKeys.length; j++) {
+					const val = batchValues[j];
+					if (val) {
+						try {
+							const data = JSON.parse(val);
+							embeddingDataMap.set(data.hash, data);
+							hashesToCheck.push(data.hash);
+							keysToDelete.push(batchKeys[j]);
+						} catch (e) {
+							keysToDelete.push(batchKeys[j]);
 						}
-
-						await this.redisClient.del(key);
+					} else {
+						keysToDelete.push(batchKeys[j]);
 					}
-				} catch (error) {
-					console.error(`Failed to persist embedding from key ${key}:`, error);
+				}
+
+				if (hashesToCheck.length > 0) {
+					const existing = await this.contentEmbeddingRepository.find({
+						where: {
+							contentHash: In(hashesToCheck),
+							modelVersion: 'distiluse-v1',
+						},
+					});
+
+					const existingHashes = new Set(existing.map(e => e.contentHash));
+
+					for (const hash of hashesToCheck) {
+						if (!existingHashes.has(hash)) {
+							const data = embeddingDataMap.get(hash);
+							if (data) {
+								embeddingsToSave.push(this.contentEmbeddingRepository.create({
+									id: this.idService.gen(),
+									contentHash: data.hash,
+									embedding: data.embedding,
+									modelVersion: 'distiluse-v1',
+								}));
+							}
+						}
+					}
+
+					if (embeddingsToSave.length > 0) {
+						await this.contentEmbeddingRepository.save(embeddingsToSave);
+						persistedCount += embeddingsToSave.length;
+					}
+				}
+
+				if (keysToDelete.length > 0) {
+					await this.redisClient.del(...keysToDelete);
 				}
 			}
 
@@ -885,6 +923,8 @@ export class LocalAIContentAnalysisService implements OnModuleInit, OnApplicatio
 			}
 		} catch (error) {
 			console.error('LocalAIContentAnalysisService: Error persisting embeddings:', error);
+		} finally {
+			this.isPersisting = false;
 		}
 	}
 }

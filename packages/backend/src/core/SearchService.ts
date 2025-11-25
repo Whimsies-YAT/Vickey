@@ -4,6 +4,8 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import { In } from 'typeorm';
+import { Client as ElasticSearch } from '@elastic/elasticsearch';
 import { DI } from '@/di-symbols.js';
 import { type Config, FulltextSearchProvider } from '@/config.js';
 import { bindThis } from '@/decorators.js';
@@ -16,9 +18,8 @@ import { CacheService } from '@/core/CacheService.js';
 import { QueryService } from '@/core/QueryService.js';
 import { IdService } from '@/core/IdService.js';
 import { LoggerService } from '@/core/LoggerService.js';
-import { Client as ElasticSearch } from '@elastic/elasticsearch';
-import type { Index, MeiliSearch } from 'meilisearch';
 import type Logger from '@/logger.js';
+import type { Index, MeiliSearch } from 'meilisearch';
 
 type K = string;
 type V = string | number | boolean;
@@ -164,40 +165,40 @@ export class SearchService {
 		const maxConcurrent = 1;
 
 		try {
-            return await this.elasticsearchReindexStatesRepository.manager.transaction(
-                async (transactionalEntityManager) => {
-                    const inProgressCount = await transactionalEntityManager.count(
-                        this.elasticsearchReindexStatesRepository.target,
-                        { where: { status: 'in_progress' } }
-                    );
+			return await this.elasticsearchReindexStatesRepository.manager.transaction(
+				async (transactionalEntityManager) => {
+					const inProgressCount = await transactionalEntityManager.count(
+						this.elasticsearchReindexStatesRepository.target,
+						{ where: { status: 'in_progress' } },
+					);
 
-                    if (inProgressCount >= maxConcurrent) {
-                        this.logger.debug(`Reindex limit reached (${inProgressCount}/${maxConcurrent}), skipping ${indexPattern}`);
-                        return false;
-                    }
+					if (inProgressCount >= maxConcurrent) {
+						this.logger.debug(`Reindex limit reached (${inProgressCount}/${maxConcurrent}), skipping ${indexPattern}`);
+						return false;
+					}
 
-                    const result = await transactionalEntityManager
-                        .createQueryBuilder()
-                        .update(this.elasticsearchReindexStatesRepository.target)
-                        .set({
-                            status: 'in_progress',
-                            lockedBy: this.instanceId,
-                            lockedAt: new Date(),
-                        })
-                        .where('indexPattern = :pattern', { pattern: indexPattern })
-                        .andWhere(
-                            '(status = :pending OR (status = :inProgress AND (lockedAt IS NULL OR lockedAt < :timeout)))',
-                            {
-                                pending: 'pending',
-                                inProgress: 'in_progress',
-                                timeout: timeoutDate,
-                            }
-                        )
-                        .execute();
+					const result = await transactionalEntityManager
+						.createQueryBuilder()
+						.update(this.elasticsearchReindexStatesRepository.target)
+						.set({
+							status: 'in_progress',
+							lockedBy: this.instanceId,
+							lockedAt: new Date(),
+						})
+						.where('indexPattern = :pattern', { pattern: indexPattern })
+						.andWhere(
+							'(status = :pending OR (status = :inProgress AND (lockedAt IS NULL OR lockedAt < :timeout)))',
+							{
+								pending: 'pending',
+								inProgress: 'in_progress',
+								timeout: timeoutDate,
+							},
+						)
+						.execute();
 
-                    return result.affected === 1;
-                }
-            );
+					return result.affected === 1;
+				},
+			);
 		} catch (error) {
 			this.logger.error(`Failed to acquire lock for ${indexPattern}:`, (error as Error));
 			return false;
@@ -766,11 +767,11 @@ export class SearchService {
 			const base = `${this.config.elasticsearch!.index}---notes`;
 			const existingReindexIndices = await this.elasticsearch.cat.indices({
 				index: `${base}*-reindex-*`,
-				format: 'json'
+				format: 'json',
 			}) as ElasticsearchIndexInfo[];
 
 			const conflictingIndex = existingReindexIndices.find(idx =>
-				idx.index.startsWith(`${state.oldIndex}-reindex-`)
+				idx.index.startsWith(`${state.oldIndex}-reindex-`),
 			);
 
 			if (conflictingIndex) {
@@ -854,7 +855,7 @@ export class SearchService {
 				const timer = setTimeout(async () => {
 					try {
 						const latestState = await this.elasticsearchReindexStatesRepository.findOneBy({
-							indexPattern: state.indexPattern
+							indexPattern: state.indexPattern,
 						});
 
 						if (latestState && latestState.status === 'pending') {
@@ -884,7 +885,7 @@ export class SearchService {
 	}
 
 	@bindThis
-	private async monitorReindexTask(state: any, maxWaitTime: number = 21600000) {
+	private async monitorReindexTask(state: any, maxWaitTime = 21600000) {
 		if (!this.elasticsearch || !state.taskId) return;
 
 		const checkInterval = 5000;
@@ -961,7 +962,7 @@ export class SearchService {
 			}
 
 			if (expectedCount === 0 && reindexedCount === 0) {
-				this.logger.info(`Source index was empty, reindex completed with 0 documents`);
+				this.logger.info('Source index was empty, reindex completed with 0 documents');
 			}
 
 			this.logger.info('Refreshing new index to ensure documents are queryable...');
@@ -970,7 +971,7 @@ export class SearchService {
 			const healthCheck = await this.elasticsearch.cat.indices({
 				index: state.newIndex,
 				format: 'json',
-				h: ['index', 'health', 'status', 'docs.count']
+				h: ['index', 'health', 'status', 'docs.count'],
 			}) as ElasticsearchIndexInfo[];
 
 			if (healthCheck.length === 0) {
@@ -1063,11 +1064,18 @@ export class SearchService {
 
 			const allAliases = await this.elasticsearch.cat.aliases({ format: 'json' });
 			const indicesWithAliases = new Set<string>();
+			const aliasNames = new Set<string>();
+
 			for (const aliasInfo of allAliases as any[]) {
 				if (aliasInfo.index && aliasInfo.index.startsWith(base)) {
 					indicesWithAliases.add(aliasInfo.index);
 				}
+				if (aliasInfo.alias) {
+					aliasNames.add(aliasInfo.alias);
+				}
 			}
+
+			const existingIndices = new Set(allIndices.map(i => i.index));
 
 			for (const indexInfo of reindexIndices) {
 				const reindexIndex = indexInfo.index;
@@ -1088,30 +1096,39 @@ export class SearchService {
 			}
 
 			const allStates = await this.elasticsearchReindexStatesRepository.find();
+			const statesToRemove: string[] = [];
+
 			for (const state of allStates) {
 				if (!state.oldIndex) {
-					await this.elasticsearchReindexStatesRepository.remove(state);
+					statesToRemove.push(state.indexPattern);
 					continue;
 				}
 
-				const indexExists = await this.elasticsearch.indices.exists({ index: state.oldIndex });
-				const aliasExists = await this.elasticsearch.indices.existsAlias({ name: state.oldIndex });
+				const indexExists = existingIndices.has(state.oldIndex);
+				const aliasExists = aliasNames.has(state.oldIndex);
 
 				if (!indexExists && !aliasExists) {
 					this.logger.info(`Cleanup: removing state for non-existent index ${state.oldIndex}`);
-					await this.elasticsearchReindexStatesRepository.remove(state);
+					statesToRemove.push(state.indexPattern);
 					continue;
 				}
 
 				if (state.status === 'completed' || state.status === 'failed') {
 					if (state.newIndex) {
-						const newIndexExists = await this.elasticsearch.indices.exists({ index: state.newIndex });
+						const newIndexExists = existingIndices.has(state.newIndex);
 						if (!newIndexExists) {
 							this.logger.info(`Cleanup: removing state for missing new index ${state.newIndex}`);
-							await this.elasticsearchReindexStatesRepository.remove(state);
+							statesToRemove.push(state.indexPattern);
 						}
 					}
 				}
+			}
+
+			if (statesToRemove.length > 0) {
+				await this.elasticsearchReindexStatesRepository.delete({
+					indexPattern: In(statesToRemove),
+				});
+				this.logger.info(`Cleanup: removed ${statesToRemove.length} stale reindex states`);
 			}
 		} catch (error) {
 			this.logger.error('Failed to cleanup reindex artifacts:', (error as Error));
