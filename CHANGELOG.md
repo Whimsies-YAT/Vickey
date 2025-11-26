@@ -15,11 +15,13 @@
 - Fix: 投稿フォームのリセットボタンで注釈がリセットされない問題を修正
 - Fix: PlayのAiScriptバージョン判定（v0.x系・v1.x系の判定）が正しく動作しない問題を修正  
   (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/1129)
+- Fix: フォロー申請をキャンセルする際の確認ダイアログの文言が不正確な問題を修正
 
 ### Server
 - Enhance: `clips/my-favorites` APIがページネーションに対応しました
 - Enhance: メモリ使用量を削減しました
 - Enhance: 依存関係の更新
+- Fix: ワードミュートの文字数計算を修正  
 - Fix: チャンネルのリアルタイム更新時に、ロックダウン設定にて非ログイン時にノートを表示しない設定にしている場合でもノートが表示されてしまう問題を修正
 - Fix: DeepL APIのAPIキー指定方式変更に対応  
   (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/1096)
