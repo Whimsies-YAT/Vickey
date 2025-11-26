@@ -6,7 +6,7 @@
 		"type": "git",
 		"url": "https://github.com/Whimsies-YAT/Vickey"
 	},
-	"packageManager": "pnpm@10.20.0",
+	"packageManager": "pnpm@10.22.0",
 	"workspaces": [
 		"packages/frontend-shared",
 		"packages/frontend",
@@ -64,7 +64,7 @@
 	"dependencies": {
 		"cld": "2.10.1",
 		"cssnano": "7.1.2",
-		"esbuild": "0.25.11",
+		"esbuild": "0.27.0",
 		"execa": "9.6.0",
 		"fast-glob": "3.3.3",
 		"file-type": "21.0.0",
@@ -75,23 +75,23 @@
 		"nanoid": "5.1.5",
 		"postcss": "8.5.6",
 		"tar": "7.5.2",
-		"terser": "5.44.0",
+		"terser": "5.44.1",
 		"typescript": "5.9.3",
 		"ulid": "3.0.1"
 	},
 	"devDependencies": {
-		"@eslint/js": "9.39.0",
-		"@misskey-dev/eslint-plugin": "2.1.0",
+		"@eslint/js": "9.39.1",
+		"@misskey-dev/eslint-plugin": "2.2.0",
 		"@types/js-yaml": "4.0.9",
-		"@types/node": "24.9.2",
-		"@typescript-eslint/eslint-plugin": "8.46.2",
-		"@typescript-eslint/parser": "8.46.2",
+		"@types/node": "24.10.1",
+		"@typescript-eslint/eslint-plugin": "8.47.0",
+		"@typescript-eslint/parser": "8.47.0",
 		"cross-env": "10.1.0",
-		"cypress": "15.5.0",
-		"eslint": "9.39.0",
+		"cypress": "15.6.0",
+		"eslint": "9.39.1",
 		"globals": "16.5.0",
 		"ncp": "2.0.0",
-		"pnpm": "10.20.0",
+		"pnpm": "10.22.0",
 		"start-server-and-test": "2.1.2"
 	},
 	"optionalDependencies": {
