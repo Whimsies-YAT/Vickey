@@ -89,11 +89,12 @@ const REPEATABLE_SYSTEM_JOB_DEF = [{
 }, {
 	name: 'cleanDeletedNotes',
 	pattern: '0 * * * *',
-}, {
+}, // {
 	// Risk score batch job is temporarily disabled; keep placeholder for easy re-enable
 	// name: 'riskScoreUpdate',
 	// pattern: '0 */6 * * *',
-}];
+	// }
+];
 
 @Injectable()
 export class QueueService {
@@ -140,7 +141,7 @@ export class QueueService {
 			}
 		});
 		this.systemQueue.upsertJobScheduler('checkSec', {
-			pattern: '*/10 * * * *'
+			pattern: '*/10 * * * *',
 		}, {
 			name: 'checkSec',
 			opts: {
@@ -156,7 +157,7 @@ export class QueueService {
 			},
 		});
 		this.systemQueue.upsertJobScheduler('checkIP2L', {
-			pattern: '0 */3 * * *'
+			pattern: '0 */3 * * *',
 		}, {
 			name: 'checkIP2L',
 			opts: {
@@ -164,12 +165,12 @@ export class QueueService {
 			},
 		});
 		this.systemQueue.upsertJobScheduler('syncUserSessions', {
-			pattern: '*/3 * * * *'
+			pattern: '*/3 * * * *',
 		}, {
 			name: 'syncUserSessions',
 		});
 		this.systemQueue.upsertJobScheduler('clearExpiredSessions', {
-			pattern: '0 4 * * *'
+			pattern: '0 4 * * *',
 		}, {
 			name: 'clearExpiredSessions',
 		});
