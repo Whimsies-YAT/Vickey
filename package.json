@@ -101,29 +101,6 @@
 		"overrides": {
 			"@aiscript-dev/aiscript-languageserver": "-"
 		},
-		"onlyBuiltDependencies": [
-			"@nestjs/core",
-			"@parcel/watcher",
-			"@sentry/profiling-node",
-			"@swc/core",
-			"@tensorflow/tfjs-node",
-			"bufferutil",
-			"canvas",
-			"cld",
-			"core-js",
-			"cypress",
-			"esbuild",
-			"msgpackr-extract",
-			"msw",
-			"nice-napi",
-			"onnxruntime-node",
-			"protobufjs",
-			"re2",
-			"sharp",
-			"utf-8-validate",
-			"v-code-diff",
-			"vue-demi"
-		],
 		"ignoredBuiltDependencies": [
 			"@sentry-internal/node-cpu-profiler",
 			"exifreader"

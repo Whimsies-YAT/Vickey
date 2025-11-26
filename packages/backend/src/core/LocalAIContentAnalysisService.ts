@@ -318,9 +318,6 @@ export class LocalAIContentAnalysisService implements OnModuleInit, OnApplicatio
 							quantized: true,
 							cache_dir: modelCacheDir,
 							local_files_only: false,
-							progress_callback: (progress: any) => {
-								console.log(`Model loading progress (${modelName}):`, progress);
-							},
 						},
 					);
 

@@ -2691,10 +2691,11 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 						this.logger.info(`- Memory warnings: ${memoryWarningCount}`);
 						this.logger.info(`- Final result count: ${results.length}`);
 
-						stream.destroy();
-						stream.once('close', () => {
-							resolve(results);
-						});
+						// stream.destroy(); // Do not explicitly destroy, let it close naturally
+						// stream.once('close', () => {
+						// 	resolve(results);
+						// });
+						resolve(results);
 					} catch (endError) {
 						this.logger.error('Error during stream end processing:', (endError as Error));
 						stream.destroy();

@@ -7,7 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import { ModuleRef } from '@nestjs/core';
-import { AuthenticationResponseJSON } from '@/types/WebAuthnTypes.js';
+import type { AuthenticationResponseJSON } from '@simplewebauthn/server';
 import type { Config } from '@/config.js';
 import type { AccessTokensRepository, InstancesRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';

@@ -10,6 +10,7 @@ packages:
   - packages/misskey-js/generator
   - packages/misskey-reversi
   - packages/misskey-bubble-game
+  - packages/security-bridge
 onlyBuiltDependencies:
   - '@nestjs/core'
   - '@parcel/watcher'
@@ -18,12 +19,15 @@ onlyBuiltDependencies:
   - '@tensorflow/tfjs-node'
   - bufferutil
   - canvas
+  - cld
   - core-js
   - cypress
   - esbuild
   - msgpackr-extract
   - msw
   - nice-napi
+  - onnxruntime-node
+  - protobufjs
   - re2
   - sharp
   - utf-8-validate

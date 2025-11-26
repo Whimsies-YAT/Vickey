@@ -24,7 +24,7 @@ import { IP2LocationService } from '@/core/IP2LocationService.js';
 import type { IdentifiableError } from '@/misc/identifiable-error.js';
 import { RateLimiterService } from './RateLimiterService.js';
 import { SigninService } from './SigninService.js';
-import type { AuthenticationResponseJSON } from '@/types/WebAuthnTypes.js';
+import type { AuthenticationResponseJSON } from '@simplewebauthn/server';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
 @Injectable()
