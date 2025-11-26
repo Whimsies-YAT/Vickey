@@ -24,7 +24,7 @@ import type {
 	PublicKeyCredentialCreationOptionsJSON,
 	PublicKeyCredentialRequestOptionsJSON,
 	RegistrationResponseJSON,
-} from '@simplewebauthn/server';
+} from '@/types/WebAuthnTypes.js';
 
 @Injectable()
 export class WebAuthnService {
@@ -156,7 +156,7 @@ export class WebAuthnService {
 				id: key.id,
 				transports: key.transports ?? undefined,
 			})),
-			userVerification: 'preferred',
+			userVerification: 'required',
 		});
 
 		await this.redisClient.setex(`webauthn:challenge:${userId}`, 90, authenticationOptions.challenge);
@@ -174,7 +174,7 @@ export class WebAuthnService {
 
 		const authenticationOptions = await generateAuthenticationOptions({
 			rpID: relyingParty.rpId,
-			userVerification: 'preferred',
+			userVerification: 'required',
 		});
 
 		await this.redisClient.setex(`webauthn:challenge:${context}`, 90, authenticationOptions.challenge);

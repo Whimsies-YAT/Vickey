@@ -122,10 +122,7 @@ function onPasskeyLogin(): void {
 		misskeyApi('signin-with-passkey', {})
 			.then((res) => {
 				passkeyContext.value = res.context ?? '';
-				const publicKey = window.PublicKeyCredential.parseRequestOptionsFromJSON({
-					// @ts-expect-error TODO: misskey-js由来の型（@simplewebauthn/types）とフロントエンド由来の型が合わない
-					publicKey: res.option,
-				});
+				const publicKey = window.PublicKeyCredential.parseRequestOptionsFromJSON(res.option);
 				credentialRequest.value = { publicKey };
 
 				page.value = 'passkey';
@@ -265,10 +262,7 @@ async function tryLogin(req: Partial<Misskey.entities.SigninFlowRequest>): Promi
 				}
 				case 'passkey': {
 					if (webAuthnSupported()) {
-						const publicKey = window.PublicKeyCredential.parseRequestOptionsFromJSON({
-							// @ts-expect-error TODO: misskey-js由来の型（@simplewebauthn/types）とフロントエンド由来の型が合わない
-							publicKey: res.authRequest,
-						});
+						const publicKey = window.PublicKeyCredential.parseRequestOptionsFromJSON(res.authRequest);
 						credentialRequest.value = { publicKey };
 						page.value = 'passkey';
 					} else {

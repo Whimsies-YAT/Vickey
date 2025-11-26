@@ -204,15 +204,6 @@ async function addSecurityKey() {
 		token: auth.result.token,
 	});
 
-	const name = await os.inputText({
-		title: i18n.ts._2fa.registerSecurityKey,
-		text: i18n.ts._2fa.securityKeyName,
-		type: 'text',
-		minLength: 1,
-		maxLength: 30,
-	});
-	if (name.canceled) return;
-
 	const creationOptionsJson = {
 		...publicKey,
 		attestation: publicKey.attestation ?? undefined,
@@ -237,8 +228,14 @@ async function addSecurityKey() {
 	);
 	if (!credential) return;
 
-	const auth2 = await os.authenticateDialog();
-	if (auth2.canceled) return;
+	const name = await os.inputText({
+		title: i18n.ts._2fa.registerSecurityKey,
+		text: i18n.ts._2fa.securityKeyName,
+		type: 'text',
+		minLength: 1,
+		maxLength: 30,
+	});
+	if (name.canceled) return;
 
 	await os.apiWithDialog('i/2fa/key-done', {
 		password: auth.result.password,
