@@ -575,14 +575,14 @@ export class SearchService {
 				const desiredTokenizer = desiredAnalyzer.tokenizer;
 				if (currentTokenizer !== desiredTokenizer) {
 					result.requiresReindex = true;
-					result.reason.push(`Analyzer '${analyzerKey}' tokenizer changed`);
+					result.reason.push(`Analyzer '${analyzerKey}' tokenizer changed: ${currentTokenizer} -> ${desiredTokenizer}`);
 				}
 
 				const currentFilter = JSON.stringify(currentAnalyzer.filter ?? []);
 				const desiredFilter = JSON.stringify(desiredAnalyzer.filter ?? []);
 				if (currentFilter !== desiredFilter) {
 					result.requiresReindex = true;
-					result.reason.push(`Analyzer '${analyzerKey}' filter changed`);
+					result.reason.push(`Analyzer '${analyzerKey}' filter changed: ${currentFilter} -> ${desiredFilter}`);
 				}
 			}
 		}
@@ -597,13 +597,13 @@ export class SearchService {
 
 			if (currentField.type !== desiredField.type) {
 				result.requiresReindex = true;
-				result.reason.push(`Field '${path}' type changed`);
+				result.reason.push(`Field '${path}' type changed: ${currentField.type} -> ${desiredField.type}`);
 				return true;
 			}
 
 			if (currentField.analyzer !== desiredField.analyzer) {
 				result.requiresReindex = true;
-				result.reason.push(`Field '${path}' analyzer changed`);
+				result.reason.push(`Field '${path}' analyzer changed: ${currentField.analyzer} -> ${desiredField.analyzer}`);
 				return true;
 			}
 
