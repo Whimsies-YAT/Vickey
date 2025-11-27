@@ -3,25 +3,26 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Inject, Injectable, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common';
-import { DI } from '@/di-symbols.js';
-import type { Config } from '@/config.js';
-import { bindThis } from '@/decorators.js';
-import { Client as ElasticSearch } from '@elastic/elasticsearch';
 import * as fs from 'node:fs/promises';
 import { stat } from 'node:fs/promises';
 import * as path from 'node:path';
 import { createHash } from 'node:crypto';
 import { Worker } from 'node:worker_threads';
-import { LoggerService } from '@/core/LoggerService.js';
-import { HttpRequestService } from '@/core/HttpRequestService.js';
-import { DownloadService } from '@/core/DownloadService.js';
 import { createReadStream } from 'node:fs';
 import { EventEmitter } from 'node:events';
 import { clearInterval, clearTimeout, setInterval, setTimeout } from 'node:timers';
-import * as os from "os";
+import * as os from 'os';
+import { Client as ElasticSearch } from '@elastic/elasticsearch';
+import { Inject, Injectable, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common';
 import { ZipReader } from 'slacc';
 import { createOSMStream } from 'osm-pbf-parser-node';
+import { DownloadService } from '@/core/DownloadService.js';
+import { HttpRequestService } from '@/core/HttpRequestService.js';
+import { LoggerService } from '@/core/LoggerService.js';
+import { bindThis } from '@/decorators.js';
+import type { Config } from '@/config.js';
+import { DI } from '@/di-symbols.js';
+import { GeocodingIndex } from '../../native/index.js';
 
 interface OSMNode {
 	id: number;
@@ -133,8 +134,8 @@ interface GeoDataEntry {
 @Injectable()
 export class OfflineGeocodingService implements OnApplicationShutdown, OnApplicationBootstrap {
 	private geoData: GeoDataEntry[] = [];
-	private spatialIndex: Map<string, GeoDataEntry[]> = new Map();
-	private hierarchicalIndex = new Map<string, Map<string, Map<string, Map<string, GeoDataEntry[]>>>>();
+
+	private nativeIndex: GeocodingIndex | null = null;
 	private cache = new Map<string, { result: GeocodingResult, timestamp: number }>();
 	private precomputedResults = new Map<string, GeocodingResult>();
 	private isInitialized = false;
@@ -158,20 +159,14 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	private readonly MIN_IMPORTANCE = 0;
 	private readonly MAX_IMPORTANCE = 1;
 	private readonly MAX_NAME_LENGTH = 500;
-	private readonly GRID_LEVELS = [
-		{ size: 1.0, name: 'L1' },
-		{ size: 0.1, name: 'L2' },
-		{ size: 0.01, name: 'L3' },
-		{ size: 0.001, name: 'L4' }
-	];
-	private gridStats = new Map<string, number>();
+
 	private dataQualityStats = {
 		totalProcessed: 0,
 		validEntries: 0,
 		invalidCoordinates: 0,
 		invalidNames: 0,
 		duplicates: 0,
-		suspiciousData: 0
+		suspiciousData: 0,
 	};
 	private networkRetryStats = new Map<string, number>();
 	private readonly dataPath: string;
@@ -263,7 +258,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		this.initializeResourceManagement();
 		this.setupGracefulShutdownHandling();
 	}
-
 	@bindThis
 	private async ensureDataDirectory(): Promise<void> {
 		try {
@@ -285,78 +279,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			await fs.access(this.syncDataPath);
 		} catch {
 			await fs.mkdir(this.syncDataPath, { recursive: true });
-		}
-	}
-
-	@bindThis
-	private getGridKey(lat: number, lon: number): string {
-		const gridLat = Math.floor(lat / this.GRID_SIZE) * this.GRID_SIZE;
-		const gridLon = Math.floor(lon / this.GRID_SIZE) * this.GRID_SIZE;
-		return `${gridLat.toFixed(1)}_${gridLon.toFixed(1)}`;
-	}
-
-	@bindThis
-	private addToSpatialIndex(entry: GeoDataEntry): void {
-		const key = this.getGridKey(entry.lat, entry.lon);
-		if (!this.spatialIndex.has(key)) {
-			this.spatialIndex.set(key, []);
-		}
-		this.spatialIndex.get(key)!.push(entry);
-	}
-
-	@bindThis
-	private addToHierarchicalIndex(entry: GeoDataEntry): void {
-		const keys = this.GRID_LEVELS.map(level =>
-			this.getHierarchicalGridKey(entry.lat, entry.lon, level.size)
-		);
-
-		this.ensureHierarchicalPath(keys);
-		this.getDeepestIndexLevel(keys).push(entry);
-
-		const l4Key = keys[3];
-		this.gridStats.set(l4Key, (this.gridStats.get(l4Key) || 0) + 1);
-	}
-
-	@bindThis
-	private getHierarchicalGridKey(lat: number, lon: number, gridSize: number): string {
-		const gridLat = Math.floor(lat / gridSize) * gridSize;
-		const gridLon = Math.floor(lon / gridSize) * gridSize;
-		return `${gridLat.toFixed(6)}_${gridLon.toFixed(6)}`;
-	}
-
-	@bindThis
-	private ensureHierarchicalPath(keys: string[]): void {
-		let currentLevel = this.hierarchicalIndex;
-
-		for (let i = 0; i < keys.length - 1; i++) {
-			if (!currentLevel.has(keys[i])) {
-				currentLevel.set(keys[i], new Map());
-			}
-			currentLevel = currentLevel.get(keys[i]) as any;
-		}
-
-		if (!currentLevel.has(keys[keys.length - 1])) {
-			currentLevel.set(keys[keys.length - 1], [] as any);
-		}
-	}
-
-	@bindThis
-	private getDeepestIndexLevel(keys: string[]): GeoDataEntry[] {
-		let currentLevel = this.hierarchicalIndex as any;
-		for (const key of keys) {
-			currentLevel = currentLevel.get(key);
-		}
-		return currentLevel;
-	}
-
-	@bindThis
-	private optimizeDenseGrids(): void {
-		const denseGrids = Array.from(this.gridStats.entries())
-			.filter(([_, count]) => count > 1000)
-			.sort(([_, a], [__, b]) => b - a);
-
-		if (denseGrids.length > 0) {
-			console.log(`Found ${denseGrids.length} dense grids, max density: ${denseGrids[0][1]} entries`);
 		}
 	}
 
@@ -475,7 +397,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			body,
 			timeout = this.NETWORK_TIMEOUT,
 			maxRetries = this.MAX_RETRIES,
-			retryDelayBase = this.RETRY_DELAY_BASE
+			retryDelayBase = this.RETRY_DELAY_BASE,
 		} = options;
 
 		const requestId = `${method}_${url}`;
@@ -495,10 +417,10 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 							'Accept': 'application/json, text/plain, */*',
 							'Accept-Encoding': 'gzip, deflate',
 							'Connection': 'keep-alive',
-							...headers
+							...headers,
 						},
 						body,
-						signal: controller.signal
+						signal: controller.signal,
 					} as any);
 
 					clearTimeout(timeoutId);
@@ -539,7 +461,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				this.logger.warn(`Network request failed: ${requestId} (attempt ${attempt + 1}/${maxRetries + 1})`, {
 					error: error.message,
 					isRetryable: isRetryableError,
-					willRetry: shouldRetry
+					willRetry: shouldRetry,
 				});
 
 				if (!shouldRetry) {
@@ -621,14 +543,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			if (optimizedData.length > 0) {
 				this.geoData = optimizedData;
 
-				try {
-					const indexPath = path.join(this.dataPath, 'spatial_index.json');
-					const indexData = JSON.parse(await fs.readFile(indexPath, 'utf-8'));
-					this.spatialIndex = new Map(indexData);
-					console.log(`Loaded precomputed spatial index with ${this.spatialIndex.size} grid cells`);
-				} catch (indexError) {
-					this.buildSpatialIndex();
-				}
+				this.buildSpatialIndex();
 
 				this.isInitialized = true;
 				console.log(`Offline geocoding initialized with optimized data: ${this.geoData.length} entries`);
@@ -641,7 +556,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		const dataFiles = [
 			'cities_world.json',
 			'administrative_divisions.json',
-			'poi_data.json'
+			'poi_data.json',
 		];
 
 		for (const filename of dataFiles) {
@@ -662,19 +577,15 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	@bindThis
 	private buildSpatialIndex(): void {
 		console.time('BuildIndex');
-		this.spatialIndex.clear();
-		this.hierarchicalIndex.clear();
-		this.gridStats.clear();
+		this.nativeIndex = new GeocodingIndex();
 
-		for (const entry of this.geoData) {
-			this.addToSpatialIndex(entry);
-
-			this.addToHierarchicalIndex(entry);
+		for (let i = 0; i < this.geoData.length; i++) {
+			const entry = this.geoData[i];
+			this.nativeIndex.add(i, entry.lat, entry.lon, entry.importance);
 		}
 
-		this.optimizeDenseGrids();
 		console.timeEnd('BuildIndex');
-		console.log(`Built optimized spatial index with ${this.spatialIndex.size} grid cells`);
+		console.log(`Built optimized spatial index with ${this.geoData.length} entries`);
 	}
 
 	@bindThis
@@ -686,7 +597,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	}
 
 	@bindThis
-	private async findCandidatesWithElasticsearch(lat: number, lon: number, radiusKm: number = 50): Promise<GeoDataEntry[]> {
+	private async findCandidatesWithElasticsearch(lat: number, lon: number, radiusKm = 50): Promise<GeoDataEntry[]> {
 		if (!this.elasticClient) {
 			return this.findCandidatesOptimized(lat, lon, radiusKm);
 		}
@@ -732,7 +643,9 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	}
 
 	@bindThis
-	private findCandidatesOptimized(lat: number, lon: number, radiusKm: number = 50): GeoDataEntry[] {
+	private findCandidatesOptimized(lat: number, lon: number, radiusKm = 50): GeoDataEntry[] {
+		if (!this.nativeIndex) return [];
+
 		const startTime = performance.now();
 
 		const cachedResult = this.getCachedCandidates(lat, lon, radiusKm);
@@ -741,8 +654,8 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			return cachedResult;
 		}
 
-		const level = this.selectOptimalLevel(radiusKm);
-		const candidates = this.fastHierarchicalSearch(lat, lon, radiusKm, level);
+		const candidateIndices = this.nativeIndex.search(lat, lon, radiusKm, 100);
+		const candidates = candidateIndices.map(index => this.geoData[index]);
 
 		this.setCachedCandidates(lat, lon, radiusKm, candidates);
 
@@ -751,57 +664,8 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	}
 
 	@bindThis
-	private selectOptimalLevel(radiusKm: number): number {
-		if (radiusKm >= 50) return 0;
-		if (radiusKm >= 5) return 1;
-		if (radiusKm >= 0.5) return 2;
-		return 3;
-	}
-
-	@bindThis
-	private fastHierarchicalSearch(lat: number, lon: number, radiusKm: number, level: number): GeoDataEntry[] {
-		const candidates: GeoDataEntry[] = [];
-		const gridSize = this.GRID_LEVELS[level].size;
-		const gridRadius = Math.ceil(radiusKm / (gridSize * 111));
-
-		for (let latOffset = -gridRadius; latOffset <= gridRadius; latOffset++) {
-			for (let lonOffset = -gridRadius; lonOffset <= gridRadius; lonOffset++) {
-				const searchLat = lat + (latOffset * gridSize);
-				const searchLon = lon + (lonOffset * gridSize);
-
-				const entries = this.getEntriesFromHierarchicalGrid(searchLat, searchLon, level);
-				if (entries.length > 0) {
-					this.batchDistanceFilter(lat, lon, radiusKm, entries, candidates);
-				}
-			}
-		}
-
-		return this.sortByImportanceAndDistance(candidates);
-	}
-
-	@bindThis
-	private getEntriesFromHierarchicalGrid(lat: number, lon: number, level: number): GeoDataEntry[] {
-		const keys = [];
-
-		for (let i = 0; i <= level; i++) {
-			keys.push(this.getHierarchicalGridKey(lat, lon, this.GRID_LEVELS[i].size));
-		}
-
-		try {
-			let currentLevel = this.hierarchicalIndex as any;
-			for (const key of keys) {
-				currentLevel = currentLevel.get(key);
-				if (!currentLevel) return [];
-			}
-			return currentLevel || [];
-		} catch (error) {
-			return [];
-		}
-	}
-
-	@bindThis
 	private batchDistanceFilter(centerLat: number, centerLon: number, radiusKm: number,
-	                          entries: GeoDataEntry[], results: GeoDataEntry[]): void {
+		entries: GeoDataEntry[], results: GeoDataEntry[]): void {
 		const radiusSquared = radiusKm * radiusKm;
 		const latRadians = centerLat * Math.PI / 180;
 
@@ -854,8 +718,8 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			features: [{
 				type: 'Feature',
 				geometry: { type: 'Point', coordinates: [lon, lat] },
-				properties: { candidates } as any
-			}]
+				properties: { candidates } as any,
+			}],
 		};
 
 		this.cache.set(key, { result: mockResult, timestamp: Date.now() });
@@ -930,32 +794,28 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		const memoryUsage = process.memoryUsage();
 		return {
 			totalEntries: this.geoData.length,
-			gridCells: this.spatialIndex.size,
+			gridCells: this.geoData.length,
 			cacheSize: this.cache.size,
 			precomputedResults: this.precomputedResults.size,
 			memoryUsage: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB`,
 			performanceProfile: {
-				hierarchicalLevels: this.GRID_LEVELS.length,
 				cacheTTL: this.CACHE_TTL,
 				maxCacheSize: this.MAX_CACHE_SIZE,
-				denseGrids: Array.from(this.gridStats.entries())
-					.filter(([_, count]) => count > 100)
-					.length,
 				maxMemoryUsage: `${Math.round(this.maxMemoryUsage / 1024 / 1024)}MB`,
-				streamChunkSize: `${Math.round(this.STREAM_CHUNK_SIZE / 1024)}KB`
+				streamChunkSize: `${Math.round(this.STREAM_CHUNK_SIZE / 1024)}KB`,
 			},
 			dataQuality: {
 				...this.dataQualityStats,
 				validityRate: this.dataQualityStats.totalProcessed > 0
 					? Math.round((this.dataQualityStats.validEntries / this.dataQualityStats.totalProcessed) * 100)
-					: 0
+					: 0,
 			},
 			networkStats: {
 				totalRetries: Array.from(this.networkRetryStats.values()).reduce((sum, count) => sum + count, 0),
 				failedEndpoints: this.networkRetryStats.size,
 				maxRetries: this.MAX_RETRIES,
-				networkTimeout: this.NETWORK_TIMEOUT
-			}
+				networkTimeout: this.NETWORK_TIMEOUT,
+			},
 		};
 	}
 
@@ -967,7 +827,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			invalidCoordinates: 0,
 			invalidNames: 0,
 			duplicates: 0,
-			suspiciousData: 0
+			suspiciousData: 0,
 		};
 		this.networkRetryStats.clear();
 		this.logger.info('Data quality and network statistics reset');
@@ -1003,15 +863,15 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			recommendations.push('Check network connectivity and endpoint reliability');
 		}
 
-		if (this.geoData.length > 0 && this.spatialIndex.size === 0) {
-			issues.push('Spatial index not built');
-			recommendations.push('Rebuild spatial index for better performance');
+		if (this.geoData.length > 0 && !this.nativeIndex) {
+			issues.push('Native index not built');
+			recommendations.push('Rebuild native index for better performance');
 		}
 
 		return {
 			healthy: issues.length === 0,
 			issues,
-			recommendations
+			recommendations,
 		};
 	}
 
@@ -1072,7 +932,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	}
 
 	@bindThis
-	public async searchByName(name: string, limit: number = 10): Promise<GeocodingResult[]> {
+	public async searchByName(name: string, limit = 10): Promise<GeocodingResult[]> {
 		await this.initialize();
 
 		if (this.elasticClient) {
@@ -1113,7 +973,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 			const hits = (response as any).hits?.hits || [];
 			return hits.map((hit: any) =>
-				this.convertToGeocodingResult(hit._source as GeoDataEntry)
+				this.convertToGeocodingResult(hit._source as GeoDataEntry),
 			);
 		} catch (error) {
 			this.logger.warn('Elasticsearch name search failed, fallback to memory search:', error as any);
@@ -1154,7 +1014,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	@bindThis
 	public async *streamGeocodingResults(
 		query: { lat?: number; lon?: number; radius?: number; name?: string },
-		options: { pageSize?: number; maxResults?: number } = {}
+		options: { pageSize?: number; maxResults?: number } = {},
 	): AsyncGenerator<GeocodingResult[], void, unknown> {
 		try {
 			await this.initialize();
@@ -1191,92 +1051,42 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		lon: number,
 		radius: number,
 		pageSize: number,
-		maxResults: number
+		maxResults: number,
 	): AsyncGenerator<GeocodingResult[], void, unknown> {
 		try {
 			if (radius <= 0 || radius > 20000) {
 				throw new Error('Radius must be between 0 and 20000 km');
 			}
 
-			const gridKeys = this.getProximityGridKeys(lat, lon, radius);
+			if (!this.nativeIndex) {
+				return;
+			}
+
+			// Fetch more candidates to allow for scoring/sorting
+			// Cap at 100000 to avoid performance issues and Infinity problems with Rust u32
+			const searchLimit = Math.min(maxResults === Infinity ? 100000 : maxResults * 2, 100000);
+			const candidateIndices = this.nativeIndex.search(lat, lon, radius, searchLimit);
+			const candidates: Array<{ entry: GeoDataEntry; distance: number; score: number }> = [];
+
+			for (const index of candidateIndices) {
+				const entry = this.geoData[index];
+				const distanceSquared = this.calculateDistanceSquared(lat, lon, entry.lat, entry.lon);
+				const distance = Math.sqrt(distanceSquared);
+				const score = this.calculateProximityScore(entry, distance);
+				candidates.push({ entry, distance, score });
+			}
+
+			// Sort by score descending
+			candidates.sort((a, b) => b.score - a.score);
+
+			// Yield in batches
 			let processed = 0;
-			let batch: GeocodingResult[] = [];
-			const radiusSquared = radius * radius;
+			while (processed < candidates.length && processed < maxResults) {
+				const batchSize = Math.min(pageSize, maxResults - processed, candidates.length - processed);
+				const batch = candidates.slice(processed, processed + batchSize).map(c => this.convertToGeocodingResult(c.entry));
 
-			const candidateQueue: Array<{ entry: GeoDataEntry; distance: number; score: number }> = [];
-			const QUEUE_SIZE_LIMIT = Math.min(maxResults * 2, 1000);
-
-			const sortedGridKeys = this.sortGridKeysByProximity(gridKeys, lat, lon);
-
-			for (const gridKey of sortedGridKeys) {
-				if (processed >= maxResults) break;
-
-				try {
-					const entries = this.spatialIndex.get(gridKey) || [];
-					for (const entry of entries) {
-						try {
-							const distanceSquared = this.calculateDistanceSquared(lat, lon, entry.lat, entry.lon);
-							if (distanceSquared <= radiusSquared) {
-								const actualDistance = Math.sqrt(distanceSquared);
-								const score = this.calculateProximityScore(entry, actualDistance);
-
-								this.insertSortedByScore(candidateQueue, { entry, distance: actualDistance, score }, QUEUE_SIZE_LIMIT);
-							}
-						} catch (entryError) {
-							this.logger.warn('Error processing entry:', entryError as Error);
-						}
-					}
-
-					if (candidateQueue.length >= pageSize && processed < maxResults) {
-						const resultsToYield = Math.min(pageSize, maxResults - processed, candidateQueue.length);
-
-						for (let i = 0; i < resultsToYield; i++) {
-							const candidate = candidateQueue.shift();
-							if (!candidate) break;
-
-							try {
-								const result = this.convertToGeocodingResult(candidate.entry);
-								batch.push(result);
-								processed++;
-							} catch (resultError) {
-								this.logger.warn('Error converting result:', resultError as Error);
-							}
-						}
-
-						if (batch.length > 0) {
-							yield batch;
-							batch = [];
-						}
-
-						if (processed % (pageSize * 2) === 0) {
-							await new Promise(resolve => setImmediate(resolve));
-						}
-					}
-				} catch (gridError) {
-					this.logger.warn(`Error processing grid ${gridKey}:`, gridError as Error);
-				}
-			}
-
-			while (candidateQueue.length > 0 && processed < maxResults) {
-				const candidate = candidateQueue.shift();
-				if (!candidate) break;
-
-				try {
-					const result = this.convertToGeocodingResult(candidate.entry);
-					batch.push(result);
-					processed++;
-
-					if (batch.length >= pageSize) {
-						yield batch;
-						batch = [];
-					}
-				} catch (resultError) {
-					this.logger.warn('Error converting result:', resultError as Error);
-				}
-			}
-
-			if (batch.length > 0) {
 				yield batch;
+				processed += batchSize;
 			}
 		} catch (error) {
 			this.logger.error('Error in streamByProximity:', error as Error);
@@ -1288,7 +1098,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	private async *streamByName(
 		name: string,
 		pageSize: number,
-		maxResults: number
+		maxResults: number,
 	): AsyncGenerator<GeocodingResult[], void, unknown> {
 		try {
 			const searchTerm = name.toLowerCase();
@@ -1367,7 +1177,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	@bindThis
 	private async *streamAllData(
 		pageSize: number,
-		maxResults: number
+		maxResults: number,
 	): AsyncGenerator<GeocodingResult[], void, unknown> {
 		try {
 			let processed = 0;
@@ -1413,25 +1223,25 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	@bindThis
 	public async getPaginatedResults(
 		query: { lat?: number; lon?: number; radius?: number; name?: string },
-		page: number = 1,
-		pageSize: number = 50
+		page = 1,
+		pageSize = 50,
 	): Promise<{
-		results: GeocodingResult[];
-		pagination: {
-			page: number;
-			pageSize: number;
-			total: number;
-			totalPages: number;
-			hasNext: boolean;
-			hasPrev: boolean;
-		};
-	}> {
+			results: GeocodingResult[];
+			pagination: {
+				page: number;
+				pageSize: number;
+				total: number;
+				totalPages: number;
+				hasNext: boolean;
+				hasPrev: boolean;
+			};
+		}> {
 		await this.initialize();
 
 		const skipCount = (page - 1) * pageSize;
 		const stream = this.streamGeocodingResults(query, {
 			pageSize: pageSize,
-			maxResults: pageSize + skipCount
+			maxResults: pageSize + skipCount,
 		});
 
 		const allResults: GeocodingResult[] = [];
@@ -1474,15 +1284,11 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	private async estimateTotalResults(query: { lat?: number; lon?: number; radius?: number; name?: string }): Promise<number> {
 		if (query.lat !== undefined && query.lon !== undefined) {
 			const radius = query.radius || 1;
-			const gridKeys = this.getProximityGridKeys(query.lat, query.lon, radius);
-
-			let estimate = 0;
-			for (const gridKey of gridKeys) {
-				const count = this.gridStats.get(gridKey) || 0;
-				estimate += count;
+			if (this.nativeIndex) {
+				const indices = this.nativeIndex.search(query.lat, query.lon, radius, 1000);
+				return indices.length;
 			}
-
-			return Math.min(estimate, this.geoData.length);
+			return Math.min(1000, this.geoData.length);
 		} else if (query.name) {
 			const sampleSize = Math.min(1000, this.geoData.length);
 			const sample = this.geoData.slice(0, sampleSize);
@@ -1537,30 +1343,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	}
 
 	@bindThis
-	private getProximityGridKeys(lat: number, lon: number, radius: number): string[] {
-		const gridKeys = new Set<string>();
-
-		const latMin = lat - radius;
-		const latMax = lat + radius;
-		const lonMin = lon - radius;
-		const lonMax = lon + radius;
-
-		const gridLatMin = Math.floor(latMin / this.GRID_SIZE) * this.GRID_SIZE;
-		const gridLatMax = Math.ceil(latMax / this.GRID_SIZE) * this.GRID_SIZE;
-		const gridLonMin = Math.floor(lonMin / this.GRID_SIZE) * this.GRID_SIZE;
-		const gridLonMax = Math.ceil(lonMax / this.GRID_SIZE) * this.GRID_SIZE;
-
-		for (let gridLat = gridLatMin; gridLat <= gridLatMax; gridLat += this.GRID_SIZE) {
-			for (let gridLon = gridLonMin; gridLon <= gridLonMax; gridLon += this.GRID_SIZE) {
-				const key = `${gridLat.toFixed(1)}_${gridLon.toFixed(1)}`;
-				gridKeys.add(key);
-			}
-		}
-
-		return Array.from(gridKeys);
-	}
-
-	@bindThis
 	private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
 		const R = 6371;
 		const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -1582,44 +1364,10 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	}
 
 	@bindThis
-	private sortGridKeysByProximity(gridKeys: string[], centerLat: number, centerLon: number): string[] {
-		return gridKeys.sort((a, b) => {
-			const aParts = a.split('_');
-			const bParts = b.split('_');
-
-			if (aParts.length !== 3 || bParts.length !== 3) {
-				return 0;
-			}
-
-			const [aLevel, aLatIndex, aLonIndex] = aParts.map(Number);
-			const [bLevel, bLatIndex, bLonIndex] = bParts.map(Number);
-
-			const aGridLevel = (aLevel >= 0 && aLevel < this.GRID_LEVELS.length) ? this.GRID_LEVELS[aLevel] : this.GRID_LEVELS[0];
-			const bGridLevel = (bLevel >= 0 && bLevel < this.GRID_LEVELS.length) ? this.GRID_LEVELS[bLevel] : this.GRID_LEVELS[0];
-			const aGridSize = aGridLevel.size;
-			const bGridSize = bGridLevel.size;
-
-			if (isNaN(aLatIndex) || isNaN(aLonIndex) || isNaN(bLatIndex) || isNaN(bLonIndex)) {
-				return 0;
-			}
-
-			const aLat = aLatIndex * aGridSize;
-			const aLon = aLonIndex * aGridSize;
-			const bLat = bLatIndex * bGridSize;
-			const bLon = bLonIndex * bGridSize;
-
-			const aDist = this.calculateDistanceSquared(centerLat, centerLon, aLat, aLon);
-			const bDist = this.calculateDistanceSquared(centerLat, centerLon, bLat, bLon);
-
-			return aDist - bDist;
-		});
-	}
-
-	@bindThis
 	private insertSorted<T extends { score: number }>(
 		array: T[],
 		item: T,
-		maxSize: number
+		maxSize: number,
 	): void {
 		let low = 0;
 		let high = array.length;
@@ -1644,7 +1392,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	private insertSortedByScore<T extends { score: number }>(
 		array: T[],
 		item: T,
-		maxSize: number
+		maxSize: number,
 	): void {
 		if (array.length < maxSize || item.score > array[array.length - 1].score) {
 			this.insertSorted(array, item, maxSize);
@@ -1673,9 +1421,9 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				},
 				geometry: {
 					type: 'Point',
-					coordinates: [entry.lon, entry.lat]
-				}
-			}]
+					coordinates: [entry.lon, entry.lat],
+				},
+			}],
 		};
 	}
 
@@ -1712,9 +1460,9 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				},
 				geometry: {
 					type: 'Point',
-					coordinates: [lon, lat]
-				}
-			}]
+					coordinates: [lon, lat],
+				},
+			}],
 		};
 	}
 
@@ -1740,9 +1488,9 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				properties: {},
 				geometry: {
 					type: 'Point',
-					coordinates: [lon, lat]
-				}
-			}]
+					coordinates: [lon, lat],
+				},
+			}],
 		};
 	}
 
@@ -1810,8 +1558,8 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		const memoryUsage = process.memoryUsage();
 		return {
 			totalEntries: this.geoData.length,
-			gridCells: this.spatialIndex.size,
-			memoryUsage: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB`
+			gridCells: this.geoData.length,
+			memoryUsage: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB`,
 		};
 	}
 
@@ -1830,7 +1578,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 					heapTotal: memUsage.heapTotal,
 					external: memUsage.external,
 					rss: memUsage.rss,
-					timestamp: Date.now()
+					timestamp: Date.now(),
 				};
 
 				this.memoryStats.push(memStats);
@@ -1972,11 +1720,11 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				heapTotal: current.heapTotal,
 				external: current.external,
 				rss: current.rss,
-				timestamp: Date.now()
+				timestamp: Date.now(),
 			},
 			history: [...this.memoryStats],
 			criticalMode: this.criticalMemoryMode,
-			activeOperations: this.activeOperations.size
+			activeOperations: this.activeOperations.size,
 		};
 	}
 
@@ -1984,7 +1732,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	private async executeWithMemoryCheck<T>(
 		operationType: AtomicOperationContext['type'],
 		operation: () => Promise<T>,
-		options: { timeout?: number; cancellable?: boolean } = {}
+		options: { timeout?: number; cancellable?: boolean } = {},
 	): Promise<OperationResult<T>> {
 		const operationId = `${operationType}_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 		const startTime = Date.now();
@@ -1993,7 +1741,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		if (this.criticalMemoryMode && operationType !== 'save') {
 			return {
 				success: false,
-				error: new Error('Operation rejected due to critical memory conditions')
+				error: new Error('Operation rejected due to critical memory conditions'),
 			};
 		}
 
@@ -2001,7 +1749,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			id: operationId,
 			type: operationType,
 			startTime,
-			isCancellable: options.cancellable ?? true
+			isCancellable: options.cancellable ?? true,
 		};
 
 		let timeoutId: NodeJS.Timeout | undefined;
@@ -2023,8 +1771,8 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				data: result,
 				metrics: {
 					duration: endTime - startTime,
-					memoryUsage: endMemory - startMemory
-				}
+					memoryUsage: endMemory - startMemory,
+				},
 			};
 		} catch (error) {
 			return {
@@ -2032,8 +1780,8 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				error: error as Error,
 				metrics: {
 					duration: Date.now() - startTime,
-					memoryUsage: process.memoryUsage().heapUsed - startMemory
-				}
+					memoryUsage: process.memoryUsage().heapUsed - startMemory,
+				},
 			};
 		} finally {
 			if (timeoutId) {
@@ -2077,7 +1825,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				'cities_world.json',
 				'administrative_divisions.json',
 				'poi_data.json',
-				'cities_optimized.json'
+				'cities_optimized.json',
 			];
 
 			let hasGeoNamesData = false;
@@ -2206,7 +1954,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 						} catch (error) {
 							this.logger.warn(`Error cancelling operation ${operationId}:`, error as Error);
 						}
-					}
+					},
 				);
 
 				await Promise.allSettled(cancelPromises);
@@ -2215,7 +1963,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 			if (this.workerPool.length > 0) {
 				await Promise.allSettled(
-					this.workerPool.map(worker => worker.terminate())
+					this.workerPool.map(worker => worker.terminate()),
 				);
 				this.workerPool = [];
 			}
@@ -2582,7 +2330,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				let memoryWarningCount = 0;
 				const stream = createReadStream(tempCsvPath, {
 					encoding: 'utf-8',
-					highWaterMark: this.STREAM_CHUNK_SIZE
+					highWaterMark: this.STREAM_CHUNK_SIZE,
 				});
 
 				let buffer = '';
@@ -2682,7 +2430,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 							}
 						}
 
-						this.logger.info(`File processing completed:`);
+						this.logger.info('File processing completed:');
 						this.logger.info(`- Total lines processed: ${lineCount}`);
 						this.logger.info(`- Valid entries: ${this.dataQualityStats.validEntries}`);
 						this.logger.info(`- Invalid coordinates: ${this.dataQualityStats.invalidCoordinates}`);
@@ -2871,7 +2619,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 						planetOsmPath,
 						false,
 						true,
-						true
+						true,
 					);
 
 					this.logger.info('OSM PBF file downloaded, processing...');
@@ -2950,7 +2698,10 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 						if (batch.length >= BATCH_SIZE) {
 							for (const entry of batch) {
-								this.addToSpatialIndex(entry);
+								this.geoData.push(entry);
+								if (this.nativeIndex) {
+									this.nativeIndex.add(this.geoData.length - 1, entry.lat, entry.lon, entry.importance);
+								}
 							}
 
 							batch = [];
@@ -2986,7 +2737,10 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 			if (batch.length > 0) {
 				for (const entry of batch) {
-					this.addToSpatialIndex(entry);
+					this.geoData.push(entry);
+					if (this.nativeIndex) {
+						this.nativeIndex.add(this.geoData.length - 1, entry.lat, entry.lon, entry.importance);
+					}
 				}
 				indexedCount += batch.length;
 			}
@@ -3075,7 +2829,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 										id: node.id,
 										lat,
 										lon,
-										tags
+										tags,
 									});
 								}
 							}
@@ -3176,7 +2930,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			11: 'keys',
 			12: 'vals',
 			13: 'lat',
-			14: 'lon'
+			14: 'lon',
 		};
 
 		const fieldName = fieldMap[fieldNumber] || `field_${fieldNumber}`;
@@ -3197,7 +2951,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			'place', 'name', 'amenity', 'shop', 'tourism', 'leisure',
 			'office', 'craft', 'emergency', 'healthcare', 'historic',
 			'landuse', 'natural', 'railway', 'highway', 'addr:city',
-			'addr:town', 'addr:village', 'population'
+			'addr:town', 'addr:village', 'population',
 		];
 
 		return relevantKeys.some(key => tags[key] !== undefined) ||
@@ -3237,14 +2991,14 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				district: tags['addr:district'],
 				suburb: tags['addr:suburb'],
 				neighbourhood: tags['addr:neighbourhood'],
-				...tags
+				...tags,
 			},
 			level,
 			population,
 			importance,
 			place_id: parseInt(osmNode.id.toString()),
 			osm_id: parseInt(osmNode.id.toString()),
-			hash: this.generateDataHash(`osm_${osmNode.id}`)
+			hash: this.generateDataHash(`osm_${osmNode.id}`),
 		};
 	}
 
@@ -3267,7 +3021,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		const relevantKeys = [
 			'highway', 'building', 'name', 'place', 'landuse', 'natural',
 			'amenity', 'shop', 'leisure', 'tourism', 'historic', 'addr:city',
-			'addr:town', 'addr:street', 'railway', 'waterway', 'man_made'
+			'addr:town', 'addr:street', 'railway', 'waterway', 'man_made',
 		];
 
 		return relevantKeys.some(key => tags[key] !== undefined) ||
@@ -3296,13 +3050,13 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				town: tags['addr:town'],
 				street: tags['addr:street'] || tags.name,
 				country: tags['addr:country'] || tags['is_in:country'],
-				...tags
+				...tags,
 			},
 			level,
 			importance,
 			place_id: parseInt(osmWay.id.toString()),
 			osm_id: parseInt(osmWay.id.toString()),
-			hash: this.generateDataHash(`osm_way_${osmWay.id}`)
+			hash: this.generateDataHash(`osm_way_${osmWay.id}`),
 		};
 	}
 
@@ -3348,7 +3102,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		const relevantKeys = [
 			'type', 'name', 'place', 'admin_level', 'boundary',
 			'landuse', 'natural', 'amenity', 'leisure', 'tourism',
-			'multipolygon', 'route', 'public_transport'
+			'multipolygon', 'route', 'public_transport',
 		];
 
 		const isAdministrativeRelation = tags.type === 'boundary' && tags.boundary === 'administrative';
@@ -3386,14 +3140,14 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				city: tags['addr:city'] || tags['is_in:city'],
 				state: tags['addr:state'] || tags['is_in:state'],
 				country: tags['addr:country'] || tags['is_in:country'],
-				...tags
+				...tags,
 			},
 			level,
 			population,
 			importance,
 			place_id: parseInt(osmRelation.id.toString()),
 			osm_id: parseInt(osmRelation.id.toString()),
-			hash: this.generateDataHash(`osm_relation_${osmRelation.id}`)
+			hash: this.generateDataHash(`osm_relation_${osmRelation.id}`),
 		};
 	}
 
@@ -3481,8 +3235,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			const newVersion = this.currentDataVersion + 1;
 			await this.saveDataWithVersion(optimizedData, newVersion);
 
-			await this.buildSpatialIndexForData(optimizedData, newVersion);
-
 			if (this.elasticClient) {
 				await this.syncToElasticsearch(optimizedData, newVersion);
 			}
@@ -3523,22 +3275,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	}
 
 	@bindThis
-	private async buildSpatialIndexForData(data: GeoDataEntry[], version: number): Promise<void> {
-		const spatialIndex = new Map<string, GeoDataEntry[]>();
-
-		for (const entry of data) {
-			const key = this.getGridKey(entry.lat, entry.lon);
-			if (!spatialIndex.has(key)) {
-				spatialIndex.set(key, []);
-			}
-			spatialIndex.get(key)!.push(entry);
-		}
-
-		const indexPath = path.join(this.syncDataPath, `spatial_index_v${version}.json`);
-		await fs.writeFile(indexPath, JSON.stringify(Array.from(spatialIndex.entries())), 'utf-8');
-	}
-
-	@bindThis
 	private async syncToElasticsearch(data: GeoDataEntry[], version: number): Promise<void> {
 		if (!this.elasticClient) return;
 
@@ -3569,7 +3305,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 					location: { lat: entry.lat, lon: entry.lon },
 					bounds: entry.bounds ? {
 						type: 'envelope',
-						coordinates: [[entry.bounds[1], entry.bounds[2]], [entry.bounds[3], entry.bounds[0]]]
+						coordinates: [[entry.bounds[1], entry.bounds[2]], [entry.bounds[3], entry.bounds[0]]],
 					} : undefined,
 					...entry,
 				});
@@ -3582,13 +3318,11 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	@bindThis
 	private async switchToNewData(newVersion: number): Promise<void> {
 		const dataPath = path.join(this.syncDataPath, `geodata_v${newVersion}.json`);
-		const indexPath = path.join(this.syncDataPath, `spatial_index_v${newVersion}.json`);
 
 		const newData = JSON.parse(await fs.readFile(dataPath, 'utf-8'));
-		const indexData = JSON.parse(await fs.readFile(indexPath, 'utf-8'));
 
 		this.geoData = newData;
-		this.spatialIndex = new Map(indexData);
+		this.buildSpatialIndex();
 
 		if (this.elasticClient) {
 			const aliasName = this.ES_INDEX_PREFIX;
@@ -3617,7 +3351,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 		try {
 			await fs.unlink(path.join(this.syncDataPath, `geodata_v${oldVersion}.json`));
-			await fs.unlink(path.join(this.syncDataPath, `spatial_index_v${oldVersion}.json`));
 		} catch (error) {
 			this.logger.warn('Failed to clean up old data files:', error as any);
 		}
@@ -3657,10 +3390,6 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		try {
 			const dataFilePath = path.join(this.dataPath, 'cities_optimized.json');
 			await fs.writeFile(dataFilePath, JSON.stringify(data), 'utf-8');
-
-			const spatialIndexArray = Array.from(this.spatialIndex.entries());
-			const indexFilePath = path.join(this.dataPath, 'spatial_index.json');
-			await fs.writeFile(indexFilePath, JSON.stringify(spatialIndexArray), 'utf-8');
 
 			this.logger.info(`JSON format save completed: ${data.length} entries`);
 		} catch (error) {
@@ -3776,7 +3505,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	private encodeLevelToByte(level: GeoDataEntry['level']): number {
 		const levelMap = {
 			'country': 1, 'state': 2, 'city': 3, 'town': 4,
-			'village': 5, 'district': 6, 'county': 7
+			'village': 5, 'district': 6, 'county': 7,
 		};
 		return levelMap[level] || 0;
 	}
@@ -3785,7 +3514,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 	private decodeLevelFromByte(code: number): GeoDataEntry['level'] {
 		const levelMap = {
 			1: 'country', 2: 'state', 3: 'city', 4: 'town',
-			5: 'village', 6: 'district', 7: 'county'
+			5: 'village', 6: 'district', 7: 'county',
 		} as const;
 		return levelMap[code as keyof typeof levelMap] || 'district';
 	}
@@ -4044,7 +3773,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 			const updatedEntries = await this.processIncrementalUpdates(
 				this.lastUpdateSequence + 1,
-				latestSequence
+				latestSequence,
 			);
 
 			if (updatedEntries.length > 0) {
@@ -4074,7 +3803,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			const response = await this.robustNetworkRequest<string>(stateUrl, {
 				method: 'GET',
 				timeout: 10000,
-				maxRetries: 2
+				maxRetries: 2,
 			});
 
 			const lines = response.split('\n');
@@ -4087,7 +3816,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			this.logger.warn('Unable to parse sequence number from response');
 			return this.lastUpdateSequence;
 		} catch (error) {
-			this.logger.error(`Failed to retrieve sequence:`, (error as Error));
+			this.logger.error('Failed to retrieve sequence:', (error as Error));
 			return this.lastUpdateSequence;
 		}
 	}
@@ -4124,8 +3853,8 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				timeout: 60000,
 				maxRetries: 3,
 				headers: {
-					'Accept-Encoding': 'gzip'
-				}
+					'Accept-Encoding': 'gzip',
+				},
 			});
 			const compressedData = Buffer.from(response, 'binary');
 
@@ -4313,7 +4042,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				location: { lat: update.lat, lon: update.lon },
 				bounds: update.bounds ? {
 					type: 'envelope',
-					coordinates: [[update.bounds[1], update.bounds[2]], [update.bounds[3], update.bounds[0]]]
+					coordinates: [[update.bounds[1], update.bounds[2]], [update.bounds[3], update.bounds[0]]],
 				} : undefined,
 				...update,
 			});
@@ -4370,7 +4099,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			const dataFiles = [
 				'cities_world.json',
 				'administrative_divisions.json',
-				'poi_data.json'
+				'poi_data.json',
 			];
 
 			let recoveredData = false;
@@ -4419,8 +4148,8 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				criticalIssues.push('No geographic data loaded');
 			}
 
-			if (this.geoData.length > 0 && this.spatialIndex.size === 0) {
-				criticalIssues.push('Spatial index not built despite having data');
+			if (this.geoData.length > 0 && !this.nativeIndex) {
+				criticalIssues.push('Native index not built despite having data');
 			}
 
 			const sampleSize = Math.min(1000, this.geoData.length);
@@ -4464,14 +4193,14 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			return {
 				isValid: criticalIssues.length === 0,
 				issues,
-				criticalIssues
+				criticalIssues,
 			};
 		} catch (error) {
 			criticalIssues.push(`Integrity check failed: ${(error as Error).message}`);
 			return {
 				isValid: false,
 				issues,
-				criticalIssues
+				criticalIssues,
 			};
 		}
 	}
@@ -4497,8 +4226,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			this.cache.clear();
 			this.precomputedResults.clear();
 			this.geoData = [];
-			this.spatialIndex.clear();
-			this.hierarchicalIndex.clear();
+			this.nativeIndex = null;
 			this.isInitialized = false;
 
 			this.forceGarbageCollection();
@@ -4543,7 +4271,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 			const finalLimit = Math.max(
 				this.MIN_MEMORY_LIMIT,
-				Math.min(calculatedLimit, this.MAX_MEMORY_LIMIT)
+				Math.min(calculatedLimit, this.MAX_MEMORY_LIMIT),
 			);
 
 			this.logger.debug(`Memory calculation: system=${Math.round(totalSystemMemory / 1024 / 1024)}MB, available=${Math.round(availableMemory / 1024 / 1024)}MB, limit=${Math.round(finalLimit / 1024 / 1024)}MB`);
@@ -4692,9 +4420,9 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				memoryUsage: memUsage.heapUsed,
 				memoryLimit: this.maxMemoryUsage,
 				cacheSize: this.cache.size,
-				dataEntries: this.geoData.length
+				dataEntries: this.geoData.length,
 			},
-			issues
+			issues,
 		};
 	}
 
@@ -4736,7 +4464,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		try {
 			const osmFiles = [
 				'planet-latest.osm.pbf',
-				'osm_data_processed.json'
+				'osm_data_processed.json',
 			];
 
 			for (const filename of osmFiles) {
@@ -4765,7 +4493,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			const geoNamesFiles = [
 				'allCountries.zip',
 				'allCountries.txt',
-				'geonames_full_processed.json'
+				'geonames_full_processed.json',
 			];
 
 			for (const filename of geoNamesFiles) {

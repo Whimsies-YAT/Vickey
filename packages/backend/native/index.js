@@ -35,5 +35,4 @@ if (!nativeBinding) {
   throw new Error('Failed to load native binding');
 }
 
-export const { normalizeForSearch, safeForSql } = nativeBinding;
-
+export const { normalizeForSearch, safeForSql, GeocodingIndex, generateIdenticon, htmlToMfm } = nativeBinding;

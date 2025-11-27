@@ -10,6 +10,13 @@
 use napi_derive::napi;
 use unicode_normalization::UnicodeNormalization;
 
+pub mod geocoding;
+pub use geocoding::*;
+pub mod identicon;
+pub use identicon::*;
+pub mod mfm;
+pub use mfm::*;
+
 #[napi]
 pub fn normalize_for_search(text: String) -> String {
     text.nfkc().collect::<String>().to_lowercase()

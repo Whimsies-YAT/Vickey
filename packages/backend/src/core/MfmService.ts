@@ -23,6 +23,17 @@ type ChildNode = DefaultTreeAdapterMap['childNode'];
 const urlRegex = /^https?:\/\/[\w\/:%#@$&?!()\[\]~.,=+\-]+/;
 const urlRegexFull = /^https?:\/\/[\w\/:%#@$&?!()\[\]~.,=+\-]+$/;
 
+// Try to load native module
+let nativeModule: { htmlToMfm: (html: string, hashtagNames?: string[] | null) => string } | null = null;
+
+(async () => {
+	try {
+		nativeModule = await import('../../native/index.js');
+	} catch {
+		// ignore
+	}
+})();
+
 export type Appender = (document: Document, body: HTMLParagraphElement) => void;
 
 @Injectable()
@@ -35,6 +46,10 @@ export class MfmService {
 
 	@bindThis
 	public fromHtml(html: string, hashtagNames?: string[]): string {
+		if (nativeModule) {
+			return nativeModule.htmlToMfm(html, hashtagNames);
+		}
+
 		// some AP servers like Pixelfed use br tags as well as newlines
 		html = html.replace(/<br\s?\/?>\r?\n/gi, '\n');
 
