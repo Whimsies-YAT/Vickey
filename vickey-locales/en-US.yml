@@ -150,7 +150,7 @@ deletedNoteRetentionHoursDescriptionWithValue: "Deleted notes older than {hours}
 mobile:
   serverSetup:
     title: "Welcome to Vickey"
-    description: "Enter your Vickey/Misskey server URL to get started"
+    description: "Enter your Vickey or Misskey server URL to get started"
     placeholder: "https://your-server.example"
     connect: "Connect"
     invalidUrl: "Please enter a valid URL"

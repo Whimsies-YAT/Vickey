@@ -616,7 +616,7 @@ export interface Locale extends ILocale {
              */
             "title": string;
             /**
-             * Enter your Vickey/Misskey server URL to get started
+             * Enter your Vickey or Misskey server URL to get started
              */
             "description": string;
             /**
