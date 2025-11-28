@@ -1617,10 +1617,11 @@ importers:
         version: 5.9.3
 
   packages/security-bridge:
-    devDependencies:
+    dependencies:
       '@capacitor/core':
         specifier: ^6.2.0
         version: 6.2.1
+    devDependencies:
       typescript:
         specifier: 5.9.3
         version: 5.9.3
