@@ -117,6 +117,7 @@ COPY --chown=misskey:misskey --from=native-builder /misskey/packages/misskey-rev
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/misskey-bubble-game/built ./packages/misskey-bubble-game/built
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/built ./packages/backend/built
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/lib ./packages/backend/lib
+COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/native/vickey-native.linux-x64-gnu.node ./packages/backend/native/vickey-native.linux-x64-gnu.node
 COPY --chown=misskey:misskey --from=native-builder /misskey/fluent-emojis /misskey/fluent-emojis
 COPY --chown=misskey:misskey . ./
 
