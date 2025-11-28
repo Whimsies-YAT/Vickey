@@ -40,7 +40,7 @@ ARG NODE_ENV=production
 RUN node -e "console.log(JSON.parse(require('node:fs').readFileSync('./package.json')).packageManager)" | xargs npm install -g
 
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store,sharing=locked \
-	pnpm i --frozen-lockfile --aggregate-output
+	pnpm i --frozen-lockfile --aggregate-output --config.minimum-release-age=1440
 
 # Copy example config for build-time (will be overridden by volume mount at runtime)
 COPY --link [".config/example.yml", "./.config/default.yml"]
@@ -79,7 +79,7 @@ ARG NODE_ENV=production
 RUN node -e "console.log(JSON.parse(require('node:fs').readFileSync('./package.json')).packageManager)" | xargs npm install -g
 
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store,sharing=locked \
-	pnpm i --frozen-lockfile --aggregate-output
+	pnpm i --frozen-lockfile --aggregate-output --config.minimum-release-age=1440
 
 FROM --platform=$TARGETPLATFORM node:${NODE_VERSION}-trixie AS runner
 

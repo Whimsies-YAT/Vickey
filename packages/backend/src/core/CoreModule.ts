@@ -156,6 +156,7 @@ import { NotificationEntityService } from './entities/NotificationEntityService.
 import { PageEntityService } from './entities/PageEntityService.js';
 import { PageLikeEntityService } from './entities/PageLikeEntityService.js';
 import { SigninEntityService } from './entities/SigninEntityService.js';
+import { UserSessionEntityService } from './entities/UserSessionEntityService.js';
 import { UserEntityService } from './entities/UserEntityService.js';
 import { UserListEntityService } from './entities/UserListEntityService.js';
 import { FlashEntityService } from './entities/FlashEntityService.js';
@@ -237,7 +238,7 @@ const serviceClasses = [
 	InviteCodeEntityService, ModerationLogEntityService, MutingEntityService, RenoteMutingEntityService,
 	NoteEntityService, NoteFavoriteEntityService, NoteReactionEntityService, NoteDraftEntityService,
 	NotificationEntityService, PageEntityService, PageLikeEntityService, SigninEntityService,
-	UserEntityService, UserListEntityService, FlashEntityService, FlashLikeEntityService,
+	UserSessionEntityService, UserEntityService, UserListEntityService, FlashEntityService, FlashLikeEntityService,
 	RoleEntityService, ReversiGameEntityService, GomokuGameEntityService, WerewolfGameEntityService, MetaEntityService, SystemWebhookEntityService,
 	ApAudienceService, ApDbResolverService, ApDeliverManagerService, ApInboxService, ApLoggerService,
 	ApMfmService, ApRendererService, ApRequestService, ApResolverService, JsonLdService,

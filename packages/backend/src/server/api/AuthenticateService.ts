@@ -85,7 +85,7 @@ export class AuthenticateService implements OnApplicationShutdown {
 			return {
 				user,
 				accessToken: null,
-				needRefresh: sessionValidation.needRefresh
+				needRefresh: sessionValidation.needRefresh,
 			};
 		}
 
@@ -98,9 +98,11 @@ export class AuthenticateService implements OnApplicationShutdown {
 		});
 
 		if (accessToken != null) {
-			await this.accessTokensRepository.update(accessToken.id, {
-				lastUsedAt: new Date(),
-			});
+			if (accessToken.lastUsedAt == null || Date.now() - accessToken.lastUsedAt.getTime() > 30 * 1000) {
+				await this.accessTokensRepository.update(accessToken.id, {
+					lastUsedAt: new Date(),
+				});
+			}
 
 			const user = await this.cacheService.localUserByIdCache.fetch(accessToken.userId,
 				() => this.usersRepository.findOneBy({
@@ -116,7 +118,7 @@ export class AuthenticateService implements OnApplicationShutdown {
 					accessToken: {
 						id: accessToken.id,
 						permission: app.permission,
-					} as MiAccessToken
+					} as MiAccessToken,
 				};
 			} else {
 				return { user, accessToken };

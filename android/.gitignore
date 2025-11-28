@@ -1,0 +1,45 @@
+# Android Studio
+.gradle/
+.idea/
+*.iml
+local.properties
+captures/
+.externalNativeBuild
+.cxx
+
+# Build outputs
+build/
+app/build/
+*/build/
+*.apk
+*.aab
+*.ap_
+app/release/
+app/debug/
+
+# Capacitor generated files
+app/src/main/assets/public/
+app/src/main/assets/capacitor.config.json
+app/src/main/assets/capacitor.plugins.json
+capacitor-cordova-android-plugins/
+
+# Keystore files (NEVER commit these!)
+*.keystore
+*.jks
+*.p12
+
+# Signing configs (contains sensitive keys)
+keystore.properties
+
+# macOS
+.DS_Store
+
+# Log files
+*.log
+
+# Android build outputs
+output.json
+*.hprof
+
+# Navigation editor
+.navigation/

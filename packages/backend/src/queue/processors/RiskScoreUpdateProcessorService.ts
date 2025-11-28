@@ -54,6 +54,10 @@ export class RiskScoreUpdateProcessorService {
 	private async updateSingleUser(userId: string): Promise<void> {
 		try {
 			const riskScore = await this.userRiskScoreService.calculateUserRiskScore(userId);
+			if (!riskScore) {
+				this.logger.debug(`Risk scoring is disabled or user ${userId} not found`);
+				return;
+			}
 			this.logger.debug(`Updated risk score for user ${userId}: ${riskScore.totalScore} (${riskScore.riskLevel})`);
 		} catch (e) {
 			const err = e as Error;

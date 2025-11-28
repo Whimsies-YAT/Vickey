@@ -15,6 +15,8 @@ import { IdService } from '@/core/IdService.js';
 import { IP2LocationService } from '@/core/IP2LocationService.js';
 import { MultiAccountDetectionService } from '@/core/MultiAccountDetectionService.js';
 import { MoreThan, IsNull, Not, In } from 'typeorm';
+
+const RISK_SCORING_ENABLED = false;
 import * as Redis from 'ioredis';
 import { createHash } from 'node:crypto';
 
@@ -169,11 +171,15 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 		private ip2LocationService: IP2LocationService,
 		private multiAccountDetectionService: MultiAccountDetectionService,
 	) {
-		this.initializeConfig().then(async () => {
-			await this.checkAndPerformBatchRecalculation();
-		}).catch(err => {
-			console.error('Failed to initialize risk score configuration:', err);
-		});
+		if (this.isEnabled) {
+			this.initializeConfig().catch(err => {
+				console.error('Failed to initialize risk score configuration:', err);
+			});
+		}
+	}
+
+	private get isEnabled(): boolean {
+		return RISK_SCORING_ENABLED;
 	}
 
 	private config: RiskScoreConfig | null = null;
@@ -182,6 +188,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 
 	@bindThis
 	public async initializeConfig(): Promise<void> {
+		if (!this.isEnabled) return;
 		const cachedConfig = await this.redisClient.get('risk-score:config');
 		if (cachedConfig) {
 			this.config = JSON.parse(cachedConfig);
@@ -195,6 +202,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 
 	@bindThis
 	private async updateBaselines(): Promise<void> {
+		if (!this.isEnabled) return;
 		if (this.lastBaselineUpdate &&
 			(Date.now() - this.lastBaselineUpdate.getTime()) < 3600000) {
 			return;
@@ -297,7 +305,10 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	}
 
 	@bindThis
-	public async calculateUserRiskScore(userId: string): Promise<UserRiskScore> {
+	public async calculateUserRiskScore(userId: string): Promise<UserRiskScore | null> {
+		if (!this.isEnabled) {
+			return null;
+		}
 		try {
 			if (!this.config) {
 				await this.initializeConfig();
@@ -468,7 +479,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 		dimensions.avatarExists = user.avatarId ? 3 : 1;
 
 		const baseScore = 75;
-		const ageBonus = Math.min(12, dimensions.accountAge * 1.0);
+		const ageBonus = Math.min(12, dimensions.accountAge);
 		const avatarBonus = dimensions.avatarExists * 2;
 		const totalScore = baseScore + ageBonus + avatarBonus;
 
@@ -1446,7 +1457,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 			dimensions.postingFrequency,
 			dimensions.interactionPattern,
 			dimensions.apiUsagePattern,
-		].filter(v => typeof v === 'number');
+		];
 
 		if (indicators.length === 0) {
 			return 0.5;
@@ -1476,6 +1487,9 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 
 	@bindThis
 	public async updateConfig(newConfig: Partial<RiskScoreConfig>): Promise<void> {
+		if (!this.isEnabled) {
+			throw new Error('Risk scoring is currently disabled.');
+		}
 		const currentConfig = this.config || await this.getDefaultConfig();
 		this.config = { ...currentConfig, ...newConfig };
 		await this.redisClient.set('risk-score:config', JSON.stringify(this.config), 'EX', 3600);
@@ -1515,6 +1529,9 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 
 	@bindThis
 	public async getCachedScore(userId: string): Promise<UserRiskScore | null> {
+		if (!this.isEnabled) {
+			return null;
+		}
 		const cached = await this.redisClient.get(`user:risk-score:${userId}`);
 		if (cached) {
 			return JSON.parse(cached);
@@ -1523,8 +1540,11 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	}
 
 	@bindThis
-	public async batchCalculateScores(userIds: string[]): Promise<Map<string, UserRiskScore>> {
-		const results = new Map<string, UserRiskScore>();
+	public async batchCalculateScores(userIds: string[]): Promise<Map<string, UserRiskScore | null>> {
+		if (!this.isEnabled) {
+			return new Map();
+		}
+		const results = new Map<string, UserRiskScore | null>();
 
 		const batchSize = 10;
 		for (let i = 0; i < userIds.length; i += batchSize) {
@@ -1575,7 +1595,9 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 
 	@bindThis
 	public async handleReportChange(targetUserId: string, reportAction: null | 'accepted' | 'rejected'): Promise<void> {
+		if (!this.isEnabled) return;
 		const newScore = await this.calculateUserRiskScore(targetUserId);
+		if (!newScore) return;
 
 		await this.riskEventLogService.logRiskEvent({
 			userId: targetUserId,
@@ -1604,6 +1626,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 
 	@bindThis
 	public async forceSyncAllScores(): Promise<void> {
+		if (!this.isEnabled) return;
 		console.log('Starting forced sync of all cached scores to database...');
 
 		try {
@@ -1653,8 +1676,6 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	@bindThis
 	private async saveHistoricalData(userId: string, totalScore: number, dimensions: RiskScoreDimensions): Promise<void> {
 		try {
-			const timestamp = new Date().toISOString();
-
 			const scoreHistoryKey = `user:score:history:${userId}`;
 			await this.redisClient.lpush(scoreHistoryKey, totalScore.toString());
 			await this.redisClient.ltrim(scoreHistoryKey, 0, 99);
@@ -1927,6 +1948,9 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 
 	@bindThis
 	public async batchRecalculateAllScores(): Promise<{ processed: number; updated: number; errors: number }> {
+		if (!this.isEnabled) {
+			return { processed: 0, updated: 0, errors: 0 };
+		}
 		const startTime = Date.now();
 		console.log('Starting batch recalculation of all user risk scores...');
 
@@ -1976,6 +2000,9 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 						} : null);
 
 						const newScore = await this.calculateUserRiskScore(user.id);
+						if (!newScore) {
+							return false;
+						}
 
 						const scoreChanged = !oldScore || Math.abs(oldScore.totalScore - newScore.totalScore) > 1;
 						const levelChanged = !oldScore || oldScore.riskLevel !== newScore.riskLevel;
@@ -2069,6 +2096,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 
 	@bindThis
 	public async onApplicationShutdown(): Promise<void> {
+		if (!this.isEnabled) return;
 		console.log('Application shutdown detected, syncing risk scores...');
 		await this.forceSyncAllScores();
 		console.log('Risk score sync completed');
@@ -2185,7 +2213,6 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 				currentOffset += users.length;
 
 				if (processed % progressLogInterval === 0) {
-					const elapsedTime = Date.now() - sliceStartTime;
 					const percentComplete = ((processed / totalUsers) * 100).toFixed(1);
 					console.log(`[Time Slice] Progress: ${processed}/${totalUsers} (${percentComplete}%) - Updated: ${updated}, Errors: ${errors}`);
 				}
@@ -2253,6 +2280,9 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 				} : null);
 
 				const newScore = await this.calculateUserRiskScore(user.id);
+				if (!newScore) {
+					return false;
+				}
 
 				const scoreChanged = !oldScore || Math.abs(oldScore.totalScore - newScore.totalScore) > 1;
 				const levelChanged = !oldScore || oldScore.riskLevel !== newScore.riskLevel;
@@ -2313,6 +2343,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 
 	@bindThis
 	public async enqueueUserScoreRecalculation(userId: string, priority: number = this.NORMAL_PRIORITY): Promise<void> {
+		if (!this.isEnabled) return;
 		if (this.processingQueue.length >= this.MAX_QUEUE_SIZE) {
 			const lowPriorityIndex = this.processingQueue.findIndex(item => item.priority === this.LOW_PRIORITY);
 			if (lowPriorityIndex !== -1) {
@@ -2349,7 +2380,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 		});
 
 		if (!this.queueProcessing) {
-			this.startQueueProcessing();
+			await this.startQueueProcessing();
 		}
 
 		await this.saveQueueState();
@@ -2408,7 +2439,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 			}
 		};
 
-		processQueue();
+		await processQueue();
 	}
 
 	@bindThis

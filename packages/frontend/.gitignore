@@ -1,2 +1,6 @@
 /storybook-static
 /build/
+
+# Capacitor platforms (linked to root-level android/ios)
+android/
+ios/

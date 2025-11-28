@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Production configuration -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <!-- Trust system certificates -->
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Debug configuration (optional, for development only) -->
+    <!-- Uncomment for local development with self-signed certs -->
+    <!--
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </debug-overrides>
+    -->
+
+    <!-- Domain-specific pinning (configure for your actual domains) -->
+    <!--
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">your-api-domain.com</domain>
+        <pin-set expiration="2026-01-01">
+            <pin digest="SHA-256">your-pin-here</pin>
+            <pin digest="SHA-256">backup-pin-here</pin>
+        </pin-set>
+    </domain-config>
+    -->
+</network-security-config>

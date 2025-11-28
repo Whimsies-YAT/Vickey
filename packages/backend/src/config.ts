@@ -6,12 +6,12 @@
 import * as fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import nodePath from 'node:path';
 import * as yaml from 'js-yaml';
 import { type FastifyServerOptions } from 'fastify';
 import type * as Sentry from '@sentry/node';
 import type * as SentryVue from '@sentry/vue';
 import type { RedisOptions } from 'ioredis';
-import nodePath from 'node:path';
 
 type RedisOptionsSource = Partial<RedisOptions> & {
 	host: string;
@@ -424,8 +424,8 @@ export function loadConfig(): Config {
 		logging: config.logging,
 		bcryptCost: Math.max(8, config.bcryptCost ?? 12),
 		argon2Config: config.argon2Config,
-		tokenSalt: config.tokenSalt ?? "ThisIsNOTSecureEnoughChangeItPoweredByVickey",
-		hmacKey: config.hmacKey ?? "ThisIsNOTSecureEnoughChangeItPoweredByVickey",
+		tokenSalt: config.tokenSalt ?? 'ThisIsNOTSecureEnoughChangeItPoweredByVickey',
+		hmacKey: config.hmacKey ?? 'ThisIsNOTSecureEnoughChangeItPoweredByVickey',
 		nativeTokenExpiry,
 		enableLocalAIContentAnalysis: config.enableLocalAIContentAnalysis ?? false,
 		offlineGeocoding: config.offlineGeocoding,

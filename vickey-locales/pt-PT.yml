@@ -146,6 +146,23 @@ deletedNoteCollectionInstances: "Collection Instances (Whitelist)"
 deletedNoteCollectionInstancesDescription: "Specify instances to collect deleted notes from (one per line). Supports wildcards: *.example.com matches all subdomains. Use \"local\" to collect local deleted notes. Leave empty to disable collection (no deleted notes will be kept)."
 deletedNoteRetentionHours: "Retention Period (Hours)"
 deletedNoteRetentionHoursDescription: "Deleted notes older than this will be permanently removed (1-72 hours)"
+deletedNoteRetentionHoursDescriptionWithValue: "Deleted notes older than {hours} hours will be permanently removed."
+mobile:
+  serverSetup:
+    title: "Welcome to Vickey"
+0:
+  description: "Enter your Misskey server URL to get started"
+1:
+  "write:admin:approve-account": "Approve registration application"
+  "write:admin:decline-account": "Decline registration application"
+  "read:admin:show-pending": "View application list"
+  "read:admin:show-pendings": "View whether there are registration applications"
+  "write:admin:email-templates": "Manage email templates"
+  "read:admin:email-templates": "View email templates"
+  "read:admin:abuse-report:auto-processed": "View automated results of reports"
+  "read:admin:risk-scores": "View risk management"
+  "write:admin:risk-scores": "risk management"
+2: '>>>>>>> b629189f2cdfbfe5c253ada3142e8ced6e8008f3'
 error: "Error"
 failedToLoadNoteDetails: "Failed to load note details"
 noTextContent: "No text content"
@@ -215,7 +232,7 @@ _role:
   _condition:
     isVI: "TTS User"
 _permissions:
-0:
+3:
   "write:admin:approve-account": "Approve registration application"
   "write:admin:decline-account": "Decline registration application"
   "read:admin:show-pending": "View application list"
@@ -223,17 +240,6 @@ _permissions:
   "write:admin:email-templates": "Manage email templates"
   "read:admin:email-templates": "View email templates"
   "read:admin:abuse-report:auto-processed": "View automated results of reports"
-1:
-  "write:admin:approve-account": "Approve registration application"
-  "write:admin:decline-account": "Decline registration application"
-  "read:admin:show-pending": "View application list"
-  "read:admin:show-pendings": "View whether there are registration applications"
-  "write:admin:email-templates": "Manage email templates"
-  "read:admin:email-templates": "View email templates"
-  "read:admin:abuse-report:auto-processed": "View automated results of reports"
-  "read:admin:risk-scores": "View risk management"
-  "write:admin:risk-scores": "risk management"
-2: '>>>>>>> b629189f2cdfbfe5c253ada3142e8ced6e8008f3'
 _signup:
   approvalPending: "Your account has been created and is now pending approval."
   reasonInfo: "Please enter the reason you wish to join this server."
@@ -868,3 +874,15 @@ _werewolf:
   playerExecuted: "Player Executed"
   hunterRevenge: "Hunter's Revenge"
   bombExploded: "Bomb Exploded!"
+activeSessions: "Active Sessions"
+activeSessionsDescription: "Manage your active login sessions on different devices"
+noActiveSessions: "No active sessions"
+currentSession: "Current Session"
+revokeSessionConfirm: "Are you sure you want to revoke this session?"
+revokeAllOtherSessions: "Revoke All Other Sessions"
+revokeAllOtherSessionsConfirm: "Are you sure you want to revoke all other sessions? This will sign you out on all devices except this one."
+sessionsRevoked: "{count} session(s) revoked"
+failedToRevokeSession: "Failed to revoke session"
+failedToRevokeSessions: "Failed to revoke sessions"
+lastUsed: "Last used"
+revoke: "Revoke"
