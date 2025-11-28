@@ -150,10 +150,10 @@ deletedNoteRetentionHoursDescriptionWithValue: "Deleted notes older than {hours}
 mobile:
   serverSetup:
     title: "Welcome to Vickey"
-    description: "Enter your Vickey/Misskey server URL to get started"
+    description: "Enter your Misskey server URL to get started"
     placeholder: "https://your-server.example"
     connect: "Connect"
-    invalidUrl: "Please enter a valid URL"
+    invalidUrl: "Please enter a valid URL (e.g., https://misskey.io)"
   rootWarning:
     title: "Root Detected"
     message: "Your device has been rooted.\n\nUsing this app on a rooted device may pose security risks, including but not limited to:\n• Data leakage\n• Account security compromise\n• Application malfunction\n\nBy continuing, you acknowledge and accept these risks at your own responsibility."
