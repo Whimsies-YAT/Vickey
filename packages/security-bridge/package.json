@@ -12,8 +12,10 @@
 		"build": "tsc --noEmit",
 		"typecheck": "tsc --noEmit"
 	},
+	"dependencies": {
+		"@capacitor/core": "^6.2.0"
+	},
 	"devDependencies": {
-		"@capacitor/core": "^6.2.0",
 		"typescript": "5.9.3"
 	},
 	"peerDependencies": {
