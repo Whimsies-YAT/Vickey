@@ -15,7 +15,7 @@ services:
 
   db:
     restart: always
-    image: ghcr.io/whimsies-yat/postgresql:17
+    image: ghcr.io/whimsies-yat/postgresql:18
     ports:
       - "5432:5432"
     env_file:

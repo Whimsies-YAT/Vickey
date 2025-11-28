@@ -63,7 +63,6 @@ jobs:
             "packages/misskey-bubble-game/src"
             "packages/misskey-reversi/src"
             "packages/sw/src"
-            "scripts"
           )
 
           for directory in "${directories[@]}"; do

@@ -17,6 +17,8 @@ import { bindThis } from '@/decorators.js';
 import type { Antenna } from '@/server/api/endpoints/i/import-antennas.js';
 import { ApRequestCreator } from '@/core/activitypub/ApRequestService.js';
 import { type SystemWebhookPayload } from '@/core/SystemWebhookService.js';
+import { LoggerService } from '@/core/LoggerService.js';
+import type Logger from '@/logger.js';
 import type { Packed } from '@/misc/json-schema.js';
 import { type UserWebhookPayload } from './UserWebhookService.js';
 import type {
@@ -89,16 +91,22 @@ const REPEATABLE_SYSTEM_JOB_DEF = [{
 }, {
 	name: 'cleanDeletedNotes',
 	pattern: '0 * * * *',
-}, {
-	name: 'riskScoreUpdate',
-	pattern: '0 */6 * * *',
 }];
+// Risk score batch job is temporarily disabled; keep placeholder for easy re-enable
+// {
+// 	name: 'riskScoreUpdate',
+// 	pattern: '0 */6 * * *',
+// }
 
 @Injectable()
 export class QueueService {
+	private logger: Logger;
+
 	constructor(
 		@Inject(DI.config)
 		private config: Config,
+
+		private loggerService: LoggerService,
 
 		@Inject('queue:system') public systemQueue: SystemQueue,
 		@Inject('queue:endedPollNotification') public endedPollNotificationQueue: EndedPollNotificationQueue,
@@ -112,22 +120,31 @@ export class QueueService {
 		@Inject('queue:systemWebhookDeliver') public systemWebhookDeliverQueue: SystemWebhookDeliverQueue,
 		@Inject('queue:geocoding') public geocodingQueue: GeocodingQueue,
 	) {
+		this.logger = this.loggerService.getLogger('queue');
+
 		for (const def of REPEATABLE_SYSTEM_JOB_DEF) {
-			this.systemQueue.upsertJobScheduler(def.name, {
-				pattern: def.pattern,
-				immediately: false,
-			}, {
-				name: def.name,
-				opts: {
-					// 期限ではなくcountで設定したいが、ジョブごとではなくキュー全体でカウントされるため、高頻度で実行されるジョブによって低頻度で実行されるジョブのログが消えることになる
-					removeOnComplete: {
-						age: 3600 * 24 * 7, // keep up to 7 days
+			if (!def.name || !def.pattern) continue;
+			try {
+				this.systemQueue.upsertJobScheduler(def.name!, {
+					pattern: def.pattern,
+					immediately: false,
+				}, {
+					name: def.name,
+					opts: {
+						// 期限ではなくcountで設定したいが、ジョブごとではなくキュー全体でカウントされるため、高頻度で実行されるジョブによって低頻度で実行されるジョブのログが消えることになる
+						removeOnComplete: {
+							age: 3600 * 24 * 7, // keep up to 7 days
+						},
+						removeOnFail: {
+							age: 3600 * 24 * 7, // keep up to 7 days
+						},
 					},
-					removeOnFail: {
-						age: 3600 * 24 * 7, // keep up to 7 days
-					},
-				},
-			});
+				}).catch(err => {
+					this.logger.error(`Failed to schedule system job ${def.name}: ${err.message}`);
+				});
+			} catch (err: any) {
+				this.logger.error(`Failed to schedule system job ${def.name} (sync error): ${err.message}`);
+			}
 		}
 
 		// 古いバージョンで作成され現在使われなくなったrepeatableジョブをクリーンアップ
@@ -138,91 +155,149 @@ export class QueueService {
 				}
 			}
 		});
-		this.systemQueue.upsertJobScheduler('checkSec', {
-			pattern: '*/10 * * * *'
-		}, {
-			name: 'checkSec',
-			opts: {
-				removeOnComplete: true,
-			},
-		});
-		this.systemQueue.upsertJobScheduler('cleanExpired', {
-			pattern: '0 */6 * * *',
-		}, {
-			name: 'cleanExpired',
-			opts: {
-				removeOnComplete: true,
-			},
-		});
-		this.systemQueue.upsertJobScheduler('checkIP2L', {
-			pattern: '0 */3 * * *'
-		}, {
-			name: 'checkIP2L',
-			opts: {
-				removeOnComplete: true,
-			},
-		});
-		this.systemQueue.upsertJobScheduler('syncUserSessions', {
-			pattern: '*/3 * * * *'
-		}, {
-			name: 'syncUserSessions',
-		});
-		this.systemQueue.upsertJobScheduler('clearExpiredSessions', {
-			pattern: '0 4 * * *'
-		}, {
-			name: 'clearExpiredSessions',
-		});
+		try {
+			this.systemQueue.upsertJobScheduler('checkSec', {
+				pattern: '*/10 * * * *',
+			}, {
+				name: 'checkSec',
+				opts: {
+					removeOnComplete: true,
+				},
+			}).catch(err => {
+				this.logger.error(`Failed to schedule checkSec: ${err.message}`);
+			});
+		} catch (err: any) {
+			this.logger.error(`Failed to schedule checkSec (sync error): ${err.message}`);
+		}
+
+		try {
+			this.systemQueue.upsertJobScheduler('cleanExpired', {
+				pattern: '0 */6 * * *',
+			}, {
+				name: 'cleanExpired',
+				opts: {
+					removeOnComplete: true,
+				},
+			}).catch(err => {
+				this.logger.error(`Failed to schedule cleanExpired: ${err.message}`);
+			});
+		} catch (err: any) {
+			this.logger.error(`Failed to schedule cleanExpired (sync error): ${err.message}`);
+		}
+
+		try {
+			this.systemQueue.upsertJobScheduler('checkIP2L', {
+				pattern: '0 */3 * * *',
+			}, {
+				name: 'checkIP2L',
+				opts: {
+					removeOnComplete: true,
+				},
+			}).catch(err => {
+				this.logger.error(`Failed to schedule checkIP2L: ${err.message}`);
+			});
+		} catch (err: any) {
+			this.logger.error(`Failed to schedule checkIP2L (sync error): ${err.message}`);
+		}
+
+		try {
+			this.systemQueue.upsertJobScheduler('syncUserSessions', {
+				pattern: '*/3 * * * *',
+			}, {
+				name: 'syncUserSessions',
+			}).catch(err => {
+				this.logger.error(`Failed to schedule syncUserSessions: ${err.message}`);
+			});
+		} catch (err: any) {
+			this.logger.error(`Failed to schedule syncUserSessions (sync error): ${err.message}`);
+		}
+
+		try {
+			this.systemQueue.upsertJobScheduler('clearExpiredSessions', {
+				pattern: '0 4 * * *',
+			}, {
+				name: 'clearExpiredSessions',
+			}).catch(err => {
+				this.logger.error(`Failed to schedule clearExpiredSessions: ${err.message}`);
+			});
+		} catch (err: any) {
+			this.logger.error(`Failed to schedule clearExpiredSessions (sync error): ${err.message}`);
+		}
 
 		if (this.config.offlineGeocoding && this.geocodingQueue) {
-			this.geocodingQueue.upsertJobScheduler('syncOfflineGeoData', {
-				pattern: '0 2 1 * *',
-			}, {
-				name: 'syncOfflineGeoData',
-				data: { jobType: 'syncOfflineGeoData' },
-				opts: {
-					removeOnComplete: {
-						age: 3600 * 24 * 30,
-						count: 3,
-					},
-					removeOnFail: {
-						age: 3600 * 24 * 30,
-						count: 5,
-					},
-				},
+			this.geocodingQueue.removeJobScheduler('syncOfflineGeoData').catch(() => {}).then(async () => {
+				try {
+					await this.geocodingQueue!.upsertJobScheduler('syncOfflineGeoData', {
+						pattern: '0 2 1 * *',
+					}, {
+						name: 'syncOfflineGeoData',
+						data: { jobType: 'syncOfflineGeoData' },
+						opts: {
+							removeOnComplete: {
+								age: 3600 * 24 * 30,
+								count: 3,
+							},
+							removeOnFail: {
+								age: 3600 * 24 * 30,
+								count: 5,
+							},
+						},
+					});
+				} catch (err: any) {
+					this.logger.error(`Failed to schedule syncOfflineGeoData: ${err.message}`);
+				}
+			}).catch((err: any) => {
+				this.logger.error(`Unexpected error in syncOfflineGeoData scheduling chain: ${err.message}`);
 			});
 
-			this.geocodingQueue.upsertJobScheduler('performIncrementalUpdate', {
-				pattern: '*/30 * * * *',
-			}, {
-				name: 'performIncrementalUpdate',
-				data: { jobType: 'performIncrementalUpdate' },
-				opts: {
-					removeOnComplete: {
-						age: 3600 * 24,
-						count: 10,
-					},
-					removeOnFail: {
-						age: 3600 * 24,
-						count: 20,
-					},
-				},
+			this.geocodingQueue.removeJobScheduler('performIncrementalUpdate').catch(() => {}).then(async () => {
+				try {
+					await this.geocodingQueue!.upsertJobScheduler('performIncrementalUpdate', {
+						pattern: '*/30 * * * *',
+					}, {
+						name: 'performIncrementalUpdate',
+						data: { jobType: 'performIncrementalUpdate' },
+						opts: {
+							removeOnComplete: {
+								age: 3600 * 24,
+								count: 10,
+							},
+							removeOnFail: {
+								age: 3600 * 24,
+								count: 20,
+							},
+						},
+					});
+				} catch (err: any) {
+					this.logger.error(`Failed to schedule performIncrementalUpdate: ${err.message}`);
+				}
+			}).catch((err: any) => {
+				this.logger.error(`Unexpected error in performIncrementalUpdate scheduling chain: ${err.message}`);
 			});
 
-			this.geocodingQueue.upsertJobScheduler('precomputeHotSpots', {
-				pattern: '0 3 * * 1',
-			}, {
-				name: 'precomputeHotSpots',
-				data: { jobType: 'precomputeHotSpots', hotSpots: [] },
-				opts: {
-					removeOnComplete: {
-						age: 3600 * 24 * 7,
-						count: 5,
-					},
-					removeOnFail: {
-						age: 3600 * 24 * 7,
-						count: 10,
-					},
-				},
+			this.geocodingQueue.removeJobScheduler('precomputeHotSpots').catch(() => {}).then(async () => {
+				try {
+					await this.geocodingQueue!.upsertJobScheduler('precomputeHotSpots', {
+						pattern: '0 3 * * 1',
+					}, {
+						name: 'precomputeHotSpots',
+						data: { jobType: 'precomputeHotSpots', hotSpots: [] },
+						opts: {
+							removeOnComplete: {
+								age: 3600 * 24 * 7,
+								count: 5,
+							},
+							removeOnFail: {
+								age: 3600 * 24 * 7,
+								count: 10,
+							},
+						},
+					});
+				} catch (err: any) {
+					this.logger.error(`Failed to schedule precomputeHotSpots: ${err.message}`);
+				}
+			}).catch((err: any) => {
+				this.logger.error(`Unexpected error in precomputeHotSpots scheduling chain: ${err.message}`);
 			});
 		}
 	}

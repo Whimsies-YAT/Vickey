@@ -22,13 +22,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { get as webAuthnRequest } from '@github/webauthn-json/browser-ponyfill';
-
+import type * as Misskey from 'misskey-js';
 import { i18n } from '@/i18n.js';
-
 import MkButton from '@/components/MkButton.vue';
-
-import type { AuthenticationPublicKeyCredential } from '@github/webauthn-json/browser-ponyfill';
 
 const props = defineProps<{
 	credentialRequest: CredentialRequestOptions;
@@ -36,24 +32,26 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-	(ev: 'done', credential: AuthenticationPublicKeyCredential): void;
+	(ev: 'done', credential: Misskey.entities.AuthenticationResponseJSON): void;
 	(ev: 'useTotp'): void;
 }>();
 
 const queryingKey = ref(true);
 
-async function queryKey() {
+async function queryKey(): Promise<void> {
 	queryingKey.value = true;
-	await webAuthnRequest(props.credentialRequest)
-		.catch(() => {
-			return Promise.reject(null);
-		})
-		.then((credential) => {
-			emit('done', credential);
-		})
-		.finally(() => {
-			queryingKey.value = false;
-		});
+	try {
+		const credential = await navigator.credentials.get(props.credentialRequest);
+		if (!credential) {
+			return;
+		}
+		const credentialJSON = (credential as PublicKeyCredential).toJSON() as Misskey.entities.AuthenticationResponseJSON;
+		emit('done', credentialJSON);
+	} catch {
+		// User cancelled or error occurred
+	} finally {
+		queryingKey.value = false;
+	}
 }
 
 onMounted(() => {

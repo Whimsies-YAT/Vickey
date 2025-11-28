@@ -110,8 +110,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { defineAsyncComponent, onDeactivated, onUnmounted, ref } from 'vue';
-import { url as local } from '@@/js/config.js';
+import { url as local, wsOrigin, isMobileApp } from '@@/js/config.js';
 import { versatileLang } from '@@/js/intl-const.js';
+import { capacitorFetch } from '@/utility/misskey-api.js';
 import type { summaly } from '@misskey-dev/summaly';
 import { i18n } from '@/i18n.js';
 import * as os from '@/os.js';
@@ -221,7 +222,8 @@ function getBilibiliEmbedUrl(): string {
 	return '';
 }
 
-window.fetch(`/url?url=${encodeURIComponent(requestUrl.href)}&lang=${versatileLang}`)
+const fetchFn = isMobileApp ? capacitorFetch : window.fetch.bind(window);
+fetchFn(`${isMobileApp ? wsOrigin : ''}/url?url=${encodeURIComponent(requestUrl.href)}&lang=${versatileLang}`, { method: 'GET' })
 	.then(res => {
 		if (!res.ok) {
 			if (_DEV_) {

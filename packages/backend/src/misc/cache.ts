@@ -318,6 +318,11 @@ export class MemoryKVCache<T> {
 	}
 
 	@bindThis
+	public clear(): void {
+		this.cache.clear();
+	}
+
+	@bindThis
 	public dispose(): void {
 		clearInterval(this.gcIntervalHandle);
 	}

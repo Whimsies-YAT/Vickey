@@ -89,7 +89,7 @@ export function getConfig(): UserConfig {
 	const localesHash = toBase62(hash(JSON.stringify(locales)));
 
 	return {
-		base: '/vite/',
+		base: process.env.BUILD_TARGET === 'mobile' ? '/' : '/vite/',
 
 		// The console is shared with backend, so clearing the console will also clear the backend log.
 		clearScreen: false,

@@ -13,6 +13,8 @@ import type { FastifyRequest } from 'fastify';
 import { IdService } from '@/core/IdService.js';
 import { In } from 'typeorm';
 
+const MULTI_ACCOUNT_DETECTION_ENABLED = false;
+
 export interface AccountLink {
 	id: string;
 	primaryUserId: string;
@@ -62,9 +64,19 @@ export class MultiAccountDetectionService {
 
 		private idService: IdService,
 	) {
-		this.initializeService().catch(err => {
-			console.error('Failed to initialize MultiAccountDetectionService:', err);
-		});
+		if (this.isEnabled) {
+			this.initializeService().catch(err => {
+				console.error('Failed to initialize MultiAccountDetectionService:', err);
+			});
+		}
+	}
+
+	private get isEnabled(): boolean {
+		return MULTI_ACCOUNT_DETECTION_ENABLED;
+	}
+
+	private featureDisabledError(): Error {
+		return new Error('Multi-account detection is currently disabled.');
 	}
 
 	private readonly thresholds = {
@@ -94,6 +106,9 @@ export class MultiAccountDetectionService {
 
 	@bindThis
 	public async detectLinkedAccounts(userId1: string, userId2: string): Promise<DetectionResult> {
+		if (!this.isEnabled) {
+			return { isLinked: false, confidence: 0, methods: [], evidence: {} };
+		}
 		const methods: string[] = [];
 		const evidence: Record<string, any> = {};
 		let totalConfidence = 0;
@@ -477,6 +492,9 @@ export class MultiAccountDetectionService {
 		links: AccountLink[];
 		groupInfo: any;
 	}> {
+		if (!this.isEnabled) {
+			throw this.featureDisabledError();
+		}
 		if (userIds.length < 2) {
 			throw new Error('At least 2 user IDs are required for a group');
 		}
@@ -552,6 +570,9 @@ export class MultiAccountDetectionService {
 		detection: DetectionResult,
 		isManual: boolean = false,
 	): Promise<AccountLink> {
+		if (!this.isEnabled) {
+			throw this.featureDisabledError();
+		}
 		const linkId = crypto.randomUUID();
 		const now = new Date();
 		const expiresAt = isManual ? undefined : new Date(now.getTime() + this.penaltyConfig.maxDuration);
@@ -588,6 +609,9 @@ export class MultiAccountDetectionService {
 
 	@bindThis
 	public async getAccountLinks(userId: string): Promise<AccountLink[]> {
+		if (!this.isEnabled) {
+			return [];
+		}
 		const linkIds = await this.redisClient.smembers(`user-links:${userId}`);
 		const links: AccountLink[] = [];
 
@@ -609,6 +633,9 @@ export class MultiAccountDetectionService {
 		edges: { from: string; to: string; confidence: number; methods: string[]; isManual: boolean; metadata?: any }[];
 		groups: { name: string; userIds: string[]; metadata?: any }[];
 	}> {
+		if (!this.isEnabled) {
+			return { nodes: [], edges: [], groups: [] };
+		}
 		const visited = new Set<string>();
 		const allLinks = new Map<string, AccountLink>();
 		const nodes = new Map<string, any>();
@@ -697,6 +724,9 @@ export class MultiAccountDetectionService {
 
 	@bindThis
 	public async removeAccountLink(linkId: string): Promise<boolean> {
+		if (!this.isEnabled) {
+			throw this.featureDisabledError();
+		}
 		const linkData = await this.redisClient.get(`account-link:${linkId}`);
 		if (!linkData) return false;
 
@@ -711,6 +741,9 @@ export class MultiAccountDetectionService {
 
 	@bindThis
 	public async applyLinkPenalty(baseScore: number, userId: string): Promise<number> {
+		if (!this.isEnabled) {
+			return baseScore;
+		}
 		const links = await this.getAccountLinks(userId);
 		if (links.length === 0) return baseScore;
 
@@ -732,6 +765,9 @@ export class MultiAccountDetectionService {
 
 	@bindThis
 	public async calculateLinkRiskPressure(userId: string): Promise<number> {
+		if (!this.isEnabled) {
+			return 0;
+		}
 		const links = await this.getAccountLinks(userId);
 		if (links.length === 0) return 0;
 
@@ -900,6 +936,9 @@ export class MultiAccountDetectionService {
 
 	@bindThis
 	public async trackRequest(userId: string, request: FastifyRequest, endpoint: string): Promise<void> {
+		if (!this.isEnabled) {
+			return;
+		}
 		const ip = this.extractRealIp(request);
 		const deviceFingerprint = this.generateDeviceFingerprintFromRequest(request);
 		const timestamp = new Date();
@@ -1090,6 +1129,9 @@ export class MultiAccountDetectionService {
 		riskScore: number;
 		factors: string[];
 	}> {
+		if (!this.isEnabled) {
+			return { riskScore: 0, factors: [] };
+		}
 		const now = Date.now();
 		const oneHourAgo = now - 3600000;
 		const oneDayAgo = now - 86400000;
@@ -1229,6 +1271,9 @@ export class MultiAccountDetectionService {
 
 	@bindThis
 	public async getLinkedAccountIds(userId: string): Promise<string[]> {
+		if (!this.isEnabled) {
+			return [];
+		}
 		const links = await this.getAccountLinks(userId);
 		const linkedIds = new Set<string>([userId]);
 
@@ -1242,6 +1287,9 @@ export class MultiAccountDetectionService {
 
 	@bindThis
 	public async syncInitialScores(userId1: string, userId2: string): Promise<void> {
+		if (!this.isEnabled) {
+			return;
+		}
 		try {
 			const [user1, user2] = await Promise.all([
 				this.usersRepository.findOneBy({ id: userId1 }),
@@ -1286,6 +1334,9 @@ export class MultiAccountDetectionService {
 
 	@bindThis
 	public async syncAccountScores(userId: string, newScore: number): Promise<void> {
+		if (!this.isEnabled) {
+			return;
+		}
 		try {
 			const linkedIds = await this.getLinkedAccountIds(userId);
 
@@ -1314,6 +1365,9 @@ export class MultiAccountDetectionService {
 
 	@bindThis
 	public async syncMultiAccountScores(userIds: string[]): Promise<void> {
+		if (!this.isEnabled) {
+			return;
+		}
 		try {
 			const users = await this.usersRepository.findBy({ id: userIds as any });
 
@@ -1344,6 +1398,9 @@ export class MultiAccountDetectionService {
 
 	@bindThis
 	public async onUserRiskScoreUpdate(userId: string, newScore: number): Promise<void> {
+		if (!this.isEnabled) {
+			return;
+		}
 		const links = await this.getAccountLinks(userId);
 		if (links.length > 0) {
 			await this.syncAccountScores(userId, newScore);

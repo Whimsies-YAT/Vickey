@@ -4,7 +4,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import { IsNull, LessThan, Or } from 'typeorm';
+import { LessThan } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { MiMeta, NotesRepository } from '@/models/_.js';
 import type Logger from '@/logger.js';
@@ -51,7 +51,7 @@ export class CleanDeletedNotesProcessorService {
 		const deletedNotes = await this.notesRepository.find({
 			where: {
 				isDeleted: true,
-				deletedAt: Or(IsNull(), LessThan(expiryDate)),
+				deletedAt: LessThan(expiryDate),
 			},
 			select: ['id'],
 			take: 1000,

@@ -84,7 +84,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { defineAsyncComponent, computed } from 'vue';
-import { supported as webAuthnSupported, create as webAuthnCreate, parseCreationOptionsFromJSON } from '@github/webauthn-json/browser-ponyfill';
 import MkButton from '@/components/MkButton.vue';
 import MkInfo from '@/components/MkInfo.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
@@ -107,6 +106,11 @@ withDefaults(defineProps<{
 });
 
 const usePasswordLessLogin = computed(() => $i.usePasswordLessLogin ?? false);
+
+function webAuthnSupported(): boolean {
+	return window.PublicKeyCredential !== undefined &&
+		typeof window.PublicKeyCredential.parseCreationOptionsFromJSON === 'function';
+}
 
 async function registerTOTP(): Promise<void> {
 	const auth = await os.authenticateDialog();
@@ -195,13 +199,34 @@ async function addSecurityKey() {
 	const auth = await os.authenticateDialog();
 	if (auth.canceled) return;
 
-	const registrationOptions = parseCreationOptionsFromJSON({
-		// @ts-expect-error misskey-js側に型がない
-		publicKey: await os.apiWithDialog('i/2fa/register-key', {
-			password: auth.result.password,
-			token: auth.result.token,
-		}),
+	const publicKey = await os.apiWithDialog('i/2fa/register-key', {
+		password: auth.result.password,
+		token: auth.result.token,
 	});
+
+	const creationOptionsJson = {
+		...publicKey,
+		attestation: publicKey.attestation ?? undefined,
+		authenticatorSelection: publicKey.authenticatorSelection ?? undefined,
+		excludeCredentials: publicKey.excludeCredentials ?? undefined,
+		extensions: publicKey.extensions ?? undefined,
+		timeout: publicKey.timeout ?? undefined,
+		pubKeyCredParams: publicKey.pubKeyCredParams.map(p => ({ ...p, type: 'public-key' as const })),
+	};
+
+	const publicKeyOptions = window.PublicKeyCredential
+		.parseCreationOptionsFromJSON(creationOptionsJson as PublicKeyCredentialCreationOptionsJSON);
+
+	const credential = await os.promiseDialog(
+		navigator.credentials.create({ publicKey: publicKeyOptions }).then(cred => {
+			if (!cred) return null;
+			return (cred as PublicKeyCredential).toJSON();
+		}),
+		null,
+		() => {}, // ユーザーのキャンセルはrejectなのでエラーダイアログを出さない
+		i18n.ts._2fa.tapSecurityKey,
+	);
+	if (!credential) return;
 
 	const name = await os.inputText({
 		title: i18n.ts._2fa.registerSecurityKey,
@@ -212,23 +237,11 @@ async function addSecurityKey() {
 	});
 	if (name.canceled) return;
 
-	const credential = await os.promiseDialog(
-		webAuthnCreate(registrationOptions),
-		null,
-		() => {}, // ユーザーのキャンセルはrejectなのでエラーダイアログを出さない
-		i18n.ts._2fa.tapSecurityKey,
-	);
-	if (!credential) return;
-
-	const auth2 = await os.authenticateDialog();
-	if (auth2.canceled) return;
-
 	await os.apiWithDialog('i/2fa/key-done', {
 		password: auth.result.password,
 		token: auth.result.token,
 		name: name.result,
-		// @ts-expect-error misskey-js側に型がない
-		credential: credential.toJSON(),
+		credential,
 	});
 }
 

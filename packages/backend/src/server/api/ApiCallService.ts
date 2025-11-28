@@ -6,6 +6,7 @@
 import { randomUUID } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as stream from 'node:stream/promises';
+import * as Redis from 'ioredis';
 import { Inject, Injectable } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 import { DI } from '@/di-symbols.js';
@@ -15,6 +16,7 @@ import type { MiAccessToken } from '@/models/AccessToken.js';
 import type Logger from '@/logger.js';
 import type { MiMeta, UserIpsRepository } from '@/models/_.js';
 import { createTemp } from '@/misc/create-temp.js';
+import { MemoryKVCache } from '@/misc/cache.js';
 import { bindThis } from '@/decorators.js';
 import { RoleService } from '@/core/RoleService.js';
 import { MultiAccountDetectionService } from '@/core/MultiAccountDetectionService.js';
@@ -38,6 +40,7 @@ export class ApiCallService implements OnApplicationShutdown {
 	private logger: Logger;
 	private userIpHistories: Map<MiUser['id'], Set<string>>;
 	private userIpHistoriesClearIntervalId: NodeJS.Timeout;
+	private rateLimitFactorCache: MemoryKVCache<number>;
 
 	constructor(
 		@Inject(DI.meta)
@@ -54,6 +57,9 @@ export class ApiCallService implements OnApplicationShutdown {
 		private roleService: RoleService,
 		private apiLoggerService: ApiLoggerService,
 		private multiAccountDetectionService: MultiAccountDetectionService,
+
+		@Inject(DI.redisForSub)
+		private redisForSub: Redis.Redis,
 	) {
 		this.logger = this.apiLoggerService.logger;
 		this.userIpHistories = new Map<MiUser['id'], Set<string>>();
@@ -61,6 +67,29 @@ export class ApiCallService implements OnApplicationShutdown {
 		this.userIpHistoriesClearIntervalId = setInterval(() => {
 			this.userIpHistories.clear();
 		}, 1000 * 60 * 60);
+
+		this.rateLimitFactorCache = new MemoryKVCache<number>(1000 * 60);
+
+		this.redisForSub.subscribe(this.config.host ? `internal:${this.config.host}` : 'internal');
+		this.redisForSub.on('message', this.onMessage);
+	}
+
+	@bindThis
+	private onMessage(_channel: string, message: string): void {
+		const { channel, message: { type, body } } = JSON.parse(message);
+		if (channel !== 'internal') return;
+
+		switch (type) {
+			case 'userRoleAssigned':
+			case 'userRoleUnassigned': {
+				this.rateLimitFactorCache.delete(body.userId);
+				break;
+			}
+			case 'roleUpdated': {
+				this.rateLimitFactorCache.clear();
+				break;
+			}
+		}
 	}
 
 	#sendApiError(reply: FastifyReply, err: ApiError): void {
@@ -79,16 +108,16 @@ export class ApiCallService implements OnApplicationShutdown {
 			}
 		} else if (err.kind === 'client') {
 			reply.header('WWW-Authenticate', `Bearer realm="Vickey", error="invalid_request", error_description="${err.message}"`);
-			statusCode = statusCode ?? 400;
+			statusCode ??= 400;
 		} else if (err.kind === 'permission') {
 			// (ROLE_PERMISSION_DENIEDは関係ない)
 			if (err.code === 'PERMISSION_DENIED') {
 				reply.header('WWW-Authenticate', `Bearer realm="Vickey", error="insufficient_scope", error_description="${err.message}"`);
 			}
-			statusCode = statusCode ?? 403;
-		} else if (!statusCode) {
-			statusCode = 500;
+			statusCode ??= 403;
 		}
+
+		statusCode ??= 500;
 		this.send(reply, statusCode, err);
 	}
 
@@ -344,7 +373,9 @@ export class ApiCallService implements OnApplicationShutdown {
 			}
 
 			// TODO: 毎リクエスト計算するのもあれだしキャッシュしたい
-			const factor = user ? (await this.roleService.getUserPolicies(user.id)).rateLimitFactor : 1;
+			const factor = user ? await this.rateLimitFactorCache.fetch(user.id, async () => {
+				return (await this.roleService.getUserPolicies(user.id)).rateLimitFactor;
+			}) : 1;
 
 			if (factor > 0) {
 				// Rate limit
@@ -359,7 +390,7 @@ export class ApiCallService implements OnApplicationShutdown {
 						limitKey: limit.key as string,
 						reason: 'RATE_LIMIT_EXCEEDED',
 						actor: limitActor,
-					}
+					},
 				);
 				if (rateLimit != null) {
 					throw new ApiError({
@@ -488,6 +519,9 @@ export class ApiCallService implements OnApplicationShutdown {
 	@bindThis
 	public dispose(): void {
 		clearInterval(this.userIpHistoriesClearIntervalId);
+		this.rateLimitFactorCache.dispose();
+		this.redisForSub.off('message', this.onMessage);
+		this.redisForSub.unsubscribe(this.config.host);
 	}
 
 	@bindThis

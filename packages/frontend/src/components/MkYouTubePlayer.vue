@@ -26,6 +26,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { versatileLang } from '@@/js/intl-const.js';
+import { wsOrigin, isMobileApp } from '@@/js/config.js';
+import { capacitorFetch } from '@/utility/misskey-api.js';
 import MkWindow from '@/components/MkWindow.vue';
 import { transformPlayerUrl } from '@/utility/url-preview.js';
 import { prefer } from '@/preferences.js';
@@ -47,7 +49,8 @@ const player = ref({
 
 const ytFetch = (): void => {
 	fetching.value = true;
-	window.fetch(`/url?url=${encodeURIComponent(requestUrl.href)}&lang=${versatileLang}`).then(res => {
+	const fetchFn = isMobileApp ? capacitorFetch : window.fetch.bind(window);
+	fetchFn(`${isMobileApp ? wsOrigin : ''}/url?url=${encodeURIComponent(requestUrl.href)}&lang=${versatileLang}`, { method: 'GET' }).then(res => {
 		res.json().then(info => {
 			if (info.url == null) return;
 			title.value = info.title;
