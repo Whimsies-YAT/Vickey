@@ -24,7 +24,7 @@ import type {
 	PublicKeyCredentialCreationOptionsJSON,
 	PublicKeyCredentialRequestOptionsJSON,
 	RegistrationResponseJSON,
-} from '@simplewebauthn/types';
+} from '@simplewebauthn/server';
 
 @Injectable()
 export class WebAuthnService {
@@ -66,7 +66,7 @@ export class WebAuthnService {
 			userID: isoUint8Array.fromUTF8String(userId),
 			userName: userName,
 			userDisplayName: userDisplayName,
-			attestationType: 'indirect',
+			attestationType: 'none',
 			excludeCredentials: keys.map(key => (<{ id: string; transports?: AuthenticatorTransportFuture[]; }>{
 				id: key.id,
 				transports: key.transports ?? undefined,
@@ -156,7 +156,7 @@ export class WebAuthnService {
 				id: key.id,
 				transports: key.transports ?? undefined,
 			})),
-			userVerification: 'preferred',
+			userVerification: 'required',
 		});
 
 		await this.redisClient.setex(`webauthn:challenge:${userId}`, 90, authenticationOptions.challenge);
@@ -174,7 +174,7 @@ export class WebAuthnService {
 
 		const authenticationOptions = await generateAuthenticationOptions({
 			rpID: relyingParty.rpId,
-			userVerification: 'preferred',
+			userVerification: 'required',
 		});
 
 		await this.redisClient.setex(`webauthn:challenge:${context}`, 90, authenticationOptions.challenge);

@@ -41,10 +41,25 @@ const actualSize = size - (margin * 2);
 const cellSize = actualSize / n;
 const sideN = Math.floor(n / 2);
 
+// Try to load native module
+let nativeModule: { generateIdenticon: (seed: string) => Buffer } | null = null;
+
+(async () => {
+	try {
+		nativeModule = await import('../../native/index.js');
+	} catch {
+		// ignore
+	}
+})();
+
 /**
  * Generate buffer of an identicon by seed
  */
 export async function genIdenticon(seed: string): Promise<Buffer> {
+	if (nativeModule) {
+		return nativeModule.generateIdenticon(seed);
+	}
+
 	const rand = gen.create(seed);
 	const canvas = createCanvas(size, size);
 	const ctx = canvas.getContext('2d');

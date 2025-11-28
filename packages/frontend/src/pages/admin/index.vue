@@ -210,7 +210,9 @@ const menuDef = computed<SuperMenuDef[]>(() => [{
 		text: i18n.ts.moderationLogs,
 		to: '/admin/modlog',
 		active: currentPage.value?.route.name === 'modlog',
-	}] : []), {
+	}] : []),
+	/* Temporarily hide user risk score admin menu entry without deleting it.
+	{
 		icon: 'ti ti-shield-check',
 		text: i18n.ts.userRiskScore,
 		to: '/admin/user-risk-score',
@@ -225,7 +227,9 @@ const menuDef = computed<SuperMenuDef[]>(() => [{
 		text: i18n.ts.highRiskUsers,
 		to: '/admin/high-risk-users',
 		active: currentPage.value?.route.name === 'high-risk-users',
-	}, {
+	},
+	*/
+	{
 		icon: 'ti ti-trash',
 		text: i18n.ts.deletedNotes,
 		to: '/admin/deleted-notes',

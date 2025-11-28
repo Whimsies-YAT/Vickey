@@ -224,20 +224,22 @@ export class SignupService {
 				const riskScore = await this.userRiskScoreService.calculateUserRiskScore(account.id);
 
 				// Log risk event to database
-				await this.riskEventLogService.logRiskEvent({
-					userId: account.id,
-					eventType: 'user_registration',
-					riskScore: riskScore.totalScore,
-					riskLevel: riskScore.riskLevel,
-					details: {
-						newUser: true,
-						dimensions: riskScore.dimensions,
-					},
-					timestamp: new Date(),
-				});
+				if (riskScore) {
+					await this.riskEventLogService.logRiskEvent({
+						userId: account.id,
+						eventType: 'user_registration',
+						riskScore: riskScore.totalScore,
+						riskLevel: riskScore.riskLevel,
+						details: {
+							newUser: true,
+							dimensions: riskScore.dimensions,
+						},
+						timestamp: new Date(),
+					});
+				}
 
 				// If new user risk score is too low, may require additional review
-				if (riskScore.riskLevel === 'poor' || riskScore.riskLevel === 'fair') {
+				if (riskScore && (riskScore.riskLevel === 'poor' || riskScore.riskLevel === 'fair')) {
 					// Mark high-risk users as requiring approval (backend only, don't modify user-visible reason)
 					if (!account.approved && this.meta.approvalRequiredForSignup) {
 						await this.usersRepository.update(account.id, {

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vickey</string>
+    <string name="title_activity_main">Vickey</string>
+    <string name="package_name">org.whimsies.vickey</string>
+    <string name="custom_url_scheme">vickey</string>
+</resources>

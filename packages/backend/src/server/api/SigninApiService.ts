@@ -6,9 +6,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 import * as argon2 from '@node-rs/argon2';
-import { getPasswordHashType } from '@/misc/password-hash-type.js';
 import { IsNull } from 'typeorm';
 import * as Misskey from 'misskey-js';
+import { getPasswordHashType } from '@/misc/password-hash-type.js';
 import { DI } from '@/di-symbols.js';
 import type {
 	MiMeta,
@@ -27,9 +27,9 @@ import { UserAuthService } from '@/core/UserAuthService.js';
 import { CaptchaService } from '@/core/CaptchaService.js';
 import { FastifyReplyError } from '@/misc/fastify-reply-error.js';
 import { IP2LocationService } from '@/core/IP2LocationService.js';
+import type { AuthenticationResponseJSON } from '@simplewebauthn/server';
 import { RateLimiterService } from './RateLimiterService.js';
 import { SigninService } from './SigninService.js';
-import type { AuthenticationResponseJSON } from '@simplewebauthn/types';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
 @Injectable()
@@ -82,7 +82,7 @@ export class SigninApiService {
 				}
 				return isValid;
 			},
-			'unknown': () => Promise.resolve(false)
+			'unknown': () => Promise.resolve(false),
 		};
 
 		return verifyFunctions[hashType]();
@@ -139,7 +139,7 @@ export class SigninApiService {
 				endpoint: 'signin',
 				limitKey: 'signin',
 				actor: ipHash,
-			}
+			},
 		);
 		if (rateLimit != null) {
 			reply.code(429);
@@ -307,7 +307,7 @@ export class SigninApiService {
 			return {
 				finished: false,
 				next: 'passkey',
-				authRequest,
+				authRequest: authRequest as Misskey.entities.PublicKeyCredentialRequestOptionsJSON,
 			} satisfies Misskey.entities.SigninFlowResponse;
 		} else {
 			if (!same || !profile.twoFactorEnabled) {

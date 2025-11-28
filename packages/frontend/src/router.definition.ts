@@ -537,19 +537,27 @@ export const ROUTE_DEF = [{
 		path: '/system-webhook',
 		name: 'system-webhook',
 		component: page(() => import('@/pages/admin/system-webhook.vue')),
-	}, {
+	},
+	/* Temporarily hide user risk score admin route without deleting it.
+	{
 		path: '/user-risk-score',
 		name: 'user-risk-score',
 		component: page(() => import('@/pages/admin/user-risk-score.vue')),
-	}, {
+	},
+	*/
+	{
 		path: '/account-links',
 		name: 'account-links',
 		component: page(() => import('@/pages/admin/account-links.vue')),
-	}, {
+	},
+	/* Temporarily hide high risk users admin route without deleting it.
+	{
 		path: '/high-risk-users',
 		name: 'high-risk-users',
 		component: page(() => import('@/pages/admin/high-risk-users.vue')),
-	}, {
+	},
+	*/
+	{
 		path: '/approvals',
 		name: 'approvals',
 		component: page(() => import('@/pages/admin/approvals.vue')),

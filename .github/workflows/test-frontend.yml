@@ -64,7 +64,7 @@ jobs:
 
     services:
       postgres:
-        image: postgis/postgis:17-3.5-alpine
+        image: ghcr.io/whimsies-yat/postgresql:18
         ports:
           - 54312:5432
         env:

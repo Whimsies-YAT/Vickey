@@ -805,7 +805,6 @@ const headerActions = computed<PageHeaderItem[]>(() => {
 
 	actions.push({
 		icon: 'ti ti-dots',
-		text: '',
 		handler: showMenu,
 	});
 

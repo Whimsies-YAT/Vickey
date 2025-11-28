@@ -37,7 +37,7 @@ services:
 
   db:
     restart: always
-    image: ghcr.io/whimsies-yat/postgresql:17
+    image: ghcr.io/whimsies-yat/postgresql:18
     networks:
       - internal_network
     env_file:

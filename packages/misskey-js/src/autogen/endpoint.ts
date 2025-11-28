@@ -469,6 +469,8 @@ import type {
 	IChangePasswordRequest,
 	IClaimAchievementRequest,
 	IDeleteAccountRequest,
+	IDeleteAllSessionsRequest,
+	IDeleteSessionRequest,
 	IExportFollowingRequest,
 	IFavoritesRequest,
 	IFavoritesResponse,
@@ -509,6 +511,7 @@ import type {
 	IRegistryScopesWithDomainResponse,
 	IRegistrySetRequest,
 	IRevokeTokenRequest,
+	ISessionsResponse,
 	ISigninHistoryRequest,
 	ISigninHistoryResponse,
 	ITimelinePreferencesResponse,
@@ -1069,6 +1072,8 @@ export type Endpoints = {
 	'i/change-password': { req: IChangePasswordRequest; res: EmptyResponse };
 	'i/claim-achievement': { req: IClaimAchievementRequest; res: EmptyResponse };
 	'i/delete-account': { req: IDeleteAccountRequest; res: EmptyResponse };
+	'i/delete-all-sessions': { req: IDeleteAllSessionsRequest; res: EmptyResponse };
+	'i/delete-session': { req: IDeleteSessionRequest; res: EmptyResponse };
 	'i/export-antennas': { req: EmptyRequest; res: EmptyResponse };
 	'i/export-blocking': { req: EmptyRequest; res: EmptyResponse };
 	'i/export-clips': { req: EmptyRequest; res: EmptyResponse };
@@ -1102,6 +1107,7 @@ export type Endpoints = {
 	'i/registry/scopes-with-domain': { req: EmptyRequest; res: IRegistryScopesWithDomainResponse };
 	'i/registry/set': { req: IRegistrySetRequest; res: EmptyResponse };
 	'i/revoke-token': { req: IRevokeTokenRequest; res: EmptyResponse };
+	'i/sessions': { req: EmptyRequest; res: ISessionsResponse };
 	'i/sign-out': { req: EmptyRequest; res: EmptyResponse };
 	'i/signin-history': { req: ISigninHistoryRequest; res: ISigninHistoryResponse };
 	'i/timeline-preferences': { req: EmptyRequest; res: ITimelinePreferencesResponse };

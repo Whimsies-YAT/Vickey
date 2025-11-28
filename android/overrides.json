@@ -1,0 +1,23 @@
+{
+	"$schema": "./overrides.schema.json",
+	"description": "Define files to override in the built frontend",
+	"overrides": [
+		{
+			"source": "overrides/index.html",
+			"target": "app/src/main/assets/public/index.html",
+			"description": "Android-specific HTML (e.g., add native viewport meta)"
+		}
+	],
+	"examples": [
+		{
+			"comment": "Override manifest.json for PWA",
+			"source": "overrides/manifest.json",
+			"target": "app/src/main/assets/public/manifest.json"
+		},
+		{
+			"comment": "Override specific JS file",
+			"source": "overrides/custom-config.js",
+			"target": "app/src/main/assets/public/assets/custom-config.js"
+		}
+	]
+}

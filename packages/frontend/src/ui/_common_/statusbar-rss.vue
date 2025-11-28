@@ -30,6 +30,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { ref } from 'vue';
 import * as Misskey from 'misskey-js';
 import { useInterval } from '@@/js/use-interval.js';
+import { wsOrigin, isMobileApp } from '@@/js/config.js';
+import { capacitorFetch } from '@/utility/misskey-api.js';
 import MkMarqueeText from '@/components/MkMarqueeText.vue';
 import { shuffle } from '@/utility/shuffle.js';
 
@@ -48,7 +50,8 @@ const fetching = ref(true);
 const key = ref(0);
 
 const tick = () => {
-	window.fetch(`/api/fetch-rss?url=${encodeURIComponent(props.url)}`, {}).then(res => {
+	const fetchFn = isMobileApp ? capacitorFetch : window.fetch.bind(window);
+	fetchFn(`${isMobileApp ? wsOrigin : ''}/api/fetch-rss?url=${encodeURIComponent(props.url)}`, { method: 'GET' }).then(res => {
 		res.json().then((feed: Misskey.entities.FetchRssResponse) => {
 			if (props.shuffle) {
 				shuffle(feed.items);

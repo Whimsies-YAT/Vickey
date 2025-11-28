@@ -86,6 +86,11 @@ export const meta = {
 			code: 'NO_SUCH_USER',
 			id: '1470c2d7-8d73-4703-a2f2-5bc9e2b824d5',
 		},
+		unavailable: {
+			message: 'Risk score unavailable.',
+			code: 'UNAVAILABLE',
+			id: '2570c3d8-9e84-5814-b3f3-6cd9e3b935e6',
+		},
 	},
 } as const;
 
@@ -112,6 +117,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			const score = await this.userRiskScoreService.calculateUserRiskScore(ps.userId);
+
+			if (!score) {
+				throw new ApiError(meta.errors.unavailable);
+			}
 
 			const dimensions = score.dimensions;
 

@@ -8,7 +8,64 @@ import { ref } from 'vue';
 import { apiUrl } from '@@/js/config.js';
 import { $i } from '@/i.js';
 import { silentTokenRefresh } from '@/utility/auto-token-regenerate.js';
+
 export const pendingApiRequestsCount = ref(0);
+
+// Check if running in Capacitor (mobile app)
+const isCapacitor = !!(window as any).Capacitor?.isNativePlatform?.();
+console.log('[Mobile] Capacitor detection:', {
+	isCapacitor,
+	hasCapacitor: !!(window as any).Capacitor,
+	isNative: (window as any).Capacitor?.isNativePlatform?.(),
+});
+
+// Mobile-optimized fetch using native HTTP (bypasses CORS)
+export async function capacitorFetch(url: string, options: RequestInit = {}): Promise<Response> {
+	console.log('[Mobile] Using Capacitor HTTP for:', url);
+
+	// Use global Capacitor object (injected by Capacitor runtime)
+	const CapacitorHttp = (window as any).Capacitor?.PluginHeaders?.CapacitorHttp || (window as any).Capacitor?.Plugins?.CapacitorHttp;
+
+	if (!CapacitorHttp) {
+		console.error('[Mobile] CapacitorHttp not available, falling back to fetch');
+		return window.fetch(url, options);
+	}
+
+	try {
+		const response = await CapacitorHttp.request({
+			url,
+			method: options.method || 'GET',
+			headers: options.headers as Record<string, string> || {},
+			data: options.body ? JSON.parse(options.body as string) : undefined,
+		});
+
+		console.log('[Mobile] Capacitor HTTP response:', response.status, url);
+
+		const nullBodyStatuses = [204, 205, 304];
+		const hasBody = !nullBodyStatuses.includes(response.status);
+
+		if (hasBody && response.data !== null && response.data !== undefined) {
+			const bodyText = typeof response.data === 'string'
+				? response.data
+				: JSON.stringify(response.data);
+
+			return new Response(bodyText, {
+				status: response.status,
+				statusText: response.status.toString(),
+				headers: new Headers(response.headers),
+			});
+		} else {
+			return new Response(null, {
+				status: response.status,
+				statusText: response.status.toString(),
+				headers: new Headers(response.headers),
+			});
+		}
+	} catch (error) {
+		console.error('[Mobile] Capacitor HTTP failed:', error, url);
+		throw error;
+	}
+}
 
 // Implements Misskey.api.ApiClient.request
 export function misskeyApi<
@@ -68,8 +125,9 @@ export function misskeyApi<
 			return;
 		}
 
-		// Send request
-		window.fetch(`${apiUrl}/${endpoint}`, {
+		// Send request (use native HTTP on mobile to bypass CORS)
+		const fetchFn = isCapacitor ? capacitorFetch : window.fetch.bind(window);
+		fetchFn(`${apiUrl}/${endpoint}`, {
 			method: 'POST',
 			body: bodyJSON,
 			credentials: 'omit',
@@ -173,8 +231,9 @@ export function misskeyApiGet<
 	const query = new URLSearchParams(requestData as Record<string, string>);
 
 	const promise = new Promise<_ResT | Response>((resolve, reject) => {
-		// Send request
-		window.fetch(`${apiUrl}/${endpoint}?${query}`, {
+		// Send request (use native HTTP on mobile to bypass CORS)
+		const fetchFn = isCapacitor ? capacitorFetch : window.fetch.bind(window);
+		fetchFn(`${apiUrl}/${endpoint}?${query}`, {
 			method: 'GET',
 			credentials: 'omit',
 			cache: 'default',

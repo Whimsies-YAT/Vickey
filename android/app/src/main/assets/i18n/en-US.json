@@ -1,0 +1,10 @@
+{
+  "mobile.serverSetup.title": "Welcome to Vickey",
+  "mobile.serverSetup.description": "Enter your Vickey/Misskey server URL to get started",
+  "mobile.serverSetup.placeholder": "https://your-server.example",
+  "mobile.serverSetup.connect": "Connect",
+  "mobile.serverSetup.invalidUrl": "Please enter a valid URL",
+  "mobile.rootWarning.title": "Root Detected",
+  "mobile.rootWarning.message": "Your device has been rooted.\n\nUsing this app on a rooted device may pose security risks, including but not limited to:\n• Data leakage\n• Account security compromise\n• Application malfunction\n\nBy continuing, you acknowledge and accept these risks at your own responsibility.",
+  "mobile.rootWarning.proceed": "I Understand, Continue"
+}
