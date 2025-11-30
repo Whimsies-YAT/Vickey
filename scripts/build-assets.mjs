@@ -71,7 +71,7 @@ async function buildBackendStyle() {
 }
 
 async function build() {
-	await removeUnusedLocales();
+	// await removeUnusedLocales();
   await Promise.all([
     copyFrontendFonts(),
     copyBackendViews(),

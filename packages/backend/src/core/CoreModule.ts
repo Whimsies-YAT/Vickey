@@ -4,7 +4,6 @@
  */
 
 import { Module } from '@nestjs/common';
-import type { Provider } from '@nestjs/common';
 
 import { FanoutTimelineEndpointService } from '@/core/FanoutTimelineEndpointService.js';
 import { AbuseReportService } from '@/core/AbuseReportService.js';
@@ -19,6 +18,9 @@ import { WebhookTestService } from '@/core/WebhookTestService.js';
 import { FlashService } from '@/core/FlashService.js';
 import { ChannelMutingService } from '@/core/ChannelMutingService.js';
 
+import { CheckSecurityUpdateService } from '@/core/CheckSecurityUpdateService.js';
+import { EventBus } from './events/EventBus.js';
+import { EventMetrics } from './events/EventMetrics.js';
 import { AccountMoveService } from './AccountMoveService.js';
 import { AccountUpdateService } from './AccountUpdateService.js';
 import { AiService } from './AiService.js';
@@ -27,7 +29,6 @@ import { AntennaService } from './AntennaService.js';
 import { AchievementService } from './AchievementService.js';
 import { AvatarDecorationService } from './AvatarDecorationService.js';
 import { CaptchaService } from './CaptchaService.js';
-import { CheckSecurityUpdateService } from "@/core/CheckSecurityUpdateService.js";
 import { CustomEmojiService } from './CustomEmojiService.js';
 import { DeleteAccountService } from './DeleteAccountService.js';
 import { DownloadService } from './DownloadService.js';
@@ -196,13 +197,12 @@ import { VoiceCallService } from './VoiceCallService.js';
 import { WerewolfVoiceService } from './WerewolfVoiceService.js';
 
 // EventBus infrastructure (NEW - for gradual migration)
-import { EventBus } from '@/core/events';
-import { EventMetrics } from '@/core/events';
 import { NoteEventHandlers } from './handlers/NoteEventHandlers.js';
 
 // Timeline Warming Feature (DDD Architecture)
 import { TimelineWarmingService } from './timeline/application/TimelineWarmingService.js';
 import { TimelineWarmingEventHandler } from './timeline/handlers/TimelineWarmingEventHandler.js';
+import type { Provider } from '@nestjs/common';
 
 const serviceClasses = [
 	LoggerService, LogObserverService, AbuseReportService, AbuseReportNotificationService, AccountMoveService,
@@ -254,7 +254,7 @@ const serviceClasses = [
 
 const stringProviders: Provider[] = serviceClasses.map(ServiceClass => ({
 	provide: ServiceClass.name,
-	useExisting: ServiceClass
+	useExisting: ServiceClass,
 }));
 
 @Module({
@@ -263,12 +263,12 @@ const stringProviders: Provider[] = serviceClasses.map(ServiceClass => ({
 	],
 	providers: [
 		...serviceClasses,
-		...stringProviders
+		...stringProviders,
 	],
 	exports: [
 		QueueModule,
 		...serviceClasses,
-		...stringProviders
+		...stringProviders,
 	],
 })
 export class CoreModule { }

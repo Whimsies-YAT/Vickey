@@ -116,14 +116,20 @@ function buildDts(): Promise<unknown> {
 	);
 }
 
+const _vickeyLocalesDir = resolve(_rootPackageDir, 'vickey-locales');
+
+// ... (existing code)
+
 async function watchSrc(): Promise<void> {
-	const localesWatcher = chokidarWatch(_localesDir, {
+	const localesWatcher = chokidarWatch([_localesDir, _vickeyLocalesDir], {
 		ignoreInitial: true,
 	});
 	localesWatcher.on('all', async (event, path) => {
 		if (!path.endsWith('.yml')) return;
 		console.log(`[${_package.name}] locales changed: ${event} ${path}`);
-		copyLocales();
+		if (path.startsWith(_localesDir)) {
+			copyLocales();
+		}
 		await writeFrontendLocalesJson();
 		await generateLocaleInterface(_localesDir);
 	});

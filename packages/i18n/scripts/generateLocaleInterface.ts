@@ -61,8 +61,42 @@ function createMembers(record: LocaleRecord): ts.TypeElement[] {
 	});
 }
 
+function tryReadFile(path: string): string {
+	try {
+		return fs.readFileSync(path, 'utf-8');
+	} catch (e) {
+		return '';
+	}
+}
+
+function merge(target: any, source: any): any {
+	if (typeof target !== 'object' || target === null) {
+		return source;
+	}
+	if (typeof source !== 'object' || source === null) {
+		return target;
+	}
+
+	for (const key in source) {
+		if (Object.prototype.hasOwnProperty.call(source, key)) {
+			if (typeof source[key] === 'object' && source[key] !== null) {
+				if (!target[key]) {
+					target[key] = source[key];
+				} else {
+					merge(target[key], source[key]);
+				}
+			} else {
+				target[key] = source[key];
+			}
+		}
+	}
+	return target;
+}
+
 export async function generateLocaleInterface(localesDir: string): Promise<void> {
-	const locale = yaml.load(fs.readFileSync(`${localesDir}/ja-JP.yml`, 'utf-8').toString()) as LocaleRecord;
+	const misskeyLocales = yaml.load(tryReadFile(`${localesDir}/ja-JP.yml`)) as LocaleRecord;
+	const vkLocales = yaml.load(tryReadFile(`${__dirname}/../../../vickey-locales/en-US.yml`)) as LocaleRecord;
+	const locale = merge(vkLocales, misskeyLocales);
 	const members = createMembers(locale);
 
 	const elements: ts.Statement[] = [

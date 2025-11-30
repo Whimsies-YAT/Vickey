@@ -8,6 +8,59 @@ import type { ILocale, ParameterizedString } from 'i18n';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TODO = any;
 
+function createMissingKeyProxy(key: string): any {
+	return new Proxy(() => key, {
+		get(target, p) {
+			if (p === Symbol.toPrimitive) {
+				return (hint: string) => key;
+			}
+			if (p === 'toString') {
+				return () => key;
+			}
+			if (p === 'toJSON') {
+				return () => key;
+			}
+			if (p === Symbol.toStringTag) {
+				return 'MissingLocaleKey';
+			}
+			if (p === '__v_isRef' || p === '__v_isReadonly' || p === '__v_raw' || p === '__v_skip') {
+				return undefined;
+			}
+			if (typeof p === 'symbol') {
+				return undefined;
+			}
+
+			const nestedKey = String(p);
+			console.warn(`Accessing missing nested locale key: ${key}.${nestedKey}`);
+			return createMissingKeyProxy(`${key}.${nestedKey}`);
+		}
+	});
+}
+
+function createMissingTsxProxy(key: string): any {
+	const fn = () => key;
+	return new Proxy(fn, {
+		get(target, p) {
+			if (p === Symbol.toPrimitive) {
+				return (hint: string) => key;
+			}
+			if (p === 'toString') {
+				return () => key;
+			}
+			if (p === '__v_isRef' || p === '__v_isReadonly' || p === '__v_raw' || p === '__v_skip') {
+				return undefined;
+			}
+			if (typeof p === 'symbol') {
+				return undefined;
+			}
+
+			const nestedKey = String(p);
+			console.warn(`Accessing missing nested tsx locale key: ${key}.${nestedKey}`);
+			return createMissingTsxProxy(`${key}.${nestedKey}`);
+		}
+	});
+}
+
 type FlattenKeys<T extends ILocale, TPrediction> = keyof {
 	[K in keyof T as T[K] extends ILocale
 		? FlattenKeys<T[K], TPrediction> extends infer C extends string
@@ -52,19 +105,23 @@ export class I18n<T extends ILocale> {
 			console.warn('Locale is null, using fallback proxy');
 			return new Proxy({} as T, {
 				get(target, p: string | symbol): unknown {
+					if (p === Symbol.toPrimitive) {
+						return () => 'MissingLocale';
+					}
+					if (p === 'toString') {
+						return () => 'MissingLocale';
+					}
+					if (p === '__v_isRef' || p === '__v_isReadonly' || p === '__v_raw' || p === '__v_skip') {
+						return undefined;
+					}
+					if (typeof p === 'symbol') {
+						return undefined;
+					}
+
 					const key = String(p);
 					console.warn(`Accessing missing locale key: ${key}`);
 
-					if (typeof p === 'string') {
-						return new Proxy({} as any, {
-							get: (nestedTarget, nestedP) => {
-								const nestedKey = String(nestedP);
-								console.warn(`Accessing missing nested locale key: ${key}.${nestedKey}`);
-								return nestedKey;
-							}
-						});
-					}
-					return key;
+					return createMissingKeyProxy(key);
 				}
 			});
 		}
@@ -110,16 +167,23 @@ export class I18n<T extends ILocale> {
 			console.warn('Locale is null, using fallback tsx proxy');
 			return new Proxy({} as Tsx<T>, {
 				get(target, p: string | symbol): unknown {
+					if (p === Symbol.toPrimitive) {
+						return () => 'MissingLocale';
+					}
+					if (p === 'toString') {
+						return () => 'MissingLocale';
+					}
+					if (p === '__v_isRef' || p === '__v_isReadonly' || p === '__v_raw' || p === '__v_skip') {
+						return undefined;
+					}
+					if (typeof p === 'symbol') {
+						return undefined;
+					}
+
 					const key = String(p);
 					console.warn(`Accessing missing tsx locale key: ${key}`);
 
-					return new Proxy({} as any, {
-						get: (nestedTarget, nestedP) => {
-							const nestedKey = String(nestedP);
-							console.warn(`Accessing missing nested tsx locale key: ${key}.${nestedKey}`);
-							return () => `${key}.${nestedKey}`;
-						}
-					});
+					return createMissingTsxProxy(key);
 				}
 			});
 		}

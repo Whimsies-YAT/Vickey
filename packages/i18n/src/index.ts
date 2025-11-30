@@ -40,7 +40,9 @@ const languages = [
 	'uk-UA',
 	'vi-VN',
 	'zh-CN',
+	'zh-HK',
 	'zh-TW',
+	'zh-YUE',
 ] as const;
 
 type Language = typeof languages[number];
@@ -58,18 +60,16 @@ type Locales = Record<Language, ILocale>;
 /**
  * オブジェクトを再帰的にマージする
  */
-function merge<T extends ILocale>(...args: (T | ILocale | undefined)[]): T {
-	return args.reduce<ILocale>((a, c) => ({
-		...a,
-		...c,
-		...Object.entries(a)
-			.filter(([k]) => c && typeof c[k] === 'object')
-			.reduce<Record<string, ILocale[string]>>((acc, [k, v]) => {
-				acc[k] = merge(v as ILocale, (c as ILocale)[k] as ILocale);
-				return acc;
-			}, {}),
-	}), {} as ILocale) as T;
-}
+export const merge = <T extends ILocale>(...args: (T | ILocale | undefined)[]): T => args.reduce<ILocale>((a, c) => ({
+	...a,
+	...c,
+	...Object.entries(a)
+		.filter(([k]) => c && typeof c[k] === 'object')
+		.reduce<Record<string, ILocale[string]>>((acc, [k, v]) => {
+			acc[k] = merge(v as ILocale, (c as ILocale)[k] as ILocale);
+			return acc;
+		}, {}),
+}), {} as ILocale) as T;
 
 /**
  * 何故か文字列にバックスペース文字が混入することがあり、YAMLが壊れるので取り除く
@@ -77,6 +77,14 @@ function merge<T extends ILocale>(...args: (T | ILocale | undefined)[]): T {
 function clean (text: string) {
 	return text.replace(new RegExp(String.fromCodePoint(0x08), 'g'), '');
 }
+
+export const tryReadFile = (path: URL, encoding: BufferEncoding) => {
+	try {
+		return fs.readFileSync(path, encoding);
+	} catch {
+		return '';
+	}
+};
 
 /**
  * 空文字列が入ることがあり、フォールバックが動作しなくなるのでプロパティごと消す
@@ -97,10 +105,23 @@ function build(): Record<Language, Locale> {
 	// https://github.com/vitest-dev/vitest/issues/3988#issuecomment-1686599577
 	// https://github.com/misskey-dev/misskey/pull/14057#issuecomment-2192833785
 	const metaUrl = import.meta.url;
-	const locales = languages.reduce<Locales>((a, lang) => {
-		a[lang] = (yaml.load(clean(fs.readFileSync(new URL(`./locales/${lang}.yml`, metaUrl), 'utf-8'))) ?? {}) as ILocale;
+	const misskeyLocales = languages.reduce<Locales>((a, lang) => {
+		a[lang] = (yaml.load(clean(tryReadFile(new URL(`./locales/${lang}.yml`, metaUrl), 'utf-8'))) ?? {}) as ILocale;
 		return a;
 	}, {} as Locales);
+
+	const vkLocales = languages.reduce<Locales>((a, c) => {
+		const content = clean(tryReadFile(new URL(`../../../vickey-locales/${c}.yml`, metaUrl), 'utf-8'));
+		if (content) {
+			a[c] = (yaml.load(content) ?? {}) as ILocale;
+		} else {
+			const enContent = clean(tryReadFile(new URL('../../../vickey-locales/en-US.yml', metaUrl), 'utf-8'));
+			a[c] = (enContent ? (yaml.load(enContent) ?? {}) : {}) as ILocale;
+		}
+		return a;
+	}, {} as Locales);
+
+	const locales = merge(vkLocales, misskeyLocales) as Locales;
 
 	removeEmpty(locales);
 

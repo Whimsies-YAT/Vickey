@@ -12,6 +12,13 @@ packages:
   - packages/misskey-reversi
   - packages/misskey-bubble-game
   - packages/security-bridge
+
+ignorePatchFailures: false
+
+minimumReleaseAge: 10080
+
+minimumReleaseAgeExclude: uuidv7
+
 onlyBuiltDependencies:
   - '@nestjs/core'
   - '@parcel/watcher'
@@ -35,7 +42,3 @@ onlyBuiltDependencies:
   - utf-8-validate
   - v-code-diff
   - vue-demi
-ignorePatchFailures: false
-minimumReleaseAge: 10080 # delay 7days to mitigate supply-chain attack
-minimumReleaseAgeExclude:
-  - '@syuilo/aiscript'
