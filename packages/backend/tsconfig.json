@@ -38,7 +38,8 @@
 			"./node_modules"
 		],
 		"lib": [
-			"esnext"
+			"esnext",
+			"DOM"
 		]
 	},
 	"compileOnSave": false,
