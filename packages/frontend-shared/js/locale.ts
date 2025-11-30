@@ -4,7 +4,7 @@
  */
 
 import { lang, version } from '@@/js/config.js';
-import type { Locale } from '../../../locales/index.js';
+import type { Locale } from 'i18n';
 
 function safeGetStorageItem(key: string): any | null {
 	try {

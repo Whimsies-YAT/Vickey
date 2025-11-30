@@ -8,8 +8,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, jest } from '@jest/g
 import { Test, TestingModule } from '@nestjs/testing';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { HttpHeader } from 'fastify/types/utils.js';
-import { MockFunctionMetadata, ModuleMocker } from 'jest-mock';
-import { AuthenticationResponseJSON } from '@/types/WebAuthnTypes.js';
+import { MockMetadata, ModuleMocker } from 'jest-mock';
+import type { AuthenticationResponseJSON } from '@simplewebauthn/server';
 import { MiUser } from '@/models/User.js';
 import { MiUserProfile, UserProfilesRepository, UsersRepository } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
@@ -95,7 +95,7 @@ describe('SigninWithPasskeyApiService', () => {
 			],
 		}).useMocker((token) => {
 			if (typeof token === 'function') {
-				const mockMetadata = moduleMocker.getMetadata(token) as MockFunctionMetadata<any, any>;
+				const mockMetadata = moduleMocker.getMetadata(token) as MockMetadata<any, any>;
 				const Mock = moduleMocker.generateFromMetadata(mockMetadata);
 				return new Mock();
 			}

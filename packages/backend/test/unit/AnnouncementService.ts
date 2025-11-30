@@ -16,7 +16,6 @@ import type {
 	UsersRepository,
 } from '@/models/_.js';
 import type { TestingModule } from '@nestjs/testing';
-import type { MockFunctionMetadata } from 'jest-mock';
 import { GlobalModule } from '@/GlobalModule.js';
 import { AnnouncementService } from '@/core/AnnouncementService.js';
 import { AnnouncementEntityService } from '@/core/entities/AnnouncementEntityService.js';
@@ -27,6 +26,7 @@ import { IdService } from '@/core/IdService.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { secureRndstr } from '@/misc/secure-rndstr.js';
+import type { MockMetadata } from 'jest-mock';
 
 const moduleMocker = new ModuleMocker(global);
 
@@ -84,7 +84,7 @@ describe('AnnouncementService', () => {
 						log: jest.fn(),
 					};
 				} else if (typeof token === 'function') {
-					const mockMetadata = moduleMocker.getMetadata(token) as MockFunctionMetadata<any, any>;
+					const mockMetadata = moduleMocker.getMetadata(token) as MockMetadata<any, any>;
 					const Mock = moduleMocker.generateFromMetadata(mockMetadata);
 					return new Mock();
 				}

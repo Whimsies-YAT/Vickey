@@ -24,7 +24,6 @@ import { AccountUpdateService } from './AccountUpdateService.js';
 import { AiService } from './AiService.js';
 import { AnnouncementService } from './AnnouncementService.js';
 import { AntennaService } from './AntennaService.js';
-import { AppLockService } from './AppLockService.js';
 import { AchievementService } from './AchievementService.js';
 import { AvatarDecorationService } from './AvatarDecorationService.js';
 import { CaptchaService } from './CaptchaService.js';
@@ -197,8 +196,8 @@ import { VoiceCallService } from './VoiceCallService.js';
 import { WerewolfVoiceService } from './WerewolfVoiceService.js';
 
 // EventBus infrastructure (NEW - for gradual migration)
-import { EventBus } from './events/EventBus.js';
-import { EventMetrics } from './events/EventMetrics.js';
+import { EventBus } from '@/core/events';
+import { EventMetrics } from '@/core/events';
 import { NoteEventHandlers } from './handlers/NoteEventHandlers.js';
 
 // Timeline Warming Feature (DDD Architecture)
@@ -207,7 +206,7 @@ import { TimelineWarmingEventHandler } from './timeline/handlers/TimelineWarming
 
 const serviceClasses = [
 	LoggerService, LogObserverService, AbuseReportService, AbuseReportNotificationService, AccountMoveService,
-	AccountUpdateService, AiService, AnnouncementService, AntennaService, AppLockService,
+	AccountUpdateService, AiService, AnnouncementService, AntennaService,
 	AchievementService, AvatarDecorationService, CaptchaService, CheckSecurityUpdateService,
 	CustomEmojiService, DeleteAccountService, DownloadService, DriveService, EmailService,
 	EmailTemplatesService, FederatedInstanceService, FetchInstanceMetadataService,
