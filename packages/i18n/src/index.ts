@@ -8,6 +8,7 @@
  */
 
 import * as fs from 'node:fs';
+/// <reference types="node" />
 import * as yaml from 'js-yaml';
 import type { Locale } from './autogen/locale.js';
 import type { ILocale, ParameterizedString } from './types.js';

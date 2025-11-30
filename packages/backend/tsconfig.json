@@ -39,7 +39,8 @@
 		],
 		"lib": [
 			"esnext",
-			"DOM"
+			"DOM",
+			"DOM.Iterable"
 		]
 	},
 	"compileOnSave": false,
