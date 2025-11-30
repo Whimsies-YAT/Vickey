@@ -11,6 +11,7 @@ import { DI } from '@/di-symbols.js';
 import { bindThis } from '@/decorators.js';
 import { CloudflareCallsService } from '@/core/CloudflareCallsService.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
+import type { RTCSessionDescriptionInit } from '@/core/webrtc-types.js';
 
 interface ParticipantVoiceState {
 	sessionId: string;

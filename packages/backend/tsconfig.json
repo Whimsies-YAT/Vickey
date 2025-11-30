@@ -38,9 +38,7 @@
 			"./node_modules"
 		],
 		"lib": [
-			"esnext",
-			"DOM",
-			"DOM.Iterable"
+			"esnext"
 		]
 	},
 	"compileOnSave": false,
