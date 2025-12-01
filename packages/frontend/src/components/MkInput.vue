@@ -48,6 +48,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 			:list="id"
 			:min="min"
 			:max="max"
+			:style="{
+				paddingLeft: prefixWidth ? prefixWidth + 'px' : undefined,
+				paddingRight: suffixWidth ? suffixWidth + 'px' : undefined,
+			}"
 			@focus="focused = true"
 			@blur="focused = false"
 			@keydown="onKeydown($event)"
@@ -133,6 +137,9 @@ const height =
 	props.large ? 39 :
 	36;
 let autocompleteWorker: Autocomplete | null = null;
+const prefixWidth = ref<number | null>(null);
+const suffixWidth = ref<number | null>(null);
+let resizeObserver: ResizeObserver | null = null;
 
 const isDateTimeType = computed(() => {
 	return props.type === 'date' || props.type === 'time' || props.type === 'datetime-local';
@@ -213,11 +220,27 @@ onMounted(() => {
 	if (props.mfmAutocomplete && inputEl.value) {
 		autocompleteWorker = new Autocomplete(inputEl.value, v, props.mfmAutocomplete === true ? undefined : props.mfmAutocomplete);
 	}
+
+	resizeObserver = new ResizeObserver((entries) => {
+		for (const entry of entries) {
+			if (entry.target === prefixEl.value) {
+				prefixWidth.value = (entry.target as HTMLElement).offsetWidth + 12; // 12px is the padding of inputCore
+			} else if (entry.target === suffixEl.value) {
+				suffixWidth.value = (entry.target as HTMLElement).offsetWidth + 12; // 12px is the padding of inputCore
+			}
+		}
+	});
+
+	if (prefixEl.value) resizeObserver.observe(prefixEl.value);
+	if (suffixEl.value) resizeObserver.observe(suffixEl.value);
 });
 
 onUnmounted(() => {
 	if (autocompleteWorker) {
 		autocompleteWorker.detach();
+	}
+	if (resizeObserver) {
+		resizeObserver.disconnect();
 	}
 });
 
@@ -295,10 +318,6 @@ defineExpose({
 	&:hover {
 		border-color: var(--MI_THEME-inputBorderHover) !important;
 	}
-}
-
-.input:has(.suffix:not(:empty)) .inputCore {
-	padding-right: 40px;
 }
 
 .inputCore[type="range"] {

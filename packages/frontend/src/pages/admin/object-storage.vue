@@ -35,9 +35,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</SearchMarker>
 
 					<SearchMarker>
-						<MkInput v-model="objectStorageEndpoint" :placeholder="'example.com'" :class="$style.endpointInput" :style="{ '--endpoint-input-padding': endpointInputPadding + 'px' }">
+						<MkInput v-model="objectStorageEndpoint" :placeholder="'example.com'">
 							<template #label><SearchLabel>{{ i18n.ts.objectStorageEndpoint }}</SearchLabel></template>
-							<template #prefix><span ref="endpointPrefixEl">https://</span></template>
+							<template #prefix>https://</template>
 							<template #caption><SearchText>{{ i18n.ts.objectStorageEndpointDesc }}</SearchText></template>
 						</MkInput>
 					</SearchMarker>
@@ -51,15 +51,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 					<FormSplit :minWidth="280">
 						<SearchMarker>
-							<MkInput v-model="objectStorageAccessKey" :class="$style.accessKeyInput" :style="{ '--access-key-input-padding': accessKeyInputPadding + 'px' }">
-								<template #prefix><span ref="accessKeyPrefixEl"><i class="ti ti-key"></i></span></template>
+							<MkInput v-model="objectStorageAccessKey">
+								<template #prefix><i class="ti ti-key"></i></template>
 								<template #label><SearchLabel>Access key</SearchLabel></template>
 							</MkInput>
 						</SearchMarker>
 
 						<SearchMarker>
-							<MkInput v-model="objectStorageSecretKey" type="password" :class="$style.secretKeyInput" :style="{ '--secret-key-input-padding': secretKeyInputPadding + 'px' }">
-								<template #prefix><span ref="secretKeyPrefixEl"><i class="ti ti-key"></i></span></template>
+							<MkInput v-model="objectStorageSecretKey" type="password">
+								<template #prefix><i class="ti ti-key"></i></template>
 								<template #label><SearchLabel>Secret key</SearchLabel></template>
 							</MkInput>
 						</SearchMarker>
@@ -106,7 +106,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted, onUnmounted, useTemplateRef } from 'vue';
+import { ref, computed } from 'vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkInput from '@/components/MkInput.vue';
 import FormSplit from '@/components/form/split.vue';
@@ -132,38 +132,6 @@ const objectStorageUseSSL = ref(meta.objectStorageUseSSL);
 const objectStorageUseProxy = ref(meta.objectStorageUseProxy);
 const objectStorageSetPublicRead = ref(meta.objectStorageSetPublicRead);
 const objectStorageS3ForcePathStyle = ref(meta.objectStorageS3ForcePathStyle);
-
-const endpointPrefixEl = useTemplateRef('endpointPrefixEl');
-const accessKeyPrefixEl = useTemplateRef('accessKeyPrefixEl');
-const secretKeyPrefixEl = useTemplateRef('secretKeyPrefixEl');
-const endpointInputPadding = ref(40);
-const accessKeyInputPadding = ref(40);
-const secretKeyInputPadding = ref(40);
-let resizeObserver: ResizeObserver | null = null;
-
-onMounted(() => {
-	resizeObserver = new ResizeObserver((entries) => {
-		for (const entry of entries) {
-			if (entry.target === endpointPrefixEl.value) {
-				endpointInputPadding.value = (entry.target as HTMLElement).offsetWidth + 18;
-			} else if (entry.target === accessKeyPrefixEl.value) {
-				accessKeyInputPadding.value = (entry.target as HTMLElement).offsetWidth + 18;
-			} else if (entry.target === secretKeyPrefixEl.value) {
-				secretKeyInputPadding.value = (entry.target as HTMLElement).offsetWidth + 18;
-			}
-		}
-	});
-
-	if (endpointPrefixEl.value) resizeObserver.observe(endpointPrefixEl.value);
-	if (accessKeyPrefixEl.value) resizeObserver.observe(accessKeyPrefixEl.value);
-	if (secretKeyPrefixEl.value) resizeObserver.observe(secretKeyPrefixEl.value);
-});
-
-onUnmounted(() => {
-	if (resizeObserver) {
-		resizeObserver.disconnect();
-	}
-});
 
 function save() {
 	os.apiWithDialog('admin/update-meta', {
@@ -197,23 +165,5 @@ definePage(() => ({
 .footer {
 	-webkit-backdrop-filter: var(--MI-blur, blur(15px));
 	backdrop-filter: var(--MI-blur, blur(15px));
-}
-
-.endpointInput {
-	input {
-		padding-left: var(--endpoint-input-padding, 90px) !important;
-	}
-}
-
-.accessKeyInput {
-	input {
-		padding-left: var(--access-key-input-padding, 40px) !important;
-	}
-}
-
-.secretKeyInput {
-	input {
-		padding-left: var(--secret-key-input-padding, 40px) !important;
-	}
 }
 </style>
