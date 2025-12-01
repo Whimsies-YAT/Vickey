@@ -76,13 +76,13 @@ type ModelValueType<T extends SupportedTypes> =
 import { onMounted, onUnmounted, nextTick, ref, useTemplateRef, watch, computed, toRefs } from 'vue';
 import { debounce } from 'throttle-debounce';
 import { useInterval } from '@@/js/use-interval.js';
+import MkDateTimePicker from './MkDateTimePicker.vue';
 import type { InputHTMLAttributes } from 'vue';
 import type { SuggestionType } from '@/utility/autocomplete.js';
 import MkButton from '@/components/MkButton.vue';
 import { i18n } from '@/i18n.js';
 import { Autocomplete } from '@/utility/autocomplete.js';
 import { genId } from '@/utility/id.js';
-import MkDateTimePicker from "./MkDateTimePicker.vue";
 
 const props = defineProps<{
 	modelValue: ModelValueType<T> | null;
@@ -139,7 +139,7 @@ const isDateTimeType = computed(() => {
 });
 
 const onDateTimeUpdate = (value: string | Date | null) => {
-	let formattedValue: string = '';
+	let formattedValue = '';
 
 	if (value) {
 		if (typeof value === 'string') {
@@ -295,10 +295,6 @@ defineExpose({
 	&:hover {
 		border-color: var(--MI_THEME-inputBorderHover) !important;
 	}
-}
-
-.input:has(.prefix:not(:empty)) .inputCore {
-	padding-left: 40px;
 }
 
 .input:has(.suffix:not(:empty)) .inputCore {

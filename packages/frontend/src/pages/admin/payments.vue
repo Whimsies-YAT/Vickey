@@ -414,11 +414,11 @@ definePage(() => ({
 
 	&.successful-payments {
 		.stat-icon {
-			background: #86b30026;
-			color: #86b300;
+			background: var(--MI_THEME-success);
+			color: var(--MI_THEME-success);
 		}
 		&:hover .stat-icon {
-			background: #86b30040;
+			background: var(--MI_THEME-success);
 		}
 	}
 }

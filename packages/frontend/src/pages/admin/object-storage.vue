@@ -35,9 +35,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</SearchMarker>
 
 					<SearchMarker>
-						<MkInput v-model="objectStorageEndpoint" :placeholder="'example.com'">
+						<MkInput v-model="objectStorageEndpoint" :placeholder="'example.com'" :class="$style.endpointInput" :style="{ '--endpoint-input-padding': endpointInputPadding + 'px' }">
 							<template #label><SearchLabel>{{ i18n.ts.objectStorageEndpoint }}</SearchLabel></template>
-							<template #prefix>https://</template>
+							<template #prefix><span ref="endpointPrefixEl">https://</span></template>
 							<template #caption><SearchText>{{ i18n.ts.objectStorageEndpointDesc }}</SearchText></template>
 						</MkInput>
 					</SearchMarker>
@@ -106,7 +106,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted, useTemplateRef } from 'vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkInput from '@/components/MkInput.vue';
 import FormSplit from '@/components/form/split.vue';
@@ -132,6 +132,28 @@ const objectStorageUseSSL = ref(meta.objectStorageUseSSL);
 const objectStorageUseProxy = ref(meta.objectStorageUseProxy);
 const objectStorageSetPublicRead = ref(meta.objectStorageSetPublicRead);
 const objectStorageS3ForcePathStyle = ref(meta.objectStorageS3ForcePathStyle);
+
+const endpointPrefixEl = useTemplateRef('endpointPrefixEl');
+const endpointInputPadding = ref(40);
+let resizeObserver: ResizeObserver | null = null;
+
+onMounted(() => {
+	resizeObserver = new ResizeObserver((entries) => {
+		for (const entry of entries) {
+			if (entry.target === endpointPrefixEl.value) {
+				endpointInputPadding.value = (entry.target as HTMLElement).offsetWidth + 18;
+			}
+		}
+	});
+
+	if (endpointPrefixEl.value) resizeObserver.observe(endpointPrefixEl.value);
+});
+
+onUnmounted(() => {
+	if (resizeObserver) {
+		resizeObserver.disconnect();
+	}
+});
 
 function save() {
 	os.apiWithDialog('admin/update-meta', {
@@ -165,5 +187,11 @@ definePage(() => ({
 .footer {
 	-webkit-backdrop-filter: var(--MI-blur, blur(15px));
 	backdrop-filter: var(--MI-blur, blur(15px));
+}
+
+.endpointInput {
+	input {
+		padding-left: var(--endpoint-input-padding, 90px) !important;
+	}
 }
 </style>

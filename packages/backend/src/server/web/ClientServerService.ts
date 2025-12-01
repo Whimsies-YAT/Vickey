@@ -77,6 +77,8 @@ function htmlSafeJsonStringify(obj: any): string {
 	return JSON.stringify(obj).replace(ESCAPE_REGEX, x => ESCAPE_LOOKUP[x]);
 }
 
+const DEFAULT_THEME_COLOR = '#0088d7';
+
 @Injectable()
 export class ClientServerService {
 	private logger: Logger;
@@ -151,7 +153,7 @@ export class ClientServerService {
 			'background_color': '#313a42',
 			// 空文字列の場合右辺を使いたいため
 			// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-			'theme_color': this.meta.themeColor || '#86b300',
+			'theme_color': this.meta.themeColor || DEFAULT_THEME_COLOR,
 			'icons': [{
 				// 空文字列の場合右辺を使いたいため
 				// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -203,7 +205,7 @@ export class ClientServerService {
 			instanceName: meta.name ?? 'Vickey',
 			icon: meta.iconUrl,
 			appleTouchIcon: meta.app512IconUrl,
-			themeColor: meta.themeColor,
+			themeColor: meta.themeColor || DEFAULT_THEME_COLOR,
 			serverErrorImageUrl: meta.serverErrorImageUrl ?? 'https://xn--931a.moe/assets/error.jpg',
 			infoImageUrl: meta.infoImageUrl ?? 'https://xn--931a.moe/assets/info.jpg',
 			notFoundImageUrl: meta.notFoundImageUrl ?? 'https://xn--931a.moe/assets/not-found.jpg',
@@ -414,7 +416,7 @@ export class ClientServerService {
 
 		// OpenSearch XML
 		fastify.get('/opensearch.xml', async (request, reply) => {
-			const name = this.meta.name ?? 'Misskey';
+			const name = this.meta.name ?? 'Vickey';
 			let content = '';
 			content += '<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:moz="http://www.mozilla.org/2006/browser/search/">';
 			content += `<ShortName>${name}</ShortName>`;

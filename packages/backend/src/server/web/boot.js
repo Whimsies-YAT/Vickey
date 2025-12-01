@@ -18,12 +18,12 @@
 			'/plugins/', '/extensions/', '/addons/',
 			'userscript', 'tampermonkey', 'greasemonkey',
 			'chrome-extension:', 'moz-extension:',
-			'third-party', 'plugin', 'extension'
+			'third-party', 'plugin', 'extension',
 		];
 
 		const corePatterns = [
 			'/vite/', '/_boot_', CLIENT_ENTRY || '',
-			'misskey', 'lang', 'theme'
+			'misskey', 'lang', 'theme',
 		];
 
 		if (pluginPatterns.some(pattern => errorStr.includes(pattern) || stackStr.includes(pattern))) {
@@ -254,7 +254,7 @@
 			<p>${messages.solution3}</p>
 			<p>${messages.solution4}</p>
 			<p>${messages.solution5}</p>
-			<details style="color: #86b300;">
+			<details style="color: #0088d7;">
 				<summary>${messages.otherOption}</summary>
 				<a href="${safeModeUrl}">
 					<button class="button-small">
@@ -323,12 +323,12 @@
 			}
 
 			.button-big {
-				background: linear-gradient(90deg, rgb(134, 179, 0), rgb(74, 179, 0));
+				background: linear-gradient(90deg, #0088d7, #005c91);
 				line-height: 50px;
 			}
 
 			.button-big:hover {
-				background: rgb(153, 204, 0);
+				background: #36a4e3;
 			}
 
 			.button-small {
@@ -348,13 +348,13 @@
 			}
 
 			.button-label-small {
-				color: rgb(153, 204, 0);
+				color: #36a4e3;
 				font-size: 16px;
 				padding: 12px;
 			}
 
 			a {
-				color: rgb(134, 179, 0);
+				color: #0088d7;
 				text-decoration: none;
 			}
 
