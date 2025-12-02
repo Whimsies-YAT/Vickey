@@ -19,6 +19,7 @@ export const languages = [
 	'kab-KAB',
 	'kn-IN',
 	'ko-KR',
+	'ms-MY',
 	'nl-NL',
 	'no-NO',
 	'pl-PL',
@@ -31,7 +32,9 @@ export const languages = [
 	'uk-UA',
 	'vi-VN',
 	'zh-CN',
+	'zh-HK',
 	'zh-TW',
+	'zh-YUE',
 ] as const;
 
 export const primaries = {
