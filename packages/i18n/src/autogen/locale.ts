@@ -8,6 +8,10 @@ export interface Locale extends ILocale {
      */
     "_lang_": string;
     /**
+     * To Vickey
+     */
+    "goToVickey": string;
+    /**
      * Result
      */
     "result": string;
