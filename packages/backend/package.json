@@ -95,7 +95,7 @@
 		"@nestjs/testing": "11.1.9",
 		"@node-rs/argon2": "2.0.2",
 		"@peertube/http-signature": "1.7.0",
-		"@sentry/node": "10.26.0",
+		"@sentry/node": "10.27.0",
 		"@sentry/profiling-node": "10.26.0",
 		"@simplewebauthn/server": "13.2.2",
 		"@sinonjs/fake-timers": "11.3.1",
