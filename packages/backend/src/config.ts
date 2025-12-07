@@ -7,7 +7,6 @@ import * as fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import nodePath from 'node:path';
-import * as yaml from 'js-yaml';
 import { type FastifyServerOptions } from 'fastify';
 import type * as Sentry from '@sentry/node';
 import type * as SentryVue from '@sentry/vue';
@@ -268,19 +267,9 @@ export type FulltextSearchProvider = 'sqlLike' | 'sqlPgroonga' | 'meilisearch' |
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
 
-/**
- * Path of configuration directory
- */
-const dir = `${_dirname}/../../../.config`;
+const compiledConfigFilePathForTest = resolve(_dirname, '../../../built/._config_.json');
 
-/**
- * Path of configuration file
- */
-export const path = process.env.MISSKEY_CONFIG_YML
-	? resolve(dir, process.env.MISSKEY_CONFIG_YML)
-	: process.env.NODE_ENV === 'test'
-		? resolve(dir, 'test.yml')
-		: resolve(dir, 'default.yml');
+export const compiledConfigFilePath = fs.existsSync(compiledConfigFilePathForTest) ? compiledConfigFilePathForTest : resolve(_dirname, '../../../built/.config.json');
 
 let globalConfig: Config | null = null;
 
@@ -292,6 +281,10 @@ export function updateGlobalConfig(updates: Partial<Config>): void {
 
 export function loadConfig(): Config {
 	if (globalConfig) return globalConfig;
+
+	if (!fs.existsSync(compiledConfigFilePath)) {
+		throw new Error('Compiled configuration file not found. Try running \'pnpm compile-config\'.');
+	}
 
 	const meta = JSON.parse(fs.readFileSync(`${_dirname}/../../../built/meta.json`, 'utf-8'));
 
@@ -338,7 +331,7 @@ export function loadConfig(): Config {
 		fs.writeFileSync(tokenTimePath, JSON.stringify(tokenTime, null, 2), 'utf-8');
 	}
 
-	const config = yaml.load(fs.readFileSync(path, 'utf-8')) as Source;
+	const config = JSON.parse(fs.readFileSync(compiledConfigFilePath, 'utf-8')) as Source;
 
 	const url = tryCreateUrl(config.url ?? process.env.MISSKEY_URL ?? '');
 	const version = meta.version;
