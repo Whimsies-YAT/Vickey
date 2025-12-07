@@ -61,9 +61,9 @@ html {
 #splashSpinner > .spinner circle {
 	fill: none;
 	stroke: currentColor;
-	stroke-width: 5;
+	stroke-width: 24;
 	stroke-linecap: round;
-	stroke-dasharray: 1, 200;
+	stroke-dasharray: 4, 402;
 	stroke-dashoffset: 0;
 	animation: splashSpinnerDash 1.5s ease-in-out infinite;
 }
@@ -76,16 +76,16 @@ html {
 
 @keyframes splashSpinnerDash {
 	0% {
-		stroke-dasharray: 1, 200;
+		stroke-dasharray: 4, 402;
 		stroke-dashoffset: 0;
 	}
 	50% {
-		stroke-dasharray: 89, 200;
-		stroke-dashoffset: -35px;
+		stroke-dasharray: 301, 402;
+		stroke-dashoffset: -40px;
 	}
 	100% {
-		stroke-dasharray: 89, 200;
-		stroke-dashoffset: -124px;
+		stroke-dasharray: 4, 402;
+		stroke-dashoffset: -398px;
 	}
 }
 

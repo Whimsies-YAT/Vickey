@@ -40,9 +40,9 @@ function clean (text: string) {
 	return text.replace(new RegExp(String.fromCodePoint(0x08), 'g'), '');
 }
 
-export const tryReadFile = (path: URL, encoding: FileEncoding) => {
+export const tryReadFile = (path: URL): string => {
 	try {
-		return fs.readFileSync(path, encoding);
+		return fs.readFileSync(path, 'utf-8');
 	} catch {
 		return '';
 	}
@@ -68,16 +68,16 @@ function build(): Record<Language, Locale> {
 	// https://github.com/misskey-dev/misskey/pull/14057#issuecomment-2192833785
 	const metaUrl = import.meta.url;
 	const misskeyLocales = languages.reduce<Locales>((a, lang) => {
-		a[lang] = (yaml.load(clean(tryReadFile(new URL(`./locales/${lang}.yml`, metaUrl), 'utf-8'))) ?? {}) as ILocale;
+		a[lang] = (yaml.load(clean(tryReadFile(new URL(`./locales/${lang}.yml`, metaUrl)))) ?? {}) as ILocale;
 		return a;
 	}, {} as Locales);
 
 	const vkLocales = languages.reduce<Locales>((a, c) => {
-		const content = clean(tryReadFile(new URL(`../../../vickey-locales/${c}.yml`, metaUrl), 'utf-8'));
+		const content = clean(tryReadFile(new URL(`../../../vickey-locales/${c}.yml`, metaUrl)));
 		if (content) {
 			a[c] = (yaml.load(content) ?? {}) as ILocale;
 		} else {
-			const enContent = clean(tryReadFile(new URL('../../../vickey-locales/en-US.yml', metaUrl), 'utf-8'));
+			const enContent = clean(tryReadFile(new URL('../../../vickey-locales/en-US.yml', metaUrl)));
 			a[c] = (enContent ? (yaml.load(enContent) ?? {}) : {}) as ILocale;
 		}
 		return a;

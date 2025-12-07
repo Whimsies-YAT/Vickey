@@ -13,13 +13,13 @@ export function BiosPage(props: {
 				<head>
 					<meta charset="UTF-8" />
 					<meta name="application-name" content="Misskey" />
-					<title>Misskey Repair Tool</title>
+					<title>Vickey Repair Tool</title>
 					<link rel="stylesheet" href="/static-assets/misc/bios.css" />
 				</head>
 
 				<body>
 					<header>
-						<h1 safe>Misskey Repair Tool {props.version}</h1>
+						<h1 safe>Vickey Repair Tool {props.version}</h1>
 					</header>
 					<main>
 						<div class="tabs">

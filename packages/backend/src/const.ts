@@ -5,6 +5,8 @@
 
 export const MAX_NOTE_TEXT_LENGTH = 30000;
 
+export const DEFAULT_THEME_COLOR = '#0099ff';
+
 export const USER_ONLINE_THRESHOLD = 1000 * 60 * 10; // 10min
 export const USER_ACTIVE_THRESHOLD = 1000 * 60 * 60 * 24 * 3; // 3days
 

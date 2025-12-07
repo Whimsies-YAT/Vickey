@@ -14,6 +14,7 @@ import fastifyStatic from '@fastify/static';
 import fastifyProxy from '@fastify/http-proxy';
 import vary from 'vary';
 import type { Config } from '@/config.js';
+import { DEFAULT_THEME_COLOR } from '@/const.js';
 import { DI } from '@/di-symbols.js';
 import * as Acct from '@/misc/acct.js';
 import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
@@ -405,7 +406,7 @@ export class ClientServerService {
 			reply.header('Cache-Control', 'public, max-age=30');
 			return await HtmlTemplateService.replyHtml(reply, BasePage({
 				img: this.meta.bannerUrl ?? undefined,
-				title: this.meta.name ?? 'Misskey',
+				title: this.meta.name ?? 'Vickey',
 				desc: this.meta.description ?? undefined,
 				...await this.htmlTemplateService.getCommonData(),
 				...data,
@@ -768,7 +769,7 @@ export class ClientServerService {
 
 			reply.header('Cache-Control', 'public, max-age=3600');
 			return await HtmlTemplateService.replyHtml(reply, BaseEmbed({
-				title: this.meta.name ?? 'Misskey',
+				title: this.meta.name ?? 'Vickey',
 				...await this.htmlTemplateService.getCommonData(),
 				embedCtxJson: htmlSafeJsonStringify({
 					user: _user,
@@ -794,7 +795,7 @@ export class ClientServerService {
 
 			reply.header('Cache-Control', 'public, max-age=3600');
 			return await HtmlTemplateService.replyHtml(reply, BaseEmbed({
-				title: this.meta.name ?? 'Misskey',
+				title: this.meta.name ?? 'Vickey',
 				...await this.htmlTemplateService.getCommonData(),
 				embedCtxJson: htmlSafeJsonStringify({
 					note: _note,
@@ -815,7 +816,7 @@ export class ClientServerService {
 
 			reply.header('Cache-Control', 'public, max-age=3600');
 			return await HtmlTemplateService.replyHtml(reply, BaseEmbed({
-				title: this.meta.name ?? 'Misskey',
+				title: this.meta.name ?? 'Vickey',
 				...await this.htmlTemplateService.getCommonData(),
 				embedCtxJson: htmlSafeJsonStringify({
 					clip: _clip,
@@ -828,7 +829,7 @@ export class ClientServerService {
 
 			reply.header('Cache-Control', 'public, max-age=3600');
 			return await HtmlTemplateService.replyHtml(reply, BaseEmbed({
-				title: this.meta.name ?? 'Misskey',
+				title: this.meta.name ?? 'Vickey',
 				...await this.htmlTemplateService.getCommonData(),
 			}));
 		});
