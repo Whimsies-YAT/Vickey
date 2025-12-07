@@ -8,6 +8,7 @@ import * as crypto from 'node:crypto';
 import { join } from 'node:path';
 import * as stream from 'node:stream/promises';
 import { spawn } from 'node:child_process';
+import { promisify } from 'node:util';
 import { Injectable } from '@nestjs/common';
 import { FSWatcher } from 'chokidar';
 import * as fileType from 'file-type';
@@ -15,15 +16,13 @@ import isSvg from 'is-svg';
 import probeImageSize from 'probe-image-size';
 import { sharpBmp } from '@misskey-dev/sharp-read-bmp';
 import * as blurhash from 'blurhash';
+import { fileTypeFromFile as FileType } from 'file-type';
 import { createTempDir } from '@/misc/create-temp.js';
 import { AiService } from '@/core/AiService.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import type Logger from '@/logger.js';
 import { bindThis } from '@/decorators.js';
 import { isMimeImage } from '@/misc/is-mime-image.js';
-import { promisify } from "node:util";
-import { fileTypeFromFile as FileType } from "file-type";
-import type { PredictionType } from 'nsfwjs';
 
 export type FileInfo = {
 	size: number;
@@ -210,21 +209,8 @@ export class FileInfoService {
 		let sensitive = false;
 		let porn = false;
 
-		function judgePrediction(result: readonly PredictionType[]): [sensitive: boolean, porn: boolean] {
-			let sensitive = false;
-			let porn = false;
-
-			if ((result.find(x => x.className === 'Sexy')?.probability ?? 0) > sensitiveThreshold) sensitive = true;
-			if ((result.find(x => x.className === 'Hentai')?.probability ?? 0) > sensitiveThreshold) sensitive = true;
-			if ((result.find(x => x.className === 'Porn')?.probability ?? 0) > sensitiveThreshold) sensitive = true;
-
-			if ((result.find(x => x.className === 'Porn')?.probability ?? 0) > sensitiveThresholdForPorn) porn = true;
-
-			return [sensitive, porn];
-		}
-
 		if (analyzeVideo && (mime === 'image/apng' || mime.startsWith('video/'))) {
-			if (!await this.checkFile(source)) throw new Error("The file is invalid!");
+			if (!await this.checkFile(source)) throw new Error('The file is invalid!');
 			const [outDir, disposeOutDir] = await createTempDir();
 			try {
 				const ffmpegArgs = [
@@ -236,14 +222,14 @@ export class FileInfoService {
 						'select=eq(pict_type\\,PICT_TYPE_I)',
 						'blackframe=amount=0',
 						'metadata=select:key=lavfi.blackframe.pblack:value=50:function=less',
-						'scale=299:299'
+						'scale=299:299',
 					].join(','),
 					'-f', 'image2',
 					'-vsync', '0',
-					join(outDir, '%d.png')
+					join(outDir, '%d.png'),
 				];
 
-				const results: ReturnType<typeof judgePrediction>[] = [];
+				const results: { sensitive: boolean, porn: boolean }[] = [];
 				let frameIndex = 0;
 				let targetIndex = 0;
 				let nextIndex = 1;
@@ -256,35 +242,26 @@ export class FileInfoService {
 						}
 						targetIndex = nextIndex;
 						nextIndex += index; // fibonacci sequence によってフレーム数制限を掛ける
-						const result = await this.aiService.detectSensitive(path);
+						const result = await this.aiService.detectSensitive(path, sensitiveThreshold, sensitiveThresholdForPorn);
 						if (result) {
-							results.push(judgePrediction(result));
+							results.push(result);
 						}
 					} finally {
 						fs.promises.unlink(path);
 					}
 				}
-				sensitive = results.filter(x => x[0]).length >= Math.ceil(results.length * sensitiveThreshold);
-				porn = results.filter(x => x[1]).length >= Math.ceil(results.length * sensitiveThresholdForPorn);
+				sensitive = results.filter(x => x.sensitive).length >= Math.ceil(results.length * sensitiveThreshold);
+				porn = results.filter(x => x.porn).length >= Math.ceil(results.length * sensitiveThresholdForPorn);
 			} finally {
 				disposeOutDir();
 			}
 		} else if (isMimeImage(mime, 'sharp-convertible-image-with-bmp')) {
-			/*
-			 * tfjs-node は限られた画像形式しか受け付けないため、sharp で PNG に変換する
-			 * せっかくなので内部処理で使われる最大サイズの299x299に事前にリサイズする
-			 */
-			const png = await (await sharpBmp(source, mime))
-				.resize(299, 299, {
-					withoutEnlargement: false,
-				})
-				.rotate()
-				.flatten({ background: { r: 119, g: 119, b: 119 } }) // 透過部分を18%グレーで塗りつぶす
-				.png()
-				.toBuffer();
-			const result = await this.aiService.detectSensitive(png);
+			// Transformers.js handles image loading via sharp internally, but we might want to ensure it's a format it likes.
+			// Passing the path directly is usually fine.
+			const result = await this.aiService.detectSensitive(source, sensitiveThreshold, sensitiveThresholdForPorn);
 			if (result) {
-				[sensitive, porn] = judgePrediction(result);
+				sensitive = result.sensitive;
+				porn = result.porn;
 			}
 		}
 
@@ -298,7 +275,7 @@ export class FileInfoService {
 		let finished = false;
 
 		const ffmpegProcess = spawn('ffmpeg', ffmpegArgs, {
-			stdio: ['ignore', 'pipe', 'pipe']
+			stdio: ['ignore', 'pipe', 'pipe'],
 		});
 
 		ffmpegProcess.once('close', () => {
@@ -366,7 +343,7 @@ export class FileInfoService {
 	 */
 	@bindThis
 	private async hasVideoTrackOnVideoFile(path: string): Promise<boolean> {
-		if (!await this.checkFile(path)) throw new Error("The file is invalid!");
+		if (!await this.checkFile(path)) throw new Error('The file is invalid!');
 		const sublogger = this.logger.createSubLogger('ffprobe');
 		sublogger.info(`Checking the video file. File path: ${path}`);
 
@@ -376,9 +353,9 @@ export class FileInfoService {
 					'-v', 'quiet',
 					'-print_format', 'json',
 					'-show_streams',
-					path
+					path,
 				], {
-					stdio: ['ignore', 'pipe', 'pipe']
+					stdio: ['ignore', 'pipe', 'pipe'],
 				});
 
 				let stdout = '';

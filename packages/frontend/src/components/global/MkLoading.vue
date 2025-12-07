@@ -70,6 +70,8 @@ const props = withDefaults(defineProps<{
 	width: var(--size);
 	height: var(--size);
 	margin: 0 auto;
+	flex-shrink: 0;
+	aspect-ratio: 1 / 1;
 	animation: globalSpinnerRotate 2s linear infinite;
 }
 
@@ -77,13 +79,8 @@ const props = withDefaults(defineProps<{
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: var(--size);
-	height: var(--size);
-	fill-rule: evenodd;
-	clip-rule: evenodd;
-	stroke-linecap: round;
-	stroke-linejoin: round;
-	stroke-miterlimit: 1.5;
+	width: 100%;
+	height: 100%;
 }
 
 .bg {
@@ -96,9 +93,8 @@ const props = withDefaults(defineProps<{
 	}
 
 	circle {
-		transform-origin: center;
 		stroke-linecap: round;
-		stroke-dasharray: 3, 600;
+		stroke-dasharray: 4, 377;
 		stroke-dashoffset: 0;
 		animation: mkLoadingDash 1.5s ease-in-out infinite;
 	}
@@ -106,16 +102,16 @@ const props = withDefaults(defineProps<{
 
 @keyframes mkLoadingDash {
 	0% {
-		stroke-dasharray: 3, 600;
+		stroke-dasharray: 4, 377;
 		stroke-dashoffset: 0;
 	}
 	50% {
-		stroke-dasharray: 267, 600;
-		stroke-dashoffset: -105px;
+		stroke-dasharray: 282, 377;
+		stroke-dashoffset: -38px;
 	}
 	100% {
-		stroke-dasharray: 267, 600;
-		stroke-dashoffset: -372px;
+		stroke-dasharray: 4, 377;
+		stroke-dashoffset: -373px;
 	}
 }
 </style>

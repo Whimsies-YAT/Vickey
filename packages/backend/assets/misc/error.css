@@ -1,0 +1,124 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
+:root {
+	--accent: #0088d7;
+	--accentDarken: #005c91;
+	--accentLighten: #36a4e3;
+	--bg: #222;
+	--fg: #dfddcc;
+	--fgTransparent: #dfddcc;
+}
+
+* {
+	font-family: BIZ UDGothic, Roboto, HelveticaNeue, Arial, sans-serif;
+}
+
+#misskey_app,
+#splash {
+	display: none !important;
+}
+
+body,
+html {
+	background-color: var(--bg);
+	color: var(--fg);
+	justify-content: center;
+	margin: auto;
+	padding: 10px;
+	text-align: center;
+}
+
+button {
+	border-radius: 999px;
+	padding: 0px 12px 0px 12px;
+	border: none;
+	cursor: pointer;
+	margin-bottom: 12px;
+}
+
+.button-big {
+	background: linear-gradient(90deg, var(--accent), var(--accentDarken));
+	line-height: 50px;
+}
+
+.button-big:hover {
+	background: var(--accentLighten);
+}
+
+.button-small {
+	background: #444;
+	line-height: 40px;
+}
+
+.button-small:hover {
+	background: #555;
+}
+
+.button-label-big {
+	color: var(--bg);
+	font-weight: bold;
+	font-size: 1.2em;
+	padding: 12px;
+}
+
+.button-label-small {
+	color: var(--accentLighten);
+	font-size: 16px;
+	padding: 12px;
+}
+
+a {
+	color: var(--accent);
+	text-decoration: none;
+}
+
+p,
+li {
+	font-size: 16px;
+}
+
+.icon-warning {
+	color: #dec340;
+	height: 4rem;
+	padding-top: 2rem;
+}
+
+h1 {
+	font-size: 1.5em;
+	margin: 1em;
+}
+
+code {
+	display: block;
+	font-family: Fira, FiraCode, monospace;
+	background: #333;
+	padding: 0.5rem 1rem;
+	max-width: 40rem;
+	border-radius: 10px;
+	justify-content: center;
+	margin: auto;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+#errorInfo summary {
+	cursor: pointer;
+}
+
+#errorInfo summary>* {
+	display: inline;
+}
+
+.details-highlight {
+	color: var(--accent);
+}
+
+@media screen and (max-width: 500px) {
+	#errorInfo {
+		width: 50%;
+	}
+}

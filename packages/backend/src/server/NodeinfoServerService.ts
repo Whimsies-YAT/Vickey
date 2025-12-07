@@ -125,7 +125,7 @@ export class NodeinfoServerService {
 					enableEmail: meta.enableEmail,
 					enableServiceWorker: meta.enableServiceWorker,
 					proxyAccountName: proxyAccount.username,
-					themeColor: meta.themeColor ?? '#86b300',
+					themeColor: meta.themeColor ?? '#0088d7',
 					restrictedAccessAreas: meta.banCountry,
 				},
 			};

@@ -75,7 +75,7 @@ jobs:
       - name: Build Misskey
         run: |
           pnpm i --frozen-lockfile
-          pnpm build
+          pnpm build:legacy
       - name: Setup
         run: |
           echo "NODE_VERSION=$(cat ${{ matrix.node-version-file }})" >> $GITHUB_ENV

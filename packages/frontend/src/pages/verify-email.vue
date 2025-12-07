@@ -29,7 +29,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<div :class="$style.mainText">{{ i18n.ts.emailVerified }}</div>
 					<div>
 						<MkButton large rounded link to="/" linkBehavior="browser" style="margin: 0 auto;">
-							{{ i18n.ts.goToMisskey }}
+							{{ i18n.ts.goToVickey }}
 						</MkButton>
 					</div>
 				</div>

@@ -8,6 +8,7 @@ import type { MiMeta } from '@/models/Meta.js';
 import { DI } from '@/di-symbols.js';
 import { bindThis } from '@/decorators.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
+import type { RTCIceServer, RTCSessionDescriptionInit } from '@/core/webrtc-types.js';
 
 /**
  * Cloudflare Calls (Realtime SFU) service

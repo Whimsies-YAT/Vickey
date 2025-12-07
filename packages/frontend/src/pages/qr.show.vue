@@ -51,8 +51,20 @@ const canShare = computed(() => navigator.canShare && navigator.canShare(shareDa
 
 const qrCodeEl = useTemplateRef('qrCodeEl');
 
-const qrColor = computed(() => tinycolor(instance.themeColor ?? '#86b300'));
+const themeColor = ref(instance.themeColor ?? '#86b300');
+const qrColor = computed(() => tinycolor(themeColor.value));
 const qrHsl = computed(() => qrColor.value.toHsl());
+
+watch(qrHsl, () => {
+	qrCodeInstance.update({
+		dotsOptions: {
+			color: tinycolor(`hsl(${qrHsl.value.h}, 100, 18)`).toRgbString(),
+		},
+		backgroundOptions: {
+			color: tinycolor(`hsl(${qrHsl.value.h}, 100, 97)`).toRgbString(),
+		},
+	});
+});
 
 function share() {
 	if (!canShare.value) return;
@@ -93,6 +105,11 @@ const qrCodeInstance = new QRCodeStyling({
 });
 
 onMounted(() => {
+	const accent = getComputedStyle(window.document.documentElement).getPropertyValue('--MI_THEME-accent').trim();
+	if (accent) {
+		themeColor.value = accent;
+	}
+
 	if (qrCodeEl.value != null) {
 		qrCodeInstance.append(qrCodeEl.value);
 	}

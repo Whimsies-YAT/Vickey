@@ -102,6 +102,20 @@ export class InboxProcessorService implements OnApplicationShutdown {
 					}
 					throw new Error(`Error in actor ${activity.actor} - ${err.statusCode}`);
 				}
+
+				if (err instanceof Error) {
+					if (
+						err.message.startsWith('invalid Actor') ||
+						err.message.startsWith('invalid object.id') ||
+						err.message.startsWith('Refusing to create person') ||
+						err.message.startsWith('unexpected schema of person url') ||
+						err.message.startsWith('person url <> uri host mismatch')
+					) {
+						throw new Bull.UnrecoverableError(`skip: ${err.message}`);
+					}
+				}
+
+				throw err;
 			}
 		}
 

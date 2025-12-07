@@ -1,0 +1,104 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
+html {
+	background-color: var(--MI_THEME-bg);
+	color: var(--MI_THEME-fg);
+}
+
+#splash {
+	position: fixed;
+	z-index: 10000;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	cursor: wait;
+	background-color: var(--MI_THEME-bg);
+	opacity: 1;
+	transition: opacity 0.5s ease;
+}
+
+#splashIcon {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	margin: auto;
+	width: 64px;
+	height: 64px;
+	border-radius: 10px;
+	pointer-events: none;
+}
+
+#splashSpinner {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	margin: auto;
+	display: inline-block;
+	width: 48px;
+	height: 48px;
+	transform: translateY(70px);
+	color: var(--MI_THEME-accent);
+}
+
+#splashSpinner > .spinner {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 48px;
+	height: 48px;
+	animation: splashSpinnerRotate 2s linear infinite;
+}
+
+#splashSpinner > .spinner circle {
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 24;
+	stroke-linecap: round;
+	stroke-dasharray: 4, 402;
+	stroke-dashoffset: 0;
+	animation: splashSpinnerDash 1.5s ease-in-out infinite;
+}
+
+@keyframes splashSpinnerRotate {
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes splashSpinnerDash {
+	0% {
+		stroke-dasharray: 4, 402;
+		stroke-dashoffset: 0;
+	}
+	50% {
+		stroke-dasharray: 301, 402;
+		stroke-dashoffset: -40px;
+	}
+	100% {
+		stroke-dasharray: 4, 402;
+		stroke-dashoffset: -398px;
+	}
+}
+
+#splashText {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	margin: auto;
+	display: inline-block;
+	width: 70%;
+	height: 0;
+	text-align: center;
+	transform: translateY(40px);
+}
