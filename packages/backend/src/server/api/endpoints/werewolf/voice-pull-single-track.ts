@@ -10,6 +10,7 @@ import { WerewolfVoiceService } from '@/core/WerewolfVoiceService.js';
 import { CloudflareCallsService } from '@/core/CloudflareCallsService.js';
 import { DI } from '@/di-symbols.js';
 import type { WerewolfGamesRepository } from '@/models/_.js';
+import type { RTCSessionDescriptionInit } from '@/core/webrtc-types.js';
 
 export const meta = {
 	tags: ['werewolf'],

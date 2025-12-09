@@ -11,6 +11,7 @@ import { DI } from '@/di-symbols.js';
 import { bindThis } from '@/decorators.js';
 import { CloudflareCallsService } from '@/core/CloudflareCallsService.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
+import type { RTCSessionDescriptionInit } from '@/core/webrtc-types.js';
 
 interface ParticipantVoiceState {
 	sessionId: string;
@@ -181,7 +182,7 @@ export class WerewolfVoiceService {
 		}
 
 		const sdpLines = (offer.sdp || '').split('\r\n');
-		const midLine = sdpLines.find(line => line.startsWith('a=mid:'));
+		const midLine = sdpLines.find((line: string) => line.startsWith('a=mid:'));
 		const mid = midLine ? midLine.split(':')[1] : '0';
 
 		const localTracks = [{

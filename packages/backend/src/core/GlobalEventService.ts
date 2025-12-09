@@ -29,6 +29,7 @@ import { bindThis } from '@/decorators.js';
 import { Serialized } from '@/types.js';
 import type Emitter from 'strict-event-emitter-types';
 import type { EventEmitter } from 'events';
+import type { RTCIceServer } from '@/core/webrtc-types.js';
 
 //#region Stream type-body definitions
 export interface BroadcastTypes {

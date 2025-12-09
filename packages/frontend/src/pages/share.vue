@@ -22,7 +22,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		/>
 		<div v-else-if="state === 'posted'" class="_buttonsCenter">
 			<MkButton primary @click="close">{{ i18n.ts.close }}</MkButton>
-			<MkButton @click="goToMisskey">{{ i18n.ts.goToMisskey }}</MkButton>
+			<MkButton @click="goToMisskey">{{ i18n.ts.goToVickey }}</MkButton>
 		</div>
 	</div>
 </PageWithHeader>

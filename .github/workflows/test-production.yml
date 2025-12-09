@@ -32,4 +32,4 @@ jobs:
     - name: Copy Configure
       run: cp .github/misskey/test.yml .config/default.yml
     - name: Build
-      run: pnpm build
+      run: pnpm build:legacy

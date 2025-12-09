@@ -7,6 +7,7 @@ import { Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { WerewolfService } from '@/core/WerewolfService.js';
 import { WerewolfVoiceService } from '@/core/WerewolfVoiceService.js';
+import type { RTCSessionDescriptionInit } from '@/core/webrtc-types.js';
 
 export const meta = {
 	tags: ['werewolf'],

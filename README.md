@@ -23,6 +23,8 @@
 <a href="https://ko-fi.com/yateam">
 		<img src="https://custom-icon-badges.herokuapp.com/badge/become_a-sposonr-F96854?logoColor=DDDDDD&style=for-the-badge&logo=ko-fi&labelColor=363B40" alt="become a patron"/></a>
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/misskey-dev/misskey)
+
 </div>
 
 ## Thanks

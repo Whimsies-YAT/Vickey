@@ -4,7 +4,7 @@
  */
 
 import { lang, version } from '@@/js/config.js';
-import type { Locale } from '../../../locales/index.js';
+import type { Locale } from 'i18n';
 
 function safeGetStorageItem(key: string): any | null {
 	try {
@@ -48,10 +48,10 @@ function safeSetStorageItem(key: string, data: any): boolean {
 	}
 }
 
-async function loadLocaleWithRetry(maxRetries = 3): Promise<Locale | null> {
+async function loadLocaleWithRetry(targetLang: string, maxRetries = 3): Promise<Locale | null> {
 	for (let attempt = 0; attempt < maxRetries; attempt++) {
 		try {
-			const response = await window.fetch(`/assets/locales/${lang}.${version}.json`);
+			const response = await window.fetch(`/assets/locales/${targetLang}.${version}.json`);
 			if (!response.ok) {
 				throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 			}
@@ -66,11 +66,12 @@ async function loadLocaleWithRetry(maxRetries = 3): Promise<Locale | null> {
 
 			return data as Locale;
 		} catch (error) {
-			console.error(`Locale loading attempt ${attempt + 1} failed:`, error);
+			console.error(`Locale loading attempt ${attempt + 1} failed for ${targetLang}:`, error);
 
 			if (attempt === maxRetries - 1) {
 				const cachedLocale = safeGetStorageItem('locale');
 				if (cachedLocale && typeof cachedLocale === 'object') {
+					// TODO: Check if cached locale matches targetLang?
 					console.warn('Using cached locale from localStorage');
 					return cachedLocale as Locale;
 				}
@@ -87,7 +88,18 @@ async function loadLocaleWithRetry(maxRetries = 3): Promise<Locale | null> {
 }
 
 // ここはビルド時に const locale = JSON.parse("...") みたいな感じで置き換えられるので top-level await は消える
-export let locale: Locale | null = await loadLocaleWithRetry();
+const primaryLocale = await loadLocaleWithRetry(lang);
+export let locale: Locale | null = primaryLocale;
+
+if (!locale && lang !== 'en-US') {
+	console.warn('Falling back to en-US');
+	locale = await loadLocaleWithRetry('en-US');
+}
+
+if (!locale && lang !== 'ja-JP') {
+	console.warn('Falling back to ja-JP');
+	locale = await loadLocaleWithRetry('ja-JP');
+}
 
 export function updateLocale(newLocale: Locale | null): void {
 	locale = newLocale;

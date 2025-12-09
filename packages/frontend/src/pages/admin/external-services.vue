@@ -47,131 +47,139 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 					</MkFolder>
 				</SearchMarker>
-			</div>
 
-			<MkFolder>
-				<template #label><SearchLabel>Text-To-Speech</SearchLabel></template>
-				<div class="_gaps_m">
-					<MkInput v-model="hfAuthKey">
-						<template #prefix><i class="ti ti-key"></i></template>
-						<template #label><SearchLabel>HuggingFace Auth Key</SearchLabel></template>
-					</MkInput>
-					<MkSwitch v-model="hfSpace">
-						<template #label><SearchLabel>HuggingFace Space</SearchLabel></template>
-					</MkSwitch>
-					<div v-if="hfSpace">
-						<MkInput v-model="hfSpaceName">
-							<template #label>Space Name</template>
-						</MkInput>
-						<MkInput v-model="hfexampleAudioURL">
-							<template #label>Example Audio URL</template>
-						</MkInput>
-						<br />
-						<MkSwitch v-model="hfnrm">
-							<template #label>Enable no reference mode</template>
-						</MkSwitch>
-						<br />
-						<div v-if="!hfnrm">
-							<MkInput v-model="hfexampleText">
-								<template #label>Example Text</template>
+				<SearchMarker v-slot="slotProps">
+					<MkFolder :defaultOpen="slotProps.isParentOfTarget">
+						<template #label><SearchLabel>Text-To-Speech</SearchLabel></template>
+						<div class="_gaps_m">
+							<MkInput v-model="hfAuthKey">
+								<template #prefix><i class="ti ti-key"></i></template>
+								<template #label><SearchLabel>HuggingFace Auth Key</SearchLabel></template>
 							</MkInput>
+							<MkSwitch v-model="hfSpace">
+								<template #label><SearchLabel>HuggingFace Space</SearchLabel></template>
+							</MkSwitch>
+							<div v-if="hfSpace">
+								<MkInput v-model="hfSpaceName">
+									<template #label>Space Name</template>
+								</MkInput>
+								<MkInput v-model="hfexampleAudioURL">
+									<template #label>Example Audio URL</template>
+								</MkInput>
+								<br/>
+								<MkSwitch v-model="hfnrm">
+									<template #label>Enable no reference mode</template>
+								</MkSwitch>
+								<br/>
+								<div v-if="!hfnrm">
+									<MkInput v-model="hfexampleText">
+										<template #label>Example Text</template>
+									</MkInput>
+								</div>
+								<MkSelect v-model="hfexampleLang" :items="hfexampleLangOptions">
+									<template #label>Example Language</template>
+								</MkSelect>
+								<br/>
+								<MkSwitch v-model="hfdas">
+									<template #label>Whether to directly adjust the speech rate and timebre of the last synthesis result to prevent randomness</template>
+								</MkSwitch>
+								<br/>
+								<MkSelect v-model="hfslice" :items="hfsliceOptions">
+									<template #label>Slice</template>
+								</MkSelect>
+								<MkRange v-model="hftopK" :min="0" :max="100" :step="1">
+									<template #label>Set top_k Value: {{ hftopK }}</template>
+								</MkRange>
+								<MkRange v-model="hftopP" :min="0" :max="100" :step="5">
+									<template #label>Set top_p Value: {{ hftopP }}</template>
+								</MkRange>
+								<MkRange v-model="hfTemperature" :min="0" :max="100" :step="5">
+									<template #label>Set Temperature Value: {{ hfTemperature }}</template>
+								</MkRange>
+								<MkRange v-model="hfSpeedRate" :min="60" :max="165" :step="5">
+									<template #label>Set Speed Rate Value: {{ hfSpeedRate }}</template>
+								</MkRange>
+							</div>
+							<MkButton primary @click="save_tts">Save</MkButton>
 						</div>
-						<MkSelect v-model="hfexampleLang" :items="hfexampleLangOptions">
-							<template #label>Example Language</template>
-						</MkSelect>
-						<br />
-						<MkSwitch v-model="hfdas">
-							<template #label>Whether to directly adjust the speech rate and timebre of the last synthesis result to prevent randomness</template>
-						</MkSwitch>
-						<br />
-						<MkSelect v-model="hfslice" :items="hfsliceOptions">
-							<template #label>Slice</template>
-						</MkSelect>
-						<MkRange v-model="hftopK" :min="0" :max="100" :step="1">
-							<template #label>Set top_k Value: {{ hftopK }}</template>
-						</MkRange>
-						<MkRange v-model="hftopP" :min="0" :max="100" :step="5">
-							<template #label>Set top_p Value: {{ hftopP }}</template>
-						</MkRange>
-						<MkRange v-model="hfTemperature" :min="0" :max="100" :step="5">
-							<template #label>Set Temperature Value: {{ hfTemperature }}</template>
-						</MkRange>
-						<MkRange v-model="hfSpeedRate" :min="60" :max="165" :step="5">
-							<template #label>Set Speed Rate Value: {{ hfSpeedRate }}</template>
-						</MkRange>
-					</div>
-					<MkButton primary @click="save_tts">Save</MkButton>
-				</div>
-			</MkFolder>
+					</MkFolder>
+				</SearchMarker>
 
-			<MkFolder>
-				<template #label><SearchLabel>Restricted Regions</SearchLabel></template>
+				<SearchMarker v-slot="slotProps">
+					<MkFolder :defaultOpen="slotProps.isParentOfTarget">
+						<template #label><SearchLabel>Restricted Regions</SearchLabel></template>
 
-				<div class="_gaps_m">
-					<MkInput v-model="ip2lAuthKey">
-						<template #prefix><i class="ti ti-key"></i></template>
-						<template #label><SearchLabel>IP2Location Auth Key</SearchLabel></template>
-					</MkInput>
-					<MkSwitch v-model="ip2lIsPro">
-						<template #label><SearchLabel>IP2Location Pro</SearchLabel></template>
-					</MkSwitch>
-					<MkTextarea v-model="banCountry">
-						<template #label><SearchLabel>Restricted regions (one per line)</SearchLabel></template>
-					</MkTextarea>
-					<MkButton primary @click="addRestrictedArea">Add GDPR-compliant regions</MkButton>
-					<MkTextarea v-model="exemptIP">
-						<template #label><SearchLabel>Exempt IPs (one per line)</SearchLabel></template>
-					</MkTextarea>
-					<MkButton primary @click="save_ra">Save</MkButton>
-				</div>
-			</MkFolder>
+						<div class="_gaps_m">
+							<MkInput v-model="ip2lAuthKey">
+								<template #prefix><i class="ti ti-key"></i></template>
+								<template #label><SearchLabel>IP2Location Auth Key</SearchLabel></template>
+							</MkInput>
+							<MkSwitch v-model="ip2lIsPro">
+								<template #label><SearchLabel>IP2Location Pro</SearchLabel></template>
+							</MkSwitch>
+							<MkTextarea v-model="banCountry">
+								<template #label><SearchLabel>Restricted regions (one per line)</SearchLabel></template>
+							</MkTextarea>
+							<MkButton primary @click="addRestrictedArea">Add GDPR-compliant regions</MkButton>
+							<MkTextarea v-model="exemptIP">
+								<template #label><SearchLabel>Exempt IPs (one per line)</SearchLabel></template>
+							</MkTextarea>
+							<MkButton primary @click="save_ra">Save</MkButton>
+						</div>
+					</MkFolder>
+				</SearchMarker>
 
-			<MkFolder>
-				<template #label>Proxy Database</template>
+				<SearchMarker v-slot="slotProps">
+					<MkFolder :defaultOpen="slotProps.isParentOfTarget">
+						<template #label>Proxy Database</template>
 
-				<div class="_gaps_m">
-					<MkInput v-model="ip2lProxyAuthKey">
-						<template #prefix><i class="ti ti-key"></i></template>
-						<template #label><SearchLabel>IP2Proxy Auth Key</SearchLabel></template>
-					</MkInput>
-					<MkSwitch v-model="ip2lProxyIsPro">
-						<template #label><SearchLabel>IP2Proxy Pro</SearchLabel></template>
-					</MkSwitch>
-					<MkButton primary @click="save_pd">Save</MkButton>
-				</div>
-			</MkFolder>
+						<div class="_gaps_m">
+							<MkInput v-model="ip2lProxyAuthKey">
+								<template #prefix><i class="ti ti-key"></i></template>
+								<template #label><SearchLabel>IP2Proxy Auth Key</SearchLabel></template>
+							</MkInput>
+							<MkSwitch v-model="ip2lProxyIsPro">
+								<template #label><SearchLabel>IP2Proxy Pro</SearchLabel></template>
+							</MkSwitch>
+							<MkButton primary @click="save_pd">Save</MkButton>
+						</div>
+					</MkFolder>
+				</SearchMarker>
 
-			<MkFolder>
-				<template #label><SearchLabel>Cloudflare SFU (WebRTC Voice Call)</SearchLabel></template>
+				<SearchMarker v-slot="slotProps">
+					<MkFolder :defaultOpen="slotProps.isParentOfTarget">
+						<template #label><SearchLabel>Cloudflare SFU (WebRTC Voice Call)</SearchLabel></template>
 
-				<div class="_gaps_m">
-					<MkSwitch v-model="enableCloudflareSfu">
-						<template #label><SearchLabel>Enable Cloudflare SFU</SearchLabel></template>
-					</MkSwitch>
+						<div class="_gaps_m">
+							<MkSwitch v-model="enableCloudflareSfu">
+								<template #label><SearchLabel>Enable Cloudflare SFU</SearchLabel></template>
+							</MkSwitch>
 
-					<MkInput v-model="cloudflareAccountId">
-						<template #prefix><i class="ti ti-user"></i></template>
-						<template #label><SearchLabel>Cloudflare Account ID</SearchLabel></template>
-					</MkInput>
+							<MkInput v-model="cloudflareAccountId">
+								<template #prefix><i class="ti ti-user"></i></template>
+								<template #label><SearchLabel>Cloudflare Account ID</SearchLabel></template>
+							</MkInput>
 
-					<MkInput v-model="cloudflareApiToken" type="password">
-						<template #prefix><i class="ti ti-key"></i></template>
-						<template #label><SearchLabel>Cloudflare API Token</SearchLabel></template>
-					</MkInput>
+							<MkInput v-model="cloudflareApiToken" type="password">
+								<template #prefix><i class="ti ti-key"></i></template>
+								<template #label><SearchLabel>Cloudflare API Token</SearchLabel></template>
+							</MkInput>
 
-					<MkInput v-model="cloudflareSfuAppId">
-						<template #prefix><i class="ti ti-app-window"></i></template>
-						<template #label><SearchLabel>Cloudflare SFU App ID</SearchLabel></template>
-					</MkInput>
+							<MkInput v-model="cloudflareSfuAppId">
+								<template #prefix><i class="ti ti-app-window"></i></template>
+								<template #label><SearchLabel>Cloudflare SFU App ID</SearchLabel></template>
+							</MkInput>
 
-					<MkInput v-model="cloudflareSfuAppSecret" type="password">
-						<template #prefix><i class="ti ti-lock"></i></template>
-						<template #label><SearchLabel>Cloudflare SFU App Secret</SearchLabel></template>
-					</MkInput>
+							<MkInput v-model="cloudflareSfuAppSecret" type="password">
+								<template #prefix><i class="ti ti-lock"></i></template>
+								<template #label><SearchLabel>Cloudflare SFU App Secret</SearchLabel></template>
+							</MkInput>
 
-					<MkButton primary @click="save_cloudflare">Save</MkButton>
-				</div>
-			</MkFolder>
+							<MkButton primary @click="save_cloudflare">Save</MkButton>
+						</div>
+					</MkFolder>
+				</SearchMarker>
+			</div>
 		</SearchMarker>
 	</div>
 </PageWithHeader>
@@ -190,7 +198,7 @@ import { fetchInstance } from '@/instance.js';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import MkFolder from '@/components/MkFolder.vue';
-import MkTextarea from "@/components/MkTextarea.vue";
+import MkTextarea from '@/components/MkTextarea.vue';
 
 const meta = await misskeyApi('admin/meta');
 
@@ -248,32 +256,32 @@ const hfsliceOptions = [
 ];
 
 function save_deepl() {
-    os.apiWithDialog('admin/update-meta', {
-        deeplAuthKey: deeplAuthKey.value,
-        deeplIsPro: deeplIsPro.value,
-    }).then(() => {
-        fetchInstance(true);
-    });
+	os.apiWithDialog('admin/update-meta', {
+		deeplAuthKey: deeplAuthKey.value,
+		deeplIsPro: deeplIsPro.value,
+	}).then(() => {
+		fetchInstance(true);
+	});
 }
 
 function save_tts() {
-    os.apiWithDialog('admin/update-meta', {
-        hfAuthKey: hfAuthKey.value,
-        hfSpace: hfSpace.value,
-        hfSpaceName: hfSpaceName.value,
-        hfexampleAudioURL: hfexampleAudioURL.value,
-        hfexampleText: hfexampleText.value,
-        hfexampleLang: hfexampleLang.value,
-        hfslice: hfslice.value,
-        hftopK: hftopK.value,
-        hftopP: hftopP.value,
-        hfTemperature: hfTemperature.value,
-        hfnrm: hfnrm.value,
-        hfSpeedRate: hfSpeedRate.value,
-        hfdas: hfdas.value,
-    }).then(() => {
-        fetchInstance(true);
-    });
+	os.apiWithDialog('admin/update-meta', {
+		hfAuthKey: hfAuthKey.value,
+		hfSpace: hfSpace.value,
+		hfSpaceName: hfSpaceName.value,
+		hfexampleAudioURL: hfexampleAudioURL.value,
+		hfexampleText: hfexampleText.value,
+		hfexampleLang: hfexampleLang.value,
+		hfslice: hfslice.value,
+		hftopK: hftopK.value,
+		hftopP: hftopP.value,
+		hfTemperature: hfTemperature.value,
+		hfnrm: hfnrm.value,
+		hfSpeedRate: hfSpeedRate.value,
+		hfdas: hfdas.value,
+	}).then(() => {
+		fetchInstance(true);
+	});
 }
 
 function save_googleAnalytics() {
@@ -312,7 +320,7 @@ function addRestrictedArea() {
 		'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR',
 		'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL',
 		'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS', 'NO', 'LI',
-		'CH', 'MK', 'AL', 'RS', 'ME', 'XK', 'BA', 'TR'
+		'CH', 'MK', 'AL', 'RS', 'ME', 'XK', 'BA', 'TR',
 	];
 
 	const newArea = gdprRegions.join('\n') + '\n';

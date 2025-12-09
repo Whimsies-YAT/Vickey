@@ -12,6 +12,7 @@ import { CloudflareCallsService } from '@/core/CloudflareCallsService.js';
 import { NotificationService } from '@/core/NotificationService.js';
 import type { MiMeta, MiUser } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
+import type { RTCIceServer, RTCSessionDescriptionInit } from '@/core/webrtc-types.js';
 
 type VoiceCallMode = 'auto' | 'p2p' | 'sfu';
 type VoiceCallType = 'p2p' | 'group';
