@@ -43,9 +43,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkInput v-model="config.userInfoEndpoint">
 						<template #label>{{ i18n.ts._oauthSettings.userInfoEndpoint }}</template>
 					</MkInput>
-					<MkInput v-model="config.issuer">
-						<template #label>{{ i18n.ts._oauthSettings.issuer }}</template>
-					</MkInput>
+					<div style="display: flex; gap: 8px; align-items: flex-end;">
+						<MkInput v-model="config.issuer" style="flex: 1;">
+							<template #label>{{ i18n.ts._oauthSettings.issuer }}</template>
+						</MkInput>
+						<MkButton inline @click="discover(config)">
+							<i class="ti ti-download"></i> Load
+						</MkButton>
+					</div>
 					<MkInput v-model="config.jwksUri">
 						<template #label>{{ i18n.ts._oauthSettings.jwksUri }}</template>
 					</MkInput>
@@ -113,6 +118,30 @@ function refresh() {
 			issuer: c.issuer ?? null,
 			jwksUri: c.jwksUri ?? null,
 		}));
+	});
+}
+
+function discover(config: OAuthClientConfigStrict) {
+	if (!config.issuer) return;
+
+	const issuer = config.issuer; // Capture current value
+	misskeyApi('admin/oauth-client-config/discover', {
+		issuer: issuer,
+	}).then(res => {
+		if (config.issuer !== issuer) return; // Ignore if user changed issuer
+		config.authorizationEndpoint = res.authorization_endpoint;
+		config.tokenEndpoint = res.token_endpoint;
+		config.userInfoEndpoint = res.userinfo_endpoint;
+		config.jwksUri = res.jwks_uri;
+		os.alert({
+			type: 'success',
+			text: i18n.ts.loaded,
+		});
+	}).catch((err: Error) => {
+		os.alert({
+			type: 'error',
+			text: err.message,
+		});
 	});
 }
 

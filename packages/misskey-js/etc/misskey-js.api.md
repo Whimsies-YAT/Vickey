@@ -319,6 +319,12 @@ type AdminOauthClientConfigDeleteRequest = operations['admin___oauth-client-conf
 type AdminOauthClientConfigDeleteResponse = operations['admin___oauth-client-config___delete']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type AdminOauthClientConfigDiscoverRequest = operations['admin___oauth-client-config___discover']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminOauthClientConfigDiscoverResponse = operations['admin___oauth-client-config___discover']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type AdminOauthClientConfigListResponse_2 = components['schemas']['OAuthClientConfig'][];
 
 // @public (undocumented)
@@ -2044,6 +2050,8 @@ declare namespace entities {
         AdminOauthClientConfigCreateResponse,
         AdminOauthClientConfigDeleteRequest,
         AdminOauthClientConfigDeleteResponse,
+        AdminOauthClientConfigDiscoverRequest,
+        AdminOauthClientConfigDiscoverResponse,
         AdminOauthClientConfigUpdateRequest,
         AdminOauthClientConfigUpdateResponse,
         AdminPaymentsListRequest,

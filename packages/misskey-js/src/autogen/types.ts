@@ -632,6 +632,16 @@ export type paths = {
          */
         post: operations['admin___oauth-client-config___delete'];
     };
+    '/admin/oauth-client-config/discover': {
+        /**
+         * admin/oauth-client-config/discover
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes* / **Permission**: *write:admin:oauth-client-config*
+         */
+        post: operations['admin___oauth-client-config___discover'];
+    };
     '/admin/oauth-client-config/list': {
         /**
          * admin/oauth-client-config/list
@@ -11563,6 +11573,76 @@ export interface operations {
                 };
                 content: {
                     'application/json': Record<string, never>;
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'admin___oauth-client-config___discover': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    issuer: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        authorization_endpoint: string;
+                        token_endpoint: string;
+                        userinfo_endpoint: string;
+                        jwks_uri: string;
+                    };
                 };
             };
             /** @description Client error */

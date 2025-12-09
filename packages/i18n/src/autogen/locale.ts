@@ -244,6 +244,10 @@ export interface Locale extends ILocale {
      */
     "updated": string;
     /**
+     * Loaded
+     */
+    "loaded": string;
+    /**
      * Updated
      */
     "updatedAlt": string;

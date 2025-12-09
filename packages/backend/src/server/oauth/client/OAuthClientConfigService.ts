@@ -310,4 +310,11 @@ export class OAuthClientConfigService {
 			throw error;
 		}
 	}
+	/**
+	 * Discover OIDC configuration
+	 */
+	@bindThis
+	public async discover(issuer: string) {
+		return await this.oidcClientService.discoverConfiguration(issuer);
+	}
 }

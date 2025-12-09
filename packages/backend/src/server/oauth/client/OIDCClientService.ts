@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { createHash } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { LoggerService } from '@/core/LoggerService.js';
@@ -105,7 +104,7 @@ export class OIDCClientService {
 	 */
 	@bindThis
 	public async discoverConfiguration(issuer: string): Promise<OIDCConfiguration> {
-		const wellKnownUrl = new URL('/.well-known/openid_configuration', issuer);
+		const wellKnownUrl = new URL('/.well-known/openid-configuration', issuer);
 
 		try {
 			const response = await this.httpRequestService.send(wellKnownUrl.toString(), {
@@ -131,8 +130,12 @@ export class OIDCClientService {
 			});
 
 			return config;
-		} catch (error) {
-			this.logger.error('Error discovering OIDC configuration', { issuer, error });
+		} catch (error: any) {
+			if (error.statusCode === 404) {
+				this.logger.warn(`OIDC configuration not found for issuer: ${issuer}`);
+			} else {
+				this.logger.error('Error discovering OIDC configuration', { issuer, error });
+			}
 			throw error;
 		}
 	}

@@ -773,6 +773,18 @@ declare module '../api.js' {
      * No description provided.
      * 
      * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+     * **Credential required**: *Yes* / **Permission**: *write:admin:oauth-client-config*
+     */
+    request<E extends 'admin/oauth-client-config/discover', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
      * **Credential required**: *Yes* / **Permission**: *read:admin:oauth-client-config*
      */
     request<E extends 'admin/oauth-client-config/list', P extends Endpoints[E]['req']>(

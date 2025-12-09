@@ -82,6 +82,7 @@ export * as 'admin/notes/list-deleted' from './endpoints/admin/notes/list-delete
 export * as 'admin/notes/show-deleted' from './endpoints/admin/notes/show-deleted.js';
 export * as 'admin/oauth-client-config/create' from './endpoints/admin/oauth-client-config/create.js';
 export * as 'admin/oauth-client-config/delete' from './endpoints/admin/oauth-client-config/delete.js';
+export * as 'admin/oauth-client-config/discover' from './endpoints/admin/oauth-client-config/discover.js';
 export * as 'admin/oauth-client-config/list' from './endpoints/admin/oauth-client-config/list.js';
 export * as 'admin/oauth-client-config/update' from './endpoints/admin/oauth-client-config/update.js';
 export * as 'admin/payments/list' from './endpoints/admin/payments/list.js';

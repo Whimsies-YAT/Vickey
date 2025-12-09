@@ -58,6 +58,7 @@ poweredByVickeyDescription: "{name} is one of the services powered by the open s
 authTitle: "OAuth Authorization"
 authDescription: "The following application is requesting access to your account:"
 updated: "updated"
+loaded: "Loaded"
 updatedAlt: "Updated"
 notAvailable: "Not Available"
 unregister2fa: "Remove authenticator app"

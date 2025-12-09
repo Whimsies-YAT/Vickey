@@ -41,6 +41,7 @@ import { MiGalleryPost } from '@/models/GalleryPost.js';
 import { MiHashtag } from '@/models/Hashtag.js';
 import { MiInstance } from '@/models/Instance.js';
 import { MiMeta } from '@/models/Meta.js';
+import { MiOAuthClientConfig } from '@/models/OAuthClientConfig.js';
 import { MiModerationLog } from '@/models/ModerationLog.js';
 import { MiMuting } from '@/models/Muting.js';
 import { MiRenoteMuting } from '@/models/RenoteMuting.js';
@@ -200,6 +201,7 @@ class MyCustomLogger implements Logger {
 export const entities = [
 	MiAnnouncement,
 	MiAnnouncementRead,
+	MiOAuthClientConfig,
 	MiMeta,
 	MiInstance,
 	MiApp,

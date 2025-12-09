@@ -94,6 +94,8 @@ import type {
 	AdminOauthClientConfigCreateResponse,
 	AdminOauthClientConfigDeleteRequest,
 	AdminOauthClientConfigDeleteResponse,
+	AdminOauthClientConfigDiscoverRequest,
+	AdminOauthClientConfigDiscoverResponse,
 	AdminOauthClientConfigListResponse,
 	AdminOauthClientConfigUpdateRequest,
 	AdminOauthClientConfigUpdateResponse,
@@ -845,6 +847,7 @@ export type Endpoints = {
 	'admin/notes/show-deleted': { req: AdminNotesShowDeletedRequest; res: AdminNotesShowDeletedResponse };
 	'admin/oauth-client-config/create': { req: AdminOauthClientConfigCreateRequest; res: AdminOauthClientConfigCreateResponse };
 	'admin/oauth-client-config/delete': { req: AdminOauthClientConfigDeleteRequest; res: AdminOauthClientConfigDeleteResponse };
+	'admin/oauth-client-config/discover': { req: AdminOauthClientConfigDiscoverRequest; res: AdminOauthClientConfigDiscoverResponse };
 	'admin/oauth-client-config/list': { req: EmptyRequest; res: AdminOauthClientConfigListResponse };
 	'admin/oauth-client-config/update': { req: AdminOauthClientConfigUpdateRequest; res: AdminOauthClientConfigUpdateResponse };
 	'admin/payments/list': { req: AdminPaymentsListRequest; res: AdminPaymentsListResponse };
