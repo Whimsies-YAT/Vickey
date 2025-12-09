@@ -11,6 +11,7 @@ import type { OAuthClientConfigsRepository } from '@/models/_.js';
 import type { MiOAuthClientConfig } from '@/models/OAuthClientConfig.js';
 import Logger from '@/logger.js';
 import { bindThis } from '@/decorators.js';
+import { OIDCClientService } from './OIDCClientService.js';
 import type { OAuthClientConfig } from './OAuthClientService.js';
 import type { SSOProvider } from './SSOService.js';
 
@@ -21,18 +22,18 @@ export interface CreateOAuthClientConfigRequest {
 	clientSecret: string;
 	authorizationEndpoint: string;
 	tokenEndpoint: string;
-	userInfoEndpoint?: string;
-	issuer?: string;
-	jwksUri?: string;
+	userInfoEndpoint?: string | null;
+	issuer?: string | null;
+	jwksUri?: string | null;
 	scope?: string[];
 	redirectUri: string;
 	autoRegister?: boolean;
 	autoUpdate?: boolean;
 	userMapping?: {
-		username?: string;
-		email?: string;
-		name?: string;
-		avatar?: string;
+		username?: string | null;
+		email?: string | null;
+		name?: string | null;
+		avatar?: string | null;
 	};
 }
 
@@ -50,6 +51,7 @@ export class OAuthClientConfigService {
 
 		private readonly loggerService: LoggerService,
 		private readonly idService: IdService,
+		private readonly oidcClientService: OIDCClientService,
 	) {
 		this.logger = this.loggerService.getLogger('oauth-client-config');
 	}
@@ -73,11 +75,16 @@ export class OAuthClientConfigService {
 			userInfoEndpoint: request.userInfoEndpoint,
 			issuer: request.issuer,
 			jwksUri: request.jwksUri,
-			scope: request.scope || [],
+			scope: request.scope ?? [],
 			redirectUri: request.redirectUri,
 			autoRegister: request.autoRegister ?? false,
 			autoUpdate: request.autoUpdate ?? true,
-			userMapping: request.userMapping || {},
+			userMapping: request.userMapping ? {
+				username: request.userMapping.username ?? undefined,
+				email: request.userMapping.email ?? undefined,
+				name: request.userMapping.name ?? undefined,
+				avatar: request.userMapping.avatar ?? undefined,
+			} : undefined,
 			isActive: true,
 		}).then(result => result.generatedMaps[0] as MiOAuthClientConfig);
 
@@ -99,7 +106,7 @@ export class OAuthClientConfigService {
 			throw new Error('OAuth client configuration not found');
 		}
 
-		const updates: any = {};
+		const updates: Record<string, unknown> = {};
 
 		if (request.name !== undefined) updates.name = request.name;
 		if (request.type !== undefined) updates.type = request.type;
@@ -129,7 +136,7 @@ export class OAuthClientConfigService {
 	 * Delete OAuth client configuration
 	 */
 	@bindThis
-	public async delete(id: string, userId: string): Promise<void> {
+	public async delete(id: string, userId: string): Promise<MiOAuthClientConfig> {
 		const config = await this.oauthClientConfigsRepository.findOne({
 			where: { id, userId },
 		});
@@ -141,6 +148,8 @@ export class OAuthClientConfigService {
 		await this.oauthClientConfigsRepository.delete(id);
 
 		this.logger.info(`Deleted OAuth client config: ${config.name}`);
+
+		return config;
 	}
 
 	/**
@@ -211,12 +220,12 @@ export class OAuthClientConfigService {
 			scope: dbConfig.scope,
 			authorizationEndpoint: dbConfig.authorizationEndpoint,
 			tokenEndpoint: dbConfig.tokenEndpoint,
-			userInfoEndpoint: dbConfig.userInfoEndpoint || undefined,
-			issuer: dbConfig.issuer || undefined,
-			jwksUri: dbConfig.jwksUri || undefined,
+			userInfoEndpoint: dbConfig.userInfoEndpoint ?? undefined,
+			issuer: dbConfig.issuer ?? undefined,
+			jwksUri: dbConfig.jwksUri ?? undefined,
 			responseType: 'code',
 			grantType: 'authorization_code',
-			pkce: true, // Enable PKCE by default
+			pkce: true,
 		};
 	}
 
@@ -247,7 +256,6 @@ export class OAuthClientConfigService {
 				return { success: false, error: 'Configuration not found' };
 			}
 
-			// Basic validation
 			if (!config.clientId || !config.clientSecret) {
 				return { success: false, error: 'Missing client credentials' };
 			}
@@ -278,18 +286,18 @@ export class OAuthClientConfigService {
 		userId: string,
 	): Promise<MiOAuthClientConfig> {
 		try {
-			// This would use OIDCClientService to discover configuration
-			// For now, return basic structure
+			const config = await this.oidcClientService.discoverConfiguration(issuer);
+
 			const request: CreateOAuthClientConfigRequest = {
 				name,
 				type: 'oidc',
 				clientId,
 				clientSecret,
-				authorizationEndpoint: `${issuer}/oauth/authorize`,
-				tokenEndpoint: `${issuer}/oauth/token`,
-				userInfoEndpoint: `${issuer}/userinfo`,
-				issuer,
-				jwksUri: `${issuer}/.well-known/jwks.json`,
+				authorizationEndpoint: config.authorization_endpoint,
+				tokenEndpoint: config.token_endpoint,
+				userInfoEndpoint: config.userinfo_endpoint,
+				issuer: config.issuer,
+				jwksUri: config.jwks_uri,
 				scope: ['openid', 'profile', 'email'],
 				redirectUri,
 				autoRegister: false,

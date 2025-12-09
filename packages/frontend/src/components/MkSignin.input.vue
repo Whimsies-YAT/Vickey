@@ -47,18 +47,25 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<MkButton type="submit" style="margin: auto auto;" large rounded primary gradate @click="emit('passkeyClick', $event)">
 				<i class="ti ti-device-usb" style="font-size: medium;"></i>{{ i18n.ts.signinWithPasskey }}
 			</MkButton>
+			<div v-for="provider in providers" :key="provider.id" style="margin-top: 8px;">
+				<MkButton type="button" style="margin: auto auto;" large rounded @click="loginWith(provider)">
+					{{ i18n.tsx.signinWith({ x: provider.name }) }}
+				</MkButton>
+			</div>
 		</div>
 	</div>
 </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import * as Misskey from 'misskey-js';
 import { toUnicode } from 'punycode.js';
 
 import { query, extractDomain } from '@@/js/url.js';
 import { host as configHost } from '@@/js/config.js';
 import type { OpenOnRemoteOptions } from '@/utility/please-login.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
 import * as os from '@/os.js';
 
@@ -83,7 +90,19 @@ const emit = defineEmits<{
 
 const host = toUnicode(configHost);
 
+// eslint-disable-next-line vue/no-setup-props-reactivity-loss
 const username = ref(props.initialUsername ?? '');
+const providers = ref<Misskey.entities.SsoProvidersResponse>([]);
+
+onMounted(() => {
+	misskeyApi('sso/providers').then(res => {
+		providers.value = res as any;
+	});
+});
+
+function loginWith(provider: Misskey.entities.SsoProvidersResponse[number]) {
+	window.location.href = `/sso/connect/${provider.id}`;
+}
 
 //#region Open on remote
 function openRemote(options: OpenOnRemoteOptions, targetHost?: string): void {

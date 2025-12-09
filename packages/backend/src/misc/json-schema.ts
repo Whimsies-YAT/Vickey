@@ -76,6 +76,7 @@ import { packedChatRoomInvitationSchema } from '@/models/json-schema/chat-room-i
 import { packedChatRoomMembershipSchema } from '@/models/json-schema/chat-room-membership.js';
 import { packedAchievementNameSchema, packedAchievementSchema } from '@/models/json-schema/achievement.js';
 import { packedNoteDraftSchema } from '@/models/json-schema/note-draft.js';
+import { packedOAuthClientConfigSchema } from '@/models/json-schema/oauth-client-config.js';
 
 export const refs = {
 	UserLite: packedUserLiteSchema,
@@ -151,6 +152,7 @@ export const refs = {
 	ChatRoom: packedChatRoomSchema,
 	ChatRoomInvitation: packedChatRoomInvitationSchema,
 	ChatRoomMembership: packedChatRoomMembershipSchema,
+	OAuthClientConfig: packedOAuthClientConfigSchema,
 };
 
 export type Packed<x extends keyof typeof refs> = SchemaType<typeof refs[x]>;
@@ -166,8 +168,8 @@ type StringDefToType<T extends TypeStringef> =
 	T extends 'number' ? number :
 	T extends 'string' ? string | Date :
 	T extends 'array' ? ReadonlyArray<any> :
-	T extends 'object' ? Record<string, any> :
-	any;
+	T extends 'object' ? Record<string, any> : // eslint-disable-line @typescript-eslint/no-explicit-any
+	any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 // https://swagger.io/specification/?sbsearch=optional#schema-object
 type OfSchema = {
@@ -186,12 +188,12 @@ export interface Schema extends OfSchema {
 	readonly properties?: Obj;
 	readonly required?: ReadonlyArray<Extract<keyof NonNullable<this['properties']>, string>>;
 	readonly description?: string;
-	readonly example?: any;
+	readonly example?: unknown;
 	readonly format?: string;
 	readonly ref?: keyof typeof refs;
 	readonly selfRef?: boolean;
 	readonly enum?: ReadonlyArray<string | null>;
-	readonly default?: (this['type'] extends TypeStringef ? StringDefToType<this['type']> : any) | null;
+	readonly default?: (this['type'] extends TypeStringef ? StringDefToType<this['type']> : unknown) | null;
 	readonly maxLength?: number;
 	readonly minLength?: number;
 	readonly maximum?: number;
@@ -259,7 +261,7 @@ type ObjectSchemaTypeDef<p extends Schema> =
 		:
 		p['anyOf'] extends ReadonlyArray<Schema> ? UnionSchemaType<p['anyOf']> :
 		p['allOf'] extends ReadonlyArray<Schema> ? ArrayToIntersection<p['allOf']> :
-		p['additionalProperties'] extends true ? Record<string, any> :
+		p['additionalProperties'] extends true ? Record<string, unknown> :
 		p['additionalProperties'] extends Schema ?
 			p['additionalProperties'] extends infer AdditionalProperties ?
 				AdditionalProperties extends Schema ?
@@ -296,11 +298,11 @@ export type SchemaTypeDef<p extends Schema> =
 					[...ArrayToTuple<p['prefixItems']>, ...unknown[]]
 				) :
 					p['items'] extends NonNullable<Schema> ? SchemaType<p['items']>[] :
-					any[]
+					any[] // eslint-disable-line @typescript-eslint/no-explicit-any
 		) :
 			p['anyOf'] extends ReadonlyArray<Schema> ? UnionSchemaType<p['anyOf']> :
 			p['allOf'] extends ReadonlyArray<Schema> ? ArrayToIntersection<p['allOf']> :
 			p['oneOf'] extends ReadonlyArray<Schema> ? UnionSchemaType<p['oneOf']> :
-			any;
+			any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 export type SchemaType<p extends Schema> = NullOrUndefined<p, SchemaTypeDef<p>>;

@@ -7,6 +7,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { LoggerService } from '@/core/LoggerService.js';
 import Logger from '@/logger.js';
 import { bindThis } from '@/decorators.js';
+import type { MiLocalUser } from '@/models/User.js';
 import { OAuthClientService } from './OAuthClientService.js';
 import { OIDCClientService } from './OIDCClientService.js';
 import { SSOService } from './SSOService.js';
@@ -17,7 +18,22 @@ import type {
 	SSOProvider,
 	SSOLoginResult,
 } from './SSOService.js';
-import type { MiLocalUser } from '@/models/User.js';
+
+export interface UserSessionApiResult {
+	sessionId: string;
+	providerName: string;
+	// UserInfo fields can be null
+	userInfo: {
+		name?: string | null;
+		email?: string | null;
+		picture?: string | null;
+	};
+	createdAt: Date;
+	lastUsedAt: Date;
+	ipAddress?: string | null;
+	userAgent?: string | null;
+	isExpired: boolean;
+}
 
 /**
  * Comprehensive OAuth Client Manager
@@ -40,10 +56,7 @@ export class OAuthClientManager implements OnModuleInit {
 	}
 
 	async onModuleInit() {
-		// Initialize and register configured SSO providers
 		await this.initializeProviders();
-
-		// Set up cleanup tasks
 		this.scheduleCleanupTasks();
 	}
 
@@ -53,8 +66,6 @@ export class OAuthClientManager implements OnModuleInit {
 	@bindThis
 	private async initializeProviders(): Promise<void> {
 		try {
-			// This would load configurations from system settings
-			// For now, we'll leave it empty as it depends on your configuration system
 			this.logger.info('OAuth Client Manager initialized');
 		} catch (error) {
 			this.logger.error('Failed to initialize OAuth providers', { error });
@@ -104,8 +115,8 @@ export class OAuthClientManager implements OnModuleInit {
 	 * Initialize SSO login flow
 	 */
 	@bindThis
-	public async startSSOLogin(providerId: string): Promise<{ authUrl: string; state: string }> {
-		return await this.ssoService.initializeLogin(providerId);
+	public async startSSOLogin(providerId: string, userId?: string): Promise<{ authUrl: string; state: string }> {
+		return await this.ssoService.initializeLogin(providerId, userId);
 	}
 
 	/**
@@ -118,10 +129,11 @@ export class OAuthClientManager implements OnModuleInit {
 		ipAddress?: string,
 		userAgent?: string,
 	): Promise<{
-		user: MiLocalUser;
-		sessionId: string;
-		isNewUser: boolean;
-	}> {
+			user: MiLocalUser;
+			sessionId: string;
+			isNewUser: boolean;
+			action: 'login' | 'link';
+		}> {
 		const loginResult = await this.ssoService.completeLogin(code, state);
 
 		// Create session
@@ -146,6 +158,7 @@ export class OAuthClientManager implements OnModuleInit {
 			user: loginResult.user,
 			sessionId: sessionInfo.sessionId,
 			isNewUser: loginResult.isNewUser,
+			action: loginResult.action,
 		};
 	}
 
@@ -199,7 +212,7 @@ export class OAuthClientManager implements OnModuleInit {
 	 * Get user sessions
 	 */
 	@bindThis
-	public async getUserSessions(userId: string): Promise<any[]> {
+	public async getUserSessions(userId: string): Promise<UserSessionApiResult[]> {
 		const sessions = await this.sessionService.getUserSessions(userId);
 
 		return sessions.map(session => ({

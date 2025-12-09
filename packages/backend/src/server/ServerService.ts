@@ -22,7 +22,7 @@ import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.j
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import { bindThis } from '@/decorators.js';
-import { ActivityPubServerService } from './ActivityPubServerService.js';
+import { getIpHash } from '@/misc/get-ip-hash.js';
 import { NodeinfoServerService } from './NodeinfoServerService.js';
 import { ApiServerService } from './api/ApiServerService.js';
 import { StreamingApiServerService } from './api/StreamingApiServerService.js';
@@ -36,7 +36,8 @@ import { OAuth2ProviderService } from './oauth/OAuth2ProviderService.js';
 import { OAuthAppServerService } from './oauth/OAuthAppServerService.js';
 import { IconService } from './IconService.js';
 import { StripeWebhookServerService } from './StripeWebhookServerService.js';
-import { getIpHash } from '@/misc/get-ip-hash.js';
+import { SsoServerService } from './web/SsoServerService.js';
+import { ActivityPubServerService } from './ActivityPubServerService.js';
 
 const _dirname = fileURLToPath(new URL('.', import.meta.url));
 
@@ -79,6 +80,7 @@ export class ServerService implements OnApplicationShutdown {
 		private oauthAppServerService: OAuthAppServerService,
 		private iconService: IconService,
 		private stripeWebhookServerService: StripeWebhookServerService,
+		private ssoServerService: SsoServerService,
 	) {
 		this.logger = this.loggerService.getLogger('server', 'gray');
 	}
@@ -178,7 +180,7 @@ export class ServerService implements OnApplicationShutdown {
 						endpoint: 'oauth',
 						limitKey: 'oauth-general',
 						actor: ipHash,
-					}
+					},
 				);
 
 				if (rateLimit != null) {
@@ -196,8 +198,9 @@ export class ServerService implements OnApplicationShutdown {
 		}, { prefix: '/oauth' });
 		fastify.register(this.healthServerService.createServer, { prefix: '/healthz' });
 		fastify.register(this.stripeWebhookServerService.createServer);
+		fastify.register(this.ssoServerService.createServer);
 
-		fastify.get<{ Params: { path: string }; Querystring: { static?: any; badge?: any; }; }>('/emoji/:path(.*)', async (request, reply) => {
+		fastify.get<{ Params: { path: string }; Querystring: { static?: string; badge?: string; }; }>('/emoji/:path(.*)', async (request, reply) => {
 			const path = request.params.path;
 
 			reply.header('Cache-Control', 'public, max-age=86400');
@@ -290,7 +293,7 @@ export class ServerService implements OnApplicationShutdown {
 		this.streamingApiServerService.attach(fastify.server);
 
 		fastify.server.on('error', err => {
-			switch ((err as any).code) {
+			switch ((err as unknown as { code: string }).code) {
 				case 'EACCES':
 					this.logger.error(`You do not have permission to listen on port ${this.config.port}.`);
 					break;
@@ -303,7 +306,7 @@ export class ServerService implements OnApplicationShutdown {
 			}
 
 			if (cluster.isWorker) {
-				process.send!('listenFailed');
+				if (process.send) process.send('listenFailed');
 			} else {
 				// disableClustering
 				process.exit(1);

@@ -612,6 +612,46 @@ export type paths = {
          */
         post: operations['admin___notes___show-deleted'];
     };
+    '/admin/oauth-client-config/create': {
+        /**
+         * admin/oauth-client-config/create
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes* / **Permission**: *write:admin:oauth-client-config*
+         */
+        post: operations['admin___oauth-client-config___create'];
+    };
+    '/admin/oauth-client-config/delete': {
+        /**
+         * admin/oauth-client-config/delete
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes* / **Permission**: *write:admin:oauth-client-config*
+         */
+        post: operations['admin___oauth-client-config___delete'];
+    };
+    '/admin/oauth-client-config/list': {
+        /**
+         * admin/oauth-client-config/list
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes* / **Permission**: *read:admin:oauth-client-config*
+         */
+        post: operations['admin___oauth-client-config___list'];
+    };
+    '/admin/oauth-client-config/update': {
+        /**
+         * admin/oauth-client-config/update
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes* / **Permission**: *write:admin:oauth-client-config*
+         */
+        post: operations['admin___oauth-client-config___update'];
+    };
     '/admin/payments/list': {
         /**
          * admin/payments/list
@@ -2775,6 +2815,15 @@ export type paths = {
          */
         post: operations['i___authorized-apps'];
     };
+    '/i/authorized-sso': {
+        /**
+         * i/authorized-sso
+         * @description No description provided.
+         *
+         *     **Credential required**: *Yes* / **Permission**: *read:account*
+         */
+        post: operations['i___authorized-sso'];
+    };
     '/i/change-password': {
         /**
          * i/change-password
@@ -2823,6 +2872,15 @@ export type paths = {
          *     **Credential required**: *Yes*
          */
         post: operations['i___delete-session'];
+    };
+    '/i/disconnect-sso': {
+        /**
+         * i/disconnect-sso
+         * @description No description provided.
+         *
+         *     **Credential required**: *Yes* / **Permission**: *write:account*
+         */
+        post: operations['i___disconnect-sso'];
     };
     '/i/export-antennas': {
         /**
@@ -4129,6 +4187,16 @@ export type paths = {
          *     **Credential required**: *No*
          */
         post: operations['server-info'];
+    };
+    '/sso/providers': {
+        /**
+         * sso/providers
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *No* / **Permission**: *read:sso-providers*
+         */
+        post: operations['sso___providers'];
     };
     '/stats': {
         /**
@@ -6526,6 +6594,52 @@ export type components = {
             user?: components['schemas']['UserLite'];
             roomId: string;
             room?: components['schemas']['ChatRoom'];
+        };
+        OAuthClientConfig: {
+            /**
+             * Format: id
+             * @description The unique identifier for this OAuth client configuration.
+             * @example 995a9g5c6d
+             */
+            id: string;
+            /** @description The display name of the OAuth provider. */
+            name: string;
+            /**
+             * @description The type of OAuth provider.
+             * @enum {string}
+             */
+            type: 'oauth2' | 'oidc';
+            /** @description The OAuth client ID. */
+            clientId: string;
+            /** @description The OAuth client secret. */
+            clientSecret: string;
+            /** @description The OAuth authorization endpoint URL. */
+            authorizationEndpoint: string;
+            /** @description The OAuth token endpoint URL. */
+            tokenEndpoint: string;
+            /** @description The OAuth user info endpoint URL. */
+            userInfoEndpoint?: string | null;
+            /** @description The OIDC issuer URL. */
+            issuer?: string | null;
+            /** @description The OIDC JWK Set endpoint URL. */
+            jwksUri?: string | null;
+            /** @description The OAuth scopes to request. */
+            scope: string[];
+            /** @description The OAuth redirect URI. */
+            redirectUri: string;
+            /** @description Whether to automatically register new users. */
+            autoRegister: boolean;
+            /** @description Whether to automatically update user information. */
+            autoUpdate: boolean;
+            /** @description User field mapping configuration. */
+            userMapping: {
+                username?: string | null;
+                email?: string | null;
+                name?: string | null;
+                avatar?: string | null;
+            };
+            /** @description Whether this configuration is active. */
+            isActive: boolean;
         };
     };
     responses: never;
@@ -11297,6 +11411,302 @@ export interface operations {
             204: {
                 headers: {
                     [name: string]: unknown;
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'admin___oauth-client-config___create': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    name: string;
+                    /** @enum {string} */
+                    type: 'oauth2' | 'oidc';
+                    clientId: string;
+                    clientSecret: string;
+                    authorizationEndpoint: string;
+                    tokenEndpoint: string;
+                    userInfoEndpoint?: string | null;
+                    issuer?: string | null;
+                    jwksUri?: string | null;
+                    scope?: string[] | null;
+                    redirectUri: string;
+                    /** @default false */
+                    autoRegister?: boolean;
+                    /** @default true */
+                    autoUpdate?: boolean;
+                    userMapping?: {
+                        username?: string | null;
+                        email?: string | null;
+                        name?: string | null;
+                        avatar?: string | null;
+                    } | null;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['OAuthClientConfig'];
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'admin___oauth-client-config___delete': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** Format: misskey:id */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': Record<string, never>;
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'admin___oauth-client-config___list': {
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['OAuthClientConfig'][];
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'admin___oauth-client-config___update': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** Format: misskey:id */
+                    id: string;
+                    name?: string | null;
+                    /** @enum {string|null} */
+                    type?: 'oauth2' | 'oidc' | null;
+                    clientId?: string | null;
+                    clientSecret?: string | null;
+                    authorizationEndpoint?: string | null;
+                    tokenEndpoint?: string | null;
+                    userInfoEndpoint?: string | null;
+                    issuer?: string | null;
+                    jwksUri?: string | null;
+                    scope?: string[] | null;
+                    redirectUri?: string | null;
+                    autoRegister?: boolean | null;
+                    autoUpdate?: boolean | null;
+                    userMapping?: {
+                        username?: string | null;
+                        email?: string | null;
+                        name?: string | null;
+                        avatar?: string | null;
+                    } | null;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['OAuthClientConfig'];
                 };
             };
             /** @description Client error */
@@ -28442,6 +28852,67 @@ export interface operations {
             };
         };
     };
+    'i___authorized-sso': {
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        ssoProviderId?: string | null;
+                        ssoId?: string | null;
+                    };
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
     'i___change-password': {
         requestBody: {
             content: {
@@ -28711,6 +29182,72 @@ export interface operations {
             204: {
                 headers: {
                     [name: string]: unknown;
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'i___disconnect-sso': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    password: string;
+                    token?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': Record<string, never>;
                 };
             };
             /** @description Client error */
@@ -38981,6 +39518,69 @@ export interface operations {
                             used: number;
                         };
                     };
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    sso___providers: {
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        id: string;
+                        name: string;
+                        type: string;
+                        iconUrl: string | null;
+                    }[];
                 };
             };
             /** @description Client error */

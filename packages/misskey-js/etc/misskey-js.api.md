@@ -307,6 +307,27 @@ type AdminNotesShowDeletedRequest = operations['admin___notes___show-deleted']['
 type AdminNotesShowDeletedResponse = operations['admin___notes___show-deleted']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type AdminOauthClientConfigCreateRequest = operations['admin___oauth-client-config___create']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminOauthClientConfigCreateResponse = operations['admin___oauth-client-config___create']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AdminOauthClientConfigDeleteRequest = operations['admin___oauth-client-config___delete']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminOauthClientConfigDeleteResponse = operations['admin___oauth-client-config___delete']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AdminOauthClientConfigListResponse_2 = components['schemas']['OAuthClientConfig'][];
+
+// @public (undocumented)
+type AdminOauthClientConfigUpdateRequest = operations['admin___oauth-client-config___update']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminOauthClientConfigUpdateResponse = operations['admin___oauth-client-config___update']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type AdminPaymentsListRequest = operations['admin___payments___list']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -1873,6 +1894,26 @@ export type Endpoints = Overwrite<Endpoints_2, {
         req: EmptyRequest;
         res: EmptyResponse;
     };
+    'admin/oauth-client-config/create': {
+        req: AdminOauthClientConfigCreateRequest;
+        res: AdminOauthClientConfigCreateResponse;
+    };
+    'admin/oauth-client-config/delete': {
+        req: AdminOauthClientConfigDeleteRequest;
+        res: AdminOauthClientConfigDeleteResponse;
+    };
+    'admin/oauth-client-config/list': {
+        req: EmptyRequest;
+        res: AdminOauthClientConfigListResponse;
+    };
+    'admin/oauth-client-config/update': {
+        req: AdminOauthClientConfigUpdateRequest;
+        res: AdminOauthClientConfigUpdateResponse;
+    };
+    'sso/providers': {
+        req: EmptyRequest;
+        res: SsoProvidersResponse;
+    };
 }>;
 
 // @public (undocumented)
@@ -1884,6 +1925,8 @@ declare namespace entities {
         PublicKeyCredentialRequestOptionsJSON_2 as PublicKeyCredentialRequestOptionsJSON,
         ID,
         DateString,
+        OAuthClientConfig,
+        AdminOauthClientConfigListResponse_2 as AdminOauthClientConfigListResponse,
         PureRenote,
         PageEvent,
         ModerationLog,
@@ -1997,6 +2040,12 @@ declare namespace entities {
         AdminNotesListDeletedResponse,
         AdminNotesShowDeletedRequest,
         AdminNotesShowDeletedResponse,
+        AdminOauthClientConfigCreateRequest,
+        AdminOauthClientConfigCreateResponse,
+        AdminOauthClientConfigDeleteRequest,
+        AdminOauthClientConfigDeleteResponse,
+        AdminOauthClientConfigUpdateRequest,
+        AdminOauthClientConfigUpdateResponse,
         AdminPaymentsListRequest,
         AdminPaymentsListResponse,
         AdminPaymentsShowRequest,
@@ -2373,11 +2422,14 @@ declare namespace entities {
         IAppsResponse,
         IAuthorizedAppsRequest,
         IAuthorizedAppsResponse,
+        IAuthorizedSsoResponse,
         IChangePasswordRequest,
         IClaimAchievementRequest,
         IDeleteAccountRequest,
         IDeleteAllSessionsRequest,
         IDeleteSessionRequest,
+        IDisconnectSsoRequest,
+        IDisconnectSsoResponse,
         IExportFollowingRequest,
         IFavoritesRequest,
         IFavoritesResponse,
@@ -2579,6 +2631,7 @@ declare namespace entities {
         RolesUsersRequest,
         RolesUsersResponse,
         ServerInfoResponse,
+        SsoProvidersResponse,
         StatsResponse,
         SwRegisterRequest,
         SwRegisterResponse,
@@ -3098,6 +3151,9 @@ type IAuthorizedAppsRequest = operations['i___authorized-apps']['requestBody']['
 type IAuthorizedAppsResponse = operations['i___authorized-apps']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type IAuthorizedSsoResponse = operations['i___authorized-sso']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type IChangePasswordRequest = operations['i___change-password']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -3132,6 +3188,12 @@ type IDeleteAllSessionsRequest = operations['i___delete-all-sessions']['requestB
 
 // @public (undocumented)
 type IDeleteSessionRequest = operations['i___delete-session']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type IDisconnectSsoRequest = operations['i___disconnect-sso']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type IDisconnectSsoResponse = operations['i___disconnect-sso']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type IExportFollowingRequest = operations['i___export-following']['requestBody']['content']['application/json'];
@@ -3876,6 +3938,9 @@ type OauthAppsUpdateRequest = operations['oauth-apps___update']['requestBody']['
 type OauthAppsUpdateResponse = operations['oauth-apps___update']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type OAuthClientConfig = components['schemas']['OAuthClientConfig'];
+
+// @public (undocumented)
 type Page = components['schemas']['Page'];
 
 // @public (undocumented)
@@ -4254,6 +4319,9 @@ type SignupResponse = MeDetailed & {
 };
 
 // @public (undocumented)
+type SsoProvidersResponse = operations['sso___providers']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type StatsResponse = operations['stats']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
@@ -4608,7 +4676,8 @@ type WerewolfVoicePullTracksRequest = operations['werewolf___voice-pull-tracks']
 
 // Warnings were encountered during analysis:
 //
-// src/entities.ts:80:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
+// src/api.types.ts:157:4 - (ae-forgotten-export) The symbol "AdminOauthClientConfigListResponse" needs to be exported by the entry point index.d.ts
+// src/entities.ts:84:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
 // src/streaming.ts:57:3 - (ae-forgotten-export) The symbol "ReconnectingWebSocket" needs to be exported by the entry point index.d.ts
 // src/streaming.types.ts:87:5 - (ae-forgotten-export) The symbol "IceServer" needs to be exported by the entry point index.d.ts
 // src/streaming.types.ts:313:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts

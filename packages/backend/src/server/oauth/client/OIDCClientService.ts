@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Injectable } from '@nestjs/common';
 import { createHash } from 'node:crypto';
+import { Injectable } from '@nestjs/common';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import Logger from '@/logger.js';
@@ -121,12 +121,10 @@ export class OIDCClientService {
 
 			const config = await response.json() as OIDCConfiguration;
 
-			// Validate required fields
 			if (!config.issuer || !config.authorization_endpoint || !config.token_endpoint || !config.jwks_uri) {
 				throw new Error('Invalid OIDC configuration: missing required fields');
 			}
 
-			// Cache configuration
 			this.configCache.set(issuer, {
 				config,
 				expiresAt: Date.now() + (1000 * 60 * 60), // 1 hour
@@ -216,12 +214,10 @@ export class OIDCClientService {
 			const decodedPayload = Buffer.from(paddedPayload, 'base64url').toString('utf8');
 			const claims = JSON.parse(decodedPayload) as IDTokenClaims;
 
-			// Basic validation
 			if (!claims.iss || !claims.sub || !claims.aud || !claims.exp || !claims.iat) {
 				throw new Error('Invalid ID Token: missing required claims');
 			}
 
-			// Check expiration
 			if (claims.exp * 1000 < Date.now()) {
 				throw new Error('ID Token has expired');
 			}
@@ -242,30 +238,27 @@ export class OIDCClientService {
 		config: OAuthClientConfig,
 		nonce?: string,
 	): boolean {
-		// Validate issuer
 		if (config.issuer && claims.iss !== config.issuer) {
 			this.logger.error('ID Token issuer validation failed', {
 				expected: config.issuer,
-				actual: claims.iss
+				actual: claims.iss,
 			});
 			return false;
 		}
 
-		// Validate audience
 		const audiences = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
 		if (!audiences.includes(config.clientId)) {
 			this.logger.error('ID Token audience validation failed', {
 				clientId: config.clientId,
-				audiences
+				audiences,
 			});
 			return false;
 		}
 
-		// Validate nonce if provided
 		if (nonce && claims.nonce !== nonce) {
 			this.logger.error('ID Token nonce validation failed', {
 				expected: nonce,
-				actual: claims.nonce
+				actual: claims.nonce,
 			});
 			return false;
 		}
@@ -316,7 +309,6 @@ export class OIDCClientService {
 		code: string,
 		state: string,
 	): Promise<{ tokenResponse: TokenResponse; userInfo: UserInfo; idTokenClaims?: IDTokenClaims }> {
-		// Get cached state data to retrieve nonce and config
 		const stateData = this.oauthClientService.getStateData(state);
 		if (!stateData) {
 			throw new Error('Invalid or expired state');
@@ -324,13 +316,11 @@ export class OIDCClientService {
 
 		const { config, nonce } = stateData;
 
-		// Exchange code for tokens
 		const tokenResponse = await this.oauthClientService.exchangeCodeForToken(code, state);
 
 		let idTokenClaims: IDTokenClaims | undefined;
 		let userInfo: UserInfo;
 
-		// If we have an ID token, parse and validate it
 		if (tokenResponse.id_token) {
 			idTokenClaims = this.parseIDToken(tokenResponse.id_token);
 
@@ -338,10 +328,8 @@ export class OIDCClientService {
 				throw new Error('ID Token validation failed');
 			}
 
-			// Extract user info from ID token
 			userInfo = this.extractUserInfoFromIDToken(idTokenClaims);
 		} else {
-			// Fallback to UserInfo endpoint
 			userInfo = await this.oauthClientService.getUserInfo(config, tokenResponse.access_token);
 		}
 

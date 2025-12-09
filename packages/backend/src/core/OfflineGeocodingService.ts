@@ -2446,15 +2446,11 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 						resolve(results);
 					} catch (endError) {
 						this.logger.error('Error during stream end processing:', (endError as Error));
-						stream.destroy();
-						stream.once('close', () => {
-							reject(endError);
-						});
+						reject(endError);
 					}
 				});
 
 				stream.on('error', (err) => {
-					stream.destroy();
 					reject(err);
 				});
 			});
@@ -2568,21 +2564,14 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 									this.logger.warn('Error processing final buffer:', parseError as Error);
 								}
 							}
-							stream.destroy();
-							stream.once('close', () => {
-								resolve();
-							});
+							resolve();
 						} catch (endError) {
 							this.logger.error('Error during stream end processing:', endError as Error);
-							stream.destroy();
-							stream.once('close', () => {
-								reject(endError);
-							});
+							reject(endError);
 						}
 					});
 
 					stream.on('error', (err) => {
-						stream.destroy();
 						reject(err);
 					});
 				});
