@@ -55,7 +55,7 @@ function removeEmpty<T extends ILocale>(obj: T): T {
 	for (const [k, v] of Object.entries(obj)) {
 		if (v === '') {
 			delete obj[k];
-		} else if (typeof v === 'object') {
+		} else if (v && typeof v === 'object') {
 			removeEmpty(v as ILocale);
 		}
 	}
@@ -73,7 +73,8 @@ function build(): Record<Language, Locale> {
 	}, {} as Locales);
 
 	const vkLocales = languages.reduce<Locales>((a, c) => {
-		const content = clean(tryReadFile(new URL(`../../../vickey-locales/${c}.yml`, metaUrl)));
+		const url = new URL(`../../../vickey-locales/${c}.yml`, metaUrl);
+		const content = clean(tryReadFile(url));
 		if (content) {
 			a[c] = (yaml.load(content) ?? {}) as ILocale;
 		} else {
