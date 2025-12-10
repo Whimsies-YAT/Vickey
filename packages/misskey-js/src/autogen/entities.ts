@@ -527,6 +527,7 @@ export type IRegistryScopesWithDomainResponse = operations['i___registry___scope
 export type IRegistrySetRequest = operations['i___registry___set']['requestBody']['content']['application/json'];
 export type IRevokeTokenRequest = operations['i___revoke-token']['requestBody']['content']['application/json'];
 export type ISessionsResponse = operations['i___sessions']['responses']['200']['content']['application/json'];
+export type ISetupPasswordRequest = operations['i___setup-password']['requestBody']['content']['application/json'];
 export type ISigninHistoryRequest = operations['i___signin-history']['requestBody']['content']['application/json'];
 export type ISigninHistoryResponse = operations['i___signin-history']['responses']['200']['content']['application/json'];
 export type ITimelinePreferencesResponse = operations['i___timeline-preferences']['responses']['200']['content']['application/json'];

@@ -701,6 +701,10 @@ export const packedMeDetailedOnlySchema = {
 				},
 			},
 		},
+		isPasswordSet: {
+			type: 'boolean',
+			nullable: true, optional: true,
+		},
 		//#endregion
 	},
 } as const;

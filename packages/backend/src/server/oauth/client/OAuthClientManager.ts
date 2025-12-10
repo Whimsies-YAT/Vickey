@@ -66,7 +66,16 @@ export class OAuthClientManager implements OnModuleInit {
 	@bindThis
 	private async initializeProviders(): Promise<void> {
 		try {
-			this.logger.info('OAuth Client Manager initialized');
+			const configs = await this.oauthClientConfigService.listAllActive();
+			for (const config of configs) {
+				try {
+					const provider = this.oauthClientConfigService.toSSOProvider(config);
+					this.ssoService.registerProvider(provider);
+				} catch (e) {
+					this.logger.error(`Failed to register provider ${config.name}`, { error: e });
+				}
+			}
+			this.logger.info(`Initialized ${configs.length} OAuth providers`);
 		} catch (error) {
 			this.logger.error('Failed to initialize OAuth providers', { error });
 		}

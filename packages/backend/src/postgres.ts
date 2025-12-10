@@ -92,6 +92,7 @@ import { MiReversiGame } from '@/models/ReversiGame.js';
 import { MiChatApproval } from '@/models/ChatApproval.js';
 import { MiSystemAccount } from '@/models/SystemAccount.js';
 import { MiUserSessions } from '@/models/UserSessions.js';
+import { MiUserSession } from '@/models/UserSession.js';
 import { MiUserRiskScoreHistory } from '@/models/UserRiskScoreHistory.js';
 import { MiRiskEventLog } from '@/models/RiskEventLog.js';
 import { MiUserMultiAccountLink } from '@/models/UserMultiAccountLink.js';
@@ -279,6 +280,7 @@ export const entities = [
 	MiBubbleGameRecord,
 	MiReversiGame,
 	MiUserSessions,
+	MiUserSession,
 	MiUserRiskScoreHistory,
 	MiRiskEventLog,
 	MiUserMultiAccountLink,

@@ -359,6 +359,30 @@ export class ApiCallService implements OnApplicationShutdown {
 	) {
 		const isSecure = user != null && token == null;
 
+		if (user && user.isPasswordSet === false) {
+			const blocked = [
+				'i/change-password',
+				'i/delete-account',
+				'i/regenerate-token',
+				'i/delete-session',
+				'i/delete-all-sessions',
+				'i/email/update',
+				'i/2fa/register',
+				'i/2fa/unregister',
+				'i/2fa/update-key',
+				'i/2fa/remove-key',
+			];
+
+			if (blocked.includes(ep.name)) {
+				throw new ApiError({
+					message: 'Password setup required.',
+					code: 'PASSWORD_SETUP_REQUIRED',
+					id: 'b6d39676-e10c-4573-b328-3b4e64593412',
+					httpStatusCode: 403,
+				});
+			}
+		}
+
 		if (ep.meta.secure && !isSecure) {
 			throw new ApiError(accessDenied);
 		}

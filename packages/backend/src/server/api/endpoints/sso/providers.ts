@@ -11,7 +11,6 @@ export const meta = {
 	tags: ['sso'],
 	requireCredential: false,
 	requireModerator: false,
-	secure: true,
 	kind: 'read:sso-providers',
 	res: {
 		type: 'array',

@@ -524,6 +524,7 @@ import type {
 	IRegistrySetRequest,
 	IRevokeTokenRequest,
 	ISessionsResponse,
+	ISetupPasswordRequest,
 	ISigninHistoryRequest,
 	ISigninHistoryResponse,
 	ITimelinePreferencesResponse,
@@ -1128,6 +1129,7 @@ export type Endpoints = {
 	'i/registry/set': { req: IRegistrySetRequest; res: EmptyResponse };
 	'i/revoke-token': { req: IRevokeTokenRequest; res: EmptyResponse };
 	'i/sessions': { req: EmptyRequest; res: ISessionsResponse };
+	'i/setup-password': { req: ISetupPasswordRequest; res: EmptyResponse };
 	'i/sign-out': { req: EmptyRequest; res: EmptyResponse };
 	'i/signin-history': { req: ISigninHistoryRequest; res: ISigninHistoryResponse };
 	'i/timeline-preferences': { req: EmptyRequest; res: ITimelinePreferencesResponse };

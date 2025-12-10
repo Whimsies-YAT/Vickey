@@ -12,6 +12,14 @@ export interface Locale extends ILocale {
      */
     "goToVickey": string;
     /**
+     * Set Password
+     */
+    "setupPassword": string;
+    /**
+     * Password set successfully
+     */
+    "passwordSet": string;
+    /**
      * Result
      */
     "result": string;

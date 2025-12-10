@@ -12,11 +12,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<SearchMarker :keywords="['password']">
 			<FormSection first>
-				<template #label><SearchLabel>{{ i18n.ts.password }}</SearchLabel></template>
+				<template #label><SearchLabel>{{ $i?.isPasswordSet ? i18n.ts.password : i18n.ts.setupPassword }}</SearchLabel></template>
 
 				<SearchMarker>
-					<MkButton primary @click="change()">
-						<SearchLabel>{{ i18n.ts.changePassword }}</SearchLabel>
+					<MkButton primary @click="$i?.isPasswordSet ? change() : setup()">
+						<SearchLabel>{{ $i?.isPasswordSet ? i18n.ts.changePassword : i18n.ts.setupPassword }}</SearchLabel>
 					</MkButton>
 				</SearchMarker>
 			</FormSection>
@@ -134,7 +134,7 @@ function isLocationDataUnavailable(ipData: string[]): boolean {
 	const unavailableValues = ['-', 'Unknown', 'MISSING_FILE', 'MISSING FILE', '', null, undefined];
 
 	return [ipData[5], ipData[4], ipData[2]].every(value =>
-		unavailableValues.includes(value as any) || value.includes('MISSING')
+		unavailableValues.includes(value as any) || value.includes('MISSING'),
 	);
 }
 
@@ -181,6 +181,52 @@ async function change() {
 		token: auth.result.token,
 		newPassword,
 	});
+}
+
+async function setup() {
+	const { canceled: canceled2, result: newPassword } = await os.inputText({
+		title: i18n.ts.newPassword,
+		type: 'password',
+		autocomplete: 'new-password',
+	});
+	if (canceled2 || newPassword == null) return;
+
+	const { canceled: canceled3, result: newPassword2 } = await os.inputText({
+		title: i18n.ts.newPasswordRetype,
+		type: 'password',
+		autocomplete: 'new-password',
+	});
+	if (canceled3 || newPassword2 == null) return;
+
+	if (newPassword !== newPassword2) {
+		os.alert({
+			type: 'error',
+			text: i18n.ts.retypedNotMatch,
+		});
+		return;
+	}
+
+	try {
+		await misskeyApi('i/setup-password', {
+			password: newPassword,
+		});
+		if ($i) {
+			$i.isPasswordSet = true;
+			// Update storage to persist the flag change
+			miLocalStorage.setItem('account', JSON.stringify($i));
+		}
+		os.success();
+		await os.alert({
+			type: 'success',
+			text: i18n.ts.passwordSet,
+		});
+	} catch (e) {
+		const error = e as any;
+		await os.alert({
+			type: 'error',
+			text: error.message || i18n.ts.error,
+		});
+	}
 }
 
 async function regenerateToken() {

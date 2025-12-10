@@ -320,6 +320,8 @@ export class MiUser {
 	})
 	public signupReason: string | null;
 
+	public isPasswordSet?: boolean;
+
 	constructor(data: Partial<MiUser>) {
 		if (data == null) return;
 

@@ -12,6 +12,7 @@ import type { MiOAuthClientConfig } from '@/models/OAuthClientConfig.js';
 import Logger from '@/logger.js';
 import { bindThis } from '@/decorators.js';
 import { OIDCClientService } from './OIDCClientService.js';
+import { SSOService } from './SSOService.js';
 import type { OAuthClientConfig } from './OAuthClientService.js';
 import type { SSOProvider } from './SSOService.js';
 
@@ -52,6 +53,7 @@ export class OAuthClientConfigService {
 		private readonly loggerService: LoggerService,
 		private readonly idService: IdService,
 		private readonly oidcClientService: OIDCClientService,
+		private readonly ssoService: SSOService,
 	) {
 		this.logger = this.loggerService.getLogger('oauth-client-config');
 	}
@@ -89,6 +91,10 @@ export class OAuthClientConfigService {
 		}).then(result => result.generatedMaps[0] as MiOAuthClientConfig);
 
 		this.logger.info(`Created OAuth client config: ${request.name} (${request.type})`);
+
+		if (config.isActive) {
+			this.ssoService.registerProvider(this.toSSOProvider(config));
+		}
 
 		return config;
 	}
@@ -129,6 +135,12 @@ export class OAuthClientConfigService {
 
 		this.logger.info(`Updated OAuth client config: ${updatedConfig.name}`);
 
+		if (updatedConfig.isActive) {
+			this.ssoService.registerProvider(this.toSSOProvider(updatedConfig));
+		} else {
+			this.ssoService.unregisterProvider(updatedConfig.id);
+		}
+
 		return updatedConfig;
 	}
 
@@ -148,6 +160,8 @@ export class OAuthClientConfigService {
 		await this.oauthClientConfigsRepository.delete(id);
 
 		this.logger.info(`Deleted OAuth client config: ${config.name}`);
+
+		this.ssoService.unregisterProvider(config.id);
 
 		return config;
 	}
@@ -185,6 +199,17 @@ export class OAuthClientConfigService {
 	}
 
 	/**
+	 * List all active OAuth client configurations for system
+	 */
+	@bindThis
+	public async listAllActive(): Promise<MiOAuthClientConfig[]> {
+		return await this.oauthClientConfigsRepository.find({
+			where: { isActive: true },
+			order: { createdAt: 'DESC' },
+		});
+	}
+
+	/**
 	 * Toggle OAuth client configuration active status
 	 */
 	@bindThis
@@ -204,6 +229,12 @@ export class OAuthClientConfigService {
 		const updatedConfig = await this.oauthClientConfigsRepository.findOneByOrFail({ id });
 
 		this.logger.info(`Toggled OAuth client config active status: ${updatedConfig.name} -> ${updatedConfig.isActive}`);
+
+		if (updatedConfig.isActive) {
+			this.ssoService.registerProvider(this.toSSOProvider(updatedConfig));
+		} else {
+			this.ssoService.unregisterProvider(updatedConfig.id);
+		}
 
 		return updatedConfig;
 	}

@@ -98,6 +98,7 @@ import { misskeyApi } from '@/utility/misskey-api.js';
 import MkButton from '@/components/MkButton.vue';
 import MkFolder from '@/components/MkFolder.vue';
 import { Paginator } from '@/utility/paginator.js';
+import { $i } from '@/i.js';
 
 const isDesktop = ref(window.innerWidth >= 1100);
 
@@ -129,8 +130,34 @@ function updateLinkedSso() {
 	});
 }
 
-function connectSso(provider: SsoProvider) {
-	window.location.href = `/sso/connect/${provider.id}`;
+async function connectSso(provider: SsoProvider) {
+	try {
+		const res = await window.fetch(`/sso/connect/${provider.id}`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				token: $i?.token,
+			}),
+		});
+
+		if (res.ok) {
+			const { url } = await res.json();
+			window.location.href = url;
+		} else {
+			const { error } = await res.json();
+			os.alert({
+				type: 'error',
+				text: error,
+			});
+		}
+	} catch (e) {
+		os.alert({
+			type: 'error',
+			text: 'Failed to connect: ' + e,
+		});
+	}
 }
 
 async function disconnectSso() {

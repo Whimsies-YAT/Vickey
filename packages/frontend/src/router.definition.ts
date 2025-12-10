@@ -695,13 +695,13 @@ export const ROUTE_DEF = [{
 	redirect: $i ? `@${$i.username}` : '/',
 	loginRequired: true,
 }, {
-	path: '/:(*)',
-	component: page(() => import('@/pages/not-found.vue')),
-}, {
 	path: '/signin',
 	component: page(() => import('@/pages/signin.vue')),
 	query: {
 		sso_token: 'sso_token',
 		error: 'error',
 	},
+}, {
+	path: '/:(*)',
+	component: page(() => import('@/pages/not-found.vue')),
 }] as const satisfies RouteDef[];

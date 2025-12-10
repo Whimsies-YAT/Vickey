@@ -2479,6 +2479,7 @@ declare namespace entities {
         IRegistrySetRequest,
         IRevokeTokenRequest,
         ISessionsResponse,
+        ISetupPasswordRequest,
         ISigninHistoryRequest,
         ISigninHistoryResponse,
         ITimelinePreferencesResponse,
@@ -3349,6 +3350,9 @@ function isAPIError(reason: Record<PropertyKey, unknown>): reason is APIError;
 
 // @public (undocumented)
 type ISessionsResponse = operations['i___sessions']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type ISetupPasswordRequest = operations['i___setup-password']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type ISigninHistoryRequest = operations['i___signin-history']['requestBody']['content']['application/json'];

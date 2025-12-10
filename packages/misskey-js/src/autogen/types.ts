@@ -3216,6 +3216,16 @@ export type paths = {
          */
         post: operations['i___sessions'];
     };
+    '/i/setup-password': {
+        /**
+         * i/setup-password
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes* / **Permission**: *write:account*
+         */
+        post: operations['i___setup-password'];
+    };
     '/i/sign-out': {
         /**
          * i/sign-out
@@ -4203,7 +4213,6 @@ export type paths = {
          * sso/providers
          * @description No description provided.
          *
-         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
          *     **Credential required**: *No* / **Permission**: *read:sso-providers*
          */
         post: operations['sso___providers'];
@@ -5095,6 +5104,7 @@ export type components = {
                 /** Format: date-time */
                 lastUsed: string;
             }[];
+            isPasswordSet?: boolean | null;
         };
         UserDetailedNotMe: components['schemas']['UserLite'] & components['schemas']['UserDetailedNotMeOnly'];
         MeDetailed: components['schemas']['UserLite'] & components['schemas']['UserDetailedNotMeOnly'] & components['schemas']['MeDetailedOnly'];
@@ -31686,6 +31696,68 @@ export interface operations {
                         location: string;
                         isCurrent: boolean;
                     }[];
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'i___setup-password': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    password: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (without any results) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
                 };
             };
             /** @description Client error */

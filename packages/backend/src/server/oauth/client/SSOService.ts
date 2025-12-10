@@ -83,6 +83,18 @@ export class SSOService {
 	}
 
 	/**
+	 * Unregister SSO provider
+	 */
+	@bindThis
+	public unregisterProvider(id: string): void {
+		if (this.providers.has(id)) {
+			const provider = this.providers.get(id);
+			this.providers.delete(id);
+			this.logger.info(`Unregistered SSO provider: ${provider?.name}`);
+		}
+	}
+
+	/**
 	 * Get all registered providers
 	 */
 	@bindThis
@@ -236,7 +248,15 @@ export class SSOService {
 					throw new Error('This account is already linked to another user.');
 				}
 			} else {
-				if (email) {
+				const targetProfile = await this.userProfilesRepository.findOneBy({ userId: targetUserId });
+				if (!targetProfile) {
+					throw new Error('Target user profile not found.');
+				}
+
+				let emailToUpdate: string | undefined;
+				let emailVerifiedToUpdate: boolean | undefined;
+
+				if (!targetProfile.emailVerified && email) {
 					const emailProfile = await this.userProfilesRepository.findOne({
 						where: { email },
 						relations: ['user'],
@@ -244,20 +264,18 @@ export class SSOService {
 					const emailUser = emailProfile?.user as MiLocalUser | null;
 
 					if (emailUser && emailUser.id !== targetUserId) {
-						throw new Error('Email address is already used by another user.');
+						this.logger.warn(`Email address ${email} is already used by another user ${emailUser.id}. Skipping email update for user ${targetUserId}.`);
+					} else {
+						emailToUpdate = email;
+						emailVerifiedToUpdate = userInfo.email_verified;
 					}
-				}
-
-				const targetProfile = await this.userProfilesRepository.findOneBy({ userId: targetUserId });
-				if (!targetProfile) {
-					throw new Error('Target user profile not found.');
 				}
 
 				await this.userProfilesRepository.update(targetUserId, {
 					ssoProviderId: provider.id,
 					ssoId: ssoId,
-					email: email || targetProfile.email,
-					emailVerified: userInfo.email_verified || targetProfile.emailVerified,
+					email: emailToUpdate || targetProfile.email,
+					emailVerified: emailVerifiedToUpdate ?? targetProfile.emailVerified,
 				});
 
 				const targetUser = await this.usersRepository.findOneByOrFail({ id: targetUserId }) as MiLocalUser;
