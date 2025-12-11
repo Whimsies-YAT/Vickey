@@ -290,11 +290,15 @@ export class SSOService {
 			return { user, isNewUser: false, action: 'login' };
 		}
 
+		// FIXME: Temporarily disabled
+		/*
 		if (!provider.autoRegister) {
 			throw new Error('User not found and auto-registration is disabled');
 		}
 
 		return await this.createUser(provider, userInfo, idTokenClaims);
+		*/
+		throw new Error('New user registration via SSO is temporarily disabled.');
 	}
 
 	/**

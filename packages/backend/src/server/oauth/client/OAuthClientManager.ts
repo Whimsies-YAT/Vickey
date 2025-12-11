@@ -3,21 +3,31 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { LoggerService } from '@/core/LoggerService.js';
 import Logger from '@/logger.js';
 import { bindThis } from '@/decorators.js';
 import type { MiLocalUser } from '@/models/User.js';
-import { OAuthClientService } from './OAuthClientService.js';
-import { OIDCClientService } from './OIDCClientService.js';
-import { SSOService } from './SSOService.js';
-import { JWTService } from './JWTService.js';
-import { OAuthClientConfigService } from './OAuthClientConfigService.js';
+import { UserSessionsService } from '@/core/UserSessionsService.js';
+import { DI } from '@/di-symbols.js';
+import type { SigninsRepository, UserProfilesRepository } from '@/models/_.js';
+import { GlobalEventService } from '@/core/GlobalEventService.js';
+import { SigninEntityService } from '@/core/entities/SigninEntityService.js';
+import { EmailService } from '@/core/EmailService.js';
+import { NotificationService } from '@/core/NotificationService.js';
+import { EmailTemplatesService } from '@/core/EmailTemplatesService.js';
+import { UserRiskScoreService } from '@/core/UserRiskScoreService.js';
+import { MultiAccountDetectionService } from '@/core/MultiAccountDetectionService.js';
+import { RiskEventLogService } from '@/core/RiskEventLogService.js';
+import { IdService } from '@/core/IdService.js';
+import { detectDeviceType } from '@/misc/device-type.js';
 import { SessionService } from './SessionService.js';
-import type {
-	SSOProvider,
-	SSOLoginResult,
-} from './SSOService.js';
+import { OAuthClientConfigService } from './OAuthClientConfigService.js';
+import { JWTService } from './JWTService.js';
+import { SSOService } from './SSOService.js';
+import { OIDCClientService } from './OIDCClientService.js';
+import { OAuthClientService } from './OAuthClientService.js';
+import type { SSOProvider } from './SSOService.js';
 
 export interface UserSessionApiResult {
 	sessionId: string;
@@ -44,6 +54,12 @@ export class OAuthClientManager implements OnModuleInit {
 	private readonly logger: Logger;
 
 	constructor(
+		@Inject(DI.signinsRepository)
+		private signinsRepository: SigninsRepository,
+
+		@Inject(DI.userProfilesRepository)
+		private userProfilesRepository: UserProfilesRepository,
+
 		private readonly loggerService: LoggerService,
 		private readonly oauthClientService: OAuthClientService,
 		private readonly oidcClientService: OIDCClientService,
@@ -51,6 +67,16 @@ export class OAuthClientManager implements OnModuleInit {
 		private readonly jwtService: JWTService,
 		private readonly oauthClientConfigService: OAuthClientConfigService,
 		private readonly sessionService: SessionService,
+		private readonly userSessionsService: UserSessionsService,
+		private signinEntityService: SigninEntityService,
+		private emailService: EmailService,
+		private notificationService: NotificationService,
+		private emailTemplatesService: EmailTemplatesService,
+		private globalEventService: GlobalEventService,
+		private userRiskScoreService: UserRiskScoreService,
+		private multiAccountDetectionService: MultiAccountDetectionService,
+		private riskEventLogService: RiskEventLogService,
+		private idService: IdService,
 	) {
 		this.logger = this.loggerService.getLogger('oauth-client-manager');
 	}
@@ -144,12 +170,13 @@ export class OAuthClientManager implements OnModuleInit {
 			action: 'login' | 'link';
 		}> {
 		const loginResult = await this.ssoService.completeLogin(code, state);
+		const user = loginResult.user;
 
 		// Create session
 		const sessionInfo = await this.sessionService.createSession({
-			user: loginResult.user,
+			user: user,
 			providerId: loginResult.session.providerId,
-			providerName: this.ssoService.getProvider(loginResult.session.providerId)?.name || 'Unknown',
+			providerName: this.ssoService.getProvider(loginResult.session.providerId)?.name ?? 'Unknown',
 			userInfo: loginResult.session.userInfo!,
 			tokenResponse: {
 				access_token: loginResult.session.accessToken!,
@@ -163,9 +190,78 @@ export class OAuthClientManager implements OnModuleInit {
 			userAgent,
 		});
 
+		const deviceInfo = detectDeviceType({ 'user-agent': userAgent });
+		const signinId = this.idService.gen();
+
+		const token = await this.userSessionsService.createTokenSafely({
+			userId: user.id,
+			signInId: signinId,
+			clientIp: ipAddress,
+			deviceInfo,
+		});
+
+		if (!token) {
+			throw new Error('Failed to create user session token');
+		}
+
+		setImmediate(async () => {
+			this.notificationService.createNotification(user.id, 'login', {});
+
+			const record = await this.signinsRepository.insertOne({
+				id: signinId,
+				userId: user.id,
+				ip: ipAddress || '',
+				headers: { 'user-agent': userAgent } as any,
+				success: true,
+			});
+
+			// @ts-expect-error: The incoming IP needs to be verified/typed if strictly checked
+			this.globalEventService.publishMainStream(user.id, 'signin', await this.signinEntityService.pack(record));
+
+			const riskScorePromise = this.userRiskScoreService.calculateUserRiskScore(user.id).catch((err: Error) => {
+				this.logger.error(`Failed to calculate risk score for user ${user.id}:`, err);
+				return null;
+			});
+
+			const mockRequest = {
+				ip: ipAddress || '',
+				headers: { 'user-agent': userAgent || '' },
+			};
+			const trackingPromise = this.multiAccountDetectionService.trackRequest(user.id, mockRequest as any, 'signin').catch((err: Error) => {
+				this.logger.error(`Failed to track request for user ${user.id}:`, err);
+			});
+
+			const [riskScore] = await Promise.all([riskScorePromise, trackingPromise]);
+
+			if (riskScore) {
+				await this.riskEventLogService.logRiskEvent({
+					userId: user.id,
+					eventType: 'user_login',
+					riskScore: riskScore.totalScore,
+					riskLevel: riskScore.riskLevel,
+					details: {
+						ip: ipAddress,
+						userAgent: userAgent || '',
+						dimensions: riskScore.dimensions,
+					},
+					timestamp: new Date(),
+				});
+			}
+
+			const profile = await this.userProfilesRepository.findOneByOrFail({ userId: user.id });
+			if (profile.email && profile.emailVerified) {
+				const result = await this.emailTemplatesService.sendEmailWithTemplates(profile.email, 'newLogin');
+				if (!result) {
+					this.emailService.sendEmail(profile.email, 'New login / ログインがありました',
+						'There is a new login. If you do not recognize this login, update the security status of your account, including changing your password. / 新しいログインがありました。このログインに心当たりがない場合は、パスワードを変更するなど、アカウントのセキュリティ状態を更新してください。',
+						'There is a new login. If you do not recognize this login, update the security status of your account, including changing your password. / 新しいログインがありました。このログインに心当たりがない場合は、パスワードを変更するなど、アカウントのセキュリティ状態を更新してください。');
+				}
+			}
+		});
+
 		return {
-			user: loginResult.user,
-			sessionId: sessionInfo.sessionId,
+			user: user,
+			sessionId: token,
 			isNewUser: loginResult.isNewUser,
 			action: loginResult.action,
 		};
