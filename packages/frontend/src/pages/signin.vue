@@ -5,9 +5,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div class="_gaps_m" style="padding: 32px; max-width: 400px; margin: 0 auto;">
-	<MkAlert v-if="error" type="error">{{ decodeURIComponent(error) }}</MkAlert>
+	<MkAlert v-if="error || internalError" type="error">{{ decodeURIComponent(error ?? internalError ?? '') }}</MkAlert>
 
-	<div v-if="sso_token" style="text-align: center;">
+	<div v-if="sso_token && !internalError" style="text-align: center;">
 		<MkLoading/>
 		<div style="margin-top: 16px;">{{ i18n.ts.loggingIn }}</div>
 	</div>
@@ -17,7 +17,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import MkSignin from '@/components/MkSignin.vue';
 import { login } from '@/accounts.js';
 import { definePage } from '@/page.js';
@@ -33,6 +33,8 @@ const props = defineProps<{
 	sso_token?: string;
 	error?: string;
 }>();
+
+const internalError = ref<string | null>(null);
 
 const signout = () => import('@/signout.js').then(m => m.signout());
 
@@ -50,9 +52,13 @@ onMounted(async () => {
 		}
 
 		if (new URLSearchParams(window.location.search).get('is_new_user') === 'true') {
-			login(props.sso_token, '/settings/security');
+			login(props.sso_token, '/settings/security').catch(err => {
+				internalError.value = 'Failed to login: ' + (err?.message ?? err);
+			});
 		} else {
-			login(props.sso_token);
+			login(props.sso_token).catch(err => {
+				internalError.value = 'Failed to login: ' + (err?.message ?? err);
+			});
 		}
 		return;
 	}
