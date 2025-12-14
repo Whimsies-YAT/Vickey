@@ -360,7 +360,7 @@ export class SSOService {
 		const name = this.extractName(provider, userInfo, idTokenClaims);
 
 		const updates: Partial<MiLocalUser> = {};
-		if (name && name !== user.name) {
+		if (name && !user.name) {
 			updates.name = name;
 		}
 
