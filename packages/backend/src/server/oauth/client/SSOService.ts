@@ -9,9 +9,11 @@ import { IdService } from '@/core/IdService.js';
 import { DI } from '@/di-symbols.js';
 import type { UsersRepository, UserProfilesRepository } from '@/models/_.js';
 import type { MiLocalUser } from '@/models/User.js';
+import type { MiUserProfile } from '@/models/UserProfile.js';
 import Logger from '@/logger.js';
 import { bindThis } from '@/decorators.js';
-import { OAuthClientService, type OAuthClientConfig } from './OAuthClientService.js';
+import { MetaService } from '@/core/MetaService.js';
+import { OAuthClientService, type OAuthClientConfig, type TokenResponse } from './OAuthClientService.js';
 import { OIDCClientService, type IDTokenClaims } from './OIDCClientService.js';
 import type { UserInfo } from './OAuthClientService.js';
 
@@ -46,13 +48,14 @@ export interface SSOLoginResult {
 	user: MiLocalUser;
 	isNewUser: boolean;
 	session: SSOSession;
+	action: 'login' | 'link';
 }
 
 @Injectable()
 export class SSOService {
 	private readonly logger: Logger;
 	private readonly providers = new Map<string, SSOProvider>();
-	private readonly pendingStates = new Map<string, { providerId: string; createdAt: number }>();
+	private readonly pendingStates = new Map<string, { providerId: string; createdAt: number; userId?: string }>();
 
 	constructor(
 		@Inject(DI.usersRepository)
@@ -65,6 +68,7 @@ export class SSOService {
 		private readonly idService: IdService,
 		private readonly oauthClientService: OAuthClientService,
 		private readonly oidcClientService: OIDCClientService,
+		private readonly metaService: MetaService,
 	) {
 		this.logger = this.loggerService.getLogger('sso');
 	}
@@ -76,6 +80,18 @@ export class SSOService {
 	public registerProvider(provider: SSOProvider): void {
 		this.providers.set(provider.id, provider);
 		this.logger.info(`Registered SSO provider: ${provider.name} (${provider.type})`);
+	}
+
+	/**
+	 * Unregister SSO provider
+	 */
+	@bindThis
+	public unregisterProvider(id: string): void {
+		if (this.providers.has(id)) {
+			const provider = this.providers.get(id);
+			this.providers.delete(id);
+			this.logger.info(`Unregistered SSO provider: ${provider?.name}`);
+		}
 	}
 
 	/**
@@ -117,7 +133,7 @@ export class SSOService {
 	 * Initialize SSO login
 	 */
 	@bindThis
-	public async initializeLogin(providerId: string): Promise<{ authUrl: string; state: string }> {
+	public async initializeLogin(providerId: string, userId?: string): Promise<{ authUrl: string; state: string }> {
 		const provider = this.providers.get(providerId);
 		if (!provider) {
 			throw new Error(`SSO provider not found: ${providerId}`);
@@ -125,10 +141,10 @@ export class SSOService {
 
 		const authRequest = await this.oauthClientService.generateAuthorizationUrl(provider.config);
 
-		// Store provider info in temporary storage
 		this.pendingStates.set(authRequest.state, {
 			providerId,
 			createdAt: Date.now(),
+			userId,
 		});
 
 		// Clean up expired states (older than 10 minutes)
@@ -167,7 +183,7 @@ export class SSOService {
 
 		let userInfo: UserInfo;
 		let idTokenClaims: IDTokenClaims | undefined;
-		let tokenResponse: any;
+		let tokenResponse: TokenResponse;
 
 		if (provider.type === 'oidc') {
 			const authResult = await this.oidcClientService.authenticate(code, state);
@@ -180,7 +196,7 @@ export class SSOService {
 		}
 
 		// Find or create user
-		const { user, isNewUser } = await this.findOrCreateUser(provider, userInfo, idTokenClaims);
+		const { user, isNewUser, action } = await this.findOrCreateUser(provider, userInfo, idTokenClaims, stateData.userId);
 
 		// Create SSO session
 		const session: SSOSession = {
@@ -195,9 +211,7 @@ export class SSOService {
 			createdAt: Date.now(),
 		};
 
-		// Note: Session caching would need to use proper Redis cache implementation
-
-		return { user, isNewUser, session };
+		return { user, isNewUser, session, action };
 	}
 
 	/**
@@ -208,11 +222,11 @@ export class SSOService {
 		provider: SSOProvider,
 		userInfo: UserInfo,
 		idTokenClaims?: IDTokenClaims,
-	): Promise<{ user: MiLocalUser; isNewUser: boolean }> {
+		targetUserId?: string,
+	): Promise<{ user: MiLocalUser; isNewUser: boolean; action: 'login' | 'link' }> {
 		const ssoId = userInfo.sub;
 		const email = userInfo.email;
 
-		// First, find user profile by SSO ID
 		const userProfile = await this.userProfilesRepository.findOne({
 			where: {
 				ssoProviderId: provider.id,
@@ -221,45 +235,70 @@ export class SSOService {
 			relations: ['user'],
 		});
 
-		let user = userProfile?.user as MiLocalUser | null;
+		const user = userProfile?.user as MiLocalUser | null;
+
+		if (targetUserId) {
+			if (user) {
+				if (user.id === targetUserId) {
+					if (provider.autoUpdate) {
+						await this.updateUserInfo(user, userProfile!, provider, userInfo, idTokenClaims);
+					}
+					return { user, isNewUser: false, action: 'link' };
+				} else {
+					throw new Error('This account is already linked to another user.');
+				}
+			} else {
+				const targetProfile = await this.userProfilesRepository.findOneBy({ userId: targetUserId });
+				if (!targetProfile) {
+					throw new Error('Target user profile not found.');
+				}
+
+				let emailToUpdate: string | undefined;
+				let emailVerifiedToUpdate: boolean | undefined;
+
+				if (!targetProfile.emailVerified && email) {
+					const emailProfile = await this.userProfilesRepository.findOne({
+						where: { email },
+						relations: ['user'],
+					});
+					const emailUser = emailProfile?.user as MiLocalUser | null;
+
+					if (emailUser && emailUser.id !== targetUserId) {
+						this.logger.warn(`Email address ${email} is already used by another user ${emailUser.id}. Skipping email update for user ${targetUserId}.`);
+					} else {
+						emailToUpdate = email;
+						emailVerifiedToUpdate = userInfo.email_verified;
+					}
+				}
+
+				await this.userProfilesRepository.update(targetUserId, {
+					ssoProviderId: provider.id,
+					ssoId: ssoId,
+					email: emailToUpdate || targetProfile.email,
+					emailVerified: emailVerifiedToUpdate ?? targetProfile.emailVerified,
+				});
+
+				const targetUser = await this.usersRepository.findOneByOrFail({ id: targetUserId }) as MiLocalUser;
+				return { user: targetUser, isNewUser: false, action: 'link' };
+			}
+		}
 
 		if (user && userProfile) {
 			if (provider.autoUpdate) {
 				await this.updateUserInfo(user, userProfile, provider, userInfo, idTokenClaims);
 			}
-			return { user, isNewUser: false };
+			return { user, isNewUser: false, action: 'login' };
 		}
 
-		if (email) {
-			// Try to find by email
-			const emailProfile = await this.userProfilesRepository.findOne({
-				where: { email },
-				relations: ['user'],
-			});
-
-			user = emailProfile?.user as MiLocalUser | null;
-
-			if (user && emailProfile) {
-				// Link existing user to SSO provider
-				await this.userProfilesRepository.update(emailProfile.userId, {
-					ssoProviderId: provider.id,
-					ssoId: ssoId,
-				});
-
-				if (provider.autoUpdate) {
-					await this.updateUserInfo(user, emailProfile, provider, userInfo, idTokenClaims);
-				}
-
-				return { user, isNewUser: false };
-			}
-		}
-
-		// Create new user if auto-register is enabled
+		// FIXME: Temporarily disabled
+		/*
 		if (!provider.autoRegister) {
 			throw new Error('User not found and auto-registration is disabled');
 		}
 
 		return await this.createUser(provider, userInfo, idTokenClaims);
+		*/
+		throw new Error('New user registration via SSO is temporarily disabled.');
 	}
 
 	/**
@@ -270,12 +309,16 @@ export class SSOService {
 		provider: SSOProvider,
 		userInfo: UserInfo,
 		idTokenClaims?: IDTokenClaims,
-	): Promise<{ user: MiLocalUser; isNewUser: boolean }> {
+	): Promise<{ user: MiLocalUser; isNewUser: boolean; action: 'login' | 'link' }> {
 		const userId = this.idService.gen();
 		const username = this.generateUsername(provider, userInfo, idTokenClaims);
 		const name = this.extractName(provider, userInfo, idTokenClaims);
 
-		// Create user
+		const meta = await this.metaService.fetch();
+		if (meta.approvalRequiredForSignup && meta.rootUserId) {
+			throw new Error('New registrations are currently suspended.');
+		}
+
 		const user = await this.usersRepository.insert({
 			id: userId,
 			username,
@@ -288,7 +331,6 @@ export class SSOService {
 			isSuspended: false,
 		}).then(result => result.generatedMaps[0] as MiLocalUser);
 
-		// Create user profile
 		await this.userProfilesRepository.insert({
 			userId: user.id,
 			ssoProviderId: provider.id,
@@ -297,12 +339,11 @@ export class SSOService {
 			emailVerified: userInfo.email_verified,
 		});
 
-		// Get the created user
 		const fullUser = user as MiLocalUser;
 
 		this.logger.info(`Created new user via SSO: ${username} (${provider.name})`);
 
-		return { user: fullUser, isNewUser: true };
+		return { user: fullUser, isNewUser: true, action: 'login' };
 	}
 
 	/**
@@ -311,15 +352,15 @@ export class SSOService {
 	@bindThis
 	private async updateUserInfo(
 		user: MiLocalUser,
-		userProfile: any,
+		userProfile: MiUserProfile,
 		provider: SSOProvider,
 		userInfo: UserInfo,
 		idTokenClaims?: IDTokenClaims,
 	): Promise<void> {
 		const name = this.extractName(provider, userInfo, idTokenClaims);
 
-		const updates: any = {};
-		if (name && name !== user.name) {
+		const updates: Partial<MiLocalUser> = {};
+		if (name && !user.name) {
 			updates.name = name;
 		}
 
@@ -328,7 +369,7 @@ export class SSOService {
 		}
 
 		// Update profile
-		const profileUpdates: any = {};
+		const profileUpdates: Partial<MiUserProfile> = {};
 		if (userInfo.email && userInfo.email !== userProfile.email) {
 			profileUpdates.email = userInfo.email;
 			profileUpdates.emailVerified = userInfo.email_verified;
@@ -421,7 +462,6 @@ export class SSOService {
 	 */
 	@bindThis
 	public async getSession(_userId: string, _providerId: string): Promise<SSOSession | null> {
-		// This would need to be implemented using proper session storage
 		return null;
 	}
 
@@ -450,8 +490,6 @@ export class SSOService {
 			session.accessToken = tokenResponse.access_token;
 			session.refreshToken = tokenResponse.refresh_token || session.refreshToken;
 			session.expiresAt = tokenResponse.expires_in ? Date.now() + (tokenResponse.expires_in * 1000) : undefined;
-
-			// Note: Session caching would need to use proper Redis cache implementation
 
 			return session;
 		} catch (error) {
@@ -486,7 +524,5 @@ export class SSOService {
 				}
 			}
 		}
-
-		// Note: Session removal would need to use proper session storage
 	}
 }

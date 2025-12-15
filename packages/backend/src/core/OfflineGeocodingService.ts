@@ -2312,6 +2312,7 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 		const results: GeoDataEntry[] = [];
 		const CHUNK_SIZE = 50000;
 		const MEMORY_CHECK_INTERVAL = 10000;
+		let fileHandle: fs.FileHandle | null = null;
 
 		try {
 			const tempCsvPath = path.join(this.syncDataPath, 'allCountries.txt');
@@ -2323,14 +2324,21 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 
 			this.logger.info(`Starting to process ${Math.round(totalSize / 1024 / 1024)}MB file`);
 
-			return new Promise((resolve, reject) => {
+			fileHandle = await fs.open(tempCsvPath, 'r');
+
+			return await new Promise((resolve, reject) => {
 				let processedSize = 0;
 				let lineCount = 0;
 				let validEntryCount = 0;
 				let memoryWarningCount = 0;
-				const stream = createReadStream(tempCsvPath, {
+
+				// Use the file handle to create the stream
+				// This gives us explicit control over the file descriptor lifespan
+				const stream = fileHandle!.createReadStream({
 					encoding: 'utf-8',
 					highWaterMark: this.STREAM_CHUNK_SIZE,
+					autoClose: false, // Important: we manage the FD closing
+					emitClose: true,
 				});
 
 				let buffer = '';
@@ -2439,28 +2447,28 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 						this.logger.info(`- Memory warnings: ${memoryWarningCount}`);
 						this.logger.info(`- Final result count: ${results.length}`);
 
-						// stream.destroy(); // Do not explicitly destroy, let it close naturally
-						// stream.once('close', () => {
-						// 	resolve(results);
-						// });
 						resolve(results);
 					} catch (endError) {
 						this.logger.error('Error during stream end processing:', (endError as Error));
-						stream.destroy();
-						stream.once('close', () => {
-							reject(endError);
-						});
+						reject(endError);
 					}
 				});
 
 				stream.on('error', (err) => {
-					stream.destroy();
 					reject(err);
 				});
 			});
 		} catch (error) {
 			this.logger.error('Failed to process large GeoNames file:', error as any);
 			return [];
+		} finally {
+			if (fileHandle) {
+				try {
+					await fileHandle.close();
+				} catch (closeError) {
+					// Ignore close errors
+				}
+			}
 		}
 	}
 
@@ -2477,6 +2485,8 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 			const tempDir = path.join(this.syncDataPath, 'temp_extract_alt_' + Date.now());
 			await fs.mkdir(tempDir, { recursive: true });
 
+			let fileHandle: fs.FileHandle | null = null;
+
 			try {
 				const zipBuffer = await fs.readFile(zipPath);
 				ZipReader.withDestinationPath(tempDir).viaBuffer(zipBuffer);
@@ -2492,7 +2502,14 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 				}
 
 				const filePath = path.join(tempDir, txtFile);
-				const stream = createReadStream(filePath, { encoding: 'utf-8', highWaterMark: 64 * 1024 });
+				fileHandle = await fs.open(filePath, 'r');
+
+				const stream = fileHandle.createReadStream({
+					encoding: 'utf-8',
+					highWaterMark: 64 * 1024,
+					autoClose: false,
+					emitClose: true,
+				});
 
 				let processedCount = 0;
 				let buffer = '';
@@ -2568,27 +2585,28 @@ export class OfflineGeocodingService implements OnApplicationShutdown, OnApplica
 									this.logger.warn('Error processing final buffer:', parseError as Error);
 								}
 							}
-							stream.destroy();
-							stream.once('close', () => {
-								resolve();
-							});
+							resolve();
 						} catch (endError) {
 							this.logger.error('Error during stream end processing:', endError as Error);
-							stream.destroy();
-							stream.once('close', () => {
-								reject(endError);
-							});
+							reject(endError);
 						}
 					});
 
 					stream.on('error', (err) => {
-						stream.destroy();
 						reject(err);
 					});
 				});
 
 				this.logger.info(`Multilingual names processing completed: ${processedCount} entries`);
 			} finally {
+				if (fileHandle) {
+					try {
+						await fileHandle.close();
+					} catch (closeError) {
+						// Ignore close errors
+					}
+				}
+
 				try {
 					await fs.rm(tempDir, { recursive: true, force: true });
 				} catch (cleanupError) {

@@ -8,12 +8,55 @@ import * as Misskey from 'misskey-js';
 import type { PushNotificationDataMap } from '@/types.js';
 import type { I18n } from '@@/js/i18n.js';
 import type { Locale } from 'i18n';
+import { FETCH_TIMEOUT_MS } from '@/const.js';
 import { createEmptyNotification, createNotification } from '@/scripts/create-notification.js';
 import { swLang } from '@/scripts/lang.js';
 import * as swos from '@/scripts/operations.js';
 
-globalThis.addEventListener('install', () => {
-	// ev.waitUntil(globalThis.skipWaiting());
+async function respondToNavigation(request: Request): Promise<Response> {
+	const controller = new AbortController();
+	const timeout = globalThis.setTimeout(() => {
+		controller.abort('navigation-timeout');
+	}, FETCH_TIMEOUT_MS);
+
+	try {
+		const response = await fetch(request, { signal: controller.signal });
+
+		if (response?.status && response.status < 500) return response;
+		if (response?.type === 'opaqueredirect') return response;
+	} catch (error) {
+		if (_DEV_) {
+			console.warn('navigation fetch failed; showing offline page', error);
+		}
+	} finally {
+		globalThis.clearTimeout(timeout);
+	}
+
+	// Only show offline page when network request actually fails
+	const html = await offlineContentHTML();
+	return new Response(html, {
+		status: 200,
+		headers: {
+			'content-type': 'text/html',
+		},
+	});
+}
+
+globalThis.addEventListener('install', (ev) => {
+	// 次の問題が発生するため、ServiceWorkerAutoPreload をオプトアウトする必要がある
+	// https://issues.chromium.org/issues/466790291
+	if ('addRoutes' in ev) {
+		// doc: https://developer.mozilla.org/en-US/docs/Web/API/InstallEvent/addRoutes
+		// @ts-expect-error 実験的なAPIなので型定義がない
+		ev.addRoutes({
+			condition: {
+				// doc: https://developer.mozilla.org/ja/docs/Web/API/URLPattern
+				// @ts-expect-error 実験的なAPIなので型定義がない
+				urlPattern: new URLPattern({}),
+			},
+			source: 'fetch-event',
+		});
+	}
 });
 
 globalThis.addEventListener('activate', ev => {
@@ -220,18 +263,7 @@ globalThis.addEventListener('fetch', ev => {
 	}
 
 	if (!isHTMLRequest) return;
-	ev.respondWith(
-		fetch(ev.request)
-			.catch(async () => {
-				const html = await offlineContentHTML();
-				return new Response(html, {
-					status: 200,
-					headers: {
-						'content-type': 'text/html',
-					},
-				});
-			}),
-	);
+	ev.respondWith(respondToNavigation(ev.request));
 });
 
 globalThis.addEventListener('push', ev => {

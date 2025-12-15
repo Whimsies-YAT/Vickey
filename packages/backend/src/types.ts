@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+import type { MiOAuthClientConfig } from '@/models/OAuthClientConfig.js';
+
 /**
  * note - 通知オンにしているユーザーが投稿した
  * follow - フォローされた
@@ -141,6 +143,9 @@ export const moderationLogTypes = [
 	'hardDeleteNote',
 	'viewDeletedNote',
 	'listDeletedNotes',
+	'createOAuthClientConfig',
+	'updateOAuthClientConfig',
+	'deleteOAuthClientConfig',
 ] as const;
 
 export type ModerationLogPayloads = {
@@ -431,6 +436,19 @@ export type ModerationLogPayloads = {
 		userId: string | null;
 		deletedAfter: string | null;
 		deletedBefore: string | null;
+	};
+	createOAuthClientConfig: {
+		oauthClientConfigId: string;
+		oauthClientConfig: MiOAuthClientConfig;
+	};
+	updateOAuthClientConfig: {
+		oauthClientConfigId: string;
+		before: MiOAuthClientConfig;
+		after: MiOAuthClientConfig;
+	};
+	deleteOAuthClientConfig: {
+		oauthClientConfigId: string;
+		oauthClientConfig: MiOAuthClientConfig;
 	};
 };
 

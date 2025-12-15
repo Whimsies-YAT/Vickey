@@ -41,6 +41,7 @@ import { MiGalleryPost } from '@/models/GalleryPost.js';
 import { MiHashtag } from '@/models/Hashtag.js';
 import { MiInstance } from '@/models/Instance.js';
 import { MiMeta } from '@/models/Meta.js';
+import { MiOAuthClientConfig } from '@/models/OAuthClientConfig.js';
 import { MiModerationLog } from '@/models/ModerationLog.js';
 import { MiMuting } from '@/models/Muting.js';
 import { MiRenoteMuting } from '@/models/RenoteMuting.js';
@@ -91,6 +92,7 @@ import { MiReversiGame } from '@/models/ReversiGame.js';
 import { MiChatApproval } from '@/models/ChatApproval.js';
 import { MiSystemAccount } from '@/models/SystemAccount.js';
 import { MiUserSessions } from '@/models/UserSessions.js';
+import { MiUserSession } from '@/models/UserSession.js';
 import { MiUserRiskScoreHistory } from '@/models/UserRiskScoreHistory.js';
 import { MiRiskEventLog } from '@/models/RiskEventLog.js';
 import { MiUserMultiAccountLink } from '@/models/UserMultiAccountLink.js';
@@ -200,6 +202,7 @@ class MyCustomLogger implements Logger {
 export const entities = [
 	MiAnnouncement,
 	MiAnnouncementRead,
+	MiOAuthClientConfig,
 	MiMeta,
 	MiInstance,
 	MiApp,
@@ -277,6 +280,7 @@ export const entities = [
 	MiBubbleGameRecord,
 	MiReversiGame,
 	MiUserSessions,
+	MiUserSession,
 	MiUserRiskScoreHistory,
 	MiRiskEventLog,
 	MiUserMultiAccountLink,

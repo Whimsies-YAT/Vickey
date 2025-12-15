@@ -19,6 +19,13 @@ import { FlashService } from '@/core/FlashService.js';
 import { ChannelMutingService } from '@/core/ChannelMutingService.js';
 
 import { CheckSecurityUpdateService } from '@/core/CheckSecurityUpdateService.js';
+import { OAuthClientConfigService } from '@/server/oauth/client/OAuthClientConfigService.js';
+import { OAuthClientService } from '@/server/oauth/client/OAuthClientService.js';
+import { OIDCClientService } from '@/server/oauth/client/OIDCClientService.js';
+import { SSOService } from '@/server/oauth/client/SSOService.js';
+import { SessionService } from '@/server/oauth/client/SessionService.js';
+import { JWTService } from '@/server/oauth/client/JWTService.js';
+import { OAuthClientManager } from '@/server/oauth/client/OAuthClientManager.js';
 import { EventBus } from './events/EventBus.js';
 import { EventMetrics } from './events/EventMetrics.js';
 import { AccountMoveService } from './AccountMoveService.js';
@@ -250,6 +257,8 @@ const serviceClasses = [
 	NoteEventHandlers,
 	// Timeline Warming (DDD Architecture)
 	TimelineWarmingService, TimelineWarmingEventHandler,
+	// OAuth Client
+	OAuthClientConfigService, OAuthClientService, OIDCClientService, SSOService, SessionService, JWTService, OAuthClientManager,
 ];
 
 const stringProviders: Provider[] = serviceClasses.map(ServiceClass => ({

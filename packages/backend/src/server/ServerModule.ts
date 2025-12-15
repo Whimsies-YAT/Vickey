@@ -38,6 +38,7 @@ import { GomokuChannelService } from './api/stream/channels/gomoku.js';
 import { GomokuGameChannelService } from './api/stream/channels/gomoku-game.js';
 import { WerewolfChannelService } from './api/stream/channels/werewolf.js';
 import { WerewolfGameChannelService } from './api/stream/channels/werewolf-game.js';
+import { SsoServerService } from './web/SsoServerService.js';
 
 import { MainChannelService } from './api/stream/channels/main.js';
 import { AdminChannelService } from './api/stream/channels/admin.js';
@@ -118,6 +119,7 @@ import { SigninWithPasskeyApiService } from './api/SigninWithPasskeyApiService.j
 		GomokuGameChannelService,
 		WerewolfChannelService,
 		WerewolfGameChannelService,
+		SsoServerService,
 	],
 	exports: [
 		ServerService,
