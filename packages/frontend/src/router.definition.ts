@@ -537,46 +537,50 @@ export const ROUTE_DEF = [{
 		path: '/system-webhook',
 		name: 'system-webhook',
 		component: page(() => import('@/pages/admin/system-webhook.vue')),
+	}, {
+		path: '/oauth-settings',
+		name: 'oauth-settings',
+		component: page(() => import('@/pages/admin/oauth-settings.vue')),
 	},
-	/* Temporarily hide user risk score admin route without deleting it.
+		/* Temporarily hide user risk score admin route without deleting it.
 	{
 		path: '/user-risk-score',
 		name: 'user-risk-score',
 		component: page(() => import('@/pages/admin/user-risk-score.vue')),
 	},
 	*/
-	{
-		path: '/account-links',
-		name: 'account-links',
-		component: page(() => import('@/pages/admin/account-links.vue')),
-	},
-	/* Temporarily hide high risk users admin route without deleting it.
+												{
+													path: '/account-links',
+													name: 'account-links',
+													component: page(() => import('@/pages/admin/account-links.vue')),
+												},
+		/* Temporarily hide high risk users admin route without deleting it.
 	{
 		path: '/high-risk-users',
 		name: 'high-risk-users',
 		component: page(() => import('@/pages/admin/high-risk-users.vue')),
 	},
 	*/
-	{
-		path: '/approvals',
-		name: 'approvals',
-		component: page(() => import('@/pages/admin/approvals.vue')),
-	}, {
-		path: '/deleted-notes',
-		name: 'deleted-notes',
-		component: page(() => import('@/pages/admin/deleted-notes.vue')),
-	}, {
-		path: '/system-logs',
-		name: 'system-logs',
-		component: page(() => import('@/pages/admin/system-logs.vue')),
-	}, {
-		path: '/payments',
-		name: 'payments',
-		component: page(() => import('@/pages/admin/payments.vue')),
-	}, {
-		path: '/',
-		component: page(() => import('@/pages/_empty_.vue')),
-	}],
+												{
+													path: '/approvals',
+													name: 'approvals',
+													component: page(() => import('@/pages/admin/approvals.vue')),
+												}, {
+													path: '/deleted-notes',
+													name: 'deleted-notes',
+													component: page(() => import('@/pages/admin/deleted-notes.vue')),
+												}, {
+													path: '/system-logs',
+													name: 'system-logs',
+													component: page(() => import('@/pages/admin/system-logs.vue')),
+												}, {
+													path: '/payments',
+													name: 'payments',
+													component: page(() => import('@/pages/admin/payments.vue')),
+												}, {
+													path: '/',
+													component: page(() => import('@/pages/_empty_.vue')),
+												}],
 }, {
 	path: '/my/notifications',
 	component: page(() => import('@/pages/notifications.vue')),
@@ -690,6 +694,13 @@ export const ROUTE_DEF = [{
 	path: '/redirect-test',
 	redirect: $i ? `@${$i.username}` : '/',
 	loginRequired: true,
+}, {
+	path: '/signin',
+	component: page(() => import('@/pages/signin.vue')),
+	query: {
+		sso_token: 'sso_token',
+		error: 'error',
+	},
 }, {
 	path: '/:(*)',
 	component: page(() => import('@/pages/not-found.vue')),

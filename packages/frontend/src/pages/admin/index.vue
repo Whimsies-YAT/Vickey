@@ -289,6 +289,11 @@ const menuDef = computed<SuperMenuDef[]>(() => [{
 		to: '/admin/system-webhook',
 		active: currentPage.value?.route.name === 'system-webhook',
 	}, {
+		icon: 'ti ti-id',
+		text: i18n.ts._oauthSettings.title,
+		to: '/admin/oauth-settings',
+		active: currentPage.value?.route.name === 'oauth-settings',
+	}, {
 		icon: 'ti ti-bolt',
 		text: i18n.ts.performance,
 		to: '/admin/performance',

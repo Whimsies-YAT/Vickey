@@ -106,6 +106,7 @@ async function setType() {
 		}, {
 			value: 'smart', label: i18n.ts._timelines.smart,
 		}],
+		default: props.column.tl,
 	});
 	if (canceled) {
 		if (props.column.tl == null) {

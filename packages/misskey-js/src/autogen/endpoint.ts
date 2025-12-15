@@ -90,6 +90,15 @@ import type {
 	AdminNotesListDeletedResponse,
 	AdminNotesShowDeletedRequest,
 	AdminNotesShowDeletedResponse,
+	AdminOauthClientConfigCreateRequest,
+	AdminOauthClientConfigCreateResponse,
+	AdminOauthClientConfigDeleteRequest,
+	AdminOauthClientConfigDeleteResponse,
+	AdminOauthClientConfigDiscoverRequest,
+	AdminOauthClientConfigDiscoverResponse,
+	AdminOauthClientConfigListResponse,
+	AdminOauthClientConfigUpdateRequest,
+	AdminOauthClientConfigUpdateResponse,
 	AdminPaymentsListRequest,
 	AdminPaymentsListResponse,
 	AdminPaymentsShowRequest,
@@ -466,11 +475,14 @@ import type {
 	IAppsResponse,
 	IAuthorizedAppsRequest,
 	IAuthorizedAppsResponse,
+	IAuthorizedSsoResponse,
 	IChangePasswordRequest,
 	IClaimAchievementRequest,
 	IDeleteAccountRequest,
 	IDeleteAllSessionsRequest,
 	IDeleteSessionRequest,
+	IDisconnectSsoRequest,
+	IDisconnectSsoResponse,
 	IExportFollowingRequest,
 	IFavoritesRequest,
 	IFavoritesResponse,
@@ -512,6 +524,7 @@ import type {
 	IRegistrySetRequest,
 	IRevokeTokenRequest,
 	ISessionsResponse,
+	ISetupPasswordRequest,
 	ISigninHistoryRequest,
 	ISigninHistoryResponse,
 	ITimelinePreferencesResponse,
@@ -672,6 +685,7 @@ import type {
 	RolesUsersRequest,
 	RolesUsersResponse,
 	ServerInfoResponse,
+	SsoProvidersResponse,
 	StatsResponse,
 	SwRegisterRequest,
 	SwRegisterResponse,
@@ -832,6 +846,11 @@ export type Endpoints = {
 	'admin/meta': { req: EmptyRequest; res: AdminMetaResponse };
 	'admin/notes/list-deleted': { req: AdminNotesListDeletedRequest; res: AdminNotesListDeletedResponse };
 	'admin/notes/show-deleted': { req: AdminNotesShowDeletedRequest; res: AdminNotesShowDeletedResponse };
+	'admin/oauth-client-config/create': { req: AdminOauthClientConfigCreateRequest; res: AdminOauthClientConfigCreateResponse };
+	'admin/oauth-client-config/delete': { req: AdminOauthClientConfigDeleteRequest; res: AdminOauthClientConfigDeleteResponse };
+	'admin/oauth-client-config/discover': { req: AdminOauthClientConfigDiscoverRequest; res: AdminOauthClientConfigDiscoverResponse };
+	'admin/oauth-client-config/list': { req: EmptyRequest; res: AdminOauthClientConfigListResponse };
+	'admin/oauth-client-config/update': { req: AdminOauthClientConfigUpdateRequest; res: AdminOauthClientConfigUpdateResponse };
 	'admin/payments/list': { req: AdminPaymentsListRequest; res: AdminPaymentsListResponse };
 	'admin/payments/show': { req: AdminPaymentsShowRequest; res: AdminPaymentsShowResponse };
 	'admin/payments/stats': { req: AdminPaymentsStatsRequest; res: AdminPaymentsStatsResponse };
@@ -1069,11 +1088,13 @@ export type Endpoints = {
 	'i/2fa/update-key': { req: I2faUpdateKeyRequest; res: EmptyResponse };
 	'i/apps': { req: IAppsRequest; res: IAppsResponse };
 	'i/authorized-apps': { req: IAuthorizedAppsRequest; res: IAuthorizedAppsResponse };
+	'i/authorized-sso': { req: EmptyRequest; res: IAuthorizedSsoResponse };
 	'i/change-password': { req: IChangePasswordRequest; res: EmptyResponse };
 	'i/claim-achievement': { req: IClaimAchievementRequest; res: EmptyResponse };
 	'i/delete-account': { req: IDeleteAccountRequest; res: EmptyResponse };
 	'i/delete-all-sessions': { req: IDeleteAllSessionsRequest; res: EmptyResponse };
 	'i/delete-session': { req: IDeleteSessionRequest; res: EmptyResponse };
+	'i/disconnect-sso': { req: IDisconnectSsoRequest; res: IDisconnectSsoResponse };
 	'i/export-antennas': { req: EmptyRequest; res: EmptyResponse };
 	'i/export-blocking': { req: EmptyRequest; res: EmptyResponse };
 	'i/export-clips': { req: EmptyRequest; res: EmptyResponse };
@@ -1108,6 +1129,7 @@ export type Endpoints = {
 	'i/registry/set': { req: IRegistrySetRequest; res: EmptyResponse };
 	'i/revoke-token': { req: IRevokeTokenRequest; res: EmptyResponse };
 	'i/sessions': { req: EmptyRequest; res: ISessionsResponse };
+	'i/setup-password': { req: ISetupPasswordRequest; res: EmptyResponse };
 	'i/sign-out': { req: EmptyRequest; res: EmptyResponse };
 	'i/signin-history': { req: ISigninHistoryRequest; res: ISigninHistoryResponse };
 	'i/timeline-preferences': { req: EmptyRequest; res: ITimelinePreferencesResponse };
@@ -1216,6 +1238,7 @@ export type Endpoints = {
 	'roles/show': { req: RolesShowRequest; res: RolesShowResponse };
 	'roles/users': { req: RolesUsersRequest; res: RolesUsersResponse };
 	'server-info': { req: EmptyRequest; res: ServerInfoResponse };
+	'sso/providers': { req: EmptyRequest; res: SsoProvidersResponse };
 	'stats': { req: EmptyRequest; res: StatsResponse };
 	'sw/register': { req: SwRegisterRequest; res: SwRegisterResponse };
 	'sw/show-registration': { req: SwShowRegistrationRequest; res: SwShowRegistrationResponse };

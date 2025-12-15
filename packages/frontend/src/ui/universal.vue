@@ -32,7 +32,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { defineAsyncComponent, provide, onMounted, computed, ref } from 'vue';
+import { defineAsyncComponent, provide, onMounted, computed, ref, watch } from 'vue';
 import { instanceName } from '@@/js/config.js';
 import { isLink } from '@@/js/is-link.js';
 import XCommon from './_common_/common.vue';
@@ -109,6 +109,14 @@ onMounted(() => {
 		}, { passive: true });
 	}
 });
+
+watch([() => $i, () => mainRouter.currentRoute.value], () => {
+	if ($i) {
+		if ($i.isPasswordSet === false && mainRouter.currentRoute.value.path !== '/settings/security') {
+			mainRouter.push('/settings/security');
+		}
+	}
+}, { immediate: true });
 
 const onContextmenu = (ev) => {
 	if (isLink(ev.target)) return;

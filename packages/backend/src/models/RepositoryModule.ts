@@ -103,6 +103,8 @@ import {
 	MiGomokuGame,
 	MiWerewolfGame,
 	MiElasticsearchReindexState,
+	MiOAuthClientConfig,
+	MiUserSession,
 } from './_.js';
 import type { Provider } from '@nestjs/common';
 import type { DataSource, EntityTarget } from 'typeorm';
@@ -211,10 +213,12 @@ const repositoryMappings = [
 	{ token: DI.werewolfGamesRepository, entity: MiWerewolfGame },
 	{ token: DI.elasticsearchReindexStatesRepository, entity: MiElasticsearchReindexState },
 	{ token: DI.channelMutingRepository, entity: MiChannelMuting },
+	{ token: DI.oauthClientConfigsRepository, entity: MiOAuthClientConfig },
+	{ token: DI.userSessionRepository, entity: MiUserSession },
 ] as const;
 
 const providers = repositoryMappings.map(({ token, entity }) =>
-	createRepositoryProvider(token, entity)
+	createRepositoryProvider(token, entity),
 );
 
 @Module({

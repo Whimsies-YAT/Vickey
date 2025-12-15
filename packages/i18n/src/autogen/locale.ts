@@ -12,6 +12,14 @@ export interface Locale extends ILocale {
      */
     "goToVickey": string;
     /**
+     * Set Password
+     */
+    "setupPassword": string;
+    /**
+     * Password set successfully
+     */
+    "passwordSet": string;
+    /**
      * Result
      */
     "result": string;
@@ -243,6 +251,10 @@ export interface Locale extends ILocale {
      * updated
      */
     "updated": string;
+    /**
+     * Loaded
+     */
+    "loaded": string;
     /**
      * Updated
      */
@@ -724,6 +736,92 @@ export interface Locale extends ILocale {
      * Status
      */
     "status": string;
+    "_oauthSettings": {
+        /**
+         * OAuth Settings
+         */
+        "title": string;
+        /**
+         * Add Configuration
+         */
+        "addConfig": string;
+        /**
+         * Provider Name
+         */
+        "name": string;
+        /**
+         * Provider Type
+         */
+        "type": string;
+        /**
+         * Client ID
+         */
+        "clientId": string;
+        /**
+         * Client Secret
+         */
+        "clientSecret": string;
+        /**
+         * Authorization Endpoint
+         */
+        "authorizationEndpoint": string;
+        /**
+         * Token Endpoint
+         */
+        "tokenEndpoint": string;
+        /**
+         * User Info Endpoint
+         */
+        "userInfoEndpoint": string;
+        /**
+         * Issuer (for OpenID Connect)
+         */
+        "issuer": string;
+        /**
+         * JWKS URI
+         */
+        "jwksUri": string;
+        /**
+         * Redirect URI
+         */
+        "redirectUri": string;
+        /**
+         * Scopes (Space separated)
+         */
+        "scopes": string;
+        /**
+         * Auto Register Users
+         */
+        "autoRegister": string;
+        /**
+         * Auto Update User Info
+         */
+        "autoUpdate": string;
+        /**
+         * Are you sure you want to remove {x}?
+         */
+        "removeAreYouSure": ParameterizedString<"x">;
+        /**
+         * Saved successfully
+         */
+        "saved": string;
+        /**
+         * Advanced Settings
+         */
+        "advancedSettings": string;
+        /**
+         * New Provider
+         */
+        "newProvider": string;
+        /**
+         * OAuth 2.0
+         */
+        "oauth2": string;
+        /**
+         * OpenID Connect
+         */
+        "oidc": string;
+    };
     "_oauthAppVK": {
         /**
          * OAuth Application
@@ -5359,6 +5457,10 @@ export interface Locale extends ILocale {
      * Revoke
      */
     "revoke": string;
+    /**
+     * No SSO providers available.
+     */
+    "noProviders": string;
     /**
      * ノートでつながるネットワーク
      */

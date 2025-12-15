@@ -95,7 +95,7 @@ function merge(target: any, source: any): any {
 
 export async function generateLocaleInterface(localesDir: string): Promise<void> {
 	const misskeyLocales = yaml.load(tryReadFile(`${localesDir}/ja-JP.yml`)) as LocaleRecord;
-	const vkLocales = yaml.load(tryReadFile(`${__dirname}/../../../vickey-locales/en-US.yml`)) as LocaleRecord;
+	const vkLocales = yaml.load(tryReadFile(resolve(`${__dirname}/../../../vickey-locales/en-US.yml`))) as LocaleRecord;
 	const locale = merge(vkLocales, misskeyLocales);
 	const members = createMembers(locale);
 

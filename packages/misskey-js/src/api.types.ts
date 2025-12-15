@@ -6,6 +6,14 @@ import {
 	EmptyRequest,
 	EmptyResponse,
 	UsersShowRequest,
+	AdminOauthClientConfigCreateRequest,
+	AdminOauthClientConfigCreateResponse,
+	AdminOauthClientConfigDeleteRequest,
+	AdminOauthClientConfigDeleteResponse,
+	AdminOauthClientConfigListResponse,
+	AdminOauthClientConfigUpdateRequest,
+	AdminOauthClientConfigUpdateResponse,
+	SsoProvidersResponse,
 } from './autogen/entities.js';
 import {
 	PartialRolePolicyOverride,
@@ -135,6 +143,26 @@ export type Endpoints = Overwrite<
 		'clear-browser-cache': {
 			req: EmptyRequest;
 			res: EmptyResponse;
+		},
+		'admin/oauth-client-config/create': {
+			req: AdminOauthClientConfigCreateRequest;
+			res: AdminOauthClientConfigCreateResponse;
+		},
+		'admin/oauth-client-config/delete': {
+			req: AdminOauthClientConfigDeleteRequest;
+			res: AdminOauthClientConfigDeleteResponse;
+		},
+		'admin/oauth-client-config/list': {
+			req: EmptyRequest;
+			res: AdminOauthClientConfigListResponse;
+		},
+		'admin/oauth-client-config/update': {
+			req: AdminOauthClientConfigUpdateRequest;
+			res: AdminOauthClientConfigUpdateResponse;
+		},
+		'sso/providers': {
+			req: EmptyRequest;
+			res: SsoProvidersResponse;
 		},
 	}
 >;

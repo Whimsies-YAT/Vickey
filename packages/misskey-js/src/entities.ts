@@ -39,9 +39,13 @@ export type PublicKeyCredentialRequestOptionsJSON = {
 
 export * from './autogen/entities.js';
 export * from './autogen/models.js';
+import type { components } from './autogen/types.js';
 
 export type ID = string;
 export type DateString = string;
+
+export type OAuthClientConfig = components['schemas']['OAuthClientConfig'];
+export type AdminOauthClientConfigListResponse = components['schemas']['OAuthClientConfig'][];
 
 type NonNullableRecord<T> = {
 	[P in keyof T]-?: NonNullable<T[P]>;
