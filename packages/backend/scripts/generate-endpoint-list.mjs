@@ -16,9 +16,9 @@
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
+import { readdir } from 'node:fs/promises';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import fg from 'fast-glob';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -39,10 +39,11 @@ function loadConfig() {
 		return {
 			disabled: (config.disabled || []).filter(x => !x.startsWith('_')),
 			pathOverrides: Object.fromEntries(
-				Object.entries(config.pathOverrides || {}).filter(([k]) => !k.startsWith('_'))
+				Object.entries(config.pathOverrides || {}).filter(([k]) => !k.startsWith('_')),
 			),
 		};
 	} catch (error) {
+		console.error(`[generate-endpoint-list] Error loading config: ${error.message}`);
 		// No config file or parse error, use defaults silently
 		return { disabled: [], pathOverrides: {} };
 	}
@@ -69,10 +70,13 @@ function filePathToEndpointName(filePath) {
 async function scanEndpoints() {
 	console.log('[generate-endpoint-list] Scanning endpoints directory...');
 
-	const files = await fg('**/*.{ts,js}', {
-		cwd: endpointsDir,
-		ignore: ['**/*.d.ts', '**/*.test.ts', '**/*.spec.ts'],
-	});
+	const allFiles = await readdir(endpointsDir, { recursive: true });
+	const files = allFiles.filter(f =>
+		(f.endsWith('.ts') || f.endsWith('.js')) &&
+		!f.endsWith('.d.ts') &&
+		!f.endsWith('.test.ts') &&
+		!f.endsWith('.spec.ts'),
+	);
 
 	console.log(`[generate-endpoint-list] Found ${files.length} endpoint files`);
 	return files.sort(); // Sort for deterministic output
@@ -178,11 +182,12 @@ async function main() {
 			console.log('[generate-endpoint-list] ✓ No changes detected');
 			console.log(`  - Total files scanned: ${files.length}`);
 			console.log(`  - Endpoints registered: ${endpointMap.size}`);
-			console.log(`  - File unchanged, skipping write\n`);
+			console.log('  - File unchanged, skipping write\n');
 		} else {
 			changeReason = 'content changed';
 		}
 	} catch (error) {
+		console.error('[generate-endpoint-list] Error reading existing file:', error);
 	}
 
 	if (needsWrite) {
