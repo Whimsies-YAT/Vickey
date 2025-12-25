@@ -9,6 +9,8 @@ import { dirname, resolve } from 'node:path';
 import { spawn, type ChildProcess } from 'node:child_process';
 import * as readline from 'node:readline';
 import { Injectable } from '@nestjs/common';
+import { Mutex } from 'async-mutex';
+import fetch from 'node-fetch';
 import { bindThis } from '@/decorators.js';
 
 const _filename = fileURLToPath(import.meta.url);
@@ -219,5 +221,12 @@ export class AiService {
 				await fs.promises.unlink(tempFilePath).catch(() => {});
 			}
 		}
+	}
+
+	@bindThis
+	private async getCpuFlags(): Promise<string[]> {
+		const si = await import('systeminformation');
+		const str = await si.cpuFlags();
+		return str.split(/\s+/);
 	}
 }

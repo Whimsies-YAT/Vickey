@@ -3,28 +3,30 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Scope } from '@nestjs/common';
 import { isInstanceMuted, isUserFromMutedInstance } from '@/misc/is-instance-muted.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { VoiceCallService } from '@/core/VoiceCallService.js';
 import { bindThis } from '@/decorators.js';
 import type { JsonObject } from '@/misc/json-value.js';
-import Channel, { type MiChannelService } from '../channel.js';
+import Channel, { type ChannelRequest } from '../channel.js';
+import { REQUEST } from '@nestjs/core';
 
-class MainChannel extends Channel {
+@Injectable({ scope: Scope.TRANSIENT })
+export class MainChannel extends Channel {
 	public readonly chName = 'main';
 	public static shouldShare = true;
 	public static requireCredential = true as const;
 	public static kind = 'read:account';
 
 	constructor(
+		@Inject(REQUEST)
+		request: ChannelRequest,
+
 		private noteEntityService: NoteEntityService,
 		private voiceCallService: VoiceCallService,
-
-		id: string,
-		connection: Channel['connection'],
 	) {
-		super(id, connection);
+		super(request);
 	}
 
 	private activeCallId: string | null = null;
@@ -331,28 +333,5 @@ class MainChannel extends Channel {
 				message: 'Failed to switch to SFU',
 			});
 		}
-	}
-}
-
-@Injectable()
-export class MainChannelService implements MiChannelService<true> {
-	public readonly shouldShare = MainChannel.shouldShare;
-	public readonly requireCredential = MainChannel.requireCredential;
-	public readonly kind = MainChannel.kind;
-
-	constructor(
-		private noteEntityService: NoteEntityService,
-		private voiceCallService: VoiceCallService,
-	) {
-	}
-
-	@bindThis
-	public create(id: string, connection: Channel['connection']): MainChannel {
-		return new MainChannel(
-			this.noteEntityService,
-			this.voiceCallService,
-			id,
-			connection,
-		);
 	}
 }
