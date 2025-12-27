@@ -223,10 +223,10 @@ export class AiService {
 		}
 	}
 
-	@bindThis
-	private async getCpuFlags(): Promise<string[]> {
-		const si = await import('systeminformation');
-		const str = await si.cpuFlags();
-		return str.split(/\s+/);
-	}
+	// @bindThis
+	// private async getCpuFlags(): Promise<string[]> {
+	// 	const si = await import('systeminformation');
+	// 	const str = await si.cpuFlags();
+	// 	return str.split(/\s+/);
+	// }
 }

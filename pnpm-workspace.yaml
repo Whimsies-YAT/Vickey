@@ -13,12 +13,6 @@ packages:
   - packages/misskey-bubble-game
   - packages/security-bridge
 
-ignorePatchFailures: false
-
-minimumReleaseAge: 10080
-
-minimumReleaseAgeExclude: uuidv7
-
 onlyBuiltDependencies:
   - '@nestjs/core'
   - '@parcel/watcher'
