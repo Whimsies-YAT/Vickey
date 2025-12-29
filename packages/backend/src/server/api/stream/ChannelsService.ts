@@ -5,7 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { HybridTimelineChannel } from './channels/hybrid-timeline.js';
-import { SmartTimelineChannelService } from './channels/smart-timeline.js';
+import { SmartTimelineChannel } from './channels/smart-timeline.js';
 import { LocalTimelineChannel } from './channels/local-timeline.js';
 import { HomeTimelineChannel } from './channels/home-timeline.js';
 import { GlobalTimelineChannel } from './channels/global-timeline.js';
@@ -23,11 +23,10 @@ import { ChatUserChannel } from './channels/chat-user.js';
 import { ChatRoomChannel } from './channels/chat-room.js';
 import { ReversiChannel } from './channels/reversi.js';
 import { ReversiGameChannel } from './channels/reversi-game.js';
-import { ReversiGameChannelService } from './channels/reversi-game.js';
-import { GomokuChannelService } from './channels/gomoku.js';
-import { GomokuGameChannelService } from './channels/gomoku-game.js';
-import { WerewolfChannelService } from './channels/werewolf.js';
-import { WerewolfGameChannelService } from './channels/werewolf-game.js';
+import { GomokuChannel } from './channels/gomoku.js';
+import { GomokuGameChannel } from './channels/gomoku-game.js';
+import { WerewolfChannel } from './channels/werewolf.js';
+import { WerewolfGameChannel } from './channels/werewolf-game.js';
 import type { ChannelConstructor } from './channel.js';
 import { bindThis } from '@/decorators.js';
 
@@ -44,7 +43,7 @@ export class ChannelsService {
 			case 'homeTimeline': return HomeTimelineChannel;
 			case 'localTimeline': return LocalTimelineChannel;
 			case 'hybridTimeline': return HybridTimelineChannel;
-			case 'smartTimeline': return SmartTimelineChannelService;
+			case 'smartTimeline': return SmartTimelineChannel;
 			case 'globalTimeline': return GlobalTimelineChannel;
 			case 'userList': return UserListChannel;
 			case 'hashtag': return HashtagChannel;
@@ -59,10 +58,10 @@ export class ChannelsService {
 			case 'chatRoom': return ChatRoomChannel;
 			case 'reversi': return ReversiChannel;
 			case 'reversiGame': return ReversiGameChannel;
-			case 'gomoku': return this.GomokuChannelService;
-			case 'gomokuGame': return this.GomokuGameChannelService;
-			case 'werewolf': return this.WerewolfChannelService;
-			case 'werewolfGame': return this.WerewolfGameChannelService;
+			case 'gomoku': return GomokuChannel;
+			case 'gomokuGame': return GomokuGameChannel;
+			case 'werewolf': return WerewolfChannel;
+			case 'werewolfGame': return WerewolfGameChannel;
 
 			default:
 				throw new Error(`no such channel: ${name}`);

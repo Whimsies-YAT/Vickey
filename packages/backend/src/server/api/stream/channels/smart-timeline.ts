@@ -3,16 +3,18 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Scope } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
 import type { Packed } from '@/misc/json-schema.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { bindThis } from '@/decorators.js';
 import { SmartTimelineService } from '@/core/SmartTimelineService.js';
 import { isRenotePacked, isQuotePacked } from '@/misc/is-renote.js';
 import type { JsonObject } from '@/misc/json-value.js';
-import Channel, { type MiChannelService } from '../channel.js';
+import Channel, { type ChannelRequest } from '../channel.js';
 
-class SmartTimelineChannel extends Channel {
+@Injectable({ scope: Scope.TRANSIENT })
+export class SmartTimelineChannel extends Channel {
 	public readonly chName = 'smartTimeline';
 	public static shouldShare = false;
 	public static requireCredential = true as const;
@@ -27,13 +29,13 @@ class SmartTimelineChannel extends Channel {
 	private withFiles: boolean;
 
 	constructor(
+		@Inject(REQUEST)
+		request: ChannelRequest,
+
 		private smartTimelineService: SmartTimelineService,
 		private noteEntityService: NoteEntityService,
-
-		id: string,
-		connection: Channel['connection'],
 	) {
-		super(id, connection);
+		super(request);
 	}
 
 	@bindThis
@@ -96,7 +98,7 @@ class SmartTimelineChannel extends Channel {
 					diversityLevel: this.diversityLevel,
 					freshnessWeight: this.freshnessWeight,
 					qualityThreshold: this.qualityThreshold,
-				}
+				},
 			);
 
 			if (!shouldInclude) return;
@@ -117,28 +119,5 @@ class SmartTimelineChannel extends Channel {
 	@bindThis
 	public dispose(): void {
 		this.subscriber.off('notesStream', this.onNote);
-	}
-}
-
-@Injectable()
-export class SmartTimelineChannelService implements MiChannelService<true> {
-	public readonly shouldShare = SmartTimelineChannel.shouldShare;
-	public readonly requireCredential = SmartTimelineChannel.requireCredential;
-	public readonly kind = SmartTimelineChannel.kind;
-
-	constructor(
-		private smartTimelineService: SmartTimelineService,
-		private noteEntityService: NoteEntityService,
-	) {
-	}
-
-	@bindThis
-	public create(id: string, connection: Channel['connection']): SmartTimelineChannel {
-		return new SmartTimelineChannel(
-			this.smartTimelineService,
-			this.noteEntityService,
-			id,
-			connection,
-		);
 	}
 }

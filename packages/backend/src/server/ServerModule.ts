@@ -33,10 +33,10 @@ import { OAuth2ProviderService } from './oauth/OAuth2ProviderService.js';
 import { OAuthAppServerService } from './oauth/OAuthAppServerService.js';
 import { IconService } from './IconService.js';
 import { StripeWebhookServerService } from './StripeWebhookServerService.js';
-import { GomokuChannelService } from './api/stream/channels/gomoku.js';
-import { GomokuGameChannelService } from './api/stream/channels/gomoku-game.js';
-import { WerewolfChannelService } from './api/stream/channels/werewolf.js';
-import { WerewolfGameChannelService } from './api/stream/channels/werewolf-game.js';
+import { GomokuChannel } from './api/stream/channels/gomoku.js';
+import { GomokuGameChannel } from './api/stream/channels/gomoku-game.js';
+import { WerewolfChannel } from './api/stream/channels/werewolf.js';
+import { WerewolfGameChannel } from './api/stream/channels/werewolf-game.js';
 import { SsoServerService } from './web/SsoServerService.js';
 
 import MainStreamConnection from '@/server/api/stream/Connection.js';
@@ -49,7 +49,7 @@ import { GlobalTimelineChannel } from './api/stream/channels/global-timeline.js'
 import { HashtagChannel } from './api/stream/channels/hashtag.js';
 import { HomeTimelineChannel } from './api/stream/channels/home-timeline.js';
 import { HybridTimelineChannel } from './api/stream/channels/hybrid-timeline.js';
-import { SmartTimelineChannelService } from './api/stream/channels/smart-timeline.js';
+import { SmartTimelineChannel } from './api/stream/channels/smart-timeline.js';
 import { LocalTimelineChannel } from './api/stream/channels/local-timeline.js';
 import { QueueStatsChannel } from './api/stream/channels/queue-stats.js';
 import { ServerStatsChannel } from './api/stream/channels/server-stats.js';
@@ -99,7 +99,7 @@ import { SigninWithPasskeyApiService } from './api/SigninWithPasskeyApiService.j
 		GlobalTimelineChannel,
 		HashtagChannel,
 		RoleTimelineChannel,
-		SmartTimelineChannelService,
+		SmartTimelineChannel,
 		ChatUserChannel,
 		ChatRoomChannel,
 		ReversiChannel,
@@ -115,10 +115,10 @@ import { SigninWithPasskeyApiService } from './api/SigninWithPasskeyApiService.j
 		OAuthAppServerService,
 		IconService,
 		StripeWebhookServerService,
-		GomokuChannelService,
-		GomokuGameChannelService,
-		WerewolfChannelService,
-		WerewolfGameChannelService,
+		GomokuChannel,
+		GomokuGameChannel,
+		WerewolfChannel,
+		WerewolfGameChannel,
 		SsoServerService,
 	],
 	exports: [
