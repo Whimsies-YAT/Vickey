@@ -3,22 +3,24 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Scope } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
 import { bindThis } from '@/decorators.js';
 import type { JsonObject } from '@/misc/json-value.js';
-import Channel, { type MiChannelService } from '../channel.js';
+import Channel, { type ChannelRequest } from '../channel.js';
 
-class GomokuChannel extends Channel {
+@Injectable({ scope: Scope.TRANSIENT })
+export class GomokuChannel extends Channel {
 	public readonly chName = 'gomoku';
 	public static shouldShare = true;
 	public static requireCredential = true as const;
 	public static kind = 'read:account';
 
 	constructor(
-		id: string,
-		connection: Channel['connection'],
+		@Inject(REQUEST)
+		request: ChannelRequest,
 	) {
-		super(id, connection);
+		super(request);
 	}
 
 	@bindThis
@@ -29,24 +31,5 @@ class GomokuChannel extends Channel {
 	@bindThis
 	public dispose() {
 		this.subscriber.off(`gomokuStream:${this.user!.id}`, this.send);
-	}
-}
-
-@Injectable()
-export class GomokuChannelService implements MiChannelService<true> {
-	public readonly shouldShare = GomokuChannel.shouldShare;
-	public readonly requireCredential = GomokuChannel.requireCredential;
-	public readonly kind = GomokuChannel.kind;
-
-	constructor(
-	) {
-	}
-
-	@bindThis
-	public create(id: string, connection: Channel['connection']): GomokuChannel {
-		return new GomokuChannel(
-			id,
-			connection,
-		);
 	}
 }
