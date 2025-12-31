@@ -182,7 +182,7 @@ import { ApLoggerService } from './activitypub/ApLoggerService.js';
 import { ApMfmService } from './activitypub/ApMfmService.js';
 import { ApRendererService } from './activitypub/ApRendererService.js';
 import { ApRequestService } from './activitypub/ApRequestService.js';
-import { ApResolverService } from './activitypub/ApResolverService.js';
+import { ApResolverService, Resolver } from './activitypub/ApResolverService.js';
 import { JsonLdService } from './activitypub/JsonLdService.js';
 import { RemoteLoggerService } from './RemoteLoggerService.js';
 import { RemoteUserResolveService } from './RemoteUserResolveService.js';
@@ -250,7 +250,7 @@ const serviceClasses = [
 	ApMfmService, ApRendererService, ApRequestService, ApResolverService, JsonLdService,
 	RemoteLoggerService, RemoteUserResolveService, WebfingerService, ApImageService, ApMentionService,
 	ApNoteService, ApPersonService, ApQuestionService, QueueService, StripeService, StripeSubscriptionService,
-	StripeWebhookService, CloudflareCallsService, VoiceCallService, WerewolfVoiceService,
+	StripeWebhookService, CloudflareCallsService, VoiceCallService, WerewolfVoiceService, Resolver,
 	// EventBus infrastructure (NEW)
 	EventBus, EventMetrics,
 	// Event handlers (NEW)

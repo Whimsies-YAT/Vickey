@@ -3,29 +3,32 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Scope } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
 import type { MiWerewolfGame } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { WerewolfService } from '@/core/WerewolfService.js';
 import { WerewolfGameEntityService } from '@/core/entities/WerewolfGameEntityService.js';
 import { isJsonObject } from '@/misc/json-value.js';
 import type { JsonObject, JsonValue } from '@/misc/json-value.js';
-import Channel, { type MiChannelService } from '../channel.js';
+import Channel, { type ChannelRequest } from '../channel.js';
 
-class WerewolfGameChannel extends Channel {
+@Injectable({ scope: Scope.TRANSIENT })
+export class WerewolfGameChannel extends Channel {
 	public readonly chName = 'werewolfGame';
 	public static shouldShare = false;
 	public static requireCredential = false as const;
+	public static kind = null;
 	private gameId: MiWerewolfGame['id'] | null = null;
 
 	constructor(
+		@Inject(REQUEST)
+		request: ChannelRequest,
+
 		private werewolfService: WerewolfService,
 		private werewolfGameEntityService: WerewolfGameEntityService,
-
-		id: string,
-		connection: Channel['connection'],
 	) {
-		super(id, connection);
+		super(request);
 	}
 
 	@bindThis
@@ -72,28 +75,5 @@ class WerewolfGameChannel extends Channel {
 	@bindThis
 	public dispose() {
 		this.subscriber.off(`werewolfGameStream:${this.gameId}`, this.send);
-	}
-}
-
-@Injectable()
-export class WerewolfGameChannelService implements MiChannelService<false> {
-	public readonly shouldShare = WerewolfGameChannel.shouldShare;
-	public readonly requireCredential = WerewolfGameChannel.requireCredential;
-	public readonly kind = WerewolfGameChannel.kind;
-
-	constructor(
-		private werewolfService: WerewolfService,
-		private werewolfGameEntityService: WerewolfGameEntityService,
-	) {
-	}
-
-	@bindThis
-	public create(id: string, connection: Channel['connection']): WerewolfGameChannel {
-		return new WerewolfGameChannel(
-			this.werewolfService,
-			this.werewolfGameEntityService,
-			id,
-			connection,
-		);
 	}
 }
