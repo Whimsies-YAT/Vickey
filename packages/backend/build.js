@@ -32,6 +32,15 @@ const externalIpaddrPlugin = {
 	},
 };
 
+const externalNativePlugin = {
+	name: 'external-native',
+	setup(build) {
+		build.onResolve({ filter: /^\.\.\/native\/index\.js$/ }, (args) => {
+			return { path: args.path, external: true };
+		});
+	},
+};
+
 /** @type {import('esbuild').BuildOptions} */
 const options = {
 	entryPoints: ['./src/boot/entry.ts'],
@@ -53,6 +62,7 @@ const options = {
 	},
 	plugins: [
 		externalIpaddrPlugin,
+		externalNativePlugin,
 		resolveTsPathsPlugin,
 		swcPlugin({
 			jsc: {
