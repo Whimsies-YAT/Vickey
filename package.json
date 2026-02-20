@@ -66,7 +66,7 @@
 		"cssnano": "7.1.2",
 		"esbuild": "0.27.3",
 		"execa": "9.6.1",
-		"file-type": "21.0.0",
+		"file-type": "21.3.0",
 		"ignore-walk": "8.0.0",
 		"isolated-vm": "6.0.2",
 		"js-yaml": "4.1.1",
@@ -74,7 +74,7 @@
 		"postcss": "8.5.6",
 		"tar": "7.5.9",
 		"terser": "5.46.0",
-		"ulid": "3.0.1"
+		"ulid": "3.0.2"
 	},
 	"devDependencies": {
 		"@eslint/js": "9.39.2",
