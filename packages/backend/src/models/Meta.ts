@@ -927,7 +927,11 @@ export class MiMeta {
 	@Column('jsonb', {
 		default: { },
 	})
-	public clientOptions: Record<string, any>;
+	public clientOptions: {
+		entrancePageStyle?: 'classic' | 'simple';
+		showTimelineForVisitor?: boolean;
+		showActivitiesForVisitor?: boolean;
+	} & Record<string, any>;
 
 	@Column('boolean', {
 		default: false,
@@ -992,11 +996,6 @@ export class MiMeta {
 		nullable: true,
 	})
 	public cloudflareSfuAppSecret: string | null;
-	public clientOptions: {
-		entrancePageStyle: 'classic' | 'simple';
-		showTimelineForVisitor: boolean;
-		showActivitiesForVisitor: boolean;
-	};
 }
 
 export type SoftwareSuspension = {

@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import * as fs from 'node:fs';
 import rename from 'rename';
 import type { Config } from '@/config.js';
 import type { IImageStreamable } from '@/core/ImageProcessingService.js';
@@ -11,7 +10,7 @@ import { contentDisposition } from '@/misc/content-disposition.js';
 import { correctFilename } from '@/misc/correct-filename.js';
 import { isMimeImage } from '@/misc/is-mime-image.js';
 import { VideoProcessingService } from '@/core/VideoProcessingService.js';
-import { attachStreamCleanup, handleRangeRequest, setFileResponseHeaders, getSafeContentType, needsCleanup } from './FileServerUtils.js';
+import { attachStreamCleanup, handleRangeRequest, setFileResponseHeaders, getSafeContentType } from './FileServerUtils.js';
 import type { FileServerFileResolver } from './FileServerFileResolver.js';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
@@ -76,6 +75,8 @@ export class FileServerDriveHandler {
 					}
 				}
 
+				const isThumbnailGenerated = image != null;
+
 				image ??= {
 					data: handleRangeRequest(reply, request.headers.range as string | undefined, file.file.size, file.path),
 					ext: file.ext,
@@ -85,7 +86,12 @@ export class FileServerDriveHandler {
 				attachStreamCleanup(image.data, file.cleanup);
 
 				reply.header('Content-Type', getSafeContentType(image.type));
-				reply.header('Content-Length', file.file.size);
+
+				// Fix: Do not override Content-Length if it's a proxy chunked size or generated thumbnail
+				if (!reply.hasHeader('Content-Length') && !isThumbnailGenerated) {
+					reply.header('Content-Length', file.file.size);
+				}
+
 				reply.header('Cache-Control', 'max-age=31536000, immutable');
 				reply.header('Content-Disposition',
 					contentDisposition(
@@ -105,7 +111,7 @@ export class FileServerDriveHandler {
 				setFileResponseHeaders(reply, { mime: file.mime, filename });
 				return handleRangeRequest(reply, request.headers.range as string | undefined, file.file.size, file.path);
 			} else {
-				setFileResponseHeaders(reply, { mime: file.file.type, filename: file.filename, size: file.file.size });
+				setFileResponseHeaders(reply, { mime: file.mime, filename: file.filename, size: file.file.size });
 				return handleRangeRequest(reply, request.headers.range as string | undefined, file.file.size, file.path);
 			}
 		} catch (e) {

@@ -19,6 +19,8 @@ import { ImageProcessingService } from '@/core/ImageProcessingService.js';
 import { InternalStorageService } from '@/core/InternalStorageService.js';
 import { IdService } from '@/core/IdService.js';
 import { LoggerService } from '@/core/LoggerService.js';
+import { SecurityCoreService } from '@/core/SecurityCoreService.js';
+import { S3Service } from '@/core/S3Service.js';
 import { VideoProcessingService } from '@/core/VideoProcessingService.js';
 import { loadConfig, type Config } from '@/config.js';
 import { MiDriveFile } from '@/models/DriveFile.js';
@@ -152,9 +154,11 @@ describe('FileServerService', () => {
 		} as unknown as AiService;
 		const fileInfoService = new FileInfoService(aiService, loggerService);
 		const httpRequestService = new HttpRequestService(config);
-		const downloadService = new DownloadService(config, httpRequestService, loggerService);
+		const securityCoreService = new SecurityCoreService();
+		const s3Service = new S3Service(httpRequestService);
+		const downloadService = new DownloadService(config, httpRequestService, loggerService, securityCoreService);
 		const imageProcessingService = new ImageProcessingService();
-		const videoProcessingService = new VideoProcessingService(config, imageProcessingService);
+		const videoProcessingService = new VideoProcessingService(config, fileInfoService, imageProcessingService);
 		internalStorageService = new InternalStorageService(config);
 		idService = new IdService(config);
 		fileServerService = new FileServerService(
@@ -165,6 +169,7 @@ describe('FileServerService', () => {
 			imageProcessingService,
 			videoProcessingService,
 			internalStorageService,
+			s3Service,
 			loggerService,
 		);
 
@@ -189,6 +194,7 @@ describe('FileServerService', () => {
 			imageProcessingService,
 			videoProcessingService,
 			internalStorageService,
+			s3Service,
 			loggerService,
 		);
 		externalFastify = Fastify();

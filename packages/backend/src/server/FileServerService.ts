@@ -9,7 +9,6 @@ import { dirname } from 'node:path';
 import { Inject, Injectable } from '@nestjs/common';
 import type { Config } from '@/config.js';
 import type { DriveFilesRepository } from '@/models/_.js';
-import { IsNull } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import { StatusError } from '@/misc/status-error.js';
 import type Logger from '@/logger.js';
@@ -78,31 +77,6 @@ export class FileServerService {
 	}
 
 	@bindThis
-	private handleRangeRequest(
-		filePath: string,
-		fileSize: number,
-		range: string,
-		reply: any
-	): NodeJS.ReadableStream | null {
-		if (!range || fileSize <= 0) return null;
-
-		const parts = range.replace(/bytes=/, '').split('-');
-		const start = parseInt(parts[0], 10);
-		let end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-		if (end > fileSize) {
-			end = fileSize - 1;
-		}
-		const chunksize = end - start + 1;
-
-		reply.header('Content-Range', `bytes ${start}-${end}/${fileSize}`);
-		reply.header('Accept-Ranges', 'bytes');
-		reply.header('Content-Length', chunksize);
-		reply.code(206);
-
-		return fs.createReadStream(filePath, { start, end });
-	}
-
-	@bindThis
 	public createServer(fastify: FastifyInstance, options: FastifyPluginOptions, done: (err?: Error) => void) {
 		fastify.addHook('onRequest', (request, reply, done) => {
 			reply.header('Content-Security-Policy', 'default-src \'none\'; img-src \'self\'; media-src \'self\'; style-src \'unsafe-inline\'');
@@ -142,7 +116,6 @@ export class FileServerService {
 		done();
 	}
 
-	@bindThis
 	private async errorHandler(request: FastifyRequest<{ Params?: { [x: string]: any }; Querystring?: { [x: string]: any }; }>, reply: FastifyReply, err?: any) {
 		this.logger.error(`${err}`);
 
