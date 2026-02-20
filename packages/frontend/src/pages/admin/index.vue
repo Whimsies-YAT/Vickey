@@ -392,7 +392,7 @@ async function gracefulReload() {
 	}
 }
 
-function adminLookup(ev: MouseEvent) {
+function adminLookup(ev: PointerEvent) {
 	os.popupMenu([{
 		text: i18n.ts.user,
 		icon: 'ti ti-user',

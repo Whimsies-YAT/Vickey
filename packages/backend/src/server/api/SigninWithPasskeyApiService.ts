@@ -116,7 +116,7 @@ export class SigninWithPasskeyApiService {
 						actor: ipHash,
 					}
 				);
-			} catch (err) {
+			} catch (_) {
 				reply.code(429);
 				return {
 					error: {

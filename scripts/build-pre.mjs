@@ -3,10 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-const fs = require('fs');
-const path = require('path');
-const { join, dirname} = require("path");
-const { execSync } = require('child_process');
+import * as fs from 'node:fs';
+import path, { join, dirname } from 'node:path';
+import { execSync } from 'node:child_process';
+
+const __dirname = import.meta.dirname;
+
 const packageJsonPath = __dirname + '/../package.json'
 
 function buildYumePdq() {

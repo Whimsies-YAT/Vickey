@@ -58,7 +58,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			@input="onInput"
 		>
 		<datalist v-if="datalist" :id="id">
-			<option v-for="data in datalist" :key="data" :value="data"/>
+			<option v-for="data in datalist" :key="data" :value="data"></option>
 		</datalist>
 		<div ref="suffixEl" :class="$style.suffix"><slot name="suffix"></slot></div>
 	</div>
@@ -115,10 +115,11 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-	(ev: 'change', _ev: KeyboardEvent): void;
+	(ev: 'change', _ev: InputEvent): void;
 	(ev: 'keydown', _ev: KeyboardEvent): void;
 	(ev: 'enter', _ev: KeyboardEvent): void;
 	(ev: 'update:modelValue', value: ModelValueType<T>): void;
+	(ev: 'savingStateChange', saved: boolean, invalid: boolean): void;
 }>();
 
 const { modelValue } = toRefs(props);
@@ -167,10 +168,9 @@ const onDateTimeUpdate = (value: string | Date | null) => {
 };
 
 const focus = () => inputEl.value?.focus();
-const onInput = (event: Event) => {
-	const ev = event as KeyboardEvent;
+const onInput = (event: InputEvent) => {
 	changed.value = true;
-	emit('change', ev);
+	emit('change', event);
 };
 const onKeydown = (ev: KeyboardEvent) => {
 	if (ev.isComposing || ev.key === 'Process' || ev.keyCode === 229) return;
@@ -210,29 +210,46 @@ watch(v, () => {
 	invalid.value = inputEl.value?.validity.badInput ?? true;
 });
 
+watch([changed, invalid], ([newChanged, newInvalid]) => {
+	emit('savingStateChange', newChanged, newInvalid);
+}, { immediate: true });
+
 onMounted(() => {
 	nextTick(() => {
 		if (props.autofocus) {
 			focus();
 		}
+		updateWidths();
 	});
 
 	if (props.mfmAutocomplete && inputEl.value) {
 		autocompleteWorker = new Autocomplete(inputEl.value, v, props.mfmAutocomplete === true ? undefined : props.mfmAutocomplete);
 	}
 
-	resizeObserver = new ResizeObserver((entries) => {
-		for (const entry of entries) {
-			if (entry.target === prefixEl.value) {
-				prefixWidth.value = (entry.target as HTMLElement).offsetWidth + 12; // 12px is the padding of inputCore
-			} else if (entry.target === suffixEl.value) {
-				suffixWidth.value = (entry.target as HTMLElement).offsetWidth + 12; // 12px is the padding of inputCore
-			}
+	const updateWidths = () => {
+		if (prefixEl.value) {
+			const w = prefixEl.value.offsetWidth;
+			prefixWidth.value = w ? w + 12 : null;
+		} else {
+			prefixWidth.value = null;
 		}
+
+		if (suffixEl.value) {
+			const w = suffixEl.value.offsetWidth;
+			suffixWidth.value = w ? w + 12 : null;
+		} else {
+			suffixWidth.value = null;
+		}
+	};
+
+	resizeObserver = new ResizeObserver(() => {
+		updateWidths();
 	});
 
 	if (prefixEl.value) resizeObserver.observe(prefixEl.value);
 	if (suffixEl.value) resizeObserver.observe(suffixEl.value);
+
+	window.addEventListener('resize', updateWidths);
 });
 
 onUnmounted(() => {
@@ -242,6 +259,7 @@ onUnmounted(() => {
 	if (resizeObserver) {
 		resizeObserver.disconnect();
 	}
+	window.removeEventListener('resize', updateWidths);
 });
 
 defineExpose({

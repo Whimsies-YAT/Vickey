@@ -192,7 +192,7 @@ async function init() {
 
 init();
 
-function clickAddAccount(ev: MouseEvent) {
+function clickAddAccount(ev: PointerEvent) {
 	selectedUser.value = null;
 
 	os.popupMenu([{

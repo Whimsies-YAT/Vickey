@@ -111,8 +111,8 @@ watch([() => $i, () => mainRouter.currentRoute.value], () => {
 	}
 }, { immediate: true });
 
-const onContextmenu = (ev) => {
-	if (isLink(ev.target)) return;
+const onContextmenu = (ev: PointerEvent) => {
+	if (isLink(ev.target as HTMLElement)) return;
 	if (['INPUT', 'TEXTAREA', 'IMG', 'VIDEO', 'CANVAS'].includes(ev.target.tagName) || ev.target.attributes['contenteditable']) return;
 	if (window.getSelection()?.toString() !== '') return;
 	const path = mainRouter.getCurrentFullPath();
@@ -126,7 +126,7 @@ const onContextmenu = (ev) => {
 			os.pageWindow(path);
 		},
 	}], ev);
-};
+}
 </script>
 
 <style lang="scss" module>

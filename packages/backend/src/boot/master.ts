@@ -4,8 +4,6 @@
  */
 
 import * as fs from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
 import * as os from 'node:os';
 import cluster from 'node:cluster';
 import chalk from 'chalk';
@@ -17,11 +15,6 @@ import { showMachineInfo } from '@/misc/show-machine-info.js';
 import { envOption } from '@/env.js';
 import { jobQueue, server } from './common.js';
 import * as argon2 from '@node-rs/argon2';
-
-const _filename = fileURLToPath(import.meta.url);
-const _dirname = dirname(_filename);
-
-const meta = JSON.parse(fs.readFileSync(`${_dirname}/../../../../built/meta.json`, 'utf-8'));
 
 const logger = new Logger('core', 'cyan');
 const bootLogger = logger.createSubLogger('boot', 'magenta');
@@ -38,10 +31,10 @@ let autotunePromise: Promise<void> | null = null;
 
 const themeColor = chalk.hex('#86b300');
 
-function greet() {
+function greet(props: { version: string }) {
 	if (!envOption.quiet) {
 		//#region Vickey logo
-		const v = `${meta.codename} v${meta.version}`;
+		const v = `${props.codename} v${props.version}`;
 		console.log(themeColor(' __     ___      _                   '));
 		console.log(themeColor(' \\ \\   / (_) ___| | _____ _   _    '));
 		console.log(themeColor('  \\ \\ / /| |/ __| |/ / _ \\ | | |  '));
@@ -59,7 +52,7 @@ function greet() {
 	}
 
 	bootLogger.info('Welcome to Vickey!');
-	bootLogger.info(`Vickey ${meta.codename} v${meta.version}`, null, true);
+	bootLogger.info(`Vickey ${props.codename} v${props.version}`, null, true);
 }
 
 /**
@@ -70,11 +63,11 @@ export async function masterMain() {
 
 	// initialize app
 	try {
-		greet();
+		config = loadConfigBoot();
+		greet({ version: config.version });
 		showEnvironment();
 		await showMachineInfo(bootLogger);
 		showNodejsVersion();
-		config = loadConfigBoot();
 
 		// Start Argon2id autotune in background immediately after config load
 		autotunePromise = performArgon2Autotune();
@@ -82,7 +75,7 @@ export async function masterMain() {
 		//await connectDb();
 		if (config.pidFile) fs.writeFileSync(config.pidFile, process.pid.toString());
 	} catch (e) {
-		bootLogger.error('Fatal error occurred during initialization', null, true);
+		bootLogger.error('Fatal error occurred during initialization: ' + e, null, true);
 		process.exit(1);
 	}
 

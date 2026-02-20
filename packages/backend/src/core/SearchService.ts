@@ -1360,8 +1360,10 @@ export class SearchService {
 			case 'searchEngine':
 			case 'searchengine':
 				return this.searchNoteBySearchEngine(q, me, opts, pagination);
-			default:
+			default: {
+				const _: never = this.provider;
 				return [];
+			}
 		}
 	}
 

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import type { MiMeta } from '@/models/Meta.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
@@ -71,7 +71,14 @@ export const paramDef = {
 		description: { type: 'string', nullable: true },
 		defaultLightTheme: { type: 'string', nullable: true },
 		defaultDarkTheme: { type: 'string', nullable: true },
-		clientOptions: { type: 'object', nullable: false },
+		clientOptions: {
+			type: 'object', nullable: false,
+			properties: {
+				entrancePageStyle: { type: 'string', nullable: false, enum: ['classic', 'simple'] },
+				showTimelineForVisitor: { type: 'boolean', nullable: false },
+				showActivitiesForVisitor: { type: 'boolean', nullable: false },
+			},
+		},
 		cacheRemoteFiles: { type: 'boolean' },
 		cacheRemoteSensitiveFiles: { type: 'boolean' },
 		emailRequiredForSignup: { type: 'boolean' },
@@ -289,6 +296,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.meta)
 		private mMeta: MiMeta,
 
+		@Inject(DI.meta)
+		private serverSettings: MiMeta,
+
 		private metaService: MetaService,
 		private moderationLogService: ModerationLogService,
 		private iP2LocationService: IP2LocationService,
@@ -421,7 +431,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			if (ps.clientOptions !== undefined) {
-				set.clientOptions = ps.clientOptions;
+				set.clientOptions = {
+					...serverSettings.clientOptions,
+					...ps.clientOptions,
+				};
 			}
 
 			if (ps.cacheRemoteFiles !== undefined) {
