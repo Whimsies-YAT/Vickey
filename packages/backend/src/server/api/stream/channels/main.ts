@@ -32,7 +32,9 @@ export class MainChannel extends Channel {
 	private activeCallId: string | null = null;
 
 	@bindThis
-	public async init(params: JsonObject) {
+	public async init(params: JsonObject): Promise<boolean> {
+		if (!this.user) return false;
+
 		const currentCall = await this.voiceCallService.getCurrentCall(this.user!.id);
 		if (currentCall) {
 			this.activeCallId = currentCall.callId;
@@ -61,7 +63,7 @@ export class MainChannel extends Channel {
 		}
 
 		// Subscribe main stream channel
-		this.subscriber.on(`mainStream:${this.user!.id}`, async data => {
+		this.subscriber.on(`mainStream:${this.user.id}`, async data => {
 			switch (data.type) {
 				case 'notification': {
 					// Ignore notifications from instances the user has muted
@@ -78,8 +80,8 @@ export class MainChannel extends Channel {
 				}
 				case 'mention': {
 					if (isInstanceMuted(data.body, new Set<string>(this.userProfile?.mutedInstances ?? []))) return;
-
-					if (this.userIdsWhoMeMuting.has(data.body.userId)) return;
+					if (!this.isNoteVisibleForMe(data.body)) return;
+					if (this.isNoteMutedOrBlocked(data.body)) return;
 					if (data.body.isHidden) {
 						const note = await this.noteEntityService.pack(data.body.id, this.user, {
 							detail: true,
@@ -96,6 +98,8 @@ export class MainChannel extends Channel {
 
 			this.send(data.type, data.body);
 		});
+
+		return true;
 	}
 
 	@bindThis
