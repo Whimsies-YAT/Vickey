@@ -913,3 +913,6 @@ failedToRevokeSessions: "Failed to revoke sessions"
 lastUsed: "Last used"
 revoke: "Revoke"
 noProviders: "No SSO providers available."
+_initialTutorial:
+  _timeline:
+    smart: "A smart timeline that aggregates posts from various sources."
