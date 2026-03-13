@@ -56,9 +56,9 @@ const options = {
 	banner: {
 		js: 'import { createRequire as topLevelCreateRequire } from "module";' +
 			'import ___url___ from "url";' +
-			'const require = topLevelCreateRequire(import.meta.url);' +
-			'const __filename = ___url___.fileURLToPath(import.meta.url);' +
-			'const __dirname = ___url___.fileURLToPath(new URL(".", import.meta.url));',
+			'globalThis.require = topLevelCreateRequire(import.meta.url);' +
+			'globalThis.__filename = ___url___.fileURLToPath(import.meta.url);' +
+			'globalThis.__dirname = ___url___.fileURLToPath(new URL(".", import.meta.url));',
 	},
 	plugins: [
 		externalIpaddrPlugin,
