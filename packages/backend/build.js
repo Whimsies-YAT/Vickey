@@ -44,7 +44,7 @@ const externalNativePlugin = {
 /** @type {import('esbuild').BuildOptions} */
 const options = {
 	entryPoints: ['./src/boot/entry.ts'],
-	minify: false,
+	minify: true,
 	keepNames: true,
 	bundle: true,
 	outdir: './built/boot',
