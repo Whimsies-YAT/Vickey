@@ -23,7 +23,7 @@ export class MiAbuseUserReport {
 	@Column(id())
 	public targetId: MiNote['id'] | null;
 
-	@ManyToOne(type => MiUser, {
+	@ManyToOne(() => MiUser, {
 		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
@@ -33,7 +33,7 @@ export class MiAbuseUserReport {
 	@Column(id())
 	public reporterId: MiUser['id'];
 
-	@ManyToOne(type => MiUser, {
+	@ManyToOne(() => MiUser, {
 		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
@@ -45,7 +45,7 @@ export class MiAbuseUserReport {
 	})
 	public assigneeId: MiUser['id'] | null;
 
-	@ManyToOne(type => MiUser, {
+	@ManyToOne(() => MiUser, {
 		onDelete: 'SET NULL',
 	})
 	@JoinColumn()

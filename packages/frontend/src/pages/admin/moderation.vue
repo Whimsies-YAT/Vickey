@@ -188,11 +188,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</MkSwitch>
 							<div v-if="abuseMLCheck">
 								<span>{{ i18n.ts._abuseReportAutoProcessing.description }}</span>
-								<MkRadios v-model="abuseReportMLAction">
-									<option value="record">{{ i18n.ts._abuseReportAutoProcessing.record }}</option>
-									<option value="ignore">{{ i18n.ts._abuseReportAutoProcessing.ignore }} ({{i18n.ts.recommended}})</option>
-									<option value="delete">{{ i18n.ts._abuseReportAutoProcessing.delete }}</option>
-								</MkRadios>
+								<MkRadios v-model="abuseReportMLAction" :options="[{ value: 'record', label: i18n.ts._abuseReportAutoProcessing.record }, { value: 'ignore', label: `${i18n.ts._abuseReportAutoProcessing.ignore} (${i18n.ts.recommended})` }, { value: 'delete', label: i18n.ts._abuseReportAutoProcessing.delete }]"/>
 								<MkInput v-model="abuseMLInfoUrl">
 									<template #label><SearchLabel>{{i18n.ts._abuseReportAutoProcessing.url}}</SearchLabel></template>
 								</MkInput>
@@ -259,7 +255,7 @@ const mediaSilencedHosts = ref(meta.mediaSilencedHosts.join('\n'));
 const deletedNoteCollectionInstances = ref(meta.deletedNoteCollectionInstances?.join('\n') ?? '');
 const deletedNoteRetentionHours = ref(meta.deletedNoteRetentionHours ?? 72);
 const abuseMLCheck = ref(meta.abuseMLCheck ?? false);
-const abuseReportMLAction = ref(meta.abuseReportMLAction ?? 'record');
+const abuseReportMLAction = ref<'record' | 'ignore' | 'delete'>((meta.abuseReportMLAction as 'record' | 'ignore' | 'delete') ?? 'record');
 const abuseMLInfoUrl = ref(meta.abuseMLInfoUrl ?? '');
 const abuseMLInfoToken = ref(meta.abuseMLInfoToken ?? '');
 const abuseMLInfoScore = ref(meta.abuseMLInfoScore ?? 0.5);

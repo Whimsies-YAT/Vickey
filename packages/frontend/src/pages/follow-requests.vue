@@ -18,13 +18,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<p class="acct">@{{ acct(displayUser(req)) }}</p>
 							</div>
 							<div v-if="tab === 'list'" class="commands">
-								<MkButton class="command" rounded primary @click="accept(displayUser(req))"><i class="ti ti-check"/> {{ i18n.ts.accept }}</MkButton>
-								<MkButton v-if="isRequestIgnored(req)" class="command" rounded primary @click="display(req.follower)"><i class="ti ti-volume"/> {{ i18n.ts.display }}</MkButton>
-								<MkButton v-if="!isRequestIgnored(req)" class="command" rounded danger @click="ignore(req.follower)"><i class="ti ti-volume-3"/> {{ i18n.ts.ignore }}</MkButton>
-								<MkButton class="command" rounded danger @click="reject(displayUser(req))"><i class="ti ti-x"/> {{ i18n.ts.reject }}</MkButton>
+								<MkButton class="command" rounded primary @click="accept(displayUser(req))"><i class="ti ti-check"></i> {{ i18n.ts.accept }}</MkButton>
+								<MkButton v-if="isRequestIgnored(req)" class="command" rounded primary @click="display(req.follower)"><i class="ti ti-volume"></i> {{ i18n.ts.display }}</MkButton>
+								<MkButton v-if="!isRequestIgnored(req)" class="command" rounded danger @click="ignore(req.follower)"><i class="ti ti-volume-3"></i> {{ i18n.ts.ignore }}</MkButton>
+								<MkButton class="command" rounded danger @click="reject(displayUser(req))"><i class="ti ti-x"></i> {{ i18n.ts.reject }}</MkButton>
 							</div>
 							<div v-else class="commands">
-								<MkButton class="command" rounded danger @click="cancel(displayUser(req))"><i class="ti ti-x"/> {{ i18n.ts.cancel }}</MkButton>
+								<MkButton class="command" rounded danger @click="cancel(displayUser(req))"><i class="ti ti-x"></i> {{ i18n.ts.cancel }}</MkButton>
 							</div>
 						</div>
 					</div>
@@ -105,7 +105,7 @@ async function cancel(user: Misskey.entities.UserLite) {
 	});
 }
 
-function displayUser(req) {
+function displayUser(req: Misskey.entities.FollowingRequestsListResponse[number]) {
 	return tab.value === 'list' ? req.follower : req.followee;
 }
 

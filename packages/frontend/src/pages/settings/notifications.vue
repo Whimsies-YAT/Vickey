@@ -13,24 +13,24 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<FormSection first>
 			<template #label>{{ i18n.ts.notificationRecieveConfig }}</template>
 			<div class="_gaps_s">
-				<MkFolder v-for="type in notificationTypes.filter(x => !nonConfigurableNotificationTypes.includes(x))" :key="type">
+				<MkFolder v-for="type in configurableNotificationTypes" :key="type">
 					<template #label>{{ i18n.ts._notification._types[type] }}</template>
 					<template #suffix>
 						{{
-							$i.notificationRecieveConfig[type]?.type === 'never' ? i18n.ts.none :
-							$i.notificationRecieveConfig[type]?.type === 'following' ? i18n.ts.following :
-							$i.notificationRecieveConfig[type]?.type === 'follower' ? i18n.ts.followers :
-							$i.notificationRecieveConfig[type]?.type === 'mutualFollow' ? i18n.ts.mutualFollow :
-							$i.notificationRecieveConfig[type]?.type === 'followingOrFollower' ? i18n.ts.followingOrFollower :
-							$i.notificationRecieveConfig[type]?.type === 'list' ? i18n.ts.userList :
+							getNotifConfig(type)?.type === 'never' ? i18n.ts.none :
+							getNotifConfig(type)?.type === 'following' ? i18n.ts.following :
+							getNotifConfig(type)?.type === 'follower' ? i18n.ts.followers :
+							getNotifConfig(type)?.type === 'mutualFollow' ? i18n.ts.mutualFollow :
+							getNotifConfig(type)?.type === 'followingOrFollower' ? i18n.ts.followingOrFollower :
+							getNotifConfig(type)?.type === 'list' ? i18n.ts.userList :
 							i18n.ts.all
 						}}
 					</template>
 
 					<XNotificationConfig
 						:userLists="userLists"
-						:value="$i.notificationRecieveConfig[type] ?? { type: 'all' }"
-						:configurableTypes="onlyOnOrOffNotificationTypes.includes(type) ? ['all', 'never'] : undefined"
+						:value="getNotifConfig(type) ?? { type: 'all' }"
+						:configurableTypes="(onlyOnOrOffNotificationTypes as readonly ConfigurableNotificationType[]).includes(type) ? ['all', 'never'] : undefined"
 						@update="(res) => updateReceiveConfig(type, res)"
 					/>
 				</MkFolder>
@@ -83,9 +83,14 @@ import MkFeatureBanner from '@/components/MkFeatureBanner.vue';
 
 const $i = ensureSignin();
 
-const nonConfigurableNotificationTypes = ['note', 'roleAssigned', 'followRequestAccepted', 'test', 'exportCompleted'] satisfies (typeof notificationTypes[number])[] as string[];
+const nonConfigurableNotificationTypes = ['note', 'roleAssigned', 'followRequestAccepted', 'test', 'exportCompleted'] as const satisfies (typeof notificationTypes[number])[];
 
-const onlyOnOrOffNotificationTypes = ['app', 'achievementEarned', 'login', 'createToken', 'scheduledNotePosted', 'scheduledNotePostFailed'] satisfies (typeof notificationTypes[number])[] as string[];
+type NotificationType = typeof notificationTypes[number];
+type ConfigurableNotificationType = Exclude<NotificationType, typeof nonConfigurableNotificationTypes[number]>;
+
+const configurableNotificationTypes = notificationTypes.filter(type => !nonConfigurableNotificationTypes.includes(type as typeof nonConfigurableNotificationTypes[number])) as ConfigurableNotificationType[];
+
+const onlyOnOrOffNotificationTypes = ['app', 'achievementEarned', 'login', 'createToken', 'scheduledNotePosted', 'scheduledNotePostFailed'] as const satisfies (typeof notificationTypes[number])[];
 
 const allowButton = useTemplateRef('allowButton');
 const pushRegistrationInServer = computed(() => allowButton.value?.pushRegistrationInServer);
@@ -96,12 +101,20 @@ async function readAllNotifications() {
 	await os.apiWithDialog('notifications/mark-all-as-read', {});
 }
 
-async function updateReceiveConfig(type: typeof notificationTypes[number], value: NotificationConfig) {
+// notificationRecieveConfig's autogen type lacks voiceCall/voiceCallEnded keys.
+// This helper safely indexes by NotificationType without scattering `as any` everywhere.
+type NotifConfigValue = typeof $i.notificationRecieveConfig[keyof typeof $i.notificationRecieveConfig];
+
+function getNotifConfig(type: ConfigurableNotificationType): NotifConfigValue {
+	return ($i.notificationRecieveConfig as Record<string, NotifConfigValue>)[type];
+}
+
+async function updateReceiveConfig(type: ConfigurableNotificationType, value: NotificationConfig) {
 	await os.apiWithDialog('i/update', {
 		notificationRecieveConfig: {
 			...$i.notificationRecieveConfig,
 			[type]: value,
-		},
+		} as Record<string, NotifConfigValue>,
 	}).then(i => {
 		$i.notificationRecieveConfig = i.notificationRecieveConfig;
 	});

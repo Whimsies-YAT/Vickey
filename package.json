@@ -1,12 +1,12 @@
 {
 	"name": "vickey",
-	"version": "2025.12.2",
+	"version": "2026.3.1",
 	"codename": "astra",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Whimsies-YAT/Vickey"
 	},
-	"packageManager": "pnpm@10.25.0",
+	"packageManager": "pnpm@10.30.3",
 	"workspaces": [
 		"packages/misskey-js",
 		"packages/i18n",
@@ -25,14 +25,14 @@
 	"private": true,
 	"scripts": {
 		"compile-config": "cd packages/backend && pnpm compile-config",
-		"build-pre": "node ./scripts/build-pre.js",
+		"build-pre": "node scripts/build-pre.mjs",
 		"build-assets": "node ./scripts/build-assets.mjs",
 		"build": "node ./scripts/smart-build.js",
 		"build:legacy": "pnpm build-pre && pnpm -r build && pnpm build-assets",
 		"build-storybook": "pnpm --filter frontend build-storybook",
 		"build-misskey-js-with-types": "pnpm build-pre && pnpm --filter backend... --filter=!misskey-js build && pnpm --filter backend generate-api-json --no-build && ncp packages/backend/built/api.json packages/misskey-js/generator/api.json && pnpm --filter misskey-js update-autogen-code && pnpm --filter misskey-js build && pnpm --filter misskey-js api",
 		"build-misskey-js-only": "pnpm --filter backend generate-api-json --no-build && ncp packages/backend/built/api.json packages/misskey-js/generator/api.json && pnpm --filter misskey-js update-autogen-code && pnpm --filter misskey-js build && pnpm --filter misskey-js api",
-		"start": "pnpm check:connect && cd packages/backend && pnpm compile-config && node ./built/boot/entry.js",
+		"start": "cd packages/backend && pnpm compile-config && node ./built/boot/entry.js",
 		"start:inspect": "cd packages/backend && pnpm compile-config && node --inspect ./built/boot/entry.js",
 		"start:test": "ncp ./.github/misskey/test.yml ./.config/test.yml && cd packages/backend && cross-env NODE_ENV=test pnpm compile-config && cross-env NODE_ENV=test node ./built/boot/entry.js",
 		"cli": "cd packages/backend && pnpm cli",
@@ -43,7 +43,7 @@
 		"migrateandstart": "pnpm migrate && pnpm start",
 		"watch": "pnpm dev",
 		"dev": "node scripts/dev.mjs",
-		"lint": "pnpm -r lint",
+		"lint": "pnpm --no-bail -r lint",
 		"cy:open": "pnpm cypress open --config-file=cypress.config.ts",
 		"cy:run": "pnpm cypress run",
 		"e2e": "pnpm start-server-and-test start:test http://localhost:61812 cy:run",
@@ -52,8 +52,8 @@
 		"jest-and-coverage": "cd packages/backend && pnpm jest-and-coverage",
 		"test": "pnpm -r test",
 		"test-and-coverage": "pnpm -r test-and-coverage",
-		"clean": "node ./scripts/clean.js",
-		"clean-all": "node ./scripts/clean-all.js",
+		"clean": "node scripts/clean.mjs",
+		"clean-all": "node scripts/clean-all.mjs",
 		"cleanall": "pnpm clean-all",
 		"mobile:icons": "bash ./scripts/generate-icons.sh",
 		"mobile:build": "node ./scripts/build-mobile.mjs",
@@ -61,48 +61,46 @@
 		"mobile:sync:android": "cd packages/frontend && pnpm exec cap sync android",
 		"mobile:open:android": "cd packages/frontend && pnpm exec cap open android"
 	},
-	"resolutions": {
-		"chokidar": "5.0.0",
-		"lodash": "4.17.21"
-	},
 	"dependencies": {
 		"cld": "2.10.1",
 		"cssnano": "7.1.2",
-		"esbuild": "0.27.1",
+		"esbuild": "0.27.3",
 		"execa": "9.6.1",
-		"file-type": "21.0.0",
+		"file-type": "21.3.0",
 		"ignore-walk": "8.0.0",
 		"isolated-vm": "6.0.2",
 		"js-yaml": "4.1.1",
 		"nanoid": "5.1.5",
 		"postcss": "8.5.6",
-		"tar": "7.5.2",
-		"terser": "5.44.1",
-		"ulid": "3.0.1"
+		"tar": "7.5.10",
+		"terser": "5.46.0",
+		"ulid": "3.0.2"
 	},
 	"devDependencies": {
-		"@eslint/js": "9.39.1",
-		"@misskey-dev/eslint-plugin": "2.2.0",
+		"@eslint/js": "9.39.3",
+		"@misskey-dev/eslint-plugin": "2.1.0",
 		"@types/js-yaml": "4.0.9",
-		"@types/node": "24.10.2",
-		"@typescript-eslint/eslint-plugin": "8.49.0",
-		"@typescript-eslint/parser": "8.49.0",
-		"@typescript/native-preview": "7.0.0-dev.20251206.1",
+		"@types/node": "24.11.0",
+		"@typescript-eslint/eslint-plugin": "8.56.1",
+		"@typescript-eslint/parser": "8.56.1",
+		"@typescript/native-preview": "7.0.0-dev.20260116.1",
 		"cross-env": "10.1.0",
-		"cypress": "15.7.1",
-		"eslint": "9.39.1",
-		"globals": "16.5.0",
+		"cypress": "15.11.0",
+		"eslint": "9.39.3",
+		"globals": "17.4.0",
 		"ncp": "2.0.0",
-		"pnpm": "10.25.0",
-		"typescript": "5.9.3",
-		"start-server-and-test": "2.1.3"
+		"pnpm": "10.30.3",
+		"start-server-and-test": "2.1.5",
+		"typescript": "5.9.3"
 	},
 	"optionalDependencies": {
 		"@tensorflow/tfjs-core": "4.22.0"
 	},
 	"pnpm": {
 		"overrides": {
-			"@aiscript-dev/aiscript-languageserver": "-"
+			"@aiscript-dev/aiscript-languageserver": "-",
+			"chokidar": "5.0.0",
+			"lodash": "4.17.23"
 		},
 		"ignoredBuiltDependencies": [
 			"@sentry-internal/node-cpu-profiler",

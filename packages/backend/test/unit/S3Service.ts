@@ -23,7 +23,7 @@ import type { TestingModule } from '@nestjs/testing';
 describe('S3Service', () => {
 	let app: TestingModule;
 	let s3Service: S3Service;
-	const s3Mock = mockClient(S3Client);
+	const s3Mock = mockClient(S3Client as any);
 
 	beforeAll(async () => {
 		app = await Test.createTestingModule({
@@ -44,7 +44,7 @@ describe('S3Service', () => {
 
 	describe('upload', () => {
 		test('upload a file', async () => {
-			s3Mock.on(PutObjectCommand).resolves({});
+			s3Mock.on(PutObjectCommand as any).resolves({});
 
 			await s3Service.upload({ objectStorageRegion: 'us-east-1' } as MiMeta, {
 				Bucket: 'fake',
@@ -54,9 +54,9 @@ describe('S3Service', () => {
 		});
 
 		test('upload a large file', async () => {
-			s3Mock.on(CreateMultipartUploadCommand).resolves({ UploadId: '1' });
-			s3Mock.on(UploadPartCommand).resolves({ ETag: '1' });
-			s3Mock.on(CompleteMultipartUploadCommand).resolves({ Bucket: 'fake', Key: 'fake' });
+			s3Mock.on(CreateMultipartUploadCommand as any).resolves({ UploadId: '1' } as any);
+			s3Mock.on(UploadPartCommand as any).resolves({ ETag: '1' } as any);
+			s3Mock.on(CompleteMultipartUploadCommand as any).resolves({ Bucket: 'fake', Key: 'fake' } as any);
 
 			await s3Service.upload({} as MiMeta, {
 				Bucket: 'fake',
@@ -66,7 +66,7 @@ describe('S3Service', () => {
 		});
 
 		test('upload a file error', async () => {
-			s3Mock.on(PutObjectCommand).rejects({ name: 'Fake Error' });
+			s3Mock.on(PutObjectCommand as any).rejects({ name: 'Fake Error' });
 
 			await expect(s3Service.upload({ objectStorageRegion: 'us-east-1' } as MiMeta, {
 				Bucket: 'fake',
@@ -76,7 +76,7 @@ describe('S3Service', () => {
 		});
 
 		test('upload a large file error', async () => {
-			s3Mock.on(UploadPartCommand).rejects();
+			s3Mock.on(UploadPartCommand as any).rejects();
 
 			await expect(s3Service.upload({} as MiMeta, {
 				Bucket: 'fake',

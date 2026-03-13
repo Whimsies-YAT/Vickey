@@ -86,7 +86,7 @@ export class PollService {
 			[index, poll.noteId],
 		);
 
-		this.globalEventService.publishNoteStream(note.id, 'pollVoted', {
+		this.globalEventService.publishNoteStream(note, 'pollVoted', {
 			choice: choice,
 			userId: user.id,
 		});

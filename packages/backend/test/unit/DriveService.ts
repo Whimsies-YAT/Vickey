@@ -24,7 +24,7 @@ import { MiMeta } from '@/models/Meta.js';
 describe('DriveService', () => {
 	let app: TestingModule;
 	let driveService: DriveService;
-	const s3Mock = mockClient(S3Client);
+	const s3Mock = mockClient(S3Client as any);
 
 	beforeAll(async () => {
 		app = await Test.createTestingModule({
@@ -58,14 +58,14 @@ describe('DriveService', () => {
 
 	describe('Object storage', () => {
 		test('delete a file', async () => {
-			s3Mock.on(DeleteObjectCommand)
+			s3Mock.on(DeleteObjectCommand as any)
 				.resolves({} as DeleteObjectCommandOutput);
 
 			await driveService.deleteObjectStorageFile('peace of the world');
 		});
 
 		test('delete a file then unexpected error', async () => {
-			s3Mock.on(DeleteObjectCommand)
+			s3Mock.on(DeleteObjectCommand as any)
 				.rejects(new InvalidObjectState({ $metadata: {}, message: '' }));
 
 			await expect(driveService.deleteObjectStorageFile('unexpected')).rejects.toThrow(Error);
@@ -73,7 +73,7 @@ describe('DriveService', () => {
 
 		test('delete a file with no valid key', async () => {
 			// Some S3 implementations returns 404 Not Found on deleting with a non-existent key
-			s3Mock.on(DeleteObjectCommand)
+			s3Mock.on(DeleteObjectCommand as any)
 				.rejects(new NoSuchKey({ $metadata: {}, message: 'allowed error.' }));
 
 			await driveService.deleteObjectStorageFile('lol no way');

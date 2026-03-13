@@ -158,7 +158,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				[index, poll.noteId],
 			);
 
-			this.globalEventService.publishNoteStream(note.id, 'pollVoted', {
+			this.globalEventService.publishNoteStream(note, 'pollVoted', {
 				choice: ps.choice,
 				userId: me.id,
 			});

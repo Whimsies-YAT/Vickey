@@ -4,13 +4,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div>
+<div :class="$style.root">
 	<XBanner v-for="media in mediaList.filter(media => !previewable(media))" :key="media.id" :media="media"/>
 	<div v-if="mediaList.filter(media => previewable(media)).length > 0" :class="$style.container">
 		<div
 			ref="gallery"
 			:class="[
 				$style.medias,
+				...(prefer.s.showMediaListByGridInWideArea ? [$style.gridInWideArea] : []),
 				count === 1 ? [$style.n1, {
 					[$style.n116_9]: prefer.s.mediaListWithOneImageAppearance === '16_9',
 					[$style.n11_1]: prefer.s.mediaListWithOneImageAppearance === '1_1',
@@ -172,11 +173,13 @@ onMounted(async () => {
 				}
 
 				const item = {
-					src,
-					w,
-					h,
-					alt: media.comment ?? media.name,
-					comment: media.comment ?? media.name,
+					src: media.url,
+					w: media.properties.width,
+					h: media.properties.height,
+					// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+					alt: media.comment || media.name,
+					// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+					comment: media.comment || media.name,
 				};
 				if (media.properties.orientation != null && media.properties.orientation >= 5) {
 					[item.w, item.h] = [item.h, item.w];
@@ -238,6 +241,10 @@ onMounted(async () => {
 		}
 
 		itemData.msrc = file.thumbnailUrl ?? undefined;
+		// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+		itemData.alt = file.comment || file.name;
+		// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+		itemData.comment = file.comment || file.name;
 		itemData.thumbCropped = true;
 
 		return itemData;
@@ -311,6 +318,10 @@ defineExpose({
 </script>
 
 <style lang="scss" module>
+.root {
+	container-type: inline-size;
+}
+
 .container {
 	position: relative;
 	width: 100%;
@@ -392,6 +403,20 @@ defineExpose({
 .media {
 	overflow: hidden; // clipにするとバグる
 	border-radius: 8px;
+}
+
+@container (min-width: 500px) {
+	.medias.gridInWideArea {
+		display: grid;
+		aspect-ratio: auto;
+		grid-template-columns: repeat(4, 1fr);
+		grid-template-rows: auto;
+		grid-gap: 8px;
+
+		> .media {
+			aspect-ratio: 1 / 1;
+		}
+	}
 }
 
 :global(.pswp) {

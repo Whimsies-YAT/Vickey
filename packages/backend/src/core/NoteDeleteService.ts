@@ -24,9 +24,12 @@ import { SearchService } from '@/core/SearchService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { NotificationService } from '@/core/NotificationService.js';
 import { FanoutTimelineService } from '@/core/FanoutTimelineService.js';
+import type { FanoutTimelineName } from '@/core/FanoutTimelineService.js';
 import { RoleService } from '@/core/RoleService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
 import { matchHostPatterns } from '@/misc/match-host.js';
+import type { IActivity } from '@/core/activitypub/type.js';
+import type { FindOptionsWhere } from 'typeorm';
 
 @Injectable()
 export class NoteDeleteService {
@@ -73,7 +76,7 @@ export class NoteDeleteService {
 	async delete(user: { id: MiUser['id']; uri: MiUser['uri']; host: MiUser['host']; isBot: MiUser['isBot']; }, note: MiNote, quiet = false, deleter?: MiUser, isMLDelete = false) {
 		const isAdminDelete = deleter ? await this.roleService.isModerator(deleter) : false;
 		const isDeletingOthersNote = deleter && (note.userId !== deleter.id);
-		const collectionInstances = this.meta.deletedNoteCollectionInstances ?? [];
+		const collectionInstances = this.meta.deletedNoteCollectionInstances;
 		const isInWhitelist = collectionInstances.length > 0 && matchHostPatterns(user.host ?? 'local', collectionInstances);
 
 		const shouldSoftDelete = isInWhitelist && (isMLDelete || (isAdminDelete && isDeletingOthersNote));
@@ -89,7 +92,7 @@ export class NoteDeleteService {
 		}
 
 		if (!quiet) {
-			this.globalEventService.publishNoteStream(note.id, 'deleted', {
+			this.globalEventService.publishNoteStream(note, 'deleted', {
 				deletedAt: deletedAt,
 			});
 
@@ -159,7 +162,7 @@ export class NoteDeleteService {
 		}
 	}
 
-	async hardDelete(user: { id: MiUser['id']; uri: MiUser['uri']; host: MiUser['host']; isBot: MiUser['isBot']; }, note: MiNote, quiet = false, deleter?: MiUser, isMLDelete = false) {
+	async hardDelete(user: { id: MiUser['id']; uri: MiUser['uri']; host: MiUser['host']; isBot: MiUser['isBot']; }, note: MiNote, quiet = false, deleter?: MiUser, _isMLDelete = false) {
 		const deletedAt = new Date();
 
 		if (note.replyId) {
@@ -167,7 +170,7 @@ export class NoteDeleteService {
 		}
 
 		if (!quiet) {
-			this.globalEventService.publishNoteStream(note.id, 'deleted', {
+			this.globalEventService.publishNoteStream(note, 'deleted', {
 				deletedAt: deletedAt,
 			});
 
@@ -249,13 +252,13 @@ export class NoteDeleteService {
 				}
 			} else {
 				timelines.push(`userTimeline:${user.id}`);
-				if (note.fileIds && note.fileIds.length > 0) {
+				if (note.fileIds.length > 0) {
 					timelines.push(`userTimelineWithFiles:${user.id}`);
 				}
 
 				if (user.host == null) {
 					timelines.push('localTimeline');
-					if (note.fileIds && note.fileIds.length > 0) {
+					if (note.fileIds.length > 0) {
 						timelines.push('localTimelineWithFiles');
 					}
 				}
@@ -270,7 +273,7 @@ export class NoteDeleteService {
 
 				for (const follower of followers) {
 					timelines.push(`homeTimeline:${follower.id}`);
-					if (note.fileIds && note.fileIds.length > 0) {
+					if (note.fileIds.length > 0) {
 						timelines.push(`homeTimelineWithFiles:${follower.id}`);
 					}
 				}
@@ -283,13 +286,13 @@ export class NoteDeleteService {
 
 				for (const membership of userListMemberships) {
 					timelines.push(`userListTimeline:${membership.userListId}`);
-					if (note.fileIds && note.fileIds.length > 0) {
+					if (note.fileIds.length > 0) {
 						timelines.push(`userListTimelineWithFiles:${membership.userListId}`);
 					}
 				}
 
 				timelines.push(`homeTimeline:${user.id}`);
-				if (note.fileIds && note.fileIds.length > 0) {
+				if (note.fileIds.length > 0) {
 					timelines.push(`homeTimelineWithFiles:${user.id}`);
 				}
 			} catch (error) {
@@ -299,7 +302,7 @@ export class NoteDeleteService {
 
 		if (timelines.length > 0) {
 			for (const timeline of timelines) {
-				await this.fanoutTimelineService.remove(timeline as any, note.id);
+				await this.fanoutTimelineService.remove(timeline as FanoutTimelineName, note.id);
 			}
 		}
 	}
@@ -316,7 +319,7 @@ export class NoteDeleteService {
 			const mentionedUsers = JSON.parse(note.mentionedRemoteUsers) as IMentionedRemoteUsers;
 			const localMentioned = await this.usersRepository.find({
 				where: { uri: In(mentionedUsers.map(x => x.uri)) },
-				select: ['id']
+				select: ['id'],
 			});
 			potentialNotificationUsers.push(...localMentioned.map(u => u.id));
 		}
@@ -351,7 +354,7 @@ export class NoteDeleteService {
 
 	@bindThis
 	private async getMentionedRemoteUsers(note: MiNote) {
-		const where = [] as any[];
+		const where: FindOptionsWhere<MiUser>[] = [];
 
 		// mention / reply / dm
 		const uris = (JSON.parse(note.mentionedRemoteUsers) as IMentionedRemoteUsers).map(x => x.uri);
@@ -390,7 +393,7 @@ export class NoteDeleteService {
 	}
 
 	@bindThis
-	private async deliverToConcerned(user: { id: MiLocalUser['id']; host: null; }, note: MiNote, content: any) {
+	private async deliverToConcerned(user: { id: MiLocalUser['id']; host: null; }, note: MiNote, content: IActivity) {
 		this.apDeliverManagerService.deliverToFollowers(user, content);
 		this.relayService.deliverToRelays(user, content);
 		this.apDeliverManagerService.deliverToUsers(user, content, [
