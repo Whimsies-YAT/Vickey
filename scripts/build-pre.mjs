@@ -13,6 +13,7 @@ const packageJsonPath = __dirname + '/../package.json'
 
 function buildYumePdq() {
 	console.log('Building yume-pdq...');
+	fs.mkdirSync(path.join(__dirname, '../packages/backend/lib'), { recursive: true });
 	try {
 		execSync('bash ./scripts/build-yume-pdq.sh', {
 			cwd: path.join(__dirname, '..'),
