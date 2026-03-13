@@ -42,7 +42,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<MkFolder :defaultOpen="true">
 			<template #icon><i class="ti ti-message-2"></i></template>
-			<template #label>{{ i18n.ts.details }}<div v-if="report.type">({{ i18n.ts._abuseReportAutoProcessing[report.type] }})</div></template>
+			<template #label>{{ i18n.ts.details }}<div v-if="report.type">({{ i18n.ts._abuseReportAutoProcessing[report.type as keyof typeof i18n.ts._abuseReportAutoProcessing] }})</div></template>
 			<div class="_gaps_s">
 				<Mfm :text="report.comment" :linkNavigationBehavior="'window'"/>
 			</div>
