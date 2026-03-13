@@ -22,7 +22,7 @@ export class MiDriveFile {
 	})
 	public userId: MiUser['id'] | null;
 
-	@ManyToOne(type => MiUser, {
+	@ManyToOne(() => MiUser, {
 		onDelete: 'SET NULL',
 	})
 	@JoinColumn()
@@ -187,7 +187,7 @@ export class MiDriveFile {
 	})
 	public folderId: MiDriveFolder['id'] | null;
 
-	@ManyToOne(type => MiDriveFolder, {
+	@ManyToOne(() => MiDriveFolder, {
 		onDelete: 'SET NULL',
 	})
 	@JoinColumn()

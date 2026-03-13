@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Inject, Injectable } from '@nestjs/common';
-import { spawn } from 'child_process';
 import * as path from 'path';
+import { spawn } from 'child_process';
+import { Inject, Injectable } from '@nestjs/common';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { FileInfoService } from '@/core/FileInfoService.js';
@@ -28,7 +28,7 @@ export class VideoProcessingService {
 
 	@bindThis
 	public async generateVideoThumbnail(source: string): Promise<IImage> {
-		if (!await this.fileInfoService.checkFile(source)) throw new Error("The file is invalid!");
+		if (!await this.fileInfoService.checkFile(source)) throw new Error('The file is invalid!');
 
 		const [dir, cleanup] = await createTempDir();
 		const outputPath = path.join(dir, 'out.png');
@@ -43,10 +43,10 @@ export class VideoProcessingService {
 
 	@bindThis
 	private async extractThumbnailWithFFmpeg(inputPath: string, outputPath: string): Promise<void> {
-		return new Promise(async (resolve, reject) => {
-			try {
-				const duration = await this.getVideoDuration(inputPath);
+		const duration = await this.getVideoDuration(inputPath);
 
+		return new Promise((resolve, reject) => {
+			try {
 				const seekTimeInSeconds = Math.max(1, Math.floor(duration * 0.05));
 
 				const args = [
@@ -55,7 +55,7 @@ export class VideoProcessingService {
 					'-vframes', '1',
 					'-f', 'image2',
 					'-y',
-					outputPath
+					outputPath,
 				];
 
 				const ffmpeg = spawn('ffmpeg', args, {
@@ -81,7 +81,7 @@ export class VideoProcessingService {
 					reject(new Error(`Failed to spawn FFmpeg: ${error.message}`));
 				});
 
-				ffmpeg.on('exit', (code, signal) => {
+				ffmpeg.on('exit', (_code, signal) => {
 					if (signal === 'SIGTERM') {
 						reject(new Error('FFmpeg process timed out'));
 					}
@@ -94,11 +94,11 @@ export class VideoProcessingService {
 
 	@bindThis
 	private async getVideoDuration(inputPath: string): Promise<number> {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve, _reject) => {
 			const args = [
 				'-i', inputPath,
 				'-f', 'null',
-				'-'
+				'-',
 			];
 
 			const ffmpeg = spawn('ffmpeg', args, {
@@ -112,7 +112,7 @@ export class VideoProcessingService {
 				stderr += data.toString();
 			});
 
-			ffmpeg.on('close', (code) => {
+			ffmpeg.on('close', (_code) => {
 				const durationMatch = stderr.match(/Duration: (\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)/);
 
 				if (!durationMatch) {
@@ -141,7 +141,7 @@ export class VideoProcessingService {
 				resolve(10);
 			});
 
-			ffmpeg.on('exit', (code, signal) => {
+			ffmpeg.on('exit', (_code, signal) => {
 				if (signal === 'SIGTERM') {
 					console.warn('Video duration check timed out, using default');
 					resolve(10);
@@ -151,8 +151,8 @@ export class VideoProcessingService {
 	}
 
 	@bindThis
-	public async generateVideoThumbnailAtPercentage(source: string, percentage: number = 5): Promise<IImage> {
-		if (!await this.fileInfoService.checkFile(source)) throw new Error("The file is invalid!");
+	public async generateVideoThumbnailAtPercentage(source: string, percentage = 5): Promise<IImage> {
+		if (!await this.fileInfoService.checkFile(source)) throw new Error('The file is invalid!');
 
 		const [dir, cleanup] = await createTempDir();
 		const outputPath = path.join(dir, 'out.png');
@@ -167,10 +167,10 @@ export class VideoProcessingService {
 
 	@bindThis
 	private async extractThumbnailAtPercentage(inputPath: string, outputPath: string, percentage: number): Promise<void> {
-		return new Promise(async (resolve, reject) => {
-			try {
-				const duration = await this.getVideoDuration(inputPath);
+		const duration = await this.getVideoDuration(inputPath);
 
+		return new Promise((resolve, reject) => {
+			try {
 				const clampedPercentage = Math.max(1, Math.min(95, percentage));
 				const seekTimeInSeconds = Math.max(1, Math.floor(duration * clampedPercentage / 100));
 
@@ -180,7 +180,7 @@ export class VideoProcessingService {
 					'-vframes', '1',
 					'-f', 'image2',
 					'-y',
-					outputPath
+					outputPath,
 				];
 
 				const ffmpeg = spawn('ffmpeg', args, {
@@ -206,7 +206,7 @@ export class VideoProcessingService {
 					reject(new Error(`Failed to spawn FFmpeg: ${error.message}`));
 				});
 
-				ffmpeg.on('exit', (code, signal) => {
+				ffmpeg.on('exit', (_code, signal) => {
 					if (signal === 'SIGTERM') {
 						reject(new Error('FFmpeg process timed out'));
 					}

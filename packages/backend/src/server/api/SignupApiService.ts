@@ -364,7 +364,7 @@ export class SignupApiService {
 
 		try {
 			const pendingUser = await this.userPendingsRepository.findOneByOrFail({ code });
-            
+
 			if (pendingUser.isProcessed) {
 				throw new FastifyReplyError(400, 'ALREADY_PROCESSED');
 			}

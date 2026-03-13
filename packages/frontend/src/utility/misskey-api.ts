@@ -177,7 +177,7 @@ export function misskeyApi<
 	return promise;
 }
 
-function safeStringify(obj) {
+function safeStringify(obj: unknown) {
 	const seen = new Set();
 	return JSON.stringify(obj, (key, value) => {
 		if (value != null && typeof value === 'object') {

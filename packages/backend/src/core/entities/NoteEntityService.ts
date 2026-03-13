@@ -17,8 +17,8 @@ import { DebounceLoader } from '@/misc/loader.js';
 import { IdService } from '@/core/IdService.js';
 import { shouldHideNoteByTime } from '@/misc/should-hide-note-by-time.js';
 import { ReactionsBufferingService } from '@/core/ReactionsBufferingService.js';
-import type { OnModuleInit } from '@nestjs/common';
 import { CacheService } from '@/core/CacheService.js';
+import type { OnModuleInit } from '@nestjs/common';
 import type { CustomEmojiService } from '../CustomEmojiService.js';
 import type { ReactionService } from '../ReactionService.js';
 import type { UserEntityService } from './UserEntityService.js';
@@ -68,6 +68,7 @@ export class NoteEntityService implements OnModuleInit {
 	private reactionService: ReactionService;
 	private reactionsBufferingService: ReactionsBufferingService;
 	private idService: IdService;
+	private cacheService: CacheService;
 	private noteLoader = new DebounceLoader(this.findNoteOrFail);
 
 	constructor(
@@ -97,13 +98,13 @@ export class NoteEntityService implements OnModuleInit {
 		@Inject(DI.channelsRepository)
 		private channelsRepository: ChannelsRepository,
 
-		private cacheService: CacheService,
 		//private userEntityService: UserEntityService,
 		//private driveFileEntityService: DriveFileEntityService,
 		//private customEmojiService: CustomEmojiService,
 		//private reactionService: ReactionService,
 		//private reactionsBufferingService: ReactionsBufferingService,
 		//private idService: IdService,
+		//private cacheService: CacheService,
 	) {
 	}
 
@@ -114,6 +115,7 @@ export class NoteEntityService implements OnModuleInit {
 		this.reactionService = this.moduleRef.get('ReactionService');
 		this.reactionsBufferingService = this.moduleRef.get('ReactionsBufferingService');
 		this.idService = this.moduleRef.get('IdService');
+		this.cacheService = this.moduleRef.get('CacheService');
 	}
 
 	@bindThis
@@ -128,85 +130,69 @@ export class NoteEntityService implements OnModuleInit {
 	}
 
 	@bindThis
-	public async hideNote(
-		packedNote: Packed<'Note'>,
-		meId: MiUser['id'] | null,
-		followingsMap?: Map<MiUser['id'], boolean>,
-	): Promise<void> {
+	public async shouldHideNote(packedNote: Packed<'Note'>, meId: MiUser['id'] | null): Promise<boolean> {
+		if (meId === packedNote.userId) return false;
 		// TODO: isVisibleForMe を使うようにしても良さそう(型違うけど)
-		let hide = false;
 
 		const isIgnored = await this.cacheService.abuseAutoIgnoreCache.fetch('abuseAutoIgnore');
-		if (isIgnored?.has(packedNote.id)) hide = true;
-		if (meId === packedNote.userId) return;
+		if (isIgnored?.has(packedNote.id)) return true;
 
 		if (packedNote.user.requireSigninToViewContents && meId == null) {
-			hide = true;
+			return true;
 		}
 
-		if (!hide) {
-			const hiddenBefore = packedNote.user.makeNotesHiddenBefore;
-			if (shouldHideNoteByTime(hiddenBefore, packedNote.createdAt)) {
-				hide = true;
-			}
+		const hiddenBefore = packedNote.user.makeNotesHiddenBefore;
+		if (shouldHideNoteByTime(hiddenBefore, packedNote.createdAt)) {
+			return true;
 		}
 
 		// visibility が specified かつ自分が指定されていなかったら非表示
-		if (!hide) {
-			if (packedNote.visibility === 'specified') {
-				if (meId == null) {
-					hide = true;
-				} else {
-					// 指定されているかどうか
-					const specified = packedNote.visibleUserIds!.some(id => meId === id);
+		if (packedNote.visibility === 'specified') {
+			if (meId == null) {
+				return true;
+			} else {
+				// 指定されているかどうか
+				const specified = packedNote.visibleUserIds!.some(id => meId === id);
 
-					if (!specified) {
-						hide = true;
-					}
+				if (!specified) {
+					return true;
 				}
 			}
 		}
 
 		// visibility が followers かつ自分が投稿者のフォロワーでなかったら非表示
-		if (!hide) {
-			if (packedNote.visibility === 'followers') {
-				if (meId == null) {
-					hide = true;
-				} else if (packedNote.reply && (meId === packedNote.reply.userId)) {
-					// 自分の投稿に対するリプライ
-					hide = false;
-				} else if (packedNote.mentions && packedNote.mentions.some(id => meId === id)) {
-					// 自分へのメンション
-					hide = false;
-				} else {
-					// フォロワーかどうか
-					// FIXED: N+1 query - now using preloaded followingsMap from packMany()
-					if (followingsMap) {
-						hide = !followingsMap.get(packedNote.userId);
-					} else {
-						const isFollowing = await this.followingsRepository.exists({
-							where: {
-								followeeId: packedNote.userId,
-								followerId: meId,
-							},
-						});
-						hide = !isFollowing;
-					}
+
+		if (packedNote.visibility === 'followers') {
+			if (meId == null) {
+				return true;
+			} else if (packedNote.reply && (meId === packedNote.reply.userId)) {
+				// 自分の投稿に対するリプライ
+				return false;
+			} else if (packedNote.mentions && packedNote.mentions.some(id => meId === id)) {
+				// 自分へのメンション
+				return false;
+			} else {
+				// フォロワーかどうか
+				const followings = await this.cacheService.userFollowingsCache.fetch(meId);
+				if (!Object.hasOwn(followings, packedNote.userId)) {
+					return true;
 				}
 			}
 		}
 
-		if (hide) {
-			packedNote.visibleUserIds = undefined;
-			packedNote.fileIds = [];
-			packedNote.files = [];
-			packedNote.text = null;
-			packedNote.poll = undefined;
-			packedNote.cw = null;
-			packedNote.isHidden = true;
-			packedNote.geojson = null;
-			// TODO: hiddenReason みたいなのを提供しても良さそう
-		}
+		return false;
+	}
+	@bindThis
+	public hideNote(packedNote: Packed<'Note'>): void {
+		packedNote.visibleUserIds = undefined;
+		packedNote.fileIds = [];
+		packedNote.files = [];
+		packedNote.text = null;
+		packedNote.poll = undefined;
+		packedNote.cw = null;
+		packedNote.isHidden = true;
+		packedNote.geojson = null;
+		// TODO: hiddenReason みたいなのを提供しても良さそう
 	}
 
 	@bindThis
@@ -363,7 +349,7 @@ export class NoteEntityService implements OnModuleInit {
 
 	@bindThis
 	public async isVisibleForMe(note: MiNote, meId: MiUser['id'] | null): Promise<boolean> {
-		// This code must always be synchronized with the checks in generateVisibilityQuery.
+		// This code must always be synchronized with the checks in QueryService.generateVisibilityQuery.
 		// visibility が specified かつ自分が指定されていなかったら非表示
 		const isIgnored = await this.cacheService.abuseAutoIgnoreCache.fetch('abuseAutoIgnore');
 		if (isIgnored?.has(note.id)) return false;
@@ -582,8 +568,8 @@ export class NoteEntityService implements OnModuleInit {
 
 		this.treatVisibility(packed);
 
-		if (!opts.skipHide) {
-			await this.hideNote(packed, meId, options?._hint_?.followingsMap);
+		if (!opts.skipHide && await this.shouldHideNote(packed, meId)) {
+			this.hideNote(packed);
 		}
 
 		return packed;
