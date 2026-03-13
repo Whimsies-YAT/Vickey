@@ -214,6 +214,22 @@ watch([changed, invalid], ([newChanged, newInvalid]) => {
 	emit('savingStateChange', newChanged, newInvalid);
 }, { immediate: true });
 
+const updateWidths = () => {
+	if (prefixEl.value) {
+		const w = prefixEl.value.offsetWidth;
+		prefixWidth.value = w ? w + 12 : null;
+	} else {
+		prefixWidth.value = null;
+	}
+
+	if (suffixEl.value) {
+		const w = suffixEl.value.offsetWidth;
+		suffixWidth.value = w ? w + 12 : null;
+	} else {
+		suffixWidth.value = null;
+	}
+};
+
 onMounted(() => {
 	nextTick(() => {
 		if (props.autofocus) {
@@ -225,22 +241,6 @@ onMounted(() => {
 	if (props.mfmAutocomplete && inputEl.value) {
 		autocompleteWorker = new Autocomplete(inputEl.value, v, props.mfmAutocomplete === true ? undefined : props.mfmAutocomplete);
 	}
-
-	const updateWidths = () => {
-		if (prefixEl.value) {
-			const w = prefixEl.value.offsetWidth;
-			prefixWidth.value = w ? w + 12 : null;
-		} else {
-			prefixWidth.value = null;
-		}
-
-		if (suffixEl.value) {
-			const w = suffixEl.value.offsetWidth;
-			suffixWidth.value = w ? w + 12 : null;
-		} else {
-			suffixWidth.value = null;
-		}
-	};
 
 	resizeObserver = new ResizeObserver(() => {
 		updateWidths();

@@ -95,7 +95,7 @@ export class ExportCustomAvatarDecorationProcessorService {
 			try {
 				const response = await fetch(cads.url, { method: 'HEAD' });
 				const mimeType = response.headers.get('content-type');
-				const ext = mime.extension(typeof mimeType === "string" ? mimeType : 'image/png');
+				const ext = mime.extension(typeof mimeType === 'string' ? mimeType : 'image/png');
 
 				if (ext) {
 					fileName += `.${ext}`;
@@ -127,28 +127,43 @@ export class ExportCustomAvatarDecorationProcessorService {
 		metaStream.end();
 
 		// Create archive
-		await new Promise<void>(async (resolve) => {
-			const [archivePath, archiveCleanup] = await createTemp();
+		const [archivePath, archiveCleanup] = await createTemp();
+
+		await new Promise<void>((resolve, reject) => {
 			const archiveStream = fs.createWriteStream(archivePath);
 			const archive = archiver('zip', {
 				zlib: { level: 0 },
 			});
+
+			archive.on('error', (err) => {
+				reject(err);
+			});
+
+			archiveStream.on('error', (err) => {
+				reject(err);
+			});
+
 			archiveStream.on('close', async () => {
 				this.logger.succ(`Exported to: ${archivePath}`);
 
 				const fileName = 'custom-avatar-decorations-' + dateFormat(new Date(), 'yyyy-MM-dd-HH-mm-ss') + '.zip';
-				const driveFile = await this.driveService.addFile({ user, path: archivePath, name: fileName, force: true });
 
-				this.logger.succ(`Exported to: ${driveFile.id}`);
+				try {
+					const driveFile = await this.driveService.addFile({ user, path: archivePath, name: fileName, force: true });
 
-				this.notificationService.createNotification(user.id, 'exportCompleted', {
-					exportedEntity: 'customAvatarDecoration',
-					fileId: driveFile.id,
-				});
+					this.logger.succ(`Exported to: ${driveFile.id}`);
 
-				cleanup();
-				archiveCleanup();
-				resolve();
+					this.notificationService.createNotification(user.id, 'exportCompleted', {
+						exportedEntity: 'customAvatarDecoration',
+						fileId: driveFile.id,
+					});
+
+					cleanup();
+					archiveCleanup();
+					resolve();
+				} catch (err) {
+					reject(err);
+				}
 			});
 			archive.pipe(archiveStream);
 			archive.directory(path, false);

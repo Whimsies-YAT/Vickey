@@ -885,6 +885,7 @@ type StoredDrafts = {
 			visibleUserIds?: string[];
 			quoteId: string | null;
 			reactionAcceptance: 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote' | null;
+			locationInfo?: { city: string; lat: number; lon: number; geoJson: any; geometry: any } | null;
 			scheduledAt: number | null;
 		};
 	};

@@ -32,7 +32,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { defineAsyncComponent, provide, onMounted, computed, ref, watch } from 'vue';
+import { defineAsyncComponent, provide, computed, ref, watch } from 'vue';
 import { instanceName } from '@@/js/config.js';
 import { isLink } from '@@/js/is-link.js';
 import XCommon from './_common_/common.vue';
@@ -78,11 +78,11 @@ provide(DI.router, mainRouter);
 provideMetadataReceiver((metadataGetter) => {
 	const info = metadataGetter();
 	pageMetadata.value = info;
-	if (pageMetadata.value) {
-		if (isRoot.value && pageMetadata.value.title === instanceName) {
-			window.document.title = pageMetadata.value.title;
+	if (info) {
+		if (isRoot.value && info.title === instanceName) {
+			window.document.title = info.title;
 		} else {
-			window.document.title = `${pageMetadata.value.title} | ${instanceName}`;
+			window.document.title = `${info.title} | ${instanceName}`;
 		}
 	}
 });
@@ -112,8 +112,10 @@ watch([() => $i, () => mainRouter.currentRoute.value], () => {
 }, { immediate: true });
 
 const onContextmenu = (ev: PointerEvent) => {
-	if (isLink(ev.target as HTMLElement)) return;
-	if (['INPUT', 'TEXTAREA', 'IMG', 'VIDEO', 'CANVAS'].includes(ev.target.tagName) || ev.target.attributes['contenteditable']) return;
+	const target = ev.target as HTMLElement | null;
+	if (target == null) return;
+	if (isLink(target)) return;
+	if (['INPUT', 'TEXTAREA', 'IMG', 'VIDEO', 'CANVAS'].includes(target.tagName) || target.isContentEditable) return;
 	if (window.getSelection()?.toString() !== '') return;
 	const path = mainRouter.getCurrentFullPath();
 	os.contextMenu([{
@@ -126,7 +128,7 @@ const onContextmenu = (ev: PointerEvent) => {
 			os.pageWindow(path);
 		},
 	}], ev);
-}
+};
 </script>
 
 <style lang="scss" module>

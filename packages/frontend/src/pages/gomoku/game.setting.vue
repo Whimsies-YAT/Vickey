@@ -127,7 +127,7 @@ function unready() {
 	(props.connection as GomokuConnection).send('ready', false);
 }
 
-function onChangeReadyStates(states) {
+function onChangeReadyStates(states: { user1: boolean; user2: boolean }) {
 	game.value.user1Ready = states.user1;
 	game.value.user2Ready = states.user2;
 }

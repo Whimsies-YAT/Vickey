@@ -17,20 +17,20 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<template #label>{{ i18n.ts._notification._types[type] }}</template>
 					<template #suffix>
 						{{
-							$i.notificationRecieveConfig[type as (typeof configurableNotificationTypes)[number]]?.type === 'never' ? i18n.ts.none :
-							$i.notificationRecieveConfig[type as (typeof configurableNotificationTypes)[number]]?.type === 'following' ? i18n.ts.following :
-							$i.notificationRecieveConfig[type as (typeof configurableNotificationTypes)[number]]?.type === 'follower' ? i18n.ts.followers :
-							$i.notificationRecieveConfig[type as (typeof configurableNotificationTypes)[number]]?.type === 'mutualFollow' ? i18n.ts.mutualFollow :
-							$i.notificationRecieveConfig[type as (typeof configurableNotificationTypes)[number]]?.type === 'followingOrFollower' ? i18n.ts.followingOrFollower :
-							$i.notificationRecieveConfig[type as (typeof configurableNotificationTypes)[number]]?.type === 'list' ? i18n.ts.userList :
+							getNotifConfig(type)?.type === 'never' ? i18n.ts.none :
+							getNotifConfig(type)?.type === 'following' ? i18n.ts.following :
+							getNotifConfig(type)?.type === 'follower' ? i18n.ts.followers :
+							getNotifConfig(type)?.type === 'mutualFollow' ? i18n.ts.mutualFollow :
+							getNotifConfig(type)?.type === 'followingOrFollower' ? i18n.ts.followingOrFollower :
+							getNotifConfig(type)?.type === 'list' ? i18n.ts.userList :
 							i18n.ts.all
 						}}
 					</template>
 
 					<XNotificationConfig
 						:userLists="userLists"
-						:value="$i.notificationRecieveConfig[type] ?? { type: 'all' }"
-						:configurableTypes="(onlyOnOrOffNotificationTypes as string[]).includes(type) ? ['all', 'never'] : undefined"
+						:value="getNotifConfig(type) ?? { type: 'all' }"
+						:configurableTypes="(onlyOnOrOffNotificationTypes as readonly ConfigurableNotificationType[]).includes(type) ? ['all', 'never'] : undefined"
 						@update="(res) => updateReceiveConfig(type, res)"
 					/>
 				</MkFolder>
@@ -85,7 +85,10 @@ const $i = ensureSignin();
 
 const nonConfigurableNotificationTypes = ['note', 'roleAssigned', 'followRequestAccepted', 'test', 'exportCompleted'] as const satisfies (typeof notificationTypes[number])[];
 
-const configurableNotificationTypes = notificationTypes.filter(type => !nonConfigurableNotificationTypes.includes(type as any)) as Exclude<typeof notificationTypes[number], typeof nonConfigurableNotificationTypes[number]>[];
+type NotificationType = typeof notificationTypes[number];
+type ConfigurableNotificationType = Exclude<NotificationType, typeof nonConfigurableNotificationTypes[number]>;
+
+const configurableNotificationTypes = notificationTypes.filter(type => !nonConfigurableNotificationTypes.includes(type as typeof nonConfigurableNotificationTypes[number])) as ConfigurableNotificationType[];
 
 const onlyOnOrOffNotificationTypes = ['app', 'achievementEarned', 'login', 'createToken', 'scheduledNotePosted', 'scheduledNotePostFailed'] as const satisfies (typeof notificationTypes[number])[];
 
@@ -98,12 +101,20 @@ async function readAllNotifications() {
 	await os.apiWithDialog('notifications/mark-all-as-read', {});
 }
 
-async function updateReceiveConfig(type: typeof notificationTypes[number], value: NotificationConfig) {
+// notificationRecieveConfig's autogen type lacks voiceCall/voiceCallEnded keys.
+// This helper safely indexes by NotificationType without scattering `as any` everywhere.
+type NotifConfigValue = typeof $i.notificationRecieveConfig[keyof typeof $i.notificationRecieveConfig];
+
+function getNotifConfig(type: ConfigurableNotificationType): NotifConfigValue {
+	return ($i.notificationRecieveConfig as Record<string, NotifConfigValue>)[type];
+}
+
+async function updateReceiveConfig(type: ConfigurableNotificationType, value: NotificationConfig) {
 	await os.apiWithDialog('i/update', {
 		notificationRecieveConfig: {
 			...$i.notificationRecieveConfig,
 			[type]: value,
-		},
+		} as Record<string, NotifConfigValue>,
 	}).then(i => {
 		$i.notificationRecieveConfig = i.notificationRecieveConfig;
 	});

@@ -531,7 +531,7 @@ export function inputDatetime(props: {
 							);
 						}
 					} else {
-						date = result.result;
+						date = new Date(result.result as number);
 					}
 					resolve({ result: date, canceled: false });
 				} else {

@@ -34,7 +34,7 @@ import { launchPlugins } from '@/plugin.js';
 export async function common(createVue: () => Promise<App<Element>>) {
 	console.info(`Vickey v${version}-Vickey_fork`);
 
-	const getBrowserFamily = () => {
+	const getBrowserFamily = (): 'gecko' | 'chromium' | 'safari' | 'unknown' => {
 		const ua = navigator.userAgent;
 		if (ua.includes("Firefox")) {
 			return "gecko";
@@ -46,7 +46,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 		return "unknown";
 	};
 
-	const getExtensionScheme = (family) => {
+	const getExtensionScheme = (family: string) => {
 		switch (family) {
 			case "chromium":
 				return "chrome-extension";
@@ -59,7 +59,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 		}
 	};
 
-	const checkExtension = async (scheme, extensionId, resourcePath) => {
+	const checkExtension = async (scheme: string, extensionId: string, resourcePath: string) => {
 		const extensionUrl = `${scheme}://${extensionId}/${resourcePath}`;
 		try {
 			const response = await window.fetch(extensionUrl, { method: "HEAD" });
@@ -96,7 +96,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 	const checkExtensionsInList = async () => {
 		const family = getBrowserFamily();
 		const scheme = getExtensionScheme(family);
-		const list = prohibitedExtensions[family] || [];
+		const list = (family in prohibitedExtensions ? prohibitedExtensions[family as keyof typeof prohibitedExtensions] : []);
 		const detectedExtensions: ExtensionInfo[] = [];
 
 		for (const ext of list) {
@@ -461,7 +461,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 								...sentryConfig.options,
 							});
 
-							const safeCapture = (exception, extras = {}) => {
+							const safeCapture = (exception: unknown, extras: Record<string, unknown> = {}) => {
 								return new Promise((resolve) => {
 									try {
 										Sentry.captureException(exception, extras);
@@ -481,7 +481,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 								return false;
 							};
 
-							const unhandledRejectionHandler = (event) => {
+							const unhandledRejectionHandler = (event: PromiseRejectionEvent) => {
 								if (event.preventDefault) {
 									event.preventDefault();
 								}

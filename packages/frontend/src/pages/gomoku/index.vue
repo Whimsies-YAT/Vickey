@@ -224,7 +224,7 @@ function cancelMatching() {
 	}
 }
 
-async function accept(user) {
+async function accept(user: Misskey.entities.UserLite) {
 	const game = await misskeyApi('gomoku/match', {
 		userId: user.id,
 	});

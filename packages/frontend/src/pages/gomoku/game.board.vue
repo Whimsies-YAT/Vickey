@@ -161,7 +161,7 @@ function putStone(pos: number) {
 	conn?.send('putStone', { pos });
 }
 
-function onStreamLog(log) {
+function onStreamLog(log: [number, number]) {
 	const [pos, player] = log;
 
 	board.value[pos] = player;
@@ -170,7 +170,7 @@ function onStreamLog(log) {
 	game.value.logs.push(log);
 }
 
-function onStreamEnded(x) {
+function onStreamEnded(x: { game: Misskey.entities.GomokuGameDetailed }) {
 	game.value = deepClone(x.game);
 	board.value = [...x.game.board];
 }
