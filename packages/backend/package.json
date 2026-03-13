@@ -17,7 +17,7 @@
 		"build:native": "cd native && cargo build --release && cp target/release/libvickey_native.so vickey-native.linux-x64-gnu.node",
 		"prebuild": "node ./scripts/generate-endpoint-list.mjs && pnpm build:native",
 		"compile-config": "node ./scripts/compile_config.js",
-		"build": "swc src -d src-js -D --strip-leading-paths && node ./build.js && mkdir -p built/native && cp native/index.js native/index.d.ts native/*.node built/native/",
+		"build": "swc src -d src-js -D --strip-leading-paths && cross-env NODE_OPTIONS=--max-old-space-size=6144 node ./build.js && mkdir -p built/native && cp native/index.js native/index.d.ts native/*.node built/native/",
 		"build:test": "swc test-server -d built-test -D --config-file test-server/.swcrc --strip-leading-paths",
 		"watch:swc": "swc src -d built -D -w --strip-leading-paths",
 		"build:tsc": "tsgo -p tsconfig.json && tsc-alias -p tsconfig.json",
