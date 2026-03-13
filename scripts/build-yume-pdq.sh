@@ -12,13 +12,12 @@ cd external/yume-pdq
 
 echo "Compiling yume-pdq with optimizations..."
 
-if ! cargo +nightly --version > /dev/null 2>&1; then
-    echo "Installing Rust nightly toolchain..."
-    rustup toolchain install nightly
+FEATURES="ffi"
+if [[ "$(uname -m)" == *"x86"* ]] || [[ "$(uname -m)" == *"amd64"* ]]; then
+    FEATURES="ffi prefer-x86-intrinsics"
 fi
 
-RUSTFLAGS="-Ctarget-cpu=native" cargo +nightly build --release --features "ffi portable-simd-fma"
-
+RUSTFLAGS="-Ctarget-cpu=native" cargo build --release --features "$FEATURES"
 mkdir -p ../../packages/backend/lib
 # Copy the built shared library
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
