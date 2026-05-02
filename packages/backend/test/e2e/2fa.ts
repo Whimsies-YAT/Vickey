@@ -19,6 +19,7 @@ import type {
 	RegistrationResponseJSON,
 } from '@/types/WebAuthnTypes.js';
 import type * as misskey from 'misskey-js';
+import { describe, beforeAll, test } from 'vitest';
 import { loadConfig } from '@/config.js';
 
 describe('2要素認証', () => {

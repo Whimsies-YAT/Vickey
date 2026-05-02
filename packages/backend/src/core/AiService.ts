@@ -9,8 +9,6 @@ import { dirname, resolve } from 'node:path';
 import { spawn, type ChildProcess } from 'node:child_process';
 import * as readline from 'node:readline';
 import { Injectable } from '@nestjs/common';
-import { Mutex } from 'async-mutex';
-import fetch from 'node-fetch';
 import { bindThis } from '@/decorators.js';
 
 const _filename = fileURLToPath(import.meta.url);

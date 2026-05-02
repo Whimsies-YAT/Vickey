@@ -1,4 +1,4 @@
-# syntax = docker/dockerfile:1.20
+# syntax = docker/dockerfile:1.21
 
 ARG NODE_VERSION=24
 
@@ -120,7 +120,6 @@ COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/bui
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/lib ./packages/backend/lib
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/native/vickey-native.linux-x64-gnu.node ./packages/backend/native/vickey-native.linux-x64-gnu.node
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/native/vickey-native.linux-x64-gnu.node ./packages/backend/built/boot/vickey-native.linux-x64-gnu.node
-COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/src-js ./packages/backend/src-js
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/i18n/built ./packages/i18n/built
 COPY --chown=misskey:misskey --from=native-builder /misskey/fluent-emojis /misskey/fluent-emojis
 COPY --chown=misskey:misskey . ./
