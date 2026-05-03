@@ -72,6 +72,7 @@ temp
 /packages/frontend/src/**/*.stories.ts
 tsdoc-metadata.json
 misskey-assets
+sync-from-misskey.sh
 
 # Auto-generated endpoint list (see endpoint-config.json)
 # /packages/backend/src/server/api/endpoint-list.ts
