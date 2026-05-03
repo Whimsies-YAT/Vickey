@@ -51,6 +51,18 @@ function backendDevServerPlugin(): Plugin {
 	};
 }
 
+function nativeBuildPlugin(): Plugin {
+	return {
+		name: 'backend-native-build',
+		async closeBundle() {
+			await execa('node', ['./scripts/build-native.mjs'], {
+				stdout: process.stdout,
+				stderr: process.stderr,
+			});
+		},
+	};
+}
+
 export default defineConfig((args) => {
 	const isWatchMode = args.watch != null && args.watch !== 'false';
 	const isE2E = args.e2e != null && args.e2e !== 'false';
@@ -84,6 +96,7 @@ export default defineConfig((args) => {
 			tsconfig: './test-server/tsconfig.json',
 			plugins: [
 				esmShim(),
+				nativeBuildPlugin(),
 			],
 			output: {
 				keepNames: true,
@@ -107,6 +120,7 @@ export default defineConfig((args) => {
 			tsconfig: true,
 			plugins: [
 				esmShim(),
+				nativeBuildPlugin(),
 				(isWatchMode ? backendDevServerPlugin() : undefined),
 			],
 			output: {

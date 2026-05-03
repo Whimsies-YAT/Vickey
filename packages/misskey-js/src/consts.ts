@@ -214,6 +214,7 @@ export const rolePolicies = [
 	'canSearchNotes',
 	'canSearchUsers',
 	'canUseTranslator',
+	'canUseTTS',
 	'canHideAds',
 	'driveCapacityMb',
 	'maxFileSizeMb',

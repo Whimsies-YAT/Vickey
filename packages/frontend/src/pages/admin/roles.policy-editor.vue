@@ -161,6 +161,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</template>
 		</XFolder>
 
+		<XFolder v-if="matchQuery([i18n.ts._role._options.canUseTTS, 'canUseTTS'])" v-model:policyMeta="policyMetaModel.canUseTTS" :isBaseRole="isBaseRole" :readonly="readonly">
+			<template #label>{{ i18n.ts._role._options.canUseTTS }}</template>
+			<template #valueText>{{ valuesModel.canUseTTS ? i18n.ts.yes : i18n.ts.no }}</template>
+			<template #default="{ disabled }">
+				<MkSwitch v-model="valuesModel.canUseTTS" :disabled="disabled">
+					<template #label>{{ i18n.ts.enable }}</template>
+				</MkSwitch>
+			</template>
+		</XFolder>
+
 		<XFolder v-if="matchQuery([i18n.ts._role._options.driveCapacity, 'driveCapacityMb'])" v-model:policyMeta="policyMetaModel.driveCapacityMb" :isBaseRole="isBaseRole" :readonly="readonly">
 			<template #label>{{ i18n.ts._role._options.driveCapacity }}</template>
 			<template #valueText>{{ valuesModel.driveCapacityMb }}MB</template>
@@ -412,6 +422,53 @@ import MkTextarea from '@/components/MkTextarea.vue';
 import MkRange from '@/components/MkRange.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkSelect from '@/components/MkSelect.vue';
+
+const editableRolePolicies = [
+	'rateLimitFactor',
+	'gtlAvailable',
+	'ltlAvailable',
+	'canPublicNote',
+	'chatAvailability',
+	'mentionLimit',
+	'canInvite',
+	'inviteLimit',
+	'inviteLimitCycle',
+	'inviteExpirationTime',
+	'canManageAvatarDecorations',
+	'canManageCustomEmojis',
+	'canSearchNotes',
+	'canSearchUsers',
+	'canUseTranslator',
+	'canUseTTS',
+	'driveCapacityMb',
+	'maxFileSizeMb',
+	'uploadableFileTypes',
+	'alwaysMarkNsfw',
+	'canUpdateBioMedia',
+	'pinLimit',
+	'antennaLimit',
+	'wordMuteLimit',
+	'webhookLimit',
+	'clipLimit',
+	'noteEachClipsLimit',
+	'userListLimit',
+	'userEachUserListsLimit',
+	'canHideAds',
+	'avatarDecorationLimit',
+	'canImportAntennas',
+	'canImportBlocking',
+	'canImportFollowing',
+	'canImportMuting',
+	'canImportUserLists',
+	'noteDraftLimit',
+	'scheduledNoteLimit',
+	'watermarkAvailable',
+] as const satisfies readonly (keyof Misskey.entities.RolePolicies)[];
+
+type MissingEditablePolicy = Exclude<keyof Misskey.entities.RolePolicies, typeof editableRolePolicies[number]>;
+type UnknownEditablePolicy = Exclude<typeof editableRolePolicies[number], keyof Misskey.entities.RolePolicies>;
+const rolePolicyCoverageCheck: Record<MissingEditablePolicy | UnknownEditablePolicy, never> = {};
+void rolePolicyCoverageCheck;
 
 const props = defineProps<{
 	isBaseRole: boolean;
