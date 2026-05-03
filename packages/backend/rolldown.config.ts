@@ -52,13 +52,16 @@ function backendDevServerPlugin(): Plugin {
 }
 
 function nativeBuildPlugin(): Plugin {
+	let buildPromise: Promise<void> | null = null;
+
 	return {
 		name: 'backend-native-build',
 		async closeBundle() {
-			await execa('node', ['./scripts/build-native.mjs'], {
+			buildPromise ??= execa('node', ['./scripts/build-native.mjs'], {
 				stdout: process.stdout,
 				stderr: process.stderr,
-			});
+			}).then(() => undefined);
+			await buildPromise;
 		},
 	};
 }
@@ -74,6 +77,10 @@ export default defineConfig((args) => {
 		'class-validator',
 		/^@sentry\/.*/,
 		/^@sentry-internal\/.*/,
+		'@node-rs/argon2',
+		/^@node-rs\/argon2-.*/,
+		'ffi-napi',
+		'ref-napi',
 		'@nestjs/websockets/socket-module',
 		'@nestjs/microservices/microservices-module',
 		'@nestjs/microservices',
@@ -81,6 +88,7 @@ export default defineConfig((args) => {
 		'mock-aws-s3',
 		'aws-sdk',
 		'nock',
+		'cld',
 		'sharp',
 		'jsdom',
 		're2',
