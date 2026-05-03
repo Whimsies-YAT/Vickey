@@ -104,7 +104,7 @@
 		"fastify-raw-body": "5.0.0",
 		"feed": "5.2.0",
 		"ffi-napi": "4.0.3",
-		"file-type": "22.0.1",
+		"file-type": "21.3.2",
 		"form-data": "4.0.5",
 		"got": "14.6.6",
 		"happy-dom": "20.6.3",
