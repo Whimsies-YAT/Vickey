@@ -71,7 +71,7 @@
 		"isolated-vm": "6.0.2",
 		"js-yaml": "4.1.1",
 		"nanoid": "5.1.5",
-		"postcss": "8.5.9",
+		"postcss": "8.5.10",
 		"tar": "7.5.13",
 		"terser": "5.46.1",
 		"ulid": "3.0.2"
