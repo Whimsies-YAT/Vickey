@@ -48,7 +48,7 @@
 		"cross-env": "10.1.0",
 		"eslint-plugin-import": "2.32.0",
 		"eslint-plugin-vue": "10.8.0",
-		"happy-dom": "20.9.0",
+		"happy-dom": "20.8.9",
 		"micromatch": "4.0.8",
 		"msw": "2.13.3",
 		"prettier": "3.8.3",
