@@ -83,7 +83,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { defineAsyncComponent, computed } from 'vue';
+import { computed } from 'vue';
 import * as Misskey from 'misskey-js';
 import MkButton from '@/components/MkButton.vue';
 import MkInfo from '@/components/MkInfo.vue';
@@ -205,6 +205,11 @@ async function addSecurityKey() {
 		token: auth.result.token,
 	});
 
+	// const registrationOptions = await os.apiWithDialog('i/2fa/register-key', {
+	// 	password: auth.result.password,
+	// 	token: auth.result.token,
+	// });
+
 	const creationOptionsJson = {
 		...publicKey,
 		attestation: publicKey.attestation ?? undefined,
@@ -238,11 +243,22 @@ async function addSecurityKey() {
 	});
 	if (name.canceled) return;
 
+	// const credential = await os.promiseDialog(
+	// 	startRegistration({ optionsJSON: registrationOptions }),
+	// 	null,
+	// 	() => {}, // ユーザーのキャンセルはrejectなのでエラーダイアログを出さない
+	// 	i18n.ts._2fa.tapSecurityKey,
+	// );
+	// if (!credential) return;
+	//
+	// const auth2 = await os.authenticateDialog();
+	// if (auth2.canceled) return;
+
 	await os.apiWithDialog('i/2fa/key-done', {
 		password: auth.result.password,
 		token: auth.result.token,
 		name: name.result,
-		credential,
+		credential: credential,
 	});
 }
 

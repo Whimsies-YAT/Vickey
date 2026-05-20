@@ -22,17 +22,20 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import type * as Misskey from 'misskey-js';
+import { startAuthentication } from '@simplewebauthn/browser';
+
 import { i18n } from '@/i18n.js';
 import MkButton from '@/components/MkButton.vue';
 
+import type { PublicKeyCredentialRequestOptionsJSON, AuthenticationResponseJSON } from '@simplewebauthn/browser';
+
 const props = defineProps<{
-	credentialRequest: CredentialRequestOptions;
+	credentialRequest: PublicKeyCredentialRequestOptionsJSON;
 	isPerformingPasswordlessLogin?: boolean;
 }>();
 
 const emit = defineEmits<{
-	(ev: 'done', credential: Misskey.entities.AuthenticationResponseJSON): void;
+	(ev: 'done', credential: AuthenticationResponseJSON): void;
 	(ev: 'useTotp'): void;
 }>();
 
@@ -40,18 +43,16 @@ const queryingKey = ref(true);
 
 async function queryKey(): Promise<void> {
 	queryingKey.value = true;
-	try {
-		const credential = await navigator.credentials.get(props.credentialRequest);
-		if (!credential) {
-			return;
-		}
-		const credentialJSON = (credential as PublicKeyCredential).toJSON() as Misskey.entities.AuthenticationResponseJSON;
-		emit('done', credentialJSON);
-	} catch {
-		// User cancelled or error occurred
-	} finally {
-		queryingKey.value = false;
-	}
+	await startAuthentication({ optionsJSON: props.credentialRequest })
+		.catch(() => {
+			return Promise.reject(null);
+		})
+		.then((credential) => {
+			emit('done', credential);
+		})
+		.finally(() => {
+			queryingKey.value = false;
+		});
 }
 
 onMounted(() => {

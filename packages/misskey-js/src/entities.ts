@@ -24,6 +24,53 @@ export type AuthenticationResponseJSON = {
 	authenticatorAttachment?: 'platform' | 'cross-platform';
 };
 
+export type RegistrationResponseJSON = {
+	id: string;
+	rawId: string;
+	response: {
+		clientDataJSON: string;
+		attestationObject: string;
+		transports?: Array<'usb' | 'nfc' | 'ble' | 'internal' | 'hybrid'>;
+		publicKeyAlgorithm?: number;
+		publicKey?: string;
+		authenticatorData?: string;
+	};
+	type: 'public-key';
+	clientExtensionResults?: Record<string, unknown>;
+	authenticatorAttachment?: 'platform' | 'cross-platform';
+};
+
+export type PublicKeyCredentialCreationOptionsJSON = {
+	rp: {
+		name: string;
+		id?: string;
+	};
+	user: {
+		id: string;
+		name: string;
+		displayName: string;
+	};
+	challenge: string;
+	pubKeyCredParams: Array<{
+		type: 'public-key';
+		alg: number;
+	}>;
+	timeout?: number;
+	excludeCredentials?: Array<{
+		id: string;
+		type: 'public-key';
+		transports?: Array<'usb' | 'nfc' | 'ble' | 'internal' | 'hybrid'>;
+	}>;
+	authenticatorSelection?: {
+		authenticatorAttachment?: 'platform' | 'cross-platform';
+		residentKey?: 'discouraged' | 'preferred' | 'required';
+		requireResidentKey?: boolean;
+		userVerification?: 'required' | 'preferred' | 'discouraged';
+	};
+	attestation?: 'none' | 'indirect' | 'direct' | 'enterprise';
+	extensions?: Record<string, unknown>;
+};
+
 export type PublicKeyCredentialRequestOptionsJSON = {
 	challenge: string;
 	timeout?: number;
@@ -381,6 +428,15 @@ export type SigninWithPasskeyInitResponse = {
 
 export type SigninWithPasskeyResponse = {
 	signinResponse: SigninFlowResponse & { finished: true };
+};
+
+export type I2faRegisterKeyResponse = PublicKeyCredentialCreationOptionsJSON;
+
+export type I2faKeyDoneRequest = {
+	password: string;
+	token?: string | null;
+	name: string;
+	credential: RegistrationResponseJSON;
 };
 
 type Values<T extends Record<PropertyKey, unknown>> = T[keyof T];

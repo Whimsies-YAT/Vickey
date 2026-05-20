@@ -67,6 +67,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, ref, shallowRef, useTemplateRef } from 'vue';
 import * as Misskey from 'misskey-js';
+import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
+import type { PublicKeyCredentialRequestOptionsJSON, AuthenticationResponseJSON } from '@simplewebauthn/browser';
 import type { OpenOnRemoteOptions } from '@/utility/please-login.js';
 import type { PwResponse } from '@/components/MkSignin.password.vue';
 import { misskeyApi } from '@/utility/misskey-api.js';
@@ -106,7 +108,7 @@ const userInfo = ref<null | Misskey.entities.UserDetailed>(null);
 const password = ref('');
 
 //#region Passkey Passwordless
-const credentialRequest = shallowRef<CredentialRequestOptions | null>(null);
+const credentialRequest = shallowRef<PublicKeyCredentialRequestOptionsJSON | null>(null);
 const passkeyContext = ref('');
 const doingPasskeyFromInputPage = ref(false);
 
@@ -116,14 +118,13 @@ function webAuthnSupported(): boolean {
 }
 
 function onPasskeyLogin(): void {
-	if (webAuthnSupported()) {
+	if (browserSupportsWebAuthn()) {
 		doingPasskeyFromInputPage.value = true;
 		waiting.value = true;
 		misskeyApi('signin-with-passkey', {})
 			.then((res) => {
 				passkeyContext.value = res.context ?? '';
-				const publicKey = window.PublicKeyCredential.parseRequestOptionsFromJSON(res.option);
-				credentialRequest.value = { publicKey };
+				credentialRequest.value = res.option;
 
 				page.value = 'passkey';
 				waiting.value = false;
@@ -132,19 +133,17 @@ function onPasskeyLogin(): void {
 	}
 }
 
-async function onPasskeyDone(credential: Misskey.entities.AuthenticationResponseJSON): Promise<void> {
+function onPasskeyDone(credential: AuthenticationResponseJSON): void {
 	waiting.value = true;
 
 	const passkeyJson = credential;
 
 	if (doingPasskeyFromInputPage.value) {
-		try {
-			const res = await misskeyApi('signin-with-passkey', {
-				credential: passkeyJson,
-				context: passkeyContext.value,
-			});
-
-			if (!res || typeof res !== 'object' || !('signinResponse' in res) || res.signinResponse == null) {
+		misskeyApi('signin-with-passkey', {
+			credential: credential,
+			context: passkeyContext.value,
+		}).then((res) => {
+			if (res.signinResponse == null) {
 				onSigninApiError();
 				return;
 			}
@@ -159,7 +158,7 @@ async function onPasskeyDone(credential: Misskey.entities.AuthenticationResponse
 		tryLogin({
 			username: userInfo.value.username,
 			password: password.value,
-			credential: passkeyJson,
+			credential: credential,
 		});
 	}
 }
@@ -261,9 +260,8 @@ async function tryLogin(req: Partial<Misskey.entities.SigninFlowRequest>): Promi
 					break;
 				}
 				case 'passkey': {
-					if (webAuthnSupported()) {
-						const publicKey = window.PublicKeyCredential.parseRequestOptionsFromJSON(res.authRequest);
-						credentialRequest.value = { publicKey };
+					if (browserSupportsWebAuthn()) {
+						credentialRequest.value = res.authRequest;
 						page.value = 'passkey';
 					} else {
 						page.value = 'totp';

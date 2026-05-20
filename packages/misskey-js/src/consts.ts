@@ -216,6 +216,7 @@ export const rolePolicies = [
 	'canUseTranslator',
 	'canUseTTS',
 	'canHideAds',
+	'canCreateChannel',
 	'driveCapacityMb',
 	'maxFileSizeMb',
 	'alwaysMarkNsfw',

@@ -1,4 +1,4 @@
-# syntax = docker/dockerfile:1.21
+# syntax = docker/dockerfile:1.23
 
 ARG NODE_VERSION=24
 
@@ -89,6 +89,8 @@ FROM node:${NODE_VERSION}-trixie AS runner
 ARG UID="991"
 ARG GID="991"
 
+ENV PNPM_CONFIG_VERIFY_DEPS_BEFORE_RUN=false
+
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
 	ffmpeg tini curl libjemalloc-dev libjemalloc2 \
@@ -121,7 +123,6 @@ COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/lib
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/native/vickey-native.linux-x64-gnu.node ./packages/backend/native/vickey-native.linux-x64-gnu.node
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/native/vickey-native.linux-x64-gnu.node ./packages/backend/built/vickey-native.linux-x64-gnu.node
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/i18n/built ./packages/i18n/built
-COPY --chown=misskey:misskey --from=native-builder /misskey/fluent-emojis /misskey/fluent-emojis
 COPY --chown=misskey:misskey . ./
 
 ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so
