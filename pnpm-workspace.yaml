@@ -25,6 +25,9 @@ onlyBuiltDependencies:
   - core-js
   - cypress
   - esbuild
+  - exifreader
+  - isolated-vm
+  - koffi
   - msgpackr-extract
   - msw
   - nice-napi
@@ -66,3 +69,24 @@ overrides:
 engineStrict: true
 saveExact: true
 shellEmulator: true
+allowBuilds:
+  '@nestjs/core': true
+  '@parcel/watcher': true
+  '@sentry-internal/node-cpu-profiler': true
+  '@tensorflow/tfjs-node': true
+  bufferutil: true
+  cld: true
+  core-js: true
+  cypress: true
+  esbuild: true
+  exifreader: true
+  isolated-vm: true
+  koffi: true
+  msgpackr-extract: true
+  msw: true
+  protobufjs: true
+  re2: true
+  sharp: true
+  utf-8-validate: true
+  v-code-diff: true
+  vue-demi: true

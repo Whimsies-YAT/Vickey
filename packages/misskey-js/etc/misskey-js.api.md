@@ -4,9 +4,13 @@
 
 ```ts
 
+import type { AuthenticationResponseJSON } from '@simplewebauthn/browser';
 import { EventEmitter } from 'eventemitter3';
 import { Options } from 'reconnecting-websocket';
+import type { PublicKeyCredentialCreationOptionsJSON as PublicKeyCredentialCreationOptionsJSON_2 } from '@simplewebauthn/browser';
+import type { PublicKeyCredentialRequestOptionsJSON as PublicKeyCredentialRequestOptionsJSON_2 } from '@simplewebauthn/browser';
 import _ReconnectingWebSocket from 'reconnecting-websocket';
+import type { RegistrationResponseJSON } from '@simplewebauthn/browser';
 
 // Warning: (ae-forgotten-export) The symbol "components" needs to be exported by the entry point index.d.ts
 //
@@ -723,21 +727,6 @@ type ApShowResponse = operations['ap___show']['responses']['200']['content']['ap
 
 // @public (undocumented)
 type AuthAcceptRequest = operations['auth___accept']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type AuthenticationResponseJSON = {
-    id: string;
-    rawId: string;
-    response: {
-        clientDataJSON: string;
-        authenticatorData: string;
-        signature: string;
-        userHandle?: string;
-    };
-    type: 'public-key';
-    clientExtensionResults?: Record<string, unknown>;
-    authenticatorAttachment?: 'platform' | 'cross-platform';
-};
 
 // @public (undocumented)
 type AuthSessionGenerateRequest = operations['auth___session___generate']['requestBody']['content']['application/json'];
@@ -1883,6 +1872,14 @@ export type Endpoints = Overwrite<Endpoints_2, {
             };
         };
     };
+    'i/2fa/register-key': {
+        req: I2faRegisterKeyRequest;
+        res: I2faRegisterKeyResponse_2;
+    };
+    'i/2fa/key-done': {
+        req: I2faKeyDoneRequest_2;
+        res: I2faKeyDoneResponse;
+    };
     'admin/roles/create': {
         req: Overwrite<AdminRolesCreateRequest, {
             policies: PartialRolePolicyOverride;
@@ -1940,8 +1937,6 @@ type EndpointsResponse = operations['endpoints']['responses']['200']['content'][
 
 declare namespace entities {
     export {
-        AuthenticationResponseJSON,
-        PublicKeyCredentialRequestOptionsJSON_2 as PublicKeyCredentialRequestOptionsJSON,
         ID,
         DateString,
         OAuthClientConfig,
@@ -1967,6 +1962,8 @@ declare namespace entities {
         SigninWithPasskeyRequest,
         SigninWithPasskeyInitResponse,
         SigninWithPasskeyResponse,
+        I2faRegisterKeyResponse_2 as I2faRegisterKeyResponse,
+        I2faKeyDoneRequest_2 as I2faKeyDoneRequest,
         PartialRolePolicyOverride,
         EmptyRequest,
         EmptyResponse,
@@ -2381,6 +2378,8 @@ declare namespace entities {
         FollowingDeleteResponse,
         FollowingInvalidateRequest,
         FollowingInvalidateResponse,
+        FollowingListRequest,
+        FollowingListResponse,
         FollowingRequestsAcceptRequest,
         FollowingRequestsCancelRequest,
         FollowingRequestsCancelResponse,
@@ -2431,13 +2430,11 @@ declare namespace entities {
         IResponse,
         I2faDoneRequest,
         I2faDoneResponse,
-        I2faKeyDoneRequest,
         I2faKeyDoneResponse,
         I2faPasswordLessRequest,
         I2faRegisterRequest,
         I2faRegisterResponse,
         I2faRegisterKeyRequest,
-        I2faRegisterKeyResponse,
         I2faRemoveKeyRequest,
         I2faUnregisterRequest,
         I2faUpdateKeyRequest,
@@ -2974,6 +2971,12 @@ type FollowingInvalidateRequest = operations['following___invalidate']['requestB
 type FollowingInvalidateResponse = operations['following___invalidate']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type FollowingListRequest = operations['following___list']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type FollowingListResponse = operations['following___list']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type FollowingRequestsAcceptRequest = operations['following___requests___accept']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -3136,7 +3139,12 @@ type I2faDoneRequest = operations['i___2fa___done']['requestBody']['content']['a
 type I2faDoneResponse = operations['i___2fa___done']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
-type I2faKeyDoneRequest = operations['i___2fa___key-done']['requestBody']['content']['application/json'];
+type I2faKeyDoneRequest_2 = {
+    password: string;
+    token?: string | null;
+    name: string;
+    credential: RegistrationResponseJSON;
+};
 
 // @public (undocumented)
 type I2faKeyDoneResponse = operations['i___2fa___key-done']['responses']['200']['content']['application/json'];
@@ -3148,7 +3156,7 @@ type I2faPasswordLessRequest = operations['i___2fa___password-less']['requestBod
 type I2faRegisterKeyRequest = operations['i___2fa___register-key']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type I2faRegisterKeyResponse = operations['i___2fa___register-key']['responses']['200']['content']['application/json'];
+type I2faRegisterKeyResponse_2 = PublicKeyCredentialCreationOptionsJSON_2;
 
 // @public (undocumented)
 type I2faRegisterRequest = operations['i___2fa___register']['requestBody']['content']['application/json'];
@@ -4069,20 +4077,6 @@ type PinnedUsersResponse = operations['pinned-users']['responses']['200']['conte
 // @public (undocumented)
 type PromoReadRequest = operations['promo___read']['requestBody']['content']['application/json'];
 
-// @public (undocumented)
-type PublicKeyCredentialRequestOptionsJSON_2 = {
-    challenge: string;
-    timeout?: number;
-    rpId?: string;
-    allowCredentials?: Array<{
-        id: string;
-        type: 'public-key';
-        transports?: Array<'usb' | 'nfc' | 'ble' | 'internal' | 'hybrid'>;
-    }>;
-    userVerification?: 'required' | 'preferred' | 'discouraged';
-    extensions?: Record<string, unknown>;
-};
-
 // Warning: (ae-forgotten-export) The symbol "AllNullRecord" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "AllNullOrOptionalRecord" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "NonNullableRecord" needs to be exported by the entry point index.d.ts
@@ -4224,7 +4218,7 @@ type RoleLite = components['schemas']['RoleLite'];
 type RolePolicies = components['schemas']['RolePolicies'];
 
 // @public (undocumented)
-export const rolePolicies: readonly ["gtlAvailable", "ltlAvailable", "canPublicNote", "mentionLimit", "canInvite", "inviteLimit", "inviteLimitCycle", "inviteExpirationTime", "canManageCustomEmojis", "canManageAvatarDecorations", "canSearchNotes", "canSearchUsers", "canUseTranslator", "canUseTTS", "canHideAds", "driveCapacityMb", "maxFileSizeMb", "alwaysMarkNsfw", "canUpdateBioMedia", "pinLimit", "antennaLimit", "wordMuteLimit", "webhookLimit", "clipLimit", "noteEachClipsLimit", "userListLimit", "userEachUserListsLimit", "rateLimitFactor", "avatarDecorationLimit", "canImportAntennas", "canImportBlocking", "canImportFollowing", "canImportMuting", "canImportUserLists", "chatAvailability", "uploadableFileTypes", "noteDraftLimit", "scheduledNoteLimit", "watermarkAvailable"];
+export const rolePolicies: readonly ["gtlAvailable", "ltlAvailable", "canPublicNote", "mentionLimit", "canInvite", "inviteLimit", "inviteLimitCycle", "inviteExpirationTime", "canManageCustomEmojis", "canManageAvatarDecorations", "canSearchNotes", "canSearchUsers", "canUseTranslator", "canUseTTS", "canHideAds", "canCreateChannel", "driveCapacityMb", "maxFileSizeMb", "alwaysMarkNsfw", "canUpdateBioMedia", "pinLimit", "antennaLimit", "wordMuteLimit", "webhookLimit", "clipLimit", "noteEachClipsLimit", "userListLimit", "userEachUserListsLimit", "rateLimitFactor", "avatarDecorationLimit", "canImportAntennas", "canImportBlocking", "canImportFollowing", "canImportMuting", "canImportUserLists", "chatAvailability", "uploadableFileTypes", "noteDraftLimit", "scheduledNoteLimit", "watermarkAvailable"];
 
 // @public (undocumented)
 type RolesListResponse = operations['roles___list']['responses']['200']['content']['application/json'];
@@ -4715,8 +4709,8 @@ type WerewolfVoicePullTracksRequest = operations['werewolf___voice-pull-tracks']
 
 // Warnings were encountered during analysis:
 //
-// src/api.types.ts:157:4 - (ae-forgotten-export) The symbol "AdminOauthClientConfigListResponse" needs to be exported by the entry point index.d.ts
-// src/entities.ts:84:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
+// src/api.types.ts:169:4 - (ae-forgotten-export) The symbol "AdminOauthClientConfigListResponse" needs to be exported by the entry point index.d.ts
+// src/entities.ts:64:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
 // src/streaming.ts:57:3 - (ae-forgotten-export) The symbol "ReconnectingWebSocket" needs to be exported by the entry point index.d.ts
 // src/streaming.types.ts:87:5 - (ae-forgotten-export) The symbol "IceServer" needs to be exported by the entry point index.d.ts
 // src/streaming.types.ts:313:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts

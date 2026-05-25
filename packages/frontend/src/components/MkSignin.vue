@@ -112,11 +112,6 @@ const credentialRequest = shallowRef<PublicKeyCredentialRequestOptionsJSON | nul
 const passkeyContext = ref('');
 const doingPasskeyFromInputPage = ref(false);
 
-function webAuthnSupported(): boolean {
-	return window.PublicKeyCredential !== undefined &&
-		typeof window.PublicKeyCredential.parseRequestOptionsFromJSON === 'function';
-}
-
 function onPasskeyLogin(): void {
 	if (browserSupportsWebAuthn()) {
 		doingPasskeyFromInputPage.value = true;
@@ -136,8 +131,6 @@ function onPasskeyLogin(): void {
 function onPasskeyDone(credential: AuthenticationResponseJSON): void {
 	waiting.value = true;
 
-	const passkeyJson = credential;
-
 	if (doingPasskeyFromInputPage.value) {
 		misskeyApi('signin-with-passkey', {
 			credential: credential,
@@ -147,13 +140,9 @@ function onPasskeyDone(credential: AuthenticationResponseJSON): void {
 				onSigninApiError();
 				return;
 			}
-
-			const signinResponse = res.signinResponse;
-			emit('login', signinResponse);
-			await onLoginSucceeded(signinResponse);
-		} catch (error) {
-			onSigninApiError(error);
-		}
+			emit('login', res.signinResponse);
+			onLoginSucceeded(res.signinResponse);
+		}).catch(onSigninApiError);
 	} else if (userInfo.value != null) {
 		tryLogin({
 			username: userInfo.value.username,

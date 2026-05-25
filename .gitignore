@@ -129,3 +129,6 @@ AGENTS.md
 
 # Bun
 /scripts/check-bun-compatibility.mjs
+
+# Emojis
+fluent-emojis/

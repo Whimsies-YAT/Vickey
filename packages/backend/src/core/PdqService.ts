@@ -9,16 +9,26 @@ import Logger from '@/logger.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import ffi from 'ffi-napi';
-import ref from 'ref-napi';
+import koffi, { type KoffiFunc, type LibraryHandle } from 'koffi';
 import sharp from 'sharp';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+type YumePdqHashSmartKernel = KoffiFunc<(
+	input: Buffer,
+	threshold: Buffer,
+	output: Buffer,
+	buf1: Buffer,
+	tmp: Buffer,
+	pdqf: Buffer,
+) => number>;
+
+type YumePdqLibrary = LibraryHandle & {
+	yume_pdq_hash_smart_kernel: YumePdqHashSmartKernel;
+};
 
 @Injectable()
 export class PdqService {
 	private logger: Logger = new Logger('PdqService');
-	private yumeLib: any = null;
+	private yumeLib: YumePdqLibrary | null = null;
 	private isAvailable: boolean = false;
 
 	constructor() {
@@ -40,22 +50,17 @@ export class PdqService {
 				return;
 			}
 
-			const libPath = path.join(__dirname, '../../lib', libFileName);
+			const serviceDir = path.dirname(fileURLToPath(import.meta.url));
+			const libPath = path.join(serviceDir, '../../lib', libFileName);
 
 			if (!fs.existsSync(libPath)) {
 				this.logger.warn(`yume-pdq library not found at ${libPath}. PDQ hashing will be disabled. Run build-yume-pdq.sh to enable it.`);
 				return;
 			}
 
-			this.yumeLib = ffi.Library(libPath, {
-				'yume_pdq_hash_smart_kernel': ['float', [
-					'pointer',
-					'pointer',
-					'pointer',
-					'pointer',
-					'pointer',
-					'pointer',
-				]]
+			const yumeLib = koffi.load(libPath);
+			this.yumeLib = Object.assign(yumeLib, {
+				yume_pdq_hash_smart_kernel: yumeLib.func('float yume_pdq_hash_smart_kernel(void *input, void *threshold, void *output, void *buf1, void *tmp, void *pdqf)') as YumePdqHashSmartKernel,
 			});
 
 			this.isAvailable = true;
@@ -72,6 +77,7 @@ export class PdqService {
 			throw new Error('PDQ service is not available');
 		}
 
+		const yumeLib = this.yumeLib;
 		return new Promise((resolve, reject) => {
 			try {
 				if (width !== 512 || height !== 512) {
@@ -89,7 +95,7 @@ export class PdqService {
 				const tmp = Buffer.alloc(128 * 4);
 				const pdqf = Buffer.alloc(16 * 16 * 4);
 
-				const quality = this.yumeLib.yume_pdq_hash_smart_kernel(
+				const quality = yumeLib.yume_pdq_hash_smart_kernel(
 					f32Input,
 					threshold,
 					output,

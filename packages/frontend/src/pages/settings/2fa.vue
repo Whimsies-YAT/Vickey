@@ -48,11 +48,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 							{{ i18n.ts._2fa.securityKeyInfo }}
 						</MkInfo>
 
-						<MkInfo v-if="!webAuthnSupported()" warn>
+						<MkInfo v-if="!browserSupportsWebAuthn()" warn>
 							{{ i18n.ts._2fa.securityKeyNotSupported }}
 						</MkInfo>
 
-						<MkInfo v-else-if="webAuthnSupported() && !$i.twoFactorEnabled" warn>
+						<MkInfo v-else-if="browserSupportsWebAuthn() && !$i.twoFactorEnabled" warn>
 							{{ i18n.ts._2fa.registerTOTPBeforeKey }}
 						</MkInfo>
 
@@ -84,6 +84,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed } from 'vue';
+import { browserSupportsWebAuthn, startRegistration } from '@simplewebauthn/browser';
 import * as Misskey from 'misskey-js';
 import MkButton from '@/components/MkButton.vue';
 import MkInfo from '@/components/MkInfo.vue';
@@ -107,11 +108,6 @@ withDefaults(defineProps<{
 });
 
 const usePasswordLessLogin = computed(() => $i.usePasswordLessLogin ?? false);
-
-function webAuthnSupported(): boolean {
-	return window.PublicKeyCredential !== undefined &&
-		typeof window.PublicKeyCredential.parseCreationOptionsFromJSON === 'function';
-}
 
 async function registerTOTP(): Promise<void> {
 	const auth = await os.authenticateDialog();
@@ -200,39 +196,10 @@ async function addSecurityKey() {
 	const auth = await os.authenticateDialog();
 	if (auth.canceled) return;
 
-	const publicKey = await os.apiWithDialog('i/2fa/register-key', {
+	const registrationOptions = await os.apiWithDialog('i/2fa/register-key', {
 		password: auth.result.password,
 		token: auth.result.token,
 	});
-
-	// const registrationOptions = await os.apiWithDialog('i/2fa/register-key', {
-	// 	password: auth.result.password,
-	// 	token: auth.result.token,
-	// });
-
-	const creationOptionsJson = {
-		...publicKey,
-		attestation: publicKey.attestation ?? undefined,
-		authenticatorSelection: publicKey.authenticatorSelection ?? undefined,
-		excludeCredentials: publicKey.excludeCredentials ?? undefined,
-		extensions: publicKey.extensions ?? undefined,
-		timeout: publicKey.timeout ?? undefined,
-		pubKeyCredParams: publicKey.pubKeyCredParams.map(p => ({ ...p, type: 'public-key' as const })),
-	};
-
-	const publicKeyOptions = window.PublicKeyCredential
-		.parseCreationOptionsFromJSON(creationOptionsJson as PublicKeyCredentialCreationOptionsJSON);
-
-	const credential = await os.promiseDialog(
-		navigator.credentials.create({ publicKey: publicKeyOptions }).then(cred => {
-			if (!cred) return null;
-			return (cred as PublicKeyCredential).toJSON();
-		}),
-		null,
-		() => {}, // ユーザーのキャンセルはrejectなのでエラーダイアログを出さない
-		i18n.ts._2fa.tapSecurityKey,
-	);
-	if (!credential) return;
 
 	const name = await os.inputText({
 		title: i18n.ts._2fa.registerSecurityKey,
@@ -243,16 +210,16 @@ async function addSecurityKey() {
 	});
 	if (name.canceled) return;
 
-	// const credential = await os.promiseDialog(
-	// 	startRegistration({ optionsJSON: registrationOptions }),
-	// 	null,
-	// 	() => {}, // ユーザーのキャンセルはrejectなのでエラーダイアログを出さない
-	// 	i18n.ts._2fa.tapSecurityKey,
-	// );
-	// if (!credential) return;
-	//
-	// const auth2 = await os.authenticateDialog();
-	// if (auth2.canceled) return;
+	const credential = await os.promiseDialog(
+		startRegistration({ optionsJSON: registrationOptions }),
+		null,
+		() => {}, // ユーザーのキャンセルはrejectなのでエラーダイアログを出さない
+		i18n.ts._2fa.tapSecurityKey,
+	);
+	if (!credential) return;
+
+	const auth2 = await os.authenticateDialog();
+	if (auth2.canceled) return;
 
 	await os.apiWithDialog('i/2fa/key-done', {
 		password: auth.result.password,
