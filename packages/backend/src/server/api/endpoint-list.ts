@@ -100,6 +100,10 @@ export * as 'admin/queue/remove-job' from './endpoints/admin/queue/remove-job.js
 export * as 'admin/queue/retry-job' from './endpoints/admin/queue/retry-job.js';
 export * as 'admin/queue/show-job' from './endpoints/admin/queue/show-job.js';
 export * as 'admin/queue/show-job-logs' from './endpoints/admin/queue/show-job-logs.js';
+export * as 'admin/queue/promote-jobs' from './endpoints/admin/queue/promote-jobs.js';
+export * as 'admin/queue/pause' from './endpoints/admin/queue/pause.js';
+export * as 'admin/queue/resume' from './endpoints/admin/queue/resume.js';
+export * as 'admin/queue/jobs' from './endpoints/admin/queue/jobs.js';
 export * as 'admin/queue/stats' from './endpoints/admin/queue/stats.js';
 export * as 'admin/recommendation-stats' from './endpoints/admin/recommendation-stats.js';
 export * as 'admin/relays/add' from './endpoints/admin/relays/add.js';

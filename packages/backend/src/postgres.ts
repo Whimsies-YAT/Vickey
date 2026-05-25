@@ -320,6 +320,10 @@ export function createPostgresDataSource(config: Config) {
 			keepAliveInitialDelayMillis: 10000,
 			...config.db.extra,
 		},
+		invalidWhereValuesBehavior: {
+			null: 'ignore',
+			undefined: 'ignore',
+		},
 		...(config.dbReplications ? {
 			replication: {
 				master: {

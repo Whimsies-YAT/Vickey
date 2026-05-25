@@ -41,7 +41,10 @@ export class InviteCodeEntityService {
 			where: {
 				id: src,
 			},
-			relations: ['createdBy', 'usedBy'],
+			relations: {
+				createdBy: true,
+				usedBy: true,
+			},
 		});
 
 		const pendingUser = target.pendingUserId ? await this.userPendingsRepository.findOneBy({ id: target.pendingUserId }) : null;
@@ -64,8 +67,8 @@ export class InviteCodeEntityService {
 			code: target.code,
 			expiresAt: target.expiresAt ? target.expiresAt.toISOString() : null,
 			createdAt: this.idService.parse(target.id).date.toISOString(),
-			createdBy: target.createdBy ? hints?.packedCreatedBy ?? await this.userEntityService.pack(target.createdBy, me) : null,
-			usedBy: target.usedBy ? hints?.packedUsedBy ?? await this.userEntityService.pack(target.usedBy, me) : null,
+			createdBy: target.createdBy ? hints?.packedCreatedBy ?? (await this.userEntityService.pack(target.createdBy, me)) : null,
+			usedBy: target.usedBy ? hints?.packedUsedBy ?? (await this.userEntityService.pack(target.usedBy, me)) : null,
 			usedAt: target.usedAt ? target.usedAt.toISOString() : null,
 			used: finalUsed,
 			pendingUser: finalPendingUser,
