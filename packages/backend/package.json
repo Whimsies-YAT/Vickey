@@ -165,7 +165,7 @@
 		"stripe": "22.1.1",
 		"systeminformation": "5.31.6",
 		"tinycolor2": "1.6.0",
-		"tmp": "0.2.5",
+		"tmp": "0.2.7",
 		"tsc-alias": "1.8.17",
 		"typeorm": "1.0.0",
 		"ulid": "3.0.2",
