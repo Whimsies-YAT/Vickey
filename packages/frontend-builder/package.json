@@ -21,6 +21,6 @@
 		"i18n": "workspace:*",
 		"magic-string": "0.30.21",
 		"rolldown": "1.0.1",
-		"vite": "8.0.13"
+		"vite": "8.0.16"
 	}
 }
