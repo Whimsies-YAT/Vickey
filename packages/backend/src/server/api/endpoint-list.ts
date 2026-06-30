@@ -134,6 +134,7 @@ export * as 'admin/system-webhook/show' from './endpoints/admin/system-webhook/s
 export * as 'admin/system-webhook/test' from './endpoints/admin/system-webhook/test.js';
 export * as 'admin/system-webhook/update' from './endpoints/admin/system-webhook/update.js';
 export * as 'admin/unregister-2fa' from './endpoints/admin/unregister-2fa.js';
+export * as 'admin/unset-mfa' from './endpoints/admin/unset-mfa.js';
 export * as 'admin/unset-user-avatar' from './endpoints/admin/unset-user-avatar.js';
 export * as 'admin/unset-user-banner' from './endpoints/admin/unset-user-banner.js';
 export * as 'admin/unsuspend-user' from './endpoints/admin/unsuspend-user.js';
@@ -152,6 +153,7 @@ export * as 'antennas/create' from './endpoints/antennas/create.js';
 export * as 'antennas/delete' from './endpoints/antennas/delete.js';
 export * as 'antennas/list' from './endpoints/antennas/list.js';
 export * as 'antennas/notes' from './endpoints/antennas/notes.js';
+export * as 'antennas/remove-note' from './endpoints/antennas/remove-note.js';
 export * as 'antennas/show' from './endpoints/antennas/show.js';
 export * as 'antennas/update' from './endpoints/antennas/update.js';
 export * as 'ap/get' from './endpoints/ap/get.js';

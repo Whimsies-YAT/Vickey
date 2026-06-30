@@ -128,6 +128,7 @@ export const moderationLogTypes = [
 	'createAvatarDecoration',
 	'updateAvatarDecoration',
 	'deleteAvatarDecoration',
+	'unsetMfa',
 	'unsetUserAvatar',
 	'unsetUserBanner',
 	'createSystemWebhook',
@@ -351,6 +352,11 @@ export type ModerationLogPayloads = {
 	deleteAvatarDecoration: {
 		avatarDecorationId: string;
 		avatarDecoration: any;
+	};
+	unsetMfa: {
+		userId: string;
+		userUsername: string;
+		userHost: string | null;
 	};
 	unsetUserAvatar: {
 		userId: string;

@@ -275,6 +275,7 @@ const inTimeline = inject<boolean>('inTimeline', false);
 const tl_withSensitive = inject<Ref<boolean>>('tl_withSensitive', ref(true));
 const inChannel = inject(DI.inChannel, null);
 const currentClip = inject<Ref<Misskey.entities.Clip> | null>('currentClip', null);
+const currentAntenna = inject<Ref<Misskey.entities.Antenna | null> | null>('currentAntenna', null);
 
 let note = deepClone(props.note);
 
@@ -618,7 +619,7 @@ function onContextmenu(ev: PointerEvent): void {
 		ev.preventDefault();
 		react();
 	} else {
-		const { menu, cleanup } = getNoteMenu({ note: note, translating, translation, convert, converting, currentClip: currentClip?.value });
+		const { menu, cleanup } = getNoteMenu({ note: note, translating, translation, convert, converting, currentClip: currentClip?.value, currentAntenna: currentAntenna?.value ?? undefined });
 		os.contextMenu(menu, ev).then(focus).finally(cleanup);
 	}
 }
@@ -628,7 +629,7 @@ function showMenu(): void {
 		return;
 	}
 
-	const { menu, cleanup } = getNoteMenu({ note: note, translating, translation, convert, converting, currentClip: currentClip?.value });
+	const { menu, cleanup } = getNoteMenu({ note: note, translating, translation, convert, converting, currentClip: currentClip?.value, currentAntenna: currentAntenna?.value ?? undefined });
 	os.popupMenu(menu, menuButton.value).then(focus).finally(cleanup);
 }
 

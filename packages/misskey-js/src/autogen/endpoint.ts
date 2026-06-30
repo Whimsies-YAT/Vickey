@@ -170,6 +170,7 @@ import type {
 	AdminSystemWebhookUpdateRequest,
 	AdminSystemWebhookUpdateResponse,
 	AdminUnregister2faRequest,
+	AdminUnsetMfaRequest,
 	AdminUnsetUserAvatarRequest,
 	AdminUnsetUserBannerRequest,
 	AdminUnsuspendUserRequest,
@@ -197,6 +198,7 @@ import type {
 	AntennasListResponse,
 	AntennasNotesRequest,
 	AntennasNotesResponse,
+	AntennasRemoveNoteRequest,
 	AntennasShowRequest,
 	AntennasShowResponse,
 	AntennasUpdateRequest,
@@ -906,6 +908,7 @@ export type Endpoints = {
 	'admin/system-webhook/test': { req: AdminSystemWebhookTestRequest; res: EmptyResponse };
 	'admin/system-webhook/update': { req: AdminSystemWebhookUpdateRequest; res: AdminSystemWebhookUpdateResponse };
 	'admin/unregister-2fa': { req: AdminUnregister2faRequest; res: EmptyResponse };
+	'admin/unset-mfa': { req: AdminUnsetMfaRequest; res: EmptyResponse };
 	'admin/unset-user-avatar': { req: AdminUnsetUserAvatarRequest; res: EmptyResponse };
 	'admin/unset-user-banner': { req: AdminUnsetUserBannerRequest; res: EmptyResponse };
 	'admin/unsuspend-user': { req: AdminUnsuspendUserRequest; res: EmptyResponse };
@@ -924,6 +927,7 @@ export type Endpoints = {
 	'antennas/delete': { req: AntennasDeleteRequest; res: EmptyResponse };
 	'antennas/list': { req: EmptyRequest; res: AntennasListResponse };
 	'antennas/notes': { req: AntennasNotesRequest; res: AntennasNotesResponse };
+	'antennas/remove-note': { req: AntennasRemoveNoteRequest; res: EmptyResponse };
 	'antennas/show': { req: AntennasShowRequest; res: AntennasShowResponse };
 	'antennas/update': { req: AntennasUpdateRequest; res: AntennasUpdateResponse };
 	'ap/get': { req: ApGetRequest; res: ApGetResponse };

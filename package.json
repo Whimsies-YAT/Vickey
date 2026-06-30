@@ -1,12 +1,12 @@
 {
 	"name": "vickey",
-	"version": "2026.5.4",
+	"version": "2026.6.1-alpha.1",
 	"codename": "astra",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Whimsies-YAT/Vickey"
 	},
-	"packageManager": "pnpm@11.1.2",
+	"packageManager": "pnpm@11.8.0",
 	"workspaces": [
 		"packages/misskey-js",
 		"packages/i18n",
@@ -64,15 +64,15 @@
 	"dependencies": {
 		"cld": "2.10.1",
 		"cssnano": "8.0.1",
-		"esbuild": "0.28.0",
+		"esbuild": "0.28.1",
 		"execa": "9.6.1",
 		"file-type": "21.3.0",
 		"ignore-walk": "9.0.0",
 		"isolated-vm": "6.1.2",
-		"js-yaml": "4.1.1",
+		"js-yaml": "4.2.0",
 		"nanoid": "5.1.11",
 		"postcss": "8.5.14",
-		"tar": "7.5.15",
+		"tar": "7.5.16",
 		"terser": "5.47.1",
 		"ulid": "3.0.2"
 	},
@@ -80,20 +80,17 @@
 		"@eslint/js": "9.39.4",
 		"@misskey-dev/eslint-plugin": "2.2.1",
 		"@types/js-yaml": "4.0.9",
-		"@types/node": "24.12.4",
-		"@typescript-eslint/eslint-plugin": "8.59.3",
-		"@typescript-eslint/parser": "8.59.3",
+		"@types/node": "26.0.0",
+		"@typescript-eslint/eslint-plugin": "8.61.1",
+		"@typescript-eslint/parser": "8.61.1",
 		"@typescript/native-preview": "7.0.0-dev.20260426.1",
 		"cross-env": "10.1.0",
-		"cypress": "15.15.0",
+		"cypress": "15.17.0",
 		"eslint": "9.39.4",
 		"globals": "17.6.0",
 		"ncp": "2.0.0",
-		"pnpm": "11.1.2",
-		"start-server-and-test": "3.0.5",
+		"pnpm": "11.8.0",
+		"start-server-and-test": "3.0.11",
 		"typescript": "5.9.3"
-	},
-	"optionalDependencies": {
-		"@tensorflow/tfjs-core": "4.22.0"
 	}
 }

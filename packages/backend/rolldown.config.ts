@@ -1,4 +1,5 @@
 import { defineConfig } from 'rolldown';
+import { version as summalyVersion } from '@misskey-dev/summaly';
 import type { Plugin, ExternalOption } from 'rolldown';
 import { execa, execaNode } from 'execa';
 import type { ResultPromise } from 'execa';
@@ -92,9 +93,13 @@ export default defineConfig((args) => {
 		'jsdom',
 		're2',
 		'ipaddr.js',
-		'oauth2orize',
 		'file-type',
 	];
+
+	const define: Record<string, string> = {
+		// Summalyのバージョンを埋め込む
+		'_SUMMALY_VERSION_': JSON.stringify(summalyVersion),
+	};
 
 	if (isE2E) {
 		return {
@@ -105,6 +110,9 @@ export default defineConfig((args) => {
 				esmShim(),
 				nativeBuildPlugin(),
 			],
+			transform: {
+				define,
+			},
 			output: {
 				keepNames: true,
 				sourcemap: true,
@@ -130,6 +138,9 @@ export default defineConfig((args) => {
 				nativeBuildPlugin(),
 				(isWatchMode ? backendDevServerPlugin() : undefined),
 			],
+			transform: {
+				define,
+			},
 			output: {
 				keepNames: true,
 				minify: !isWatchMode,
