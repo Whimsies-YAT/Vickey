@@ -106,6 +106,7 @@ export function collectModifications(sourceCode: string, fileName: string, fileL
 	}
 
 	const i18nImport = importSpecifierResult.importNode;
+	const i18nImportSpecifier = importSpecifierResult.importSpecifierNode;
 	const localI18nIdentifier = importSpecifierResult.localI18nIdentifier;
 
 	fileLogger.debug(`imports ${inliner.i18nSymbol} /*i18n*/ as ${localI18nIdentifier}`);
@@ -211,11 +212,14 @@ export function collectModifications(sourceCode: string, fileName: string, fileL
 
 	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	if (!preserveI18nImport) {
-		fileLogger.debug('removing i18n import statement');
+		const deleteRange = i18nImport.specifiers.length === 1
+			? { begin: i18nImport.start, end: i18nImport.end }
+			: importSpecifierDeleteRange(sourceCode, i18nImport, i18nImportSpecifier);
+		fileLogger.debug(i18nImport.specifiers.length === 1 ? 'removing i18n import statement' : 'removing i18n import specifier');
 		codeModifications.push({
 			type: 'delete',
-			begin: i18nImport.start,
-			end: i18nImport.end,
+			begin: deleteRange.begin,
+			end: deleteRange.end,
 			localizedOnly: true,
 		});
 	}
@@ -416,8 +420,14 @@ type SpecifierResult =
 	| { type: 'no-import' }
 	| { type: 'no-specifiers', importNode: ESTree.ImportDeclaration }
 	| { type: 'unexpected-specifiers', importNode: ESTree.ImportDeclaration }
-	| { type: 'specifier', localI18nIdentifier: string, importNode: ESTree.ImportDeclaration }
+	| { type: 'specifier', localI18nIdentifier: string, importNode: ESTree.ImportDeclaration, importSpecifierNode: ESTree.ImportSpecifier }
 	;
+
+function isI18nImportSpecifier(specifier: ESTree.ImportDeclaration['specifiers'][number], i18nSymbol: string): specifier is ESTree.ImportSpecifier {
+	return specifier.type === 'ImportSpecifier'
+		&& specifier.imported.type === 'Identifier'
+		&& specifier.imported.name === i18nSymbol;
+}
 
 function findImportSpecifier(programNode: ESTree.Program, i18nFileName: string, i18nSymbol: string): SpecifierResult {
 	const imports = programNode.body.filter(x => x.type === 'ImportDeclaration');
@@ -428,24 +438,37 @@ function findImportSpecifier(programNode: ESTree.Program, i18nFileName: string, 
 		return { type: 'no-specifiers', importNode };
 	}
 
-	if (importNode.specifiers.length !== 1) {
-		return { type: 'unexpected-specifiers', importNode };
-	}
-	const i18nImportSpecifier = importNode.specifiers[0];
-	if (i18nImportSpecifier.type !== 'ImportSpecifier') {
-		return { type: 'unexpected-specifiers', importNode };
-	}
-
-	if (i18nImportSpecifier.imported.type !== 'Identifier') {
-		return { type: 'unexpected-specifiers', importNode };
-	}
-
-	const importingIdentifier = i18nImportSpecifier.imported.name;
-	if (importingIdentifier !== i18nSymbol) {
+	const i18nImportSpecifier = importNode.specifiers.find(specifier => isI18nImportSpecifier(specifier, i18nSymbol));
+	if (i18nImportSpecifier == null) {
 		return { type: 'unexpected-specifiers', importNode };
 	}
 	const localI18nIdentifier = i18nImportSpecifier.local.name;
-	return { type: 'specifier', localI18nIdentifier, importNode };
+	return { type: 'specifier', localI18nIdentifier, importNode, importSpecifierNode: i18nImportSpecifier };
+}
+
+function importSpecifierDeleteRange(sourceCode: string, importNode: ESTree.ImportDeclaration, importSpecifierNode: ESTree.ImportSpecifier): { begin: number, end: number } {
+	const importSource = sourceCode.slice(importNode.start, importNode.end);
+	const specifierStart = importSpecifierNode.start - importNode.start;
+	const specifierEnd = importSpecifierNode.end - importNode.start;
+	const precedingComma = importSource.lastIndexOf(',', specifierStart);
+	const followingComma = importSource.indexOf(',', specifierEnd);
+
+	if (followingComma !== -1) {
+		let end = followingComma + 1;
+		while (/\s/.test(importSource.charAt(end))) end++;
+		return {
+			begin: importSpecifierNode.start,
+			end: importNode.start + end,
+		};
+	}
+
+	if (precedingComma === -1) throw new Error('Cannot find comma around i18n import specifier.');
+	let begin = precedingComma;
+	while (begin > 0 && /\s/.test(importSource.charAt(begin - 1))) begin--;
+	return {
+		begin: importNode.start + begin,
+		end: importSpecifierNode.end,
+	};
 }
 
 // checker helpers

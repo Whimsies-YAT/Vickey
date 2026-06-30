@@ -261,7 +261,7 @@ export class WerewolfService implements OnApplicationShutdown, OnModuleInit {
 		} else {
 			const game = await this.werewolfGamesRepository.findOne({
 				where: { id },
-				relations: ['host'],
+				relations: { host: true },
 			});
 			if (game == null) return null;
 
@@ -448,7 +448,7 @@ export class WerewolfService implements OnApplicationShutdown, OnModuleInit {
 			countdownStartedAt: null,
 			tiedPlayers: [],
 			votingRound: 1,
-		}, { relations: ['host'] });
+		}, { relations: { host: true } });
 
 		await this.cacheGame(game);
 

@@ -20,6 +20,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 type ProxySource = DownloadedFileResult | FileResolveResult;
 type CleanupableFile = ProxySource & { cleanup: () => void };
 type AvailableFile = Exclude<ProxySource, { kind: 'not-found' | 'unavailable' }>;
+type LocalAvailableFile = Exclude<AvailableFile, { kind: 'object-storage' }>;
 type ProxyQuery = {
 	emoji?: string;
 	avatar?: string;
@@ -56,7 +57,7 @@ export class FileServerProxyHandler {
 		this.validateUserAgent(request);
 
 		// Create temp file
-		const file = await this.getStreamAndTypeFromUrl(url);
+		let file = await this.getStreamAndTypeFromUrl(url);
 		if (file.kind === 'not-found') {
 			reply.code(404);
 			reply.header('Cache-Control', 'max-age=86400');
@@ -70,6 +71,10 @@ export class FileServerProxyHandler {
 		}
 
 		try {
+			if (file.kind === 'object-storage') {
+				file = await this.fileResolver.downloadAndDetectTypeFromObjectStorage(file);
+			}
+
 			const image = await this.processImage(file, request, reply);
 
 			if (needsCleanup(file)) {
@@ -125,7 +130,7 @@ export class FileServerProxyHandler {
 	 * 画像を処理してストリーム可能な形式に変換する
 	 */
 	private async processImage(
-		file: AvailableFile,
+		file: LocalAvailableFile,
 		request: FastifyRequest<{ Params: { url: string }; Querystring: ProxyQuery }>,
 		reply: FastifyReply,
 	): Promise<IImageStreamable> {
@@ -168,7 +173,7 @@ export class FileServerProxyHandler {
 	 * 絵文字またはアバター用の画像を処理する
 	 */
 	private async processEmojiOrAvatar(
-		file: AvailableFile,
+		file: LocalAvailableFile,
 		query: Pick<ProxyQuery, 'emoji' | 'avatar' | 'static'>,
 	): Promise<IImageStreamable> {
 		const isAnimationConvertibleImage = isMimeImage(file.mime, 'sharp-animation-convertible-image-with-bmp');
@@ -197,7 +202,7 @@ export class FileServerProxyHandler {
 	/**
 	 * バッジ用の画像を処理する
 	 */
-	private async processBadge(file: AvailableFile): Promise<IImageStreamable> {
+	private async processBadge(file: LocalAvailableFile): Promise<IImageStreamable> {
 		const mask = (await sharpBmp(file.path, file.mime))
 			.resize(96, 96, {
 				fit: 'contain',
@@ -233,7 +238,7 @@ export class FileServerProxyHandler {
 	 * デフォルトのストリームを作成する（Range リクエスト対応）
 	 */
 	private createDefaultStream(
-		file: AvailableFile,
+		file: LocalAvailableFile,
 		request: FastifyRequest,
 		reply: FastifyReply,
 	): IImageStreamable {

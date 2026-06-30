@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Injectable } from '@nestjs/common';
-import { bindThis } from '@/decorators.js';
-import Logger from '@/logger.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { Injectable } from '@nestjs/common';
 import koffi, { type KoffiFunc, type LibraryHandle } from 'koffi';
 import sharp from 'sharp';
+import Logger from '@/logger.js';
+import { bindThis } from '@/decorators.js';
 
 type YumePdqHashSmartKernel = KoffiFunc<(
 	input: Buffer,
@@ -29,7 +29,7 @@ type YumePdqLibrary = LibraryHandle & {
 export class PdqService {
 	private logger: Logger = new Logger('PdqService');
 	private yumeLib: YumePdqLibrary | null = null;
-	private isAvailable: boolean = false;
+	private isAvailable = false;
 
 	constructor() {
 		this.initializeLibrary();
@@ -101,7 +101,7 @@ export class PdqService {
 					output,
 					buf1,
 					tmp,
-					pdqf
+					pdqf,
 				);
 
 				this.logger.debug(`PDQ hash generated with quality: ${quality}`);
@@ -157,7 +157,7 @@ export class PdqService {
 	}
 
 	@bindThis
-	public areSimilar(hash1: string, hash2: string, threshold: number = 16): boolean {
+	public areSimilar(hash1: string, hash2: string, threshold = 16): boolean {
 		return this.calculateHammingDistance(hash1, hash2) <= threshold;
 	}
 

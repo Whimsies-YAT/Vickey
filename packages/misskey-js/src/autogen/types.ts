@@ -1119,6 +1119,7 @@ export type paths = {
          * admin/unset-mfa
          * @description No description provided.
          *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
          *     **Credential required**: *Yes* / **Permission**: *write:admin:unset-mfa*
          */
         post: operations['admin___unset-mfa'];

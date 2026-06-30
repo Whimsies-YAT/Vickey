@@ -53,7 +53,7 @@ export class CleanDeletedNotesProcessorService {
 				isDeleted: true,
 				deletedAt: LessThan(expiryDate),
 			},
-			select: ['id'],
+			select: { id: true },
 			take: 1000,
 		});
 

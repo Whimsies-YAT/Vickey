@@ -72,15 +72,11 @@ function build(): Record<Language, Locale> {
 		return a;
 	}, {} as Locales);
 
+	const vkLocaleFallback = (yaml.load(clean(tryReadFile(new URL('../../../vickey-locales/en-US.yml', metaUrl)))) ?? {}) as ILocale;
 	const vkLocales = languages.reduce<Locales>((a, c) => {
-		const url = new URL(`../../../vickey-locales/${c}.yml`, metaUrl);
-		const content = clean(tryReadFile(url));
-		if (content) {
-			a[c] = (yaml.load(content) ?? {}) as ILocale;
-		} else {
-			const enContent = clean(tryReadFile(new URL('../../../vickey-locales/en-US.yml', metaUrl)));
-			a[c] = (enContent ? (yaml.load(enContent) ?? {}) : {}) as ILocale;
-		}
+		const content = clean(tryReadFile(new URL(`../../../vickey-locales/${c}.yml`, metaUrl)));
+		const locale = content ? (yaml.load(content) ?? {}) as ILocale : {};
+		a[c] = merge<ILocale>(vkLocaleFallback, locale);
 		return a;
 	}, {} as Locales);
 

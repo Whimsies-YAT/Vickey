@@ -171,7 +171,7 @@ export class CacheService implements OnModuleInit, OnApplicationShutdown, Before
 		this.abuseAutoIgnoreCache = new RedisKVCache<Set<string>>(this.redisClient, 'abuseAutoIgnore', {
 			lifetime: 1000 * 60 * 30, // 30m
 			memoryCacheLifetime: 1000 * 60, // 1m
-			fetcher: () => this.abuseUserReportsRepository.find({ where: { status: 1, type: "note", resolved: false }, select: ['targetId'] }).then(xs => new Set(xs.map(x => x.targetId ?? ""))),
+			fetcher: () => this.abuseUserReportsRepository.find({ where: { status: 1, type: "note", resolved: false }, select: { targetId: true } }).then(xs => new Set(xs.map(x => x.targetId ?? ""))),
 			toRedisConverter: (value) => JSON.stringify(Array.from(value)),
 			fromRedisConverter: (value) => new Set(JSON.parse(value)),
 		});

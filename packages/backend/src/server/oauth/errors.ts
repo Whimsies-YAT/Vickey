@@ -31,6 +31,14 @@ export class InvalidGrantError extends OAuthProviderError {
 	}
 }
 
+export class InvalidClientError extends OAuthProviderError {
+	constructor(description = 'client authentication failed') {
+		super('invalid_client', description);
+		this.status = 401;
+		this.statusCode = 401;
+	}
+}
+
 export class InvalidRequestError extends OAuthProviderError {
 	constructor(description = 'request is invalid') {
 		super('invalid_request', description);
@@ -57,4 +65,3 @@ export class UnsupportedResponseTypeError extends OAuthProviderError {
 		super('unsupported_response_type', description);
 	}
 }
-

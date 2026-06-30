@@ -45,7 +45,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<template #key>{{ i18n.ts.permission }}</template>
 					<template #value>
 						<ul v-if="extension.meta.permissions && extension.meta.permissions.length > 0" :class="$style.extInstallerKVList">
-							<li v-for="permission in extension.meta.permissions" :key="permission">{{ i18n.ts._permissions[permission] ?? permission }}</li>
+							<li v-for="permission in extension.meta.permissions" :key="permission">{{ permissionLabel(permission) }}</li>
 						</ul>
 						<template v-else>{{ i18n.ts.none }}</template>
 					</template>
@@ -133,6 +133,7 @@ import MkInfo from '@/components/MkInfo.vue';
 import MkFolder from '@/components/MkFolder.vue';
 import MkKeyValue from '@/components/MkKeyValue.vue';
 import { i18n } from '@/i18n.js';
+import { permissionLabel } from '@/utility/permission-label.js';
 
 const isPlugin = computed(() => props.extension.type === 'plugin');
 const isTheme = computed(() => props.extension.type === 'theme');

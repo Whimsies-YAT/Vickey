@@ -50,7 +50,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 	public async loadActiveUserSessionsToRedis() {
 		const sessions = await this.userSessionsRepository.find({
 			where: { isActive: true },
-			select: ['token', 'userId', 'lastUsedAt', 'expiresAt'],
+			select: { token: true, userId: true, lastUsedAt: true, expiresAt: true },
 			order: { lastUsedAt: 'DESC' },
 			take: 1000,
 		});
@@ -172,7 +172,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			if (cacheData) {
 				const dbSession = await this.userSessionsRepository.findOne({
 					where: { token, isActive: true },
-					select: ['token', 'userId', 'lastUsedAt', 'expiresAt', 'isActive', 'signInId', 'deviceId'],
+					select: { token: true, userId: true, lastUsedAt: true, expiresAt: true, isActive: true, signInId: true, deviceId: true },
 				});
 
 				if (!dbSession) {
@@ -269,7 +269,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			} else {
 				const dbSession = await this.userSessionsRepository.findOne({
 					where: { token, isActive: true },
-					select: ['token', 'userId', 'lastUsedAt', 'expiresAt', 'isActive', 'signInId', 'deviceId'],
+					select: { token: true, userId: true, lastUsedAt: true, expiresAt: true, isActive: true, signInId: true, deviceId: true },
 				});
 
 				if (!dbSession) {
@@ -314,7 +314,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				if (clientIp) {
 					const session = await this.userSessionsRepository.findOne({
 						where: { token, isActive: true },
-						select: ['ip'],
+						select: { ip: true },
 					});
 					if (session) {
 						const updatedIpList = this.updateIpList(session.ip, clientIp);
@@ -334,7 +334,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 				if (clientIp) {
 					const sessionForCache = await this.userSessionsRepository.findOne({
 						where: { token, isActive: true },
-						select: ['ip'],
+						select: { ip: true },
 					});
 					ipListForCache = sessionForCache?.ip || null;
 				}
@@ -497,7 +497,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 			try {
 				const activeSessions = await this.userSessionsRepository.find({
 					where: { userId, isActive: true },
-					select: ['token'],
+					select: { token: true },
 				});
 
 				if (activeSessions.length === 0) {
@@ -837,7 +837,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 		while (true) {
 			const activeSessions = await this.userSessionsRepository.find({
 				where: { isActive: true },
-				select: ['token'],
+				select: { token: true },
 				order: { lastUsedAt: 'DESC' },
 				skip: offset,
 				take: batchSize,
@@ -981,7 +981,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 		const sessionsFromDB = await this.userSessionsRepository.manager.transaction(async (manager) => {
 			return await manager.find(this.userSessionsRepository.target, {
 				where: { token: In(tokens), isActive: true },
-				select: ['token', 'userId', 'lastUsedAt', 'expiresAt', 'ip'],
+				select: { token: true, userId: true, lastUsedAt: true, expiresAt: true, ip: true },
 				lock: { mode: 'pessimistic_read' },
 			});
 		});
@@ -1271,7 +1271,7 @@ export class UserSessionsService implements OnModuleInit, OnApplicationShutdown 
 
 		const dbSession = await this.userSessionsRepository.findOne({
 			where: { token, isActive: true },
-			select: ['token', 'userId', 'lastUsedAt', 'expiresAt'],
+			select: { token: true, userId: true, lastUsedAt: true, expiresAt: true },
 		});
 
 		if (!dbSession) {

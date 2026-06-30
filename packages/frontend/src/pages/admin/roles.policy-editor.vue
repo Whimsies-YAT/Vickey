@@ -440,6 +440,7 @@ const editableRolePolicies = [
 	'gtlAvailable',
 	'ltlAvailable',
 	'canPublicNote',
+	'canCreateChannel',
 	'chatAvailability',
 	'mentionLimit',
 	'canInvite',

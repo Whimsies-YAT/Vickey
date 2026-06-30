@@ -474,7 +474,7 @@ export class StripeService implements OnModuleInit {
 				quantity: 1,
 			}],
 			mode: 'payment',
-			ui_mode: 'embedded',
+			ui_mode: 'embedded_page',
 			return_url: params.returnUrl,
 			metadata: params.metadata,
 			automatic_tax: {

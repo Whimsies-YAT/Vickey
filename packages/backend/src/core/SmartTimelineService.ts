@@ -807,7 +807,7 @@ export class SmartTimelineService implements OnApplicationShutdown {
 
 		const followings = await this.followingsRepository.find({
 			where: { followerId: userId },
-			select: ['followeeId'],
+			select: { followeeId: true },
 		});
 
 		const followingIds = followings.map(f => f.followeeId);
@@ -832,7 +832,7 @@ export class SmartTimelineService implements OnApplicationShutdown {
 
 		const mutings = await this.mutingsRepository.find({
 			where: { muterId: userId },
-			select: ['muteeId'],
+			select: { muteeId: true },
 		});
 
 		const mutedIds = mutings.map(m => m.muteeId);
@@ -857,7 +857,7 @@ export class SmartTimelineService implements OnApplicationShutdown {
 
 		const blockings = await this.blockingsRepository.find({
 			where: { blockerId: userId },
-			select: ['blockeeId'],
+			select: { blockeeId: true },
 		});
 
 		const blockedIds = blockings.map(b => b.blockeeId);

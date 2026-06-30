@@ -24,6 +24,7 @@ import { S3Service } from '@/core/S3Service.js';
 import { VideoProcessingService } from '@/core/VideoProcessingService.js';
 import { loadConfig, type Config } from '@/config.js';
 import { MiDriveFile } from '@/models/DriveFile.js';
+import type { MiMeta } from '@/models/Meta.js';
 import { FileServerService } from '@/server/FileServerService.js';
 
 const dummyPath = path.resolve('test/resources/dummy-for-file-server-service.png');
@@ -160,11 +161,22 @@ describe('FileServerService', () => {
 		const downloadService = new DownloadService(config, httpRequestService, loggerService, securityCoreService);
 		const imageProcessingService = new ImageProcessingService();
 		const videoProcessingService = new VideoProcessingService(config, fileInfoService, imageProcessingService);
+		const meta = {
+			objectStorageUseSSL: true,
+			objectStorageUseProxy: true,
+			objectStorageEndpoint: null,
+			objectStorageAccessKey: null,
+			objectStorageSecretKey: null,
+			objectStorageRegion: null,
+			objectStorageS3ForcePathStyle: false,
+			objectStorageBucket: null,
+		} as MiMeta;
 		internalStorageService = new InternalStorageService(config);
 		idService = new IdService(config);
 		fileServerService = new FileServerService(
 			config,
 			driveFilesRepository as any,
+			meta,
 			fileInfoService,
 			downloadService,
 			imageProcessingService,
@@ -190,6 +202,7 @@ describe('FileServerService', () => {
 		externalFileServerService = new FileServerService(
 			externalConfig,
 			driveFilesRepository as any,
+			meta,
 			fileInfoService,
 			downloadService,
 			imageProcessingService,

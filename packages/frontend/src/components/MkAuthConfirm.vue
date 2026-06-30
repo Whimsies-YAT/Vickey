@@ -65,7 +65,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div>{{ name ? i18n.tsx._auth.permission({ name }) : i18n.ts._auth.permissionAsk }}</div>
 				<div :class="$style.permissionListWrapper">
 					<ul :class="$style.permissionList">
-						<li v-for="p in permissions" :key="p">{{ i18n.ts._permissions[p] }}</li>
+						<li v-for="p in permissions" :key="p">{{ permissionLabel(p) }}</li>
 					</ul>
 				</div>
 			</div>
@@ -131,6 +131,7 @@ import { i18n } from '@/i18n.js';
 import * as os from '@/os.js';
 import { getProxiedImageUrl } from '@/utility/media-proxy.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
+import { permissionLabel } from '@/utility/permission-label.js';
 
 const props = defineProps<{
 	name?: string;

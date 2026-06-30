@@ -7,7 +7,7 @@ import * as fs from 'node:fs';
 import { resolve } from 'node:path';
 import { Inject, Injectable } from '@nestjs/common';
 import type { Config } from '@/config.js';
-import type { DriveFilesRepository } from '@/models/_.js';
+import type { DriveFilesRepository, MiMeta } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
 import { StatusError } from '@/misc/status-error.js';
 import type Logger from '@/logger.js';
@@ -41,6 +41,9 @@ export class FileServerService {
 		@Inject(DI.driveFilesRepository)
 		private driveFilesRepository: DriveFilesRepository,
 
+		@Inject(DI.meta)
+		private meta: MiMeta,
+
 		private fileInfoService: FileInfoService,
 		private downloadService: DownloadService,
 		private imageProcessingService: ImageProcessingService,
@@ -53,9 +56,11 @@ export class FileServerService {
 		this.assets = resolve(this.config.rootDir, 'packages/backend/src/server/file/assets');
 		this.fileResolver = new FileServerFileResolver(
 			this.driveFilesRepository,
+			this.meta,
 			this.fileInfoService,
 			this.downloadService,
 			this.internalStorageService,
+			this.s3Service,
 		);
 		this.driveHandler = new FileServerDriveHandler(
 			this.config,

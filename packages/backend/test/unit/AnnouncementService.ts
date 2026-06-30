@@ -27,10 +27,6 @@ import { IdService } from '@/core/IdService.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { secureRndstr } from '@/misc/secure-rndstr.js';
-import type { MockMetadata } from 'jest-mock';
-
-const moduleMocker = new ModuleMocker(global);
-
 describe('AnnouncementService', () => {
 	let app: TestingModule;
 	let announcementService: AnnouncementService;
@@ -206,4 +202,3 @@ describe('AnnouncementService', () => {
 		// TODO
 	});
 });
-

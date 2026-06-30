@@ -245,7 +245,7 @@ export class FanoutTimelineEndpointService {
 			try {
 				const deletedNote = await this.notesRepository.findOne({
 					where: { id: noteId },
-					select: ['id', 'userId', 'channelId'],
+					select: { id: true, userId: true, channelId: true },
 				});
 
 				if (deletedNote) {

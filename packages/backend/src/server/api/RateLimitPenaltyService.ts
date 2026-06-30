@@ -82,7 +82,7 @@ export class RateLimitPenaltyService {
 		if (!userId && ip) {
 			const records = await this.userIpsRepository.find({
 				where: { ip },
-				select: ['userId'],
+				select: { userId: true },
 				order: { createdAt: 'DESC' },
 				take: 5,
 			});

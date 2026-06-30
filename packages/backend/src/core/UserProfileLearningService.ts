@@ -196,7 +196,7 @@ export class UserProfileLearningService {
 
 		const notes = await this.notesRepository.find({
 			where: { id: In(noteIds) },
-			select: ['id', 'text', 'fileIds', 'hasPoll', 'replyId', 'renoteId'],
+			select: { id: true, text: true, fileIds: true, hasPoll: true, replyId: true, renoteId: true },
 		});
 
 		for (const note of notes) {
@@ -249,7 +249,7 @@ export class UserProfileLearningService {
 
 		const notes = await this.notesRepository.find({
 			where: { id: In(noteIds) },
-			select: ['id', 'tags'],
+			select: { id: true, tags: true },
 		});
 
 		for (const note of notes) {
@@ -360,7 +360,7 @@ export class UserProfileLearningService {
 
 		const notes = await this.notesRepository.find({
 			where: { id: In(noteIds) },
-			select: ['id', 'text'],
+			select: { id: true, text: true },
 		});
 
 		for (const note of notes) {
@@ -446,7 +446,7 @@ export class UserProfileLearningService {
 
 		const notes = await this.notesRepository.find({
 			where: { id: In(noteIds) },
-			relations: ['user'],
+			relations: { user: true },
 			select: {
 				id: true,
 				userId: true,
@@ -520,7 +520,7 @@ export class UserProfileLearningService {
 	private async getFollowingIds(userId: string): Promise<string[]> {
 		const followings = await this.followingsRepository.find({
 			where: { followerId: userId },
-			select: ['followeeId'],
+			select: { followeeId: true },
 		});
 
 		return followings.map(f => f.followeeId);
@@ -559,7 +559,7 @@ export class UserProfileLearningService {
 
 		const notes = await this.notesRepository.find({
 			where: { id: In(noteIds) },
-			select: ['id', 'text', 'cw'],
+			select: { id: true, text: true, cw: true },
 		});
 
 		const sentimentPreferences = { positive: 0, negative: 0, neutral: 0 };

@@ -70,7 +70,7 @@ export class GomokuService implements OnApplicationShutdown, OnModuleInit {
 				{ id: MoreThan(this.idService.gen(Date.now() - 1000 * 60 * 3)), user1Id: me.id, user2Id: targetUser.id, isStarted: false },
 				{ id: MoreThan(this.idService.gen(Date.now() - 1000 * 60 * 3)), user1Id: targetUser.id, user2Id: me.id, isStarted: false },
 			],
-			relations: ['user1', 'user2'],
+			relations: { user1: true, user2: true },
 			order: { id: 'DESC' },
 		});
 		if (games.length > 0) {
@@ -108,7 +108,7 @@ export class GomokuService implements OnApplicationShutdown, OnModuleInit {
 				{ id: MoreThan(this.idService.gen(Date.now() - 1000 * 60 * 3)), user1Id: me.id, isStarted: false },
 				{ id: MoreThan(this.idService.gen(Date.now() - 1000 * 60 * 3)), user2Id: me.id, isStarted: false },
 			],
-			relations: ['user1', 'user2'],
+			relations: { user1: true, user2: true },
 			order: { id: 'DESC' },
 		});
 		if (games.length > 0) {
@@ -230,7 +230,7 @@ export class GomokuService implements OnApplicationShutdown, OnModuleInit {
 			isEnded: false,
 			board: Array(BOARD_SIZE * BOARD_SIZE).fill(0),
 			logs: [],
-		}, { relations: ['user1', 'user2'] });
+		}, { relations: { user1: true, user2: true } });
 		this.cacheGame(game);
 
 		const packed = await this.gomokuGameEntityService.packDetail(game);
@@ -439,7 +439,7 @@ export class GomokuService implements OnApplicationShutdown, OnModuleInit {
 		} else {
 			const game = await this.gomokuGamesRepository.findOne({
 				where: { id },
-				relations: ['user1', 'user2'],
+				relations: { user1: true, user2: true },
 			});
 			if (game == null) return null;
 

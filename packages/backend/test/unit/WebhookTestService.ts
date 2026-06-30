@@ -82,8 +82,8 @@ describe('WebhookTestService', () => {
 				},
 				{
 					provide: DriveFileEntityService, useFactory: () => ({
-						create: jest.fn(),
-						findOne: jest.fn(),
+						create: vi.fn(),
+						findOne: vi.fn(),
 					}),
 				},
 			],

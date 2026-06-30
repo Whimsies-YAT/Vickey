@@ -13,6 +13,7 @@ import { verifyChallenge } from 'pkce-challenge';
 import { permissions as kinds } from 'misskey-js';
 import {
 	AccessDeniedError,
+	InvalidClientError,
 	InvalidGrantError,
 	InvalidRequestError,
 	InvalidScopeError,
@@ -79,13 +80,13 @@ function validateClientId(raw: string): URL {
 
 interface ClientInformation {
 	id: string;
-	registered: boolean;          // Nya
+	registered: boolean; // Nya
 	redirectUris: string[];
 	name: string;
 	logo: string | null;
-	secret?: string;              // Nya
-	description?: string;         // Nya
-	websiteUrl?: string | null;   // Nya
+	secret?: string; // Nya
+	description?: string; // Nya
+	websiteUrl?: string | null; // Nya
 }
 
 interface OAuthRequestParameters {
@@ -107,7 +108,7 @@ interface AuthorizationRequestSeed {
 	redirectUri: string;
 	state?: string;
 	requestedScope: string[];
-	appPermissions?: string[];    // Nya: registered app scope whitelist
+	appPermissions?: string[]; // Nya: registered app scope whitelist
 	codeChallenge?: string;
 	codeChallengeMethod?: string;
 }
@@ -119,8 +120,8 @@ interface AuthorizationTransaction {
 
 interface AuthorizationCodeGrant {
 	clientId: string;
-	clientName: string;           // Nya
-	clientRegistered: boolean;    // Nya
+	clientName: string; // Nya
+	clientRegistered: boolean; // Nya
 	userId: string;
 	redirectUri: string;
 	codeChallenge: string;
@@ -242,6 +243,38 @@ async function discoverClientInformation(logger: Logger, httpRequestService: Htt
 function firstValue(value: unknown | unknown[] | undefined): string | undefined {
 	const firstElement = Array.isArray(value) ? value[0] : value;
 	return typeof firstElement === 'string' ? firstElement : undefined;
+}
+
+function decodeBasicAuthValue(value: string): string {
+	try {
+		return decodeURIComponent(value.replace(/\+/g, ' '));
+	} catch {
+		return value;
+	}
+}
+
+function parseBasicClientAuth(header: string | undefined): { id: string; secret: string } | null {
+	if (!header) return null;
+
+	const [scheme, credentials] = header.split(/\s+/, 2);
+	if (scheme?.toLowerCase() !== 'basic' || !credentials) return null;
+
+	let decoded: string;
+	try {
+		decoded = Buffer.from(credentials, 'base64').toString('utf8');
+	} catch {
+		throw new InvalidClientError();
+	}
+
+	const separator = decoded.indexOf(':');
+	if (separator < 0) {
+		throw new InvalidClientError();
+	}
+
+	return {
+		id: decodeBasicAuthValue(decoded.slice(0, separator)),
+		secret: decodeBasicAuthValue(decoded.slice(separator + 1)),
+	};
 }
 
 function normalizeScope(scope: string | string[] | undefined): string[] {
@@ -500,6 +533,31 @@ export class OAuth2ProviderService implements OnApplicationShutdown {
 		}
 	}
 
+	async #assertClientAuthentication(granted: AuthorizationCodeGrant, body: OAuthRequestParameters, authorizationHeader: string | undefined): Promise<void> {
+		const bodyClientId = firstValue(body.client_id);
+		const bodyClientSecret = firstValue(body.client_secret);
+
+		if (!granted.clientRegistered) {
+			if (bodyClientId !== granted.clientId) {
+				throw new InvalidGrantError('grant request is invalid');
+			}
+			return;
+		}
+
+		const basicAuth = parseBasicClientAuth(authorizationHeader);
+		const authClientId = basicAuth?.id ?? bodyClientId;
+		const authClientSecret = basicAuth?.secret ?? bodyClientSecret;
+
+		if (!authClientId || authClientId !== granted.clientId || !authClientSecret) {
+			throw new InvalidClientError();
+		}
+
+		const app = await this.appsRepository.findOneBy({ id: granted.clientId, isOAuth: true });
+		if (!app?.secret || app.secret !== authClientSecret) {
+			throw new InvalidClientError();
+		}
+	}
+
 	public generateRFC8414() {
 		return {
 			issuer: this.config.url,
@@ -600,7 +658,7 @@ export class OAuth2ProviderService implements OnApplicationShutdown {
 				const code = secureRndstr(128);
 				this.#grantCodeCache.set(code, {
 					clientId: transaction.client.id,
-					clientName: transaction.client.name,           // Nya
+					clientName: transaction.client.name, // Nya
 					clientRegistered: transaction.client.registered, // Nya
 					userId: user.id,
 					redirectUri: transaction.request.redirectUri,
@@ -649,7 +707,6 @@ export class OAuth2ProviderService implements OnApplicationShutdown {
 				}
 
 				const code = firstValue(body.code);
-				const clientId = firstValue(body.client_id);
 				const redirectUriValue = firstValue(body.redirect_uri);
 				const codeVerifier = firstValue(body.code_verifier);
 
@@ -667,12 +724,9 @@ export class OAuth2ProviderService implements OnApplicationShutdown {
 					await this.#revokeGrantCode(granted, code);
 					throw new InvalidGrantError('grant request is invalid');
 				}
+				await this.#assertClientAuthentication(granted, body, request.headers.authorization);
 				granted.used = true;
 
-				// Nya: unregistered clients must supply client_id; registered clients are identified by the grant
-				if (!granted.clientRegistered && clientId !== granted.clientId) {
-					throw new InvalidGrantError('grant request is invalid');
-				}
 				if (redirectUriValue !== granted.redirectUri) {
 					throw new InvalidGrantError('grant request is invalid');
 				}
@@ -702,9 +756,9 @@ export class OAuth2ProviderService implements OnApplicationShutdown {
 					userId: granted.userId,
 					token: accessToken,
 					hash: accessToken,
-					name: granted.clientName,                                      // Nya: human-readable name
+					name: granted.clientName, // Nya: human-readable name
 					permission: granted.scopes,
-					appId: granted.clientRegistered ? granted.clientId : null,     // Nya
+					appId: granted.clientRegistered ? granted.clientId : null, // Nya
 				});
 
 				if (granted.revoked) {

@@ -11,7 +11,7 @@ import { common } from './common.js';
 import type { Component } from 'vue';
 import type { Keymap } from '@/utility/hotkey.js';
 import { i18n } from '@/i18n.js';
-import { alert, confirmAdvanced, popup, post } from '@/os.js';
+import { alert, confirm, confirmAdvanced, popup, post } from '@/os.js';
 import { useStream } from '@/stream.js';
 import * as sound from '@/utility/sound.js';
 import { $i } from '@/i.js';
@@ -69,6 +69,17 @@ export async function mainBoot() {
 		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkUpdated.vue')), {}, {
 			closed: () => dispose(),
 		});
+
+		if (lastVersion && compareVersions('2025.3.2-alpha.0', lastVersion) === 1) {
+			console.log('Preferences migration');
+			import('@/preferences/legacy-migrate.js').then(({ migrateOldSettings }) => migrateOldSettings()).then(() => {
+				window.setTimeout(() => {
+					unisonReload();
+				}, 1000);
+			}).catch(err => {
+				console.error('Failed to migrate old settings:', err);
+			});
+		}
 	}
 
 	try {

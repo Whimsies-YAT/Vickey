@@ -232,7 +232,7 @@ export class SSOService {
 				ssoProviderId: provider.id,
 				ssoId: ssoId,
 			},
-			relations: ['user'],
+			relations: { user: true },
 		});
 
 		const user = userProfile?.user as MiLocalUser | null;
@@ -259,7 +259,7 @@ export class SSOService {
 				if (!targetProfile.emailVerified && email) {
 					const emailProfile = await this.userProfilesRepository.findOne({
 						where: { email },
-						relations: ['user'],
+						relations: { user: true },
 					});
 					const emailUser = emailProfile?.user as MiLocalUser | null;
 

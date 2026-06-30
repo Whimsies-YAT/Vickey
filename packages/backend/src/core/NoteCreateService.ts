@@ -132,7 +132,7 @@ class NotificationManager {
 			// 			followerId: In(targetUserIds),
 			// 			isFollowerHibernated: false,
 			// 		},
-			// 		select: ['followerId'],
+			// 		select: { followerId: true },
 			// 	});
 			// 	visibleUserIds = new Set(followers.map(f => f.followerId));
 				visibleUserIds = null;

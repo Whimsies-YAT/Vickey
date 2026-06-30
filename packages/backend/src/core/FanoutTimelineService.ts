@@ -72,19 +72,7 @@ export class FanoutTimelineService {
 
 	@bindThis
 	public get(name: FanoutTimelineName, untilId?: string | null, sinceId?: string | null) {
-		if (untilId && sinceId) {
-			return this.redisForTimelines.lrange('list:' + name, 0, -1)
-				.then(ids => ids.filter(id => id < untilId && id > sinceId).sort((a, b) => a > b ? -1 : 1));
-		} else if (untilId) {
-			return this.redisForTimelines.lrange('list:' + name, 0, -1)
-				.then(ids => ids.filter(id => id < untilId).sort((a, b) => a > b ? -1 : 1));
-		} else if (sinceId) {
-			return this.redisForTimelines.lrange('list:' + name, 0, -1)
-				.then(ids => ids.filter(id => id > sinceId).sort((a, b) => a < b ? -1 : 1));
-		} else {
-			return this.redisForTimelines.lrange('list:' + name, 0, -1)
-				.then(ids => ids.sort((a, b) => a > b ? -1 : 1));
-		}
+		return this.redisForTimelines.lrange('list:' + name, 0, -1).then(ids => this.filterAndSort(ids, untilId, sinceId));
 	}
 
 	@bindThis
@@ -96,15 +84,7 @@ export class FanoutTimelineService {
 		return pipeline.exec().then(res => {
 			if (res == null) return [];
 			const tls = res.map(r => r[1] as string[]);
-			return tls.map(ids =>
-				(untilId && sinceId)
-					? ids.filter(id => id < untilId && id > sinceId).sort((a, b) => a > b ? -1 : 1)
-					: untilId
-						? ids.filter(id => id < untilId).sort((a, b) => a > b ? -1 : 1)
-						: sinceId
-							? ids.filter(id => id > sinceId).sort((a, b) => a < b ? -1 : 1)
-							: ids.sort((a, b) => a > b ? -1 : 1),
-			);
+			return tls.map(ids => this.filterAndSort(ids, untilId, sinceId));
 		});
 	}
 
@@ -123,13 +103,21 @@ export class FanoutTimelineService {
 		return pipeline.exec();
 	}
 
-	@bindThis
-	public purge(name: FanoutTimelineName) {
-		return this.redisForTimelines.del('list:' + name);
+	private filterAndSort(ids: string[], untilId?: string | null, sinceId?: string | null): string[] {
+		if (untilId && sinceId) {
+			return ids.filter(id => id < untilId && id > sinceId).sort((a, b) => a > b ? -1 : 1);
+		}
+		if (untilId) {
+			return ids.filter(id => id < untilId).sort((a, b) => a > b ? -1 : 1);
+		}
+		if (sinceId) {
+			return ids.filter(id => id > sinceId).sort((a, b) => a < b ? -1 : 1);
+		}
+		return ids.sort((a, b) => a > b ? -1 : 1);
 	}
 
 	@bindThis
-	public remove(name: FanoutTimelineName, id: string) {
-		return this.redisForTimelines.lrem('list:' + name, 1, id);
+	public purge(name: FanoutTimelineName) {
+		return this.redisForTimelines.del('list:' + name);
 	}
 }

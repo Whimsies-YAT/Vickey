@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { jest } from '@jest/globals';
+import { beforeAll, describe, expect, test, vi } from 'vitest';
 import { OfflineGeocodingService } from '../../src/core/OfflineGeocodingService.js';
 import { LoggerService } from '../../src/core/LoggerService.js';
 import { HttpRequestService } from '../../src/core/HttpRequestService.js';
@@ -21,10 +21,10 @@ const mockConfig = {
 
 const mockLoggerService = {
 	getLogger: () => ({
-		info: jest.fn(),
-		warn: jest.fn(),
-		error: jest.fn(),
-		debug: jest.fn(),
+		info: vi.fn(),
+		warn: vi.fn(),
+		error: vi.fn(),
+		debug: vi.fn(),
 	}),
 } as unknown as LoggerService;
 

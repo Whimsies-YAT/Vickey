@@ -4,11 +4,14 @@
  */
 
 import * as fs from 'node:fs';
+import { pipeline } from 'node:stream/promises';
 import type { DriveFilesRepository, MiDriveFile } from '@/models/_.js';
+import type { MiMeta } from '@/models/Meta.js';
 import { createTemp } from '@/misc/create-temp.js';
 import type { DownloadService } from '@/core/DownloadService.js';
 import type { FileInfoService } from '@/core/FileInfoService.js';
 import type { InternalStorageService } from '@/core/InternalStorageService.js';
+import type { S3Service } from '@/core/S3Service.js';
 
 export type DownloadedFileResult = {
 	kind: 'downloaded';
@@ -41,14 +44,34 @@ export type FileResolveResult =
 		ext: string | null;
 		path: string;
 		cleanup: () => void;
+	}
+	| {
+		kind: 'object-storage';
+		fileRole: 'thumbnail' | 'webpublic' | 'original';
+		file: MiDriveFile;
+		filename: string;
+		mime: string;
+		ext: string | null;
+		key: string;
 	};
+
+export type ObjectStorageFileResolveResult = Extract<FileResolveResult, { kind: 'object-storage' }>;
+
+export type ObjectStorageStreamResult = {
+	stream: NodeJS.ReadableStream;
+	contentType?: string;
+	contentLength?: number;
+	contentRange?: string;
+};
 
 export class FileServerFileResolver {
 	constructor(
 		private driveFilesRepository: DriveFilesRepository,
+		private meta: MiMeta,
 		private fileInfoService: FileInfoService,
 		private downloadService: DownloadService,
 		private internalStorageService: InternalStorageService,
+		private s3Service: S3Service,
 	) {}
 
 	public async downloadAndDetectTypeFromUrl(url: string): Promise<DownloadedFileResult> {
@@ -70,6 +93,29 @@ export class FileServerFileResolver {
 		}
 	}
 
+	public async getObjectStorageStream(key: string, range?: string): Promise<ObjectStorageStreamResult> {
+		return await this.s3Service.getObjectStream(this.meta, key, range);
+	}
+
+	public async downloadAndDetectTypeFromObjectStorage(file: ObjectStorageFileResolveResult): Promise<DownloadedFileResult> {
+		const [path, cleanup] = await createTemp();
+		try {
+			const object = await this.getObjectStorageStream(file.key);
+			await pipeline(object.stream, fs.createWriteStream(path));
+			const { mime, ext } = await this.fileInfoService.detectType(path);
+
+			return {
+				kind: 'downloaded',
+				mime, ext,
+				path, cleanup,
+				filename: file.filename,
+			};
+		} catch (e) {
+			cleanup();
+			throw e;
+		}
+	}
+
 	public async resolveFileByAccessKey(key: string): Promise<FileResolveResult> {
 		// Fetch drive file
 		const file = await this.driveFilesRepository.createQueryBuilder('file')
@@ -84,7 +130,25 @@ export class FileServerFileResolver {
 		const isWebpublic = file.webpublicAccessKey === key;
 
 		if (!file.storedInternal) {
-			if (!(file.isLink && file.uri)) return { kind: 'unavailable' };
+			if (!file.isLink) {
+				const storageKey = isThumbnail
+					? file.thumbnailPhysicalKey ?? file.thumbnailAccessKey
+					: isWebpublic
+						? file.webpublicPhysicalKey ?? file.webpublicAccessKey
+						: file.physicalKey ?? file.accessKey;
+				if (storageKey == null) return { kind: 'unavailable' };
+				return {
+					kind: 'object-storage',
+					fileRole: isThumbnail ? 'thumbnail' : isWebpublic ? 'webpublic' : 'original',
+					file,
+					filename: file.name,
+					mime: isWebpublic && file.webpublicType ? file.webpublicType : file.type,
+					ext: null,
+					key: storageKey,
+				};
+			}
+
+			if (!file.uri) return { kind: 'unavailable' };
 			const result = await this.downloadAndDetectTypeFromUrl(file.uri);
 			const { kind: _kind, ...downloaded } = result;
 			file.size = (await fs.promises.stat(downloaded.path)).size;	// DB file.sizeは正確とは限らないので
