@@ -46,7 +46,7 @@ export async function fetchCustomEmojis(force = false) {
 }
 
 let cachedTags: string[] | null = null;
-export function getCustomEmojiTags(): string[] {
+export function getCustomEmojiTags() {
 	if (cachedTags) return cachedTags;
 
 	const tags = new Set<string>();
