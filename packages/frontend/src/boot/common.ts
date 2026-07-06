@@ -5,7 +5,7 @@
 
 import { watch, version as vueVersion } from 'vue';
 import { compareVersions } from 'compare-versions';
-import { version, lang, apiUrl, isSafeMode } from '@@/js/config.js';
+import { version, lang, isSafeMode } from '@@/js/config.js';
 import defaultLightTheme from '@@/themes/_light.json5';
 import defaultDarkTheme from '@@/themes/_dark.json5';
 import { storeBootloaderErrors } from '@@/js/store-boot-errors';
@@ -30,6 +30,7 @@ import { fetchCustomEmojis } from '@/custom-emojis.js';
 import { prefer } from '@/preferences.js';
 import { $i } from '@/i.js';
 import { launchPlugins } from '@/plugin.js';
+import { initTelemetry } from '@/telemetry.js';
 
 export async function common(createVue: () => Promise<App<Element>>) {
 	console.info(`Vickey v${version}-Vickey_fork`);
@@ -393,148 +394,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 		return root;
 	})();
 
-	if (instance.sentryForFrontend) {
-		const sentryConfig = instance.sentryForFrontend;
-		const initSentryIsolated = async () => {
-			try {
-				const setupSentry = async () => {
-					try {
-						const Sentry = await import('@sentry/vue').catch(e => {
-							console.warn('Failed to load Sentry module:', e);
-							return null;
-						});
-
-						if (!Sentry) return null;
-
-						try {
-							const integrations = [
-								...(sentryConfig.vueIntegration !== undefined
-									? [(() => {
-										try {
-											return Sentry.vueIntegration(sentryConfig.vueIntegration ?? undefined);
-										} catch (e) {
-											console.warn('Sentry Vue integration failed:', e);
-											return null;
-										}
-									})()].filter((x): x is NonNullable<typeof x> => x !== null)
-									: []),
-								...(sentryConfig.browserTracingIntegration !== undefined
-									? [(() => {
-										try {
-											return Sentry.browserTracingIntegration(sentryConfig.browserTracingIntegration ?? undefined);
-										} catch (e) {
-											console.warn('Sentry browser tracing integration failed:', e);
-											return null;
-										}
-									})()].filter((x): x is NonNullable<typeof x> => x !== null)
-									: []),
-								...(sentryConfig.replayIntegration !== undefined
-									? [(() => {
-										try {
-											return Sentry.replayIntegration(sentryConfig.replayIntegration ?? undefined);
-										} catch (e) {
-											console.warn('Sentry replay integration failed:', e);
-											return null;
-										}
-									})()].filter((x): x is NonNullable<typeof x> => x !== null)
-									: []),
-							];
-
-							const sentryInstance = Sentry.init({
-								app,
-								beforeSend(event) {
-									try {
-										const error = event.exception?.values?.[0];
-										if (error?.stacktrace?.frames?.some(frame => frame.filename?.includes('chrome-extension://'))) {
-											return null;
-										}
-										return event;
-									} catch (filterError) {
-										console.warn('Sentry beforeSend filter failed:', filterError);
-										return null;
-									}
-								},
-								integrations,
-								tracesSampleRate: (sentryConfig.options as Record<string, unknown>).tracesSampleRate as number | undefined ?? 0.2,
-								replaysSessionSampleRate: (sentryConfig.options as Record<string, unknown>).replaysSessionSampleRate as number | undefined ?? 0.1,
-								replaysOnErrorSampleRate: (sentryConfig.options as Record<string, unknown>).replaysOnErrorSampleRate as number | undefined ?? 0.5,
-								...sentryConfig.options,
-							});
-
-							const safeCapture = (exception: unknown, extras: Record<string, unknown> = {}) => {
-								return new Promise((resolve) => {
-									try {
-										Sentry.captureException(exception, extras);
-										resolve(true);
-									} catch (e) {
-										console.warn('Sentry capture failed:', e);
-										resolve(false);
-									}
-								});
-							};
-
-							app.config.errorHandler = (error, vm, info) => {
-								window.setTimeout(() => {
-									safeCapture(error, { extra: { vm, info } }).catch(() => {});
-								}, 0);
-								console.error('Global Vue error handler:', error, info);
-								return false;
-							};
-
-							const unhandledRejectionHandler = (event: PromiseRejectionEvent) => {
-								if (event.preventDefault) {
-									event.preventDefault();
-								}
-
-								window.setTimeout(() => {
-									safeCapture(event.reason).catch(() => {});
-								}, 0);
-								console.error('Unhandled promise rejection (isolated):', event.reason);
-							};
-
-							window.addEventListener('unhandledrejection', unhandledRejectionHandler);
-
-							return {
-								cleanup: () => {
-									try {
-										window.removeEventListener('unhandledrejection', unhandledRejectionHandler);
-									} catch (e) {
-										console.warn('Sentry cleanup failed:', e);
-									}
-								}
-							};
-						} catch (initError) {
-							console.warn('Sentry initialization failed:', initError);
-							return null;
-						}
-					} catch (setupError) {
-						console.warn('Sentry setup completely failed:', setupError);
-						return null;
-					}
-				};
-
-				await new Promise(resolve => {
-					window.setTimeout(async () => {
-						try {
-							await setupSentry();
-						} catch (e) {
-							console.warn('Fatal error in Sentry isolated context:', e);
-						} finally {
-							resolve(null);
-						}
-					}, 0);
-				});
-			} catch (rootError) {
-				console.warn('Root Sentry isolation failed:', rootError);
-			}
-		};
-
-		window.setTimeout(() => {
-			initSentryIsolated().catch(err => {
-				console.warn('Completely isolated Sentry init failed:', err);
-			});
-		}, 0);
-	}
+	await initTelemetry(instance, app);
 
 	try {
 		await launchPlugins();

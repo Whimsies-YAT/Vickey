@@ -19,6 +19,7 @@ import { MemoryKVCache } from '@/misc/cache.js';
 import { bindThis } from '@/decorators.js';
 import { RoleService } from '@/core/RoleService.js';
 import { MultiAccountDetectionService } from '@/core/MultiAccountDetectionService.js';
+import { TelemetryService } from '@/core/telemetry/TelemetryService.js';
 import type { Config } from '@/config.js';
 import { ApiError } from './error.js';
 import { RateLimiterService } from './RateLimiterService.js';
@@ -40,7 +41,6 @@ export class ApiCallService implements OnApplicationShutdown {
 	private userIpHistories: Map<MiUser['id'], Set<string>>;
 	private userIpHistoriesClearIntervalId: NodeJS.Timeout;
 	private rateLimitFactorCache: MemoryKVCache<number>;
-	private Sentry: typeof import('@sentry/node') | null = null;
 
 	constructor(
 		@Inject(DI.meta)
@@ -57,6 +57,7 @@ export class ApiCallService implements OnApplicationShutdown {
 		private roleService: RoleService,
 		private apiLoggerService: ApiLoggerService,
 		private multiAccountDetectionService: MultiAccountDetectionService,
+		private telemetryService: TelemetryService,
 
 		@Inject(DI.redisForSub)
 		private redisForSub: Redis.Redis,
@@ -67,12 +68,6 @@ export class ApiCallService implements OnApplicationShutdown {
 		this.userIpHistoriesClearIntervalId = setInterval(() => {
 			this.userIpHistories.clear();
 		}, 1000 * 60 * 60);
-
-		if (this.config.sentryForBackend) {
-			import('@sentry/node').then((Sentry) => {
-				this.Sentry = Sentry;
-			});
-		}
 
 		this.rateLimitFactorCache = new MemoryKVCache<number>(1000 * 60);
 
@@ -157,24 +152,20 @@ export class ApiCallService implements OnApplicationShutdown {
 				},
 			});
 
-			if (this.Sentry != null) {
-				this.Sentry.captureMessage(`Internal error occurred in ${ep.name}: ${err.message}`, {
-					level: 'error',
-					user: {
-						id: userId,
+			this.telemetryService.captureMessage(`Internal error occurred in ${ep.name}: ${err.message}`, {
+				level: 'error',
+				userId,
+				extra: {
+					ep: ep.name,
+					ps: data,
+					e: {
+						message: err.message,
+						code: err.name,
+						stack: err.stack,
+						id: errId,
 					},
-					extra: {
-						ep: ep.name,
-						ps: data,
-						e: {
-							message: err.message,
-							code: err.name,
-							stack: err.stack,
-							id: errId,
-						},
-					},
-				});
-			}
+				},
+			});
 
 			throw new ApiError(null, {
 				e: {
@@ -538,15 +529,8 @@ export class ApiCallService implements OnApplicationShutdown {
 		}
 
 		// API invoking
-		if (this.Sentry != null) {
-			return await this.Sentry.startSpan({
-				name: 'API: ' + ep.name,
-			}, () => ep.exec(data, user, token, file, request.ip, request.headers, rawToken)
-				.catch((err: Error) => this.#onExecError(ep, data, err, user?.id)));
-		} else {
-			return await ep.exec(data, user, token, file, request.ip, request.headers, rawToken)
-				.catch((err: Error) => this.#onExecError(ep, data, err, user?.id));
-		}
+		return await this.telemetryService.startSpan('API: ' + ep.name, () => ep.exec(data, user, token, file, request.ip, request.headers)
+			.catch((err: Error) => this.#onExecError(ep, data, err, user?.id)));
 	}
 
 	@bindThis

@@ -6,7 +6,7 @@
 import * as fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import * as yaml from 'js-yaml';
+import { load as loadYaml } from 'js-yaml';
 import ts from 'typescript';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -94,8 +94,8 @@ function merge(target: any, source: any): any {
 }
 
 export async function generateLocaleInterface(localesDir: string): Promise<void> {
-	const misskeyLocales = yaml.load(tryReadFile(`${localesDir}/ja-JP.yml`)) as LocaleRecord;
-	const vkLocales = yaml.load(tryReadFile(resolve(`${__dirname}/../../../vickey-locales/en-US.yml`))) as LocaleRecord;
+	const misskeyLocales = loadYaml(tryReadFile(`${localesDir}/ja-JP.yml`)) as LocaleRecord;
+	const vkLocales = loadYaml(tryReadFile(resolve(`${__dirname}/../../../vickey-locales/en-US.yml`))) as LocaleRecord;
 	const locale = merge(vkLocales, misskeyLocales);
 	const members = createMembers(locale);
 

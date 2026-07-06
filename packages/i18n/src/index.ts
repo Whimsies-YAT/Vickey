@@ -8,7 +8,7 @@
  */
 
 import * as fs from 'node:fs';
-import * as yaml from 'js-yaml';
+import { load as loadYaml } from 'js-yaml';
 import { languages, primaries } from './const.js';
 import type { Locale } from './autogen/locale.js';
 import type { ILocale, ParameterizedString } from './types.js';
@@ -68,14 +68,14 @@ function build(): Record<Language, Locale> {
 	// https://github.com/misskey-dev/misskey/pull/14057#issuecomment-2192833785
 	const metaUrl = import.meta.url;
 	const misskeyLocales = languages.reduce<Locales>((a, lang) => {
-		a[lang] = (yaml.load(clean(tryReadFile(new URL(`./locales/${lang}.yml`, metaUrl)))) ?? {}) as ILocale;
+		a[lang] = (loadYaml(clean(tryReadFile(new URL(`./locales/${lang}.yml`, metaUrl)))) ?? {}) as ILocale;
 		return a;
 	}, {} as Locales);
 
-	const vkLocaleFallback = (yaml.load(clean(tryReadFile(new URL('../../../vickey-locales/en-US.yml', metaUrl)))) ?? {}) as ILocale;
+	const vkLocaleFallback = (loadYaml(clean(tryReadFile(new URL('../../../vickey-locales/en-US.yml', metaUrl)))) ?? {}) as ILocale;
 	const vkLocales = languages.reduce<Locales>((a, c) => {
 		const content = clean(tryReadFile(new URL(`../../../vickey-locales/${c}.yml`, metaUrl)));
-		const locale = content ? (yaml.load(content) ?? {}) as ILocale : {};
+		const locale = content ? (loadYaml(content) ?? {}) as ILocale : {};
 		a[c] = merge<ILocale>(vkLocaleFallback, locale);
 		return a;
 	}, {} as Locales);
