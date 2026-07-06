@@ -14,6 +14,7 @@ const mjsPackageJson = path.join(rootDir, 'packages/misskey-js/package.json');
 const backendDir = path.join(rootDir, 'packages/backend');
 const autogenDir = path.join(rootDir, 'packages/misskey-js/src/autogen');
 const generatedAutogenDir = path.join(rootDir, 'packages/misskey-js/generator/built/autogen');
+let apiJsonGenerated = false;
 
 function runCommand(cmd, label) {
 	console.log(`[misskey-js] ${label}`);
@@ -27,7 +28,8 @@ function runCommand(cmd, label) {
 }
 
 function regenerateApiJson() {
-	return runCommand('pnpm --filter backend generate-api-json', 'Generating API JSON (backend)');
+	apiJsonGenerated = runCommand('pnpm --filter backend generate-api-json --no-build', 'Generating API JSON (backend)');
+	return apiJsonGenerated;
 }
 
 function regenerateAutogenTypes() {
@@ -92,8 +94,13 @@ function checkApiJsonChanges() {
 	const generatorApiJsonPath = path.join(rootDir, 'packages/misskey-js/generator/api.json');
 
 	try {
+		if (!regenerateApiJson()) {
+			console.log('[misskey-js] ⚠ api.json generation failed, cannot verify');
+			return 'needs-rebuild';
+		}
+
 		if (!fs.existsSync(apiJsonPath)) {
-			console.log('[misskey-js] ⚠ api.json not found, cannot verify');
+			console.log('[misskey-js] ⚠ api.json was not written by backend generation');
 			return 'needs-rebuild';
 		}
 
@@ -192,7 +199,7 @@ function main() {
 	}
 
 	if (!needsRebuild) {
-		const apiReady = regenerateApiJson();
+		const apiReady = apiJsonGenerated || regenerateApiJson();
 		const autogenReady = apiReady && regenerateAutogenTypes();
 
 		if (!apiReady || !autogenReady) {
