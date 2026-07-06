@@ -16,6 +16,7 @@ packages:
 onlyBuiltDependencies:
   - '@nestjs/core'
   - '@parcel/watcher'
+  - '@sentry/node-cpu-profiler'
   - '@sentry/profiling-node'
   - '@sentry-internal/node-cpu-profiler'
   - '@tensorflow/tfjs-node'
@@ -72,6 +73,7 @@ shellEmulator: true
 allowBuilds:
   '@nestjs/core': true
   '@parcel/watcher': true
+  '@sentry/node-cpu-profiler': true
   '@sentry-internal/node-cpu-profiler': true
   '@tensorflow/tfjs-node': true
   bufferutil: true
