@@ -73,6 +73,7 @@ export default defineConfig((args) => {
 
 	// 通常のビルド時にexternalとするモジュール
 	const externalModules: ExternalOption = [
+		'slacc',
 		/^slacc-.*/,
 		'class-transformer',
 		'class-validator',
