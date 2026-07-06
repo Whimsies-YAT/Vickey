@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { In } from 'typeorm';
 import * as Redis from 'ioredis';
 import { DI } from '@/di-symbols.js';
@@ -27,22 +28,33 @@ import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { getOneApId, getApId, getOneApHrefNullable, validPost, isEmoji, getApType } from '../type.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { ApMfmService } from '../ApMfmService.js';
-import { ApDbResolverService } from '../ApDbResolverService.js';
-import { ApResolverService } from '../ApResolverService.js';
-import { ApAudienceService } from '../ApAudienceService.js';
-import { ApPersonService } from './ApPersonService.js';
 import { extractApHashtags } from './tag.js';
-import { ApMentionService } from './ApMentionService.js';
-import { ApQuestionService } from './ApQuestionService.js';
-import { ApImageService } from './ApImageService.js';
-import type { Resolver } from '../ApResolverService.js';
 import type { IObject, IPost } from '../type.js';
+import type {
+	ApAudienceServiceLike,
+	ApDbResolverServiceLike,
+	ApImageServiceLike,
+	ApMentionServiceLike,
+	ApPersonServiceLike,
+	ApQuestionServiceLike,
+	ApResolverLike,
+	ApResolverServiceLike,
+} from '../ap-service-contracts.js';
 
 @Injectable()
-export class ApNoteService {
+export class ApNoteService implements OnModuleInit {
 	private logger: Logger;
+	private apResolverService: ApResolverServiceLike;
+	private apPersonService: ApPersonServiceLike;
+	private apAudienceService: ApAudienceServiceLike;
+	private apMentionService: ApMentionServiceLike;
+	private apImageService: ApImageServiceLike;
+	private apQuestionService: ApQuestionServiceLike;
+	private apDbResolverService: ApDbResolverServiceLike;
 
 	constructor(
+		private moduleRef: ModuleRef,
+
 		@Inject(DI.config)
 		private config: Config,
 
@@ -60,23 +72,22 @@ export class ApNoteService {
 
 		private idService: IdService,
 		private apMfmService: ApMfmService,
-		private apResolverService: ApResolverService,
-
-		// 循環参照のため / for circular dependency
-		@Inject(forwardRef(() => ApPersonService))
-		private apPersonService: ApPersonService,
-
 		private utilityService: UtilityService,
-		private apAudienceService: ApAudienceService,
-		private apMentionService: ApMentionService,
-		private apImageService: ApImageService,
-		private apQuestionService: ApQuestionService,
 		private pollService: PollService,
 		private noteCreateService: NoteCreateService,
-		private apDbResolverService: ApDbResolverService,
 		private apLoggerService: ApLoggerService,
 	) {
 		this.logger = this.apLoggerService.logger;
+	}
+
+	onModuleInit(): void {
+		this.apResolverService = this.moduleRef.get('ApResolverService');
+		this.apPersonService = this.moduleRef.get('ApPersonService');
+		this.apAudienceService = this.moduleRef.get('ApAudienceService');
+		this.apMentionService = this.moduleRef.get('ApMentionService');
+		this.apImageService = this.moduleRef.get('ApImageService');
+		this.apQuestionService = this.moduleRef.get('ApQuestionService');
+		this.apDbResolverService = this.moduleRef.get('ApDbResolverService');
 	}
 
 	@bindThis
@@ -126,7 +137,7 @@ export class ApNoteService {
 	 * Noteを作成します。
 	 */
 	@bindThis
-	public async createNote(value: string | IObject, actor?: MiRemoteUser, resolver?: Resolver, silent = false): Promise<MiNote | null> {
+	public async createNote(value: string | IObject, actor?: MiRemoteUser, resolver?: ApResolverLike, silent = false): Promise<MiNote | null> {
 		// eslint-disable-next-line no-param-reassign
 		if (resolver == null) resolver = await this.apResolverService.createResolver();
 
@@ -358,7 +369,7 @@ export class ApNoteService {
 	 * リモートサーバーからフェッチしてMisskeyに登録しそれを返します。
 	 */
 	@bindThis
-	public async resolveNote(value: string | IObject, options: { sentFrom?: URL, resolver?: Resolver } = {}): Promise<MiNote | null> {
+	public async resolveNote(value: string | IObject, options: { sentFrom?: URL, resolver?: ApResolverLike } = {}): Promise<MiNote | null> {
 		const uri = getApId(value);
 
 		if (!this.utilityService.isFederationAllowedUri(uri)) {

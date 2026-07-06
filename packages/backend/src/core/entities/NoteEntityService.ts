@@ -21,8 +21,7 @@ import { CacheService } from '@/core/CacheService.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { CustomEmojiService } from '../CustomEmojiService.js';
 import type { ReactionService } from '../ReactionService.js';
-import type { UserEntityService } from './UserEntityService.js';
-import type { DriveFileEntityService } from './DriveFileEntityService.js';
+import type { DriveFileEntityServiceLike, UserEntityServiceLike } from './entity-service-contracts.js';
 import * as console from "node:console";
 
 // is-renote.tsとよしなにリンク
@@ -62,8 +61,8 @@ async function nullIfEntityNotFound<T>(promise: Promise<T>): Promise<T | null> {
 
 @Injectable()
 export class NoteEntityService implements OnModuleInit {
-	private userEntityService: UserEntityService;
-	private driveFileEntityService: DriveFileEntityService;
+	private userEntityService: UserEntityServiceLike;
+	private driveFileEntityService: DriveFileEntityServiceLike;
 	private customEmojiService: CustomEmojiService;
 	private reactionService: ReactionService;
 	private reactionsBufferingService: ReactionsBufferingService;

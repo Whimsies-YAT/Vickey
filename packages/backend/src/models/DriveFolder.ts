@@ -5,7 +5,7 @@
 
 import { JoinColumn, ManyToOne, Entity, PrimaryColumn, Index, Column } from 'typeorm';
 import { id } from './util/id.js';
-import { MiUser } from './User.js';
+import type { MiUserRelation } from './relation-types.js';
 
 @Entity('drive_folder')
 export class MiDriveFolder {
@@ -24,13 +24,13 @@ export class MiDriveFolder {
 		nullable: true,
 		comment: 'The owner ID.',
 	})
-	public userId: MiUser['id'] | null;
+	public userId: MiUserRelation['id'] | null;
 
-	@ManyToOne(() => MiUser, {
+	@ManyToOne('MiUser', {
 		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
-	public user: MiUser | null;
+	public user: MiUserRelation | null;
 
 	@Index()
 	@Column({

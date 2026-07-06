@@ -4,6 +4,8 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
+import type { OnModuleInit } from '@nestjs/common';
 import { DI } from '@/di-symbols.js';
 import type { DriveFilesRepository, PagesRepository, PageLikesRepository } from '@/models/_.js';
 import { awaitAll } from '@/misc/prelude/await-all.js';
@@ -14,12 +16,16 @@ import type { MiPage } from '@/models/Page.js';
 import type { MiDriveFile } from '@/models/DriveFile.js';
 import { bindThis } from '@/decorators.js';
 import { IdService } from '@/core/IdService.js';
-import { UserEntityService } from './UserEntityService.js';
-import { DriveFileEntityService } from './DriveFileEntityService.js';
+import type { DriveFileEntityServiceLike, UserEntityServiceLike } from './entity-service-contracts.js';
 
 @Injectable()
-export class PageEntityService {
+export class PageEntityService implements OnModuleInit {
+	private userEntityService: UserEntityServiceLike;
+	private driveFileEntityService: DriveFileEntityServiceLike;
+
 	constructor(
+		private moduleRef: ModuleRef,
+
 		@Inject(DI.pagesRepository)
 		private pagesRepository: PagesRepository,
 
@@ -29,10 +35,13 @@ export class PageEntityService {
 		@Inject(DI.driveFilesRepository)
 		private driveFilesRepository: DriveFilesRepository,
 
-		private userEntityService: UserEntityService,
-		private driveFileEntityService: DriveFileEntityService,
 		private idService: IdService,
 	) {
+	}
+
+	onModuleInit(): void {
+		this.userEntityService = this.moduleRef.get('UserEntityService');
+		this.driveFileEntityService = this.moduleRef.get('DriveFileEntityService');
 	}
 
 	@bindThis
@@ -122,4 +131,3 @@ export class PageEntityService {
 		return Promise.all(pages.map(page => this.pack(page, me, { packedUser: _userMap.get(page.userId) })));
 	}
 }
-

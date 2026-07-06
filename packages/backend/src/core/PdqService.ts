@@ -51,10 +51,14 @@ export class PdqService {
 			}
 
 			const serviceDir = path.dirname(fileURLToPath(import.meta.url));
-			const libPath = path.join(serviceDir, '../../lib', libFileName);
+			const libPathCandidates = [
+				path.join(serviceDir, '../lib', libFileName),
+				path.join(serviceDir, '../../lib', libFileName),
+			];
+			const libPath = libPathCandidates.find(candidate => fs.existsSync(candidate));
 
-			if (!fs.existsSync(libPath)) {
-				this.logger.warn(`yume-pdq library not found at ${libPath}. PDQ hashing will be disabled. Run build-yume-pdq.sh to enable it.`);
+			if (libPath == null) {
+				this.logger.warn(`yume-pdq library not found at ${libPathCandidates.join(' or ')}. PDQ hashing will be disabled. Run build-yume-pdq.sh to enable it.`);
 				return;
 			}
 

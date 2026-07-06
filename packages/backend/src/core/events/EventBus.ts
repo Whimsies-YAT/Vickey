@@ -8,33 +8,8 @@ import { Injectable } from '@nestjs/common';
 import { bindThis } from '@/decorators.js';
 import type { DomainEvent } from './DomainEvent.js';
 import { EventLogger } from './EventLogger.js';
-
-/**
- * Event Handler Function Type
- */
-export type EventHandler<T extends DomainEvent = DomainEvent> = (event: T) => Promise<void> | void;
-
-/**
- * Event Handler Registration Options
- */
-export interface EventHandlerOptions {
-	/**
-	 * Handler priority (higher number = earlier execution)
-	 * Default: 0
-	 */
-	priority?: number;
-
-	/**
-	 * Whether this handler should run asynchronously (fire-and-forget)
-	 * Default: true
-	 */
-	async?: boolean;
-
-	/**
-	 * Handler identifier for logging and debugging
-	 */
-	handlerId?: string;
-}
+import type { EventHandler, EventHandlerOptions } from './EventBusTypes.js';
+export type { EventHandler, EventHandlerOptions } from './EventBusTypes.js';
 
 interface RegisteredHandler<T extends DomainEvent = DomainEvent> {
 	handler: EventHandler<T>;
@@ -193,7 +168,10 @@ export class EventBus {
 
 		this.handlers.set(eventType, handlers);
 
-		this.emitter.on(eventType, wrappedHandler);
+		this.emitter.removeAllListeners(eventType);
+		for (const registered of handlers) {
+			this.emitter.on(eventType, registered.handler);
+		}
 
 		this.logger.logSubscribe(eventType, handlerId, mergedOptions);
 

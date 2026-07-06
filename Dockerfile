@@ -114,6 +114,7 @@ COPY --chown=misskey:misskey --from=target-builder /misskey/packages/backend/nod
 COPY --chown=misskey:misskey --from=target-builder /misskey/packages/misskey-js/node_modules ./packages/misskey-js/node_modules
 COPY --chown=misskey:misskey --from=target-builder /misskey/packages/misskey-reversi/node_modules ./packages/misskey-reversi/node_modules
 COPY --chown=misskey:misskey --from=target-builder /misskey/packages/misskey-bubble-game/node_modules ./packages/misskey-bubble-game/node_modules
+COPY --chown=misskey:misskey . ./
 COPY --chown=misskey:misskey --from=native-builder /misskey/built ./built
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/misskey-js/built ./packages/misskey-js/built
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/misskey-reversi/built ./packages/misskey-reversi/built
@@ -123,7 +124,6 @@ COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/lib
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/native/vickey-native.linux-x64-gnu.node ./packages/backend/native/vickey-native.linux-x64-gnu.node
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/native/vickey-native.linux-x64-gnu.node ./packages/backend/built/vickey-native.linux-x64-gnu.node
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/i18n/built ./packages/i18n/built
-COPY --chown=misskey:misskey . ./
 
 ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so
 ENV NODE_ENV=production

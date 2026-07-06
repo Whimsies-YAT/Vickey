@@ -5,10 +5,8 @@
 
 import * as crypto from 'node:crypto';
 import { URL } from 'node:url';
-import { promisify } from 'node:util';
 import { Inject, Injectable } from '@nestjs/common';
 import * as htmlParser from 'node-html-parser';
-import { RsaKeyPair } from 'slacc';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import type { MiUser } from '@/models/User.js';
@@ -18,6 +16,7 @@ import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import { bindThis } from '@/decorators.js';
 import type Logger from '@/logger.js';
+import { signRsaSha256 } from '@/misc/slacc.js';
 import { validateContentTypeSetAsActivityPub } from '@/core/activitypub/misc/validator.js';
 import { assertActivityMatchesUrl, FetchAllowSoftFailMask as FetchAllowSoftFailMask } from '@/core/activitypub/misc/check-against-url.js';
 import type { IObject } from './type.js';
@@ -95,8 +94,7 @@ export class ApRequestCreator {
 
 	static async #signToRequest(request: Request, key: PrivateKey, includeHeaders: string[]): Promise<Signed> {
 		const signingString = this.#genSigningString(request, includeHeaders);
-		const sign = promisify(RsaKeyPair.prototype.sign).bind(RsaKeyPair.fromPem(key.privateKeyPem));
-		const signature = (await sign(Buffer.from(signingString))).toString('base64');
+		const signature = (await signRsaSha256(key.privateKeyPem, Buffer.from(signingString))).toString('base64');
 		const signatureHeader = `keyId="${key.keyId}",algorithm="rsa-sha256",headers="${includeHeaders.join(' ')}",signature="${signature}"`;
 
 		request.headers = this.#objectAssignWithLcKey(request.headers, {

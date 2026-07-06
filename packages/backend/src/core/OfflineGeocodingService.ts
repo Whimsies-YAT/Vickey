@@ -14,7 +14,6 @@ import { clearInterval, clearTimeout, setInterval, setTimeout } from 'node:timer
 import * as os from 'os';
 import { Client as ElasticSearch } from '@elastic/elasticsearch';
 import { Inject, Injectable, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common';
-import { ZipReader } from 'slacc';
 import { createOSMStream } from 'osm-pbf-parser-node';
 import { DownloadService } from '@/core/DownloadService.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
@@ -22,6 +21,7 @@ import { LoggerService } from '@/core/LoggerService.js';
 import { bindThis } from '@/decorators.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
+import { ZipReader } from '@/misc/slacc.js';
 import { GeocodingIndex } from '../../native/index.js';
 
 interface OSMNode {

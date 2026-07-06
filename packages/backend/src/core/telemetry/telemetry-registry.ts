@@ -15,6 +15,8 @@ import type { TelemetryAdapter, TelemetryCaptureMessageOptions } from './adapter
 const adapters: TelemetryAdapter[] = [];
 
 export async function initTelemetry(config: Config): Promise<void> {
+	await shutdownTelemetry();
+
 	if (config.sentryForBackend) {
 		adapters.push(await SentryTelemetryAdapter.create(config.sentryForBackend));
 	}
@@ -35,5 +37,6 @@ export function startSpan<T>(name: string, fn: () => T): T {
 }
 
 export async function shutdownTelemetry(): Promise<void> {
-	await Promise.all(adapters.map(adapter => adapter.shutdown()));
+	const activeAdapters = adapters.splice(0);
+	await Promise.all(activeAdapters.map(adapter => adapter.shutdown()));
 }

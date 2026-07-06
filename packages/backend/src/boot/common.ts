@@ -4,11 +4,11 @@
  */
 
 import { NestFactory } from '@nestjs/core';
-import { init } from 'slacc';
 import { NestLogger } from '@/NestLogger.js';
 import { envOption } from '@/env.js';
 import { loadConfig, Config } from '@/config.js';
 import { CacheService } from '@/core/CacheService.js';
+import { init } from '@/misc/slacc.js';
 
 let slaccInitialized = false;
 

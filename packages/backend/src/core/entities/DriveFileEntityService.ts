@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
+import type { OnModuleInit } from '@nestjs/common';
 import { In } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { DriveFilesRepository, MiMeta } from '@/models/_.js';
@@ -20,7 +22,7 @@ import { IdService } from '@/core/IdService.js';
 import { uniqueByKey } from '@/misc/unique-by-key.js';
 import { UtilityService } from '../UtilityService.js';
 import { VideoProcessingService } from '../VideoProcessingService.js';
-import { UserEntityService } from './UserEntityService.js';
+import type { UserEntityServiceLike } from './entity-service-contracts.js';
 import { DriveFolderEntityService } from './DriveFolderEntityService.js';
 
 type PackOptions = {
@@ -30,8 +32,12 @@ type PackOptions = {
 };
 
 @Injectable()
-export class DriveFileEntityService {
+export class DriveFileEntityService implements OnModuleInit {
+	private userEntityService: UserEntityServiceLike;
+
 	constructor(
+		private moduleRef: ModuleRef,
+
 		@Inject(DI.config)
 		private config: Config,
 
@@ -41,15 +47,15 @@ export class DriveFileEntityService {
 		@Inject(DI.driveFilesRepository)
 		private driveFilesRepository: DriveFilesRepository,
 
-		// 循環参照のため / for circular dependency
-		@Inject(forwardRef(() => UserEntityService))
-		private userEntityService: UserEntityService,
-
 		private utilityService: UtilityService,
 		private driveFolderEntityService: DriveFolderEntityService,
 		private videoProcessingService: VideoProcessingService,
 		private idService: IdService,
 	) {
+	}
+
+	onModuleInit(): void {
+		this.userEntityService = this.moduleRef.get('UserEntityService');
 	}
 
 	@bindThis
@@ -277,10 +283,10 @@ export class DriveFileEntityService {
 		let userMap: Map<string, Packed<'UserLite'>> | null = null;
 		if (options?.withUser) {
 			const users = files
-				.map(({ user, userId }) => user ?? userId)
+				.map(({ userId }) => userId)
 				.filter(x => x != null);
 
-			const uniqueUsers = uniqueByKey(users, (user) => typeof user === 'string' ? user : user.id);
+			const uniqueUsers = uniqueByKey(users, user => user);
 			const packedUsers = await this.userEntityService.packMany(uniqueUsers);
 			userMap = new Map(packedUsers.map(user => [user.id, user]));
 		}
@@ -290,10 +296,10 @@ export class DriveFileEntityService {
 		let folderMap: Map<string, Packed<'DriveFolder'>> | null = null;
 		if (options?.detail) {
 			const folders = files
-				.map(({ folder, folderId }) => folder ?? folderId)
+				.map(({ folderId }) => folderId)
 				.filter(x => x != null);
 
-			const uniqueFolders = uniqueByKey(folders, (folder) => typeof folder === 'string' ? folder : folder.id);
+			const uniqueFolders = uniqueByKey(folders, folder => folder);
 			const packedFolders = await this.driveFolderEntityService.packMany(uniqueFolders, { detail: true });
 			folderMap = new Map(packedFolders.map(folder => [folder.id, folder]));
 		}

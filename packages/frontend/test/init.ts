@@ -14,6 +14,16 @@ fetchMocker.enableMocks();
 // XXX: misskey-js panics if WebSocket is not defined
 vi.stubGlobal('WebSocket', class WebSocket extends EventTarget { static CLOSING = 2; });
 
+// heic2any touches Worker at module import time. Unit tests do not exercise HEIC conversion.
+vi.stubGlobal('Worker', class Worker extends EventTarget {
+	public postMessage(): void {}
+	public terminate(): void {}
+});
+
+vi.mock('heic2any', () => ({
+	default: vi.fn(),
+}));
+
 // XXX: localStorageがない場合がある
 const localStorageMock = (() => {
 	const store = new Map<string, string>();

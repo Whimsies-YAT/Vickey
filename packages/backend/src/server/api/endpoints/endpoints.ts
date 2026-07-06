@@ -5,13 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-
-// 循環参照を回避
-let endpointsPromise: Promise<typeof import('../endpoints.js').default> | undefined;
-
-function getEndpoints() {
-	return endpointsPromise ??= import('../endpoints.js').then(module => module.default);
-}
+import { endpointNames } from '../endpoint-metadata.js';
 
 export const meta = {
 	requireCredential: false,
@@ -45,8 +39,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	constructor(
 	) {
 		super(meta, paramDef, async () => {
-			const endpoints = await getEndpoints();
-			return endpoints.map(x => x.name);
+			return [...endpointNames];
 		});
 	}
 }

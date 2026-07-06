@@ -6,12 +6,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as fs from 'node:fs';
 import * as Path from 'node:path';
-import { ZipReader } from 'slacc';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 import { CacheService } from '@/core/CacheService.js';
 import { DownloadService } from '@/core/DownloadService.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
+import { ZipReader } from '@/misc/slacc.js';
 import type { MiMeta } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { DI } from "@/di-symbols.js";

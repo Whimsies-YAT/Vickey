@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { DI } from '@/di-symbols.js';
 import type { UsersRepository, NotesRepository, PollsRepository } from '@/models/_.js';
 import type { Config } from '@/config.js';
@@ -14,15 +15,17 @@ import { bindThis } from '@/decorators.js';
 import { getOneApId, isQuestion } from '../type.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { ApLoggerService } from '../ApLoggerService.js';
-import { ApResolverService } from '../ApResolverService.js';
-import type { Resolver } from '../ApResolverService.js';
 import type { IObject } from '../type.js';
+import type { ApResolverLike, ApResolverServiceLike } from '../ap-service-contracts.js';
 
 @Injectable()
-export class ApQuestionService {
+export class ApQuestionService implements OnModuleInit {
 	private logger: Logger;
+	private apResolverService: ApResolverServiceLike;
 
 	constructor(
+		private moduleRef: ModuleRef,
+
 		@Inject(DI.config)
 		private config: Config,
 
@@ -35,15 +38,18 @@ export class ApQuestionService {
 		@Inject(DI.pollsRepository)
 		private pollsRepository: PollsRepository,
 
-		private apResolverService: ApResolverService,
 		private apLoggerService: ApLoggerService,
 		private utilityService: UtilityService,
 	) {
 		this.logger = this.apLoggerService.logger;
 	}
 
+	onModuleInit(): void {
+		this.apResolverService = this.moduleRef.get('ApResolverService');
+	}
+
 	@bindThis
-	public async extractPollFromQuestion(source: string | IObject, resolver?: Resolver): Promise<IPoll> {
+	public async extractPollFromQuestion(source: string | IObject, resolver?: ApResolverLike): Promise<IPoll> {
 		// eslint-disable-next-line no-param-reassign
 		if (resolver == null) resolver = await this.apResolverService.createResolver();
 
@@ -71,7 +77,7 @@ export class ApQuestionService {
 	 * @returns true if updated
 	 */
 	@bindThis
-	public async updateQuestion(value: string | IObject, actor?: MiRemoteUser, resolver?: Resolver): Promise<boolean> {
+	public async updateQuestion(value: string | IObject, actor?: MiRemoteUser, resolver?: ApResolverLike): Promise<boolean> {
 		const uri = typeof value === 'string' ? value : value.id;
 		if (uri == null) throw new Error('uri is null');
 

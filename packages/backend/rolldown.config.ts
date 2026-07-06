@@ -79,6 +79,8 @@ export default defineConfig((args) => {
 		'class-validator',
 		/^@sentry\/.*/,
 		/^@sentry-internal\/.*/,
+		'@xenova/transformers',
+		/^onnxruntime-.*/,
 		'@node-rs/argon2',
 		/^@node-rs\/argon2-.*/,
 		'koffi',

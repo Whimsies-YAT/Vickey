@@ -1,5 +1,4 @@
-import type { SwitchCaseResponseType } from '../api.js';
-import type { Endpoints } from '../api.types.js';
+import type { SwitchCaseResponseType, Endpoints } from '../api.types.js';
 
 declare module '../api.js' {
   export interface APIClient {

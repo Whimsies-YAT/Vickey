@@ -32,22 +32,19 @@ import type { HashtagService } from '@/core/HashtagService.js';
 import { MiUserNotePining } from '@/models/UserNotePining.js';
 import { StatusError } from '@/misc/status-error.js';
 import type { UtilityService } from '@/core/UtilityService.js';
-import type { UserEntityService } from '@/core/entities/UserEntityService.js';
+import type { DriveFileEntityServiceLike, UserEntityServiceLike } from '@/core/entities/entity-service-contracts.js';
 import { bindThis } from '@/decorators.js';
 import { RoleService } from '@/core/RoleService.js';
-import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import type { AccountMoveService } from '@/core/AccountMoveService.js';
 import { checkHttps } from '@/misc/check-https.js';
 import { getApId, getApType, getOneApHrefNullable, isActor, isCollection, isCollectionOrOrderedCollection, isPropertyValue } from '../type.js';
 import { extractApHashtags } from './tag.js';
 import type { OnModuleInit } from '@nestjs/common';
-import type { ApNoteService } from './ApNoteService.js';
 import type { ApMfmService } from '../ApMfmService.js';
-import type { ApResolverService, Resolver } from '../ApResolverService.js';
 import type { ApLoggerService } from '../ApLoggerService.js';
 
-import type { ApImageService } from './ApImageService.js';
 import type { IActor, ICollection, IObject, IOrderedCollection } from '../type.js';
+import type { ApImageServiceLike, ApNoteServiceLike, ApResolverLike, ApResolverServiceLike } from '../ap-service-contracts.js';
 
 const nameLength = 128;
 const summaryLength = 2048;
@@ -57,16 +54,16 @@ type Field = Record<'name' | 'value', string>;
 @Injectable()
 export class ApPersonService implements OnModuleInit {
 	private utilityService: UtilityService;
-	private userEntityService: UserEntityService;
-	private driveFileEntityService: DriveFileEntityService;
+	private userEntityService: UserEntityServiceLike;
+	private driveFileEntityService: DriveFileEntityServiceLike;
 	private idService: IdService;
 	private globalEventService: GlobalEventService;
 	private federatedInstanceService: FederatedInstanceService;
 	private fetchInstanceMetadataService: FetchInstanceMetadataService;
 	private cacheService: CacheService;
-	private apResolverService: ApResolverService;
-	private apNoteService: ApNoteService;
-	private apImageService: ApImageService;
+	private apResolverService: ApResolverServiceLike;
+	private apNoteService: ApNoteServiceLike;
+	private apImageService: ApImageServiceLike;
 	private apMfmService: ApMfmService;
 	private mfmService: MfmService;
 	private hashtagService: HashtagService;
@@ -301,7 +298,7 @@ export class ApPersonService implements OnModuleInit {
 	 * Personを作成します。
 	 */
 	@bindThis
-	public async createPerson(uri: string, resolver?: Resolver): Promise<MiRemoteUser> {
+	public async createPerson(uri: string, resolver?: ApResolverLike): Promise<MiRemoteUser> {
 		if (typeof uri !== 'string') throw new Error('uri is not string');
 
 		const host = this.utilityService.punyHost(uri);
@@ -489,7 +486,7 @@ export class ApPersonService implements OnModuleInit {
 	 * @param movePreventUris ここに指定されたURIがPersonのmovedToに指定されていたり10回より多く回っている場合これ以上アカウント移行を行わない（無限ループ防止）
 	 */
 	@bindThis
-	public async updatePerson(uri: string, resolver?: Resolver | null, hint?: IObject, movePreventUris: string[] = []): Promise<string | void> {
+	public async updatePerson(uri: string, resolver?: ApResolverLike | null, hint?: IObject, movePreventUris: string[] = []): Promise<string | void> {
 		if (typeof uri !== 'string') throw new Error('uri is not string');
 
 		// URIがこのサーバーを指しているならスキップ
@@ -672,7 +669,7 @@ export class ApPersonService implements OnModuleInit {
 	 * リモートサーバーからフェッチしてMisskeyに登録しそれを返します。
 	 */
 	@bindThis
-	public async resolvePerson(uri: string, resolver?: Resolver): Promise<MiLocalUser | MiRemoteUser> {
+	public async resolvePerson(uri: string, resolver?: ApResolverLike): Promise<MiLocalUser | MiRemoteUser> {
 		//#region このサーバーに既に登録されていたらそれを返す
 		const exist = await this.fetchPerson(uri);
 		if (exist) return exist;
@@ -702,7 +699,7 @@ export class ApPersonService implements OnModuleInit {
 	}
 
 	@bindThis
-	public async updateFeatured(userId: MiUser['id'], resolver?: Resolver): Promise<void> {
+	public async updateFeatured(userId: MiUser['id'], resolver?: ApResolverLike): Promise<void> {
 		const user = await this.usersRepository.findOneByOrFail({ id: userId, isDeleted: false });
 		if (!this.userEntityService.isRemoteUser(user)) return;
 		if (!user.featured) return;
@@ -795,7 +792,7 @@ export class ApPersonService implements OnModuleInit {
 	}
 
 	@bindThis
-	private async isPublicCollection(collection: string | ICollection | IOrderedCollection | undefined, resolver: Resolver): Promise<boolean> {
+	private async isPublicCollection(collection: string | ICollection | IOrderedCollection | undefined, resolver: ApResolverLike): Promise<boolean> {
 		if (collection) {
 			const resolved = await resolver.resolveCollection(collection);
 			if (resolved.first || (resolved as ICollection).items || (resolved as IOrderedCollection).orderedItems) {
