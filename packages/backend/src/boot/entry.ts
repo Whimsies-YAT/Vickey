@@ -12,6 +12,7 @@ import { EventEmitter } from 'node:events';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { writeHeapSnapshot } from 'node:v8';
 import chalk from 'chalk';
 import Xev from 'xev';
@@ -94,6 +95,10 @@ process.on('exit', code => {
 });
 
 if (cluster.isPrimary) {
+	cluster.setupPrimary({
+		exec: fileURLToPath(import.meta.url),
+	});
+
 	const gracefulReload = async () => {
 		if (envOption.disableClustering) {
 			logger.warn('SIGHUP received, but clustering is disabled. Graceful reload is not available in single-process mode.');
