@@ -252,6 +252,7 @@ export class VoiceCallService {
 			callId,
 			from: callerId,
 			mode,
+			currentMode,
 		});
 
 		return {

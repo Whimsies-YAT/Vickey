@@ -772,6 +772,7 @@ import type {
 	WerewolfGamesRequest,
 	WerewolfGamesResponse,
 	WerewolfGetVoiceCredsRequest,
+	WerewolfGetVoiceCredsResponse,
 	WerewolfJoinRequest,
 	WerewolfLeaveRequest,
 	WerewolfReadyRequest,
@@ -783,8 +784,11 @@ import type {
 	WerewolfTakeSeatRequest,
 	WerewolfUnreadyRequest,
 	WerewolfVoiceNegotiateRequest,
+	WerewolfVoiceNegotiateResponse,
 	WerewolfVoicePullSingleTrackRequest,
+	WerewolfVoicePullSingleTrackResponse,
 	WerewolfVoicePullTracksRequest,
+	WerewolfVoicePullTracksResponse,
 } from './entities.js';
 
 export type Endpoints = {
@@ -1298,7 +1302,7 @@ export type Endpoints = {
 	'werewolf/finish-testament': { req: WerewolfFinishTestamentRequest; res: EmptyResponse };
 	'werewolf/game-history': { req: WerewolfGameHistoryRequest; res: WerewolfGameHistoryResponse };
 	'werewolf/games': { req: WerewolfGamesRequest; res: WerewolfGamesResponse };
-	'werewolf/get-voice-creds': { req: WerewolfGetVoiceCredsRequest; res: EmptyResponse };
+	'werewolf/get-voice-creds': { req: WerewolfGetVoiceCredsRequest; res: WerewolfGetVoiceCredsResponse };
 	'werewolf/join': { req: WerewolfJoinRequest; res: EmptyResponse };
 	'werewolf/leave': { req: WerewolfLeaveRequest; res: EmptyResponse };
 	'werewolf/ready': { req: WerewolfReadyRequest; res: EmptyResponse };
@@ -1308,9 +1312,9 @@ export type Endpoints = {
 	'werewolf/skip-speech': { req: WerewolfSkipSpeechRequest; res: EmptyResponse };
 	'werewolf/take-seat': { req: WerewolfTakeSeatRequest; res: EmptyResponse };
 	'werewolf/unready': { req: WerewolfUnreadyRequest; res: EmptyResponse };
-	'werewolf/voice-negotiate': { req: WerewolfVoiceNegotiateRequest; res: EmptyResponse };
-	'werewolf/voice-pull-single-track': { req: WerewolfVoicePullSingleTrackRequest; res: EmptyResponse };
-	'werewolf/voice-pull-tracks': { req: WerewolfVoicePullTracksRequest; res: EmptyResponse };
+	'werewolf/voice-negotiate': { req: WerewolfVoiceNegotiateRequest; res: WerewolfVoiceNegotiateResponse };
+	'werewolf/voice-pull-single-track': { req: WerewolfVoicePullSingleTrackRequest; res: WerewolfVoicePullSingleTrackResponse };
+	'werewolf/voice-pull-tracks': { req: WerewolfVoicePullTracksRequest; res: WerewolfVoicePullTracksResponse };
 };
 
 /**

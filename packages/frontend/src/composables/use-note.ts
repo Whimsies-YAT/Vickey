@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { ref, computed } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
 import type { Ref } from 'vue';
 import * as mfm from 'mfm-js';
 import * as Misskey from 'misskey-js';
@@ -143,6 +143,8 @@ export function useNote(
 	const isDeleted = ref(false);
 	const translating = ref(false);
 	const translation = ref<Misskey.entities.NotesTranslateResponse | null>(null);
+	const converting = ref(false);
+	const convert = ref<Misskey.entities.DriveFile | null>(null);
 
 	// ミュート判定
 	const muted = ref($i ? calculateMuteStatus(appearNote, $i, $i.mutedWords, inTimeline && !tl_withSensitive.value) : false);
@@ -343,6 +345,8 @@ export function useNote(
 				note: rawNote,
 				translating,
 				translation,
+				converting,
+				convert,
 				currentClip: currentClip?.value,
 				currentAntenna: currentAntenna?.value ?? undefined,
 			});
@@ -356,6 +360,8 @@ export function useNote(
 			note: rawNote,
 			translating,
 			translation,
+			converting,
+			convert,
 			currentClip: currentClip?.value,
 			currentAntenna: currentAntenna?.value ?? undefined,
 		});
@@ -421,6 +427,12 @@ export function useNote(
 
 	function blur() { els.rootEl?.value?.blur(); }
 
+	onUnmounted(() => {
+		if (convert.value?.url) {
+			URL.revokeObjectURL(convert.value.url);
+		}
+	});
+
 	return {
 		// 状態・データ
 		note: rawNote,
@@ -432,6 +444,8 @@ export function useNote(
 		isDeleted,
 		translating,
 		translation,
+		converting,
+		convert,
 		muted,
 		hardMuted,
 		collapsed,

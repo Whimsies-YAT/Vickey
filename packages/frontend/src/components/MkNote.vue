@@ -204,7 +204,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, onMounted, ref, useTemplateRef, watch, provide, onUnmounted } from 'vue';
+import { computed, inject, ref, useTemplateRef, provide } from 'vue';
 import type { Ref } from 'vue';
 import * as Misskey from 'misskey-js';
 import { useNote } from '@/composables/use-note.js';
@@ -273,6 +273,8 @@ const {
 	showContent,
 	translating,
 	translation,
+	converting,
+	convert,
 	muted,
 	hardMuted,
 	collapsed,

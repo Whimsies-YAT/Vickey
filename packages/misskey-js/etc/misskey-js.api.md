@@ -874,7 +874,7 @@ export type Channels = {
                 iceServers?: IceServer[];
                 sessionId?: string;
                 answer?: any;
-                signalType?: string;
+                signalType?: 'iceCandidate' | 'offer' | 'answer';
                 signalData?: any;
                 message?: string;
             }) => void;
@@ -911,7 +911,7 @@ export type Channels = {
             };
             'voiceCall:signal': {
                 callId: string;
-                signalType: string;
+                signalType: 'iceCandidate' | 'offer' | 'answer';
                 signalData: any;
             };
             'voiceCall:switchToSfu': {
@@ -2740,6 +2740,7 @@ declare namespace entities {
         WerewolfGamesRequest,
         WerewolfGamesResponse,
         WerewolfGetVoiceCredsRequest,
+        WerewolfGetVoiceCredsResponse,
         WerewolfJoinRequest,
         WerewolfLeaveRequest,
         WerewolfReadyRequest,
@@ -2751,8 +2752,11 @@ declare namespace entities {
         WerewolfTakeSeatRequest,
         WerewolfUnreadyRequest,
         WerewolfVoiceNegotiateRequest,
+        WerewolfVoiceNegotiateResponse,
         WerewolfVoicePullSingleTrackRequest,
+        WerewolfVoicePullSingleTrackResponse,
         WerewolfVoicePullTracksRequest,
+        WerewolfVoicePullTracksResponse,
         Error_2 as Error,
         UserLite,
         UserDetailedNotMeOnly,
@@ -4679,6 +4683,9 @@ type WerewolfGamesResponse = operations['werewolf___games']['responses']['200'][
 type WerewolfGetVoiceCredsRequest = operations['werewolf___get-voice-creds']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type WerewolfGetVoiceCredsResponse = operations['werewolf___get-voice-creds']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type WerewolfJoinRequest = operations['werewolf___join']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -4712,10 +4719,19 @@ type WerewolfUnreadyRequest = operations['werewolf___unready']['requestBody']['c
 type WerewolfVoiceNegotiateRequest = operations['werewolf___voice-negotiate']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type WerewolfVoiceNegotiateResponse = operations['werewolf___voice-negotiate']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type WerewolfVoicePullSingleTrackRequest = operations['werewolf___voice-pull-single-track']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type WerewolfVoicePullSingleTrackResponse = operations['werewolf___voice-pull-single-track']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type WerewolfVoicePullTracksRequest = operations['werewolf___voice-pull-tracks']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type WerewolfVoicePullTracksResponse = operations['werewolf___voice-pull-tracks']['responses']['200']['content']['application/json'];
 
 // Warnings were encountered during analysis:
 //

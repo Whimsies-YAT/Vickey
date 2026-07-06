@@ -247,8 +247,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, markRaw, provide, ref, useTemplateRef, onUnmounted } from 'vue';
-import * as mfm from 'mfm-js';
+import { computed, inject, markRaw, provide, ref, useTemplateRef } from 'vue';
 import * as Misskey from 'misskey-js';
 import { useNote } from '@/composables/use-note.js';
 import { prefer } from '@/preferences.js';
@@ -266,7 +265,6 @@ import type { Keymap } from '@/utility/hotkey.js';
 import MkNoteSub from '@/components/MkNoteSub.vue';
 import MkNoteSimple from '@/components/MkNoteSimple.vue';
 import MkReactionsViewer from '@/components/MkReactionsViewer.vue';
-import MkReactionsViewerDetails from '@/components/MkReactionsViewer.details.vue';
 import MkMediaAudio from '@/components/MkMediaAudio.vue';
 import MkMediaList from '@/components/MkMediaList.vue';
 import MkCwButton from '@/components/MkCwButton.vue';
@@ -284,11 +282,6 @@ const props = withDefaults(defineProps<{
 }>(), {
 	initialTab: 'replies',
 });
-
-const emit = defineEmits<{
-	(ev: 'reaction', emoji: string): void;
-	(ev: 'removeReaction', emoji: string): void;
-}>();
 
 const inChannel = inject(DI.inChannel, null);
 
@@ -312,6 +305,8 @@ const {
 	isDeleted,
 	translating,
 	translation,
+	converting,
+	convert,
 	muted,
 	canRenote,
 	isMyRenote,

@@ -13,6 +13,20 @@ export const meta = {
 	tags: ['werewolf'],
 	requireCredential: true,
 	secure: true,
+	res: {
+		type: 'object',
+		optional: false, nullable: false,
+		properties: {
+			answer: {
+				type: 'object',
+				optional: false, nullable: true,
+				properties: {
+					type: { type: 'string', optional: false, nullable: false },
+					sdp: { type: 'string', optional: false, nullable: false },
+				},
+			},
+		},
+	},
 	errors: {
 		gameNotFound: {
 			message: 'Game not found or ended',
@@ -76,11 +90,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				throw new Error('Voice not enabled for this game');
 			}
 
-			const canListenToAnyone = game.players.some(speaker =>
-				this.werewolfService.canPlayerHearNow(game, me.id, speaker.userId)
-			);
+			const speakerIds = game.isStarted && game.players
+				? game.players.map(player => player.userId)
+				: game.seats.map(seat => seat.userId).filter(userId => userId != null);
+			const allowedSpeakerIds = new Set(speakerIds.filter(speakerId =>
+				this.werewolfService.canPlayerHearNow(game, me.id, speakerId)
+			));
 
-			if (!canListenToAnyone) {
+			if (allowedSpeakerIds.size === 0) {
 				return { answer: null };
 			}
 
@@ -88,6 +105,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				ps.gameId,
 				me.id,
 				ps.currentOffer as RTCSessionDescriptionInit,
+				allowedSpeakerIds,
 			);
 
 			if (!answer) {
@@ -95,7 +113,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			}
 
 			return {
-				answer,
+				answer: {
+					type: answer.type,
+					sdp: answer.sdp!,
+				},
 			};
 		});
 	}

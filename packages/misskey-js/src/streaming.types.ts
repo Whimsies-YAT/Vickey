@@ -88,7 +88,7 @@ export type Channels = {
 				sessionId?: string;
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				answer?: any;
-				signalType?: string;
+				signalType?: 'iceCandidate' | 'offer' | 'answer';
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				signalData?: any;
 				message?: string;
@@ -130,7 +130,7 @@ export type Channels = {
 			};
 			'voiceCall:signal': {
 				callId: string;
-				signalType: string;
+				signalType: 'iceCandidate' | 'offer' | 'answer';
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				signalData: any;
 			};

@@ -6,8 +6,8 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { load as loadYaml } from 'js-yaml';
 import { buildTarball } from './tarball.mjs';
+import { loadConfigYaml } from './config-yaml.mjs';
 
 const configDir = fileURLToPath(new URL('../.config', import.meta.url));
 const configPath = process.env.MISSKEY_CONFIG_YML
@@ -21,7 +21,7 @@ async function removeUnusedLocales() {
 }
 
 async function loadConfig() {
-	return fs.readFile(configPath, 'utf-8').then(data => loadYaml(data)).catch(() => null);
+	return fs.readFile(configPath, 'utf-8').then(data => loadConfigYaml(data)).catch(() => null);
 }
 
 async function build() {

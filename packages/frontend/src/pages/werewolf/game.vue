@@ -1529,6 +1529,31 @@ async function pullSingleRemoteTrack(userId: string, sessionId: string, trackNam
 	} catch (err) { }
 }
 
+async function pullExistingRemoteTracks(remoteSessionCount: number) {
+	if (!peerConnection.value || remoteSessionCount === 0) return;
+
+	const pc = peerConnection.value;
+
+	for (let i = 0; i < remoteSessionCount; i++) {
+		pc.addTransceiver('audio', { direction: 'recvonly' });
+	}
+
+	const currentOffer = await pc.createOffer();
+	await pc.setLocalDescription(currentOffer);
+
+	const pullResult = await werewolfApi('werewolf/voice-pull-tracks', {
+		gameId: props.gameId,
+		currentOffer: {
+			type: currentOffer.type,
+			sdp: currentOffer.sdp!,
+		},
+	}) as { answer: RTCSessionDescriptionInit | null };
+
+	if (pullResult.answer) {
+		await pc.setRemoteDescription(pullResult.answer);
+	}
+}
+
 async function initVoiceConnection(retryCount = 0) {
 	if (voiceConnected.value || !game.value?.config.voiceEnabled) return;
 
@@ -1604,6 +1629,8 @@ async function initVoiceConnection(retryCount = 0) {
 		}) as { answer: RTCSessionDescriptionInit };
 
 		await pc.setRemoteDescription(pushResult.answer);
+
+		await pullExistingRemoteTracks(Object.keys(creds.otherSessionIds ?? {}).length);
 
 		if (pc.connectionState !== 'connected') {
 			await new Promise<void>((resolve, reject) => {

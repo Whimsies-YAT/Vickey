@@ -159,7 +159,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<XForm v-if="initialized" :user="user" :room="room" :class="$style.form"/>
 			</div>
 		</div>
-		<audio ref="remoteAudioEl" autoplay playsinline muted="false" style="display: none;"></audio>
+		<audio ref="remoteAudioEl" autoplay playsinline style="display: none;"></audio>
 	</template>
 </PageWithHeader>
 </template>
@@ -190,6 +190,7 @@ import { useMutationObserver } from '@/composables/use-mutation-observer.js';
 import MkInfo from '@/components/MkInfo.vue';
 import { makeDateSeparatedTimelineComputedRef } from '@/utility/timeline-date-separate.js';
 import { useVoiceCall } from '@/composables/useVoiceCall.js';
+import type { VoiceCall } from '@/composables/useVoiceCall.js';
 
 const $i = ensureSignin();
 const router = useRouter();
@@ -689,7 +690,7 @@ watch(() => voiceCall.remoteStream.value, async (stream) => {
 	}
 }, { immediate: true });
 
-async function handleIncomingCall(call: any) {
+async function handleIncomingCall(call: VoiceCall) {
 	const userName = user.value?.name ?? user.value?.username ?? i18n.ts.unknown;
 	const dialogPromise = os.confirmAdvanced({
 		type: 'question',
@@ -779,6 +780,7 @@ onMounted(() => {
 		console.log('Connecting existing remote stream');
 		remoteAudioEl.value.srcObject = voiceCall.remoteStream.value;
 		remoteAudioEl.value.volume = 1.0;
+		remoteAudioEl.value.muted = false;
 		remoteAudioEl.value.play().catch(console.error);
 	}
 });

@@ -14,6 +14,20 @@ export const meta = {
 	tags: ['werewolf'],
 	requireCredential: true,
 	secure: true,
+	res: {
+		type: 'object',
+		optional: false, nullable: false,
+		properties: {
+			answer: {
+				type: 'object',
+				optional: false, nullable: false,
+				properties: {
+					type: { type: 'string', optional: false, nullable: false },
+					sdp: { type: 'string', optional: false, nullable: false },
+				},
+			},
+		},
+	},
 	errors: {
 		gameNotFound: {
 			message: 'Game not found or ended',
@@ -109,7 +123,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			});
 
 			return {
-				answer,
+				answer: {
+					type: answer.type,
+					sdp: answer.sdp!,
+				},
 			};
 		});
 	}

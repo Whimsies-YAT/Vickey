@@ -43514,10 +43514,18 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        sessionId: string;
+                        otherSessionIds: {
+                            [key: string]: string;
+                        };
+                    };
                 };
             };
             /** @description Client error */
@@ -44155,10 +44163,18 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        answer: {
+                            type: string;
+                            sdp: string;
+                        };
+                    };
                 };
             };
             /** @description Client error */
@@ -44226,10 +44242,18 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        answer: {
+                            type: string;
+                            sdp: string;
+                        } | null;
+                    };
                 };
             };
             /** @description Client error */
@@ -44293,10 +44317,18 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        answer: {
+                            type: string;
+                            sdp: string;
+                        } | null;
+                    };
                 };
             };
             /** @description Client error */

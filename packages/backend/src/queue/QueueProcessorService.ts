@@ -509,11 +509,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		//#region geocoding
 		if (this.config.offlineGeocoding) {
 			this.geocodingQueueWorker = new Bull.Worker(QUEUE.GEOCODING, (job) => {
-				if (this.config.sentryForBackend && Sentry) {
-					return Sentry.startSpan({ name: 'Queue: Geocoding: ' + job.name }, () => this.geocodingProcessorService.process(job));
-				} else {
-					return this.geocodingProcessorService.process(job);
-				}
+				return this.telemetryService.startSpan('Queue: Geocoding: ' + job.name, () => this.geocodingProcessorService.process(job));
 			}, {
 				...baseWorkerOptions(this.config, QUEUE.GEOCODING),
 				autorun: false,
@@ -527,12 +523,10 @@ export class QueueProcessorService implements OnApplicationShutdown {
 				.on('completed', (job, result) => logger.debug(`completed(${result}) id=${job.id} jobType=${job.data.jobType}`))
 				.on('failed', (job, err) => {
 					logger.error(`failed(${err.name}: ${err.message}) id=${job?.id ?? '?'} jobType=${job?.data?.jobType ?? '?'}`, { job: renderJob(job), e: renderError(err) });
-					if (config.sentryForBackend) {
-						Sentry?.captureMessage(`Queue: Geocoding: ${job?.data?.jobType ?? '?'}: ${err.name}: ${err.message}`, {
-							level: 'error',
-							extra: { job, err },
-						});
-					}
+					this.telemetryService.captureMessage(`Queue: Geocoding: ${job?.data?.jobType ?? '?'}: ${err.name}: ${err.message}`, {
+						level: 'error',
+						extra: { job, err },
+					});
 				})
 				.on('error', (err: Error) => logger.error(`error ${err.name}: ${err.message}`, { e: renderError(err) }))
 				.on('stalled', (jobId) => logger.warn(`stalled id=${jobId}`));
