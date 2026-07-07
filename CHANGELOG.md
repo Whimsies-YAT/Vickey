@@ -10,6 +10,7 @@
 - Fix: 人狼ゲームの音声通話 API のレスポンス型と音声トラック取得時の権限検証を修正
 - Fix: backend bundle で cluster worker の起動や ActivityPub ノート処理の初期化に失敗することがある問題を修正
 - Fix: backend bundle で Web Push 通知モジュールの読み込み時に worker が起動できないことがある問題を修正
+- Fix: Docker 環境で IP2Location の保存先が誤って `/files/ip2l` になり、worker が起動できないことがある問題を修正
 
 ## 2026.7.0
 
