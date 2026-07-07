@@ -390,7 +390,10 @@ export type Channels = {
 			gameId: string;
 		};
 		events: {
+			changeReadyStates: (payload: { user1: boolean; user2: boolean; }) => void;
+			log: (payload: [number, number]) => void;
 			started: (payload: { game: GomokuGameDetailed }) => void;
+			ended: (payload: { winnerId: User['id'] | null; game: GomokuGameDetailed; }) => void;
 			canceled: (payload: { userId: string }) => void;
 		};
 		receives: null;
@@ -470,6 +473,11 @@ export type Channels = {
 				revealRole?: boolean;
 				role?: string;
 				players?: any[];
+			}) => void;
+			transitionDelay: (payload: {
+				type: 'death_announcement' | 'speech_transition' | 'discussion_to_voting' | 'voting_results';
+				duration: number;
+				[key: string]: unknown;
 			}) => void;
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			message: (payload: {
