@@ -4,6 +4,7 @@
  */
 
 import rename from 'rename';
+import mime from 'mime-types';
 import type { Config } from '@/config.js';
 import type { IImageStreamable } from '@/core/ImageProcessingService.js';
 import { contentDisposition } from '@/misc/content-disposition.js';
@@ -100,6 +101,39 @@ export class FileServerDriveHandler {
 					),
 				);
 				return image.data;
+			}
+
+			if (file.kind === 'object-storage') {
+				const object = await this.fileResolver.getObjectStorageStream(file.key, request.headers.range as string | undefined);
+				const contentLength = object.contentLength ?? (file.fileRole === 'original' ? file.file.size : undefined);
+				const contentType = object.contentType ?? file.mime;
+
+				if (file.fileRole !== 'original') {
+					const filename = rename(file.filename, {
+						suffix: file.fileRole === 'thumbnail' ? '-thumb' : '-web',
+						extname: file.ext ? `.${file.ext}` : `.${mime.extension(contentType) || 'unknown'}`,
+					}).toString();
+
+					setFileResponseHeaders(reply, {
+						mime: contentType,
+						filename,
+					});
+				} else {
+					setFileResponseHeaders(reply, {
+						mime: contentType,
+						filename: file.filename,
+					});
+				}
+
+				if (object.contentRange) {
+					reply.header('Content-Range', object.contentRange);
+					reply.header('Accept-Ranges', 'bytes');
+					reply.code(206);
+				} else if (contentLength !== undefined) {
+					reply.header('Content-Length', contentLength);
+				}
+
+				return object.stream;
 			}
 
 			if (file.fileRole !== 'original') {

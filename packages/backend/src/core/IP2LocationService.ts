@@ -6,39 +6,35 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as fs from 'node:fs';
 import * as Path from 'node:path';
-import { ZipReader } from 'slacc';
-import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
+import type { Config } from '@/config.js';
 import { CacheService } from '@/core/CacheService.js';
 import { DownloadService } from '@/core/DownloadService.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
+import { ZipReader } from '@/misc/slacc.js';
 import type { MiMeta } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
-import { DI } from "@/di-symbols.js";
+import { DI } from '@/di-symbols.js';
 import { IP2Location, IPTools } from 'ip2location-nodejs';
 import is_ip_private from 'private-ip';
 import { IP2Proxy } from 'ip2proxy-nodejs';
 import * as Redis from 'ioredis';
-import * as console from "node:console";
-
-const _filename = fileURLToPath(import.meta.url);
-const _dirname = dirname(_filename);
+import * as console from 'node:console';
 
 const CONFIG = {
-	path: Path.resolve(_dirname, '../../../../files/ip2l'),
 	fileName: 'ipdb.bin',
 	zipFileName: 'file.zip',
 	proxyFileName: 'ipdbP.bin',
 	proxyZipFileName: 'fileP.zip',
 };
 
-if (!fs.existsSync(CONFIG.path)) {
-	fs.mkdirSync(CONFIG.path, { recursive: true });
-}
-
 @Injectable()
 export class IP2LocationService {
+	private readonly storagePath: string;
+
 	constructor(
+		@Inject(DI.config)
+		private config: Config,
+
 		@Inject(DI.redis)
 		private redisClient: Redis.Redis,
 
@@ -48,18 +44,21 @@ export class IP2LocationService {
 		private cacheService: CacheService,
 		private downloadService: DownloadService,
 		private httpRequestService: HttpRequestService
-	) {}
+	) {
+		this.storagePath = Path.resolve(this.config.rootDir, 'files/ip2l');
+	}
 
 	@bindThis
 	public async syncIP2L(auth: string | null = this.meta.ip2lAuthKey, pro: boolean = this.meta.ip2lIsPro): Promise<void> {
 		if (!auth) return;
 
 		const dbUrl = `https://www.ip2location.com/download/?token=${auth}&file=${pro ? "DB11BINIPV6" : "DB11LITEBINIPV6"}`;
-		const zipFilePath = Path.join(CONFIG.path, CONFIG.zipFileName);
 
 		try {
+			await this.ensureStorageDirectory();
+			const zipFilePath = Path.join(this.storagePath, CONFIG.zipFileName);
 			await this.downloadService.downloadUrl(dbUrl, zipFilePath, true);
-			await this.extractAndRenameBinFile(zipFilePath, CONFIG.path, CONFIG.fileName);
+			await this.extractAndRenameBinFile(zipFilePath, this.storagePath, CONFIG.fileName);
 		} catch (error) {
 			console.error(error instanceof Error ? error : new Error('Unknown error occurred.'));
 		}
@@ -70,11 +69,12 @@ export class IP2LocationService {
 		if (!auth) return;
 
 		const dbUrl = `https://www.ip2location.com/download/?token=${auth}&file=${pro ? "PX12BIN" : "PX12LITEBIN"}`;
-		const zipFilePath = Path.join(CONFIG.path, CONFIG.proxyZipFileName);
 
 		try {
+			await this.ensureStorageDirectory();
+			const zipFilePath = Path.join(this.storagePath, CONFIG.proxyZipFileName);
 			await this.downloadService.downloadUrl(dbUrl, zipFilePath, true);
-			await this.extractAndRenameBinFile(zipFilePath, CONFIG.path, CONFIG.proxyFileName);
+			await this.extractAndRenameBinFile(zipFilePath, this.storagePath, CONFIG.proxyFileName);
 		} catch (error) {
 			console.error(error instanceof Error ? error : new Error('Unknown error occurred.'));
 		}
@@ -441,6 +441,10 @@ export class IP2LocationService {
 		}
 	}
 
+	private async ensureStorageDirectory(): Promise<void> {
+		await fs.promises.mkdir(this.storagePath, { recursive: true });
+	}
+
 	private async isValidIP(ip: string): Promise<boolean> {
 		const isPrivate = is_ip_private(ip);
 		const tools = new IPTools();
@@ -456,7 +460,8 @@ export class IP2LocationService {
 	private async getIPDetails(ip: string): Promise<Record<string, any>> {
 		const ip2location = new IP2Location();
 		try {
-			await ip2location.openAsync(Path.join(CONFIG.path, CONFIG.fileName));
+			await this.ensureStorageDirectory();
+			await ip2location.openAsync(Path.join(this.storagePath, CONFIG.fileName));
 			return await ip2location.getAllAsync(ip);
 		} finally {
 			if (ip2location && typeof ip2location.close === 'function') {
@@ -468,7 +473,8 @@ export class IP2LocationService {
 	private async getIPProxyDetails(ip: string): Promise<Record<string, any>> {
 		const ip2proxy = new IP2Proxy();
 		try {
-			await ip2proxy.openAsync(Path.join(CONFIG.path, CONFIG.proxyFileName));
+			await this.ensureStorageDirectory();
+			await ip2proxy.openAsync(Path.join(this.storagePath, CONFIG.proxyFileName));
 			return await ip2proxy.getAllAsync(ip);
 		} finally {
 			if (ip2proxy && typeof ip2proxy.close === 'function') {

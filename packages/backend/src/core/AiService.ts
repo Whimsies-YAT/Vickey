@@ -3,230 +3,186 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import * as fs from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
-import { spawn, type ChildProcess } from 'node:child_process';
-import * as readline from 'node:readline';
-import { Injectable } from '@nestjs/common';
-import { Mutex } from 'async-mutex';
+import { Injectable, Inject } from '@nestjs/common';
 import fetch from 'node-fetch';
+import { DI } from '@/di-symbols.js';
 import { bindThis } from '@/decorators.js';
+import { HttpRequestService } from '@/core/HttpRequestService.js';
+import { LoggerService } from '@/core/LoggerService.js';
+import type { MiMeta } from '@/models/_.js';
+import type Logger from '@/logger.js';
 
-const _filename = fileURLToPath(import.meta.url);
-const _dirname = dirname(_filename);
+/**
+ * 正規化済み画像に対する nsfwjs 互換の予測値。
+ * 推論自体は外部サービス (sensitive-detector) が行い、本体はその生の値を受け取って判定する。
+ */
+export type Prediction = {
+	className: string;
+	probability: number;
+};
+
+type BatchItemResult =
+	| { success: true; predictions: Prediction[] }
+	| { success: false; error: { code: string; message: string } };
+
+type DetectImagesResponse =
+	| { success: true; result: { results: BatchItemResult[] } }
+	| { success: false; error: { code: string; message: string } };
+
+// #region type guards
+function isPrediction(v: unknown): v is Prediction {
+	if (typeof v !== 'object' || v === null) return false;
+	const obj = v as Record<string, unknown>;
+	return typeof obj['className'] === 'string' && typeof obj['probability'] === 'number';
+}
+
+function isBatchItemResult(v: unknown): v is BatchItemResult {
+	if (typeof v !== 'object' || v === null) return false;
+	const obj = v as Record<string, unknown>;
+	if (obj['success'] === true) {
+		return Array.isArray(obj['predictions']) && (obj['predictions'] as unknown[]).every(isPrediction);
+	}
+	if (obj['success'] === false) {
+		const error = obj['error'];
+		return typeof error === 'object' && error !== null && typeof (error as Record<string, unknown>)['code'] === 'string';
+	}
+	return false;
+}
+
+function isDetectImagesResponse(v: unknown): v is DetectImagesResponse {
+	if (typeof v !== 'object' || v === null) return false;
+	const obj = v as Record<string, unknown>;
+	if (obj['success'] === true) {
+		const result = obj['result'];
+		if (typeof result !== 'object' || result === null) return false;
+		const results = (result as Record<string, unknown>)['results'];
+		return Array.isArray(results) && (results as unknown[]).every(isBatchItemResult);
+	}
+	if (obj['success'] === false) {
+		const error = obj['error'];
+		return typeof error === 'object' && error !== null && typeof (error as Record<string, unknown>)['code'] === 'string';
+	}
+	return false;
+}
+// #endregion
+
+// サイドカーの判定エンドポイント。baseUrl にパスプレフィックスがあっても連結できるよう先頭スラッシュは付けない。
+const DETECT_IMAGES_PATH = 'v1/detect-images';
 
 @Injectable()
 export class AiService {
-	private child: ChildProcess | null = null;
-	private childReady = false;
-	private pendingRequests = new Map<string, { resolve: (val: any) => void, reject: (err: any) => void }>();
-	private restartTimeout: NodeJS.Timeout | null = null;
+	private logger: Logger;
 
 	constructor(
+		@Inject(DI.meta)
+		private meta: MiMeta,
+
+		private httpRequestService: HttpRequestService,
+		private loggerService: LoggerService,
 	) {
-		this.startChild();
+		this.logger = this.loggerService.getLogger('ai');
+	}
+
+	/**
+	 * 正規化済み画像 1 枚を外部サービスに送り、生の予測値を得る。
+	 * 接続先未設定・通信失敗・タイムアウト時は null（= 非センシティブ扱い）を返す。
+	 */
+	@bindThis
+	public async detectSensitive(source: Buffer): Promise<Prediction[] | null> {
+		return (await this.detectSensitiveMany([source]))[0] ?? null;
+	}
+
+	/**
+	 * 複数の正規化済み画像をまとめて外部サービスに送る。
+	 * maxImagesPerRequest 枚ごとにチャンク分割して順次送信し、送信順を保った結果配列を返す。
+	 * 接続先未設定・通信失敗・タイムアウト時は該当分を null（= 非センシティブ扱い）にしてフォールバックする
+	 * （API 呼び出し失敗時はセンシティブではない判定とする方針: misskey-dev/misskey#16804）。
+	 */
+	@bindThis
+	public async detectSensitiveMany(sources: Buffer[]): Promise<(Prediction[] | null)[]> {
+		if (sources.length === 0) return [];
+
+		const baseUrl = this.meta.sensitiveMediaDetectionApiUrl;
+		if (baseUrl == null || baseUrl.trim() === '') {
+			// 接続先が未設定なら検出不能。全件 null（非センシティブ扱い）を返す。
+			return sources.map(() => null);
+		}
+
+		const apiKey = this.meta.sensitiveMediaDetectionApiKey;
+		const timeout = this.meta.sensitiveMediaDetectionTimeout;
+		const chunkSize = Math.max(1, this.meta.sensitiveMediaDetectionMaxImagesPerRequest);
+
+		const base = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+		let url: string;
+		try {
+			url = new URL(DETECT_IMAGES_PATH, base).href;
+		} catch {
+			this.logger.warn(`invalid sensitiveMediaDetectionApiUrl: ${baseUrl}`);
+			return sources.map(() => null);
+		}
+
+		const results: (Prediction[] | null)[] = [];
+		for (let i = 0; i < sources.length; i += chunkSize) {
+			const chunk = sources.slice(i, i + chunkSize);
+			results.push(...await this.detectChunk(url, apiKey, timeout, chunk));
+		}
+		return results;
 	}
 
 	@bindThis
-	private startChild() {
-		if (this.child) return;
-
-		const workerScript = `
-			import fs from 'node:fs';
-			import path from 'node:path';
-			import readline from 'node:readline';
-			import { pipeline, env, RawImage as _RawImage } from '@xenova/transformers';
-			import os from 'node:os';
-
-			let model = null;
-			let RawImage = _RawImage;
-
-			// Suppress stdout to keep channel clean for JSON
-			const originalStdoutWrite = process.stdout.write.bind(process.stdout);
-			process.stdout.write = (chunk, encoding, callback) => {
-				// Only allow our JSON messages
-				if (typeof chunk === 'string' && chunk.startsWith('{"type":')) {
-					return originalStdoutWrite(chunk, encoding, callback);
-				}
-				// Redirect everything else to stderr
-				return process.stderr.write(chunk, encoding, callback);
-			};
-
-			async function load() {
-				try {
-					const modelCacheDir = '${resolve(_dirname, '../../../../files/models-cache').replace(/\\/g, '/')}';
-					if (!fs.existsSync(modelCacheDir)) {
-						fs.mkdirSync(modelCacheDir, { recursive: true });
-					}
-
-					env.cacheDir = modelCacheDir;
-					env.allowLocalModels = true;
-					env.allowRemoteModels = true;
-					env.backends.onnx.wasm.numThreads = Math.min(4, os.cpus().length);
-					env.useBrowserCache = false;
-					env.useFS = true;
-
-					model = await pipeline('image-classification', 'AdamCodd/vit-base-nsfw-detector', {
-						quantized: true,
-						cache_dir: modelCacheDir,
-					});
-
-					process.stdout.write(JSON.stringify({ type: 'ready' }) + '\\n');
-				} catch (err) {
-					console.error('Worker load error:', err);
-					process.stdout.write(JSON.stringify({ type: 'error', error: err.message }) + '\\n');
-				}
-			}
-
-			const rl = readline.createInterface({
-				input: process.stdin,
-				output: process.stdout,
-				terminal: false
-			});
-
-			rl.on('line', async (line) => {
-				if (!line) return;
-				try {
-					const msg = JSON.parse(line);
-					if (msg.type === 'detect') {
-						if (!model) throw new Error('Model not loaded');
-
-						// We receive a file path
-						const results = await model(msg.source, { topk: 5 });
-						const nsfwScore = results.find(x => x.label === 'nsfw')?.score || 0;
-
-						const result = {
-							sensitive: nsfwScore > msg.sensitiveThreshold,
-							porn: nsfwScore > msg.pornThreshold,
-							probability: nsfwScore,
-						};
-
-						process.stdout.write(JSON.stringify({ type: 'result', id: msg.id, result }) + '\\n');
-					}
-				} catch (err) {
-					console.error('Worker process error:', err);
-					// Try to send error back if we have an ID, otherwise just log
-				}
-			});
-
-			load();
-		`;
+	private async detectChunk(url: string, apiKey: string | null, timeout: number, chunk: Buffer[]): Promise<(Prediction[] | null)[]> {
+		const controller = new AbortController();
+		const timer = setTimeout(() => controller.abort(), timeout);
 
 		try {
-			this.child = spawn(process.execPath, ['--input-type=module', '--no-warnings', '-e', workerScript], {
-				stdio: ['pipe', 'pipe', 'inherit'],
-				cwd: _dirname, // Set CWD to ensure imports work if relative
-			});
-
-			const rl = readline.createInterface({
-				input: this.child.stdout!,
-				terminal: false,
-			});
-
-			rl.on('line', (line: string) => {
-				try {
-					const msg = JSON.parse(line);
-					if (msg.type === 'ready') {
-						this.childReady = true;
-					} else if (msg.type === 'result') {
-						const req = this.pendingRequests.get(msg.id);
-						if (req) {
-							req.resolve(msg.result);
-							this.pendingRequests.delete(msg.id);
-						}
-					} else if (msg.type === 'error') {
-						console.error('NSFW Child reported error:', msg.error);
-					}
-				} catch (e) {
-					console.error('Failed to parse child message:', line, e);
-				}
-			});
-
-			this.child.on('error', (err) => {
-				console.error('NSFW Child process error:', err);
-				this.restartChild();
-			});
-
-			this.child.on('exit', (code, signal) => {
-				if (code !== 0 && signal !== 'SIGTERM') {
-					console.error(`NSFW Child process exited with code ${code} signal ${signal}`);
-					this.restartChild();
-				}
-			});
-		} catch (e) {
-			console.error('Failed to spawn NSFW child:', e);
-		}
-	}
-
-	@bindThis
-	private restartChild() {
-		if (this.child) {
-			this.child.kill();
-			this.child = null;
-		}
-		this.childReady = false;
-		// Reject all pending
-		for (const [id, req] of this.pendingRequests) {
-			req.reject(new Error('Worker process restarted'));
-		}
-		this.pendingRequests.clear();
-
-		if (this.restartTimeout) clearTimeout(this.restartTimeout);
-		this.restartTimeout = setTimeout(() => {
-			this.startChild();
-		}, 1000);
-	}
-
-	@bindThis
-	public async detectSensitive(source: string | Buffer, sensitiveThreshold = 0.5, pornThreshold = 0.8): Promise<{ sensitive: boolean, porn: boolean, probability: number } | null> {
-		if (!this.childReady || !this.child) return null;
-
-		const id = Math.random().toString(36).substring(2);
-		let tempFilePath: string | null = null;
-
-		try {
-			let input = source;
-			if (Buffer.isBuffer(source)) {
-				const os = await import('os');
-				const path = await import('path');
-				const tempDir = os.tmpdir();
-				tempFilePath = path.join(tempDir, `nsfw-detect-${Date.now()}-${id}.png`);
-				await fs.promises.writeFile(tempFilePath, source);
-				input = tempFilePath;
+			const form = new FormData();
+			for (let i = 0; i < chunk.length; i++) {
+				const image = Uint8Array.from(chunk[i]);
+				form.append(`image${i}`, new Blob([image], { type: 'image/png' }), `${i}.png`);
 			}
 
-			const result = await new Promise<any>((resolve, reject) => {
-				this.pendingRequests.set(id, { resolve, reject });
+			// Content-Type は FormData から boundary 付きで自動設定させるため、手動設定はしない。
+			// 手動指定すると boundary の欠落・不一致で multipart として読めなくなる。
+			const headers: Record<string, string> = {};
+			if (apiKey != null && apiKey !== '') {
+				headers['Authorization'] = `Bearer ${apiKey}`;
+			}
 
-				const msg = JSON.stringify({ type: 'detect', id, source: input, sensitiveThreshold, pornThreshold }) + '\n';
-				this.child?.stdin?.write(msg);
-
-				// Timeout
-				setTimeout(() => {
-					if (this.pendingRequests.has(id)) {
-						this.pendingRequests.delete(id);
-						reject(new Error('NSFW detection timed out'));
-					}
-				}, 10000);
+			const res = await fetch(url, {
+				method: 'POST',
+				headers,
+				body: form,
+				// 外部サービスとして通常の proxy / private address 制限を適用する。
+				// サイドカーへの private network 接続は allowedPrivateNetworks 等で明示的に許可する。
+				agent: (u) => this.httpRequestService.getAgentByUrl(u),
+				signal: controller.signal,
 			});
 
-			console.log(`NSFW Detection [${id}]:`, result);
-			return result;
+			if (!res.ok) {
+				this.logger.warn(`sensitive detection request failed: ${res.status} ${res.statusText}`);
+				return chunk.map(() => null);
+			}
+
+			const body = await res.json();
+			if (!isDetectImagesResponse(body)) {
+				this.logger.warn(`sensitive detection responded with unexpected shape: ${JSON.stringify(body)}`);
+				return chunk.map(() => null);
+			}
+			if (!body.success) {
+				this.logger.warn(`sensitive detection responded with failure: ${body.error.code}`);
+				return chunk.map(() => null);
+			}
+
+			const items = body.result.results;
+			return chunk.map((_, i) => {
+				const item = items[i];
+				return (item.success) ? item.predictions : null;
+			});
 		} catch (err) {
-			console.error('AiService detectSensitive error:', err);
-			return null;
+			this.logger.warn(`sensitive detection error: ${err instanceof Error ? err.message : String(err)}`);
+			return chunk.map(() => null);
 		} finally {
-			if (tempFilePath) {
-				await fs.promises.unlink(tempFilePath).catch(() => {});
-			}
+			clearTimeout(timer);
 		}
 	}
-
-	// @bindThis
-	// private async getCpuFlags(): Promise<string[]> {
-	// 	const si = await import('systeminformation');
-	// 	const str = await si.cpuFlags();
-	// 	return str.split(/\s+/);
-	// }
 }

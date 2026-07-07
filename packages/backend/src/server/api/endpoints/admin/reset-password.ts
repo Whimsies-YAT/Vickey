@@ -6,6 +6,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as argon2 from '@node-rs/argon2';
 import { Endpoint } from '@/server/api/endpoint-base.js';
+import { ApiError } from '@/server/api/error.js';
 import type { UsersRepository, UserProfilesRepository, MiMeta } from '@/models/_.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
@@ -18,6 +19,19 @@ export const meta = {
 	requireCredential: true,
 	requireModerator: true,
 	kind: 'write:admin:reset-password',
+
+	errors: {
+		noSuchUser: {
+			message: 'No such user.',
+			code: 'NO_SUCH_USER',
+			id: 'ccafc7fe-5074-4edd-9dc0-8ef9ef6a701d',
+		},
+		cannotResetPasswordOfRootUser: {
+			message: 'Cannot reset password of the root user.',
+			code: 'CANNOT_RESET_PASSWORD_OF_ROOT_USER',
+			id: 'f28fc207-42ca-44c7-a577-44b4f0ec5999',
+		},
+	},
 
 	res: {
 		type: 'object',
@@ -62,11 +76,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			const user = await this.usersRepository.findOneBy({ id: ps.userId });
 
 			if (user == null) {
-				throw new Error('user not found');
+				throw new ApiError(meta.errors.noSuchUser);
 			}
 
 			if (this.serverSettings.rootUserId === user.id) {
-				throw new Error('cannot reset password of root');
+				throw new ApiError(meta.errors.cannotResetPasswordOfRootUser);
 			}
 
 			const passwd = secureRndstr(8);

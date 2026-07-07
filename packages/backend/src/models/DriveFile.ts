@@ -5,8 +5,7 @@
 
 import { PrimaryColumn, Entity, Index, JoinColumn, Column, ManyToOne } from 'typeorm';
 import { id } from './util/id.js';
-import { MiUser } from './User.js';
-import { MiDriveFolder } from './DriveFolder.js';
+import type { MiDriveFolderRelation, MiUserRelation } from './relation-types.js';
 
 @Entity('drive_file')
 @Index(['userId', 'folderId', 'id'])
@@ -20,13 +19,13 @@ export class MiDriveFile {
 		nullable: true,
 		comment: 'The owner ID.',
 	})
-	public userId: MiUser['id'] | null;
+	public userId: MiUserRelation['id'] | null;
 
-	@ManyToOne(() => MiUser, {
+	@ManyToOne('MiUser', {
 		onDelete: 'SET NULL',
 	})
 	@JoinColumn()
-	public user: MiUser | null;
+	public user: MiUserRelation | null;
 
 	@Index()
 	@Column('varchar', {
@@ -185,13 +184,13 @@ export class MiDriveFile {
 		nullable: true,
 		comment: 'The parent folder ID. If null, it means the DriveFile is located in root.',
 	})
-	public folderId: MiDriveFolder['id'] | null;
+	public folderId: MiDriveFolderRelation['id'] | null;
 
-	@ManyToOne(() => MiDriveFolder, {
+	@ManyToOne('MiDriveFolder', {
 		onDelete: 'SET NULL',
 	})
 	@JoinColumn()
-	public folder: MiDriveFolder | null;
+	public folder: MiDriveFolderRelation | null;
 
 	@Index()
 	@Column('boolean', {

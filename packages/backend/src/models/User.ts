@@ -5,7 +5,7 @@
 
 import { Entity, Column, Index, OneToOne, JoinColumn, PrimaryColumn } from 'typeorm';
 import { id } from './util/id.js';
-import { MiDriveFile } from './DriveFile.js';
+import type { MiDriveFileRelation } from './relation-types.js';
 
 @Entity('user')
 @Index(['usernameLower', 'host'], { unique: true })
@@ -97,26 +97,26 @@ export class MiUser {
 		nullable: true,
 		comment: 'The ID of avatar DriveFile.',
 	})
-	public avatarId: MiDriveFile['id'] | null;
+	public avatarId: MiDriveFileRelation['id'] | null;
 
-	@OneToOne(() => MiDriveFile, {
+	@OneToOne('MiDriveFile', {
 		onDelete: 'SET NULL',
 	})
 	@JoinColumn()
-	public avatar: MiDriveFile | null;
+	public avatar: MiDriveFileRelation | null;
 
 	@Column({
 		...id(),
 		nullable: true,
 		comment: 'The ID of banner DriveFile.',
 	})
-	public bannerId: MiDriveFile['id'] | null;
+	public bannerId: MiDriveFileRelation['id'] | null;
 
-	@OneToOne(() => MiDriveFile, {
+	@OneToOne('MiDriveFile', {
 		onDelete: 'SET NULL',
 	})
 	@JoinColumn()
-	public banner: MiDriveFile | null;
+	public banner: MiDriveFileRelation | null;
 
 	// avatarId が null になったとしてもこれが null でない可能性があるため、このフィールドを使うときは avatarId の non-null チェックをすること
 	@Column('varchar', {

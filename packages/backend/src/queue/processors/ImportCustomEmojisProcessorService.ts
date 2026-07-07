@@ -5,7 +5,6 @@
 
 import * as fs from 'node:fs';
 import { Inject, Injectable } from '@nestjs/common';
-import { ZipReader } from 'slacc';
 import { IsNull } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { EmojisRepository, DriveFilesRepository } from '@/models/_.js';
@@ -15,6 +14,7 @@ import { createTempDir } from '@/misc/create-temp.js';
 import { DriveService } from '@/core/DriveService.js';
 import { DownloadService } from '@/core/DownloadService.js';
 import { bindThis } from '@/decorators.js';
+import { ZipReader } from '@/misc/slacc.js';
 import { QueueLoggerService } from '../QueueLoggerService.js';
 import { SecurityCoreService } from '@/core/SecurityCoreService.js';
 import type * as Bull from 'bullmq';

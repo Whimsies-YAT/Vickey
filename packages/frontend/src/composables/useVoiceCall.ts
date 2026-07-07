@@ -19,6 +19,23 @@ export interface VoiceCall {
 	currentMode: 'p2p' | 'sfu';
 }
 
+type VoiceCallEvent = {
+	type?: string;
+	callId?: string;
+	from?: string;
+	peerId?: string;
+	state?: VoiceCallState;
+	isIncoming?: boolean;
+	mode?: VoiceCallMode;
+	currentMode?: 'p2p' | 'sfu';
+	iceServers?: RTCIceServer[];
+	sessionId?: string;
+	answer?: RTCSessionDescriptionInit;
+	signalType?: string;
+	signalData?: RTCSessionDescriptionInit | RTCIceCandidateInit;
+	message?: string;
+};
+
 export function useVoiceCall() {
 	const stream = useStream();
 	const mainChannel = stream.useChannel('main');
@@ -64,7 +81,7 @@ export function useVoiceCall() {
 		};
 
 		peerConnection.value.ontrack = (event) => {
-			remoteStream.value = event.streams[0];
+			remoteStream.value = event.streams[0] ?? new MediaStream([event.track]);
 		};
 
 		peerConnection.value.onconnectionstatechange = () => {
@@ -89,7 +106,7 @@ export function useVoiceCall() {
 					}
 				}
 
-				if (connectionState.value === 'disconnected' || connectionState.value === 'failed' || connectionState.value === 'closed') {
+				if (connectionState.value === 'failed' || connectionState.value === 'closed') {
 					cleanup();
 				}
 			}
@@ -99,7 +116,7 @@ export function useVoiceCall() {
 			if (peerConnection.value) {
 				const iceState = peerConnection.value.iceConnectionState;
 
-				if (iceState === 'disconnected' || iceState === 'closed') {
+				if (iceState === 'failed' || iceState === 'closed') {
 					cleanup();
 				}
 			}
@@ -298,6 +315,7 @@ export function useVoiceCall() {
 		}
 
 		stopCallDurationTimer();
+		pendingTracksReady = false;
 		remoteStream.value = null;
 		currentCall.value = null;
 		connectionState.value = 'new';
@@ -305,7 +323,7 @@ export function useVoiceCall() {
 		remoteVolume.value = 1.0;
 	}
 
-	mainChannel.on('voiceCall', async (data) => {
+	mainChannel.on('voiceCall', async (data: VoiceCallEvent) => {
 		switch (data.type) {
 			case 'incoming': {
 				if (!data.callId || !data.from || !data.mode) return;
@@ -315,7 +333,7 @@ export function useVoiceCall() {
 					state: 'ringing',
 					isIncoming: true,
 					mode: data.mode,
-					currentMode: 'p2p',
+					currentMode: data.currentMode ?? 'p2p',
 				};
 				break;
 			}
@@ -448,17 +466,18 @@ export function useVoiceCall() {
 				if (!peerConnection.value) return;
 
 				if (data.signalType === 'iceCandidate') {
-					if (data.signalData && data.signalData.candidate) {
+					const signalData = data.signalData as RTCIceCandidateInit | undefined;
+					if (signalData?.candidate) {
 						await peerConnection.value.addIceCandidate(
 							new RTCIceCandidate({
-								candidate: data.signalData.candidate,
-								sdpMLineIndex: data.signalData.sdpMLineIndex,
-								sdpMid: data.signalData.sdpMid,
+								candidate: signalData.candidate,
+								sdpMLineIndex: signalData.sdpMLineIndex,
+								sdpMid: signalData.sdpMid,
 							}),
 						);
 					}
 				} else if (data.signalType === 'offer') {
-					await peerConnection.value.setRemoteDescription(new RTCSessionDescription(data.signalData));
+					await peerConnection.value.setRemoteDescription(new RTCSessionDescription(data.signalData as RTCSessionDescriptionInit));
 					const answer = await peerConnection.value.createAnswer();
 					await peerConnection.value.setLocalDescription(answer);
 					mainChannel.send('voiceCall:signal', {
@@ -469,7 +488,7 @@ export function useVoiceCall() {
 					currentCall.value.state = 'connected';
 					startCallDurationTimer();
 				} else if (data.signalType === 'answer') {
-					await peerConnection.value.setRemoteDescription(new RTCSessionDescription(data.signalData));
+					await peerConnection.value.setRemoteDescription(new RTCSessionDescription(data.signalData as RTCSessionDescriptionInit));
 					currentCall.value.state = 'connected';
 					startCallDurationTimer();
 				}

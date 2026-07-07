@@ -57,8 +57,16 @@ export class GetterService {
 		}
 
 		const note = await this.notesRepository.findOne({
-			where: whereCondition,
-			relations: ['user', 'reply', 'renote', 'reply.user', 'renote.user']
+			where: { id: noteId },
+			relations: {
+				user: true,
+				reply: {
+					user: true,
+				},
+				renote: {
+					user: true,
+				},
+			},
 		});
 
 		if (note == null) {

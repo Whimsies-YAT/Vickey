@@ -5,9 +5,9 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const require = createRequire(import.meta.url);
+const nativeFilename = fileURLToPath(import.meta.url);
+const nativeDirname = dirname(nativeFilename);
+const nativeRequire = createRequire(import.meta.url);
 
 let nativeBinding = null;
 
@@ -18,7 +18,7 @@ switch (platform) {
     switch (arch) {
       case 'x64':
         try {
-          nativeBinding = require(join(__dirname, 'vickey-native.linux-x64-gnu.node'));
+          nativeBinding = nativeRequire(join(nativeDirname, 'vickey-native.linux-x64-gnu.node'));
         } catch (e) {
           throw new Error(`Failed to load native binding: ${e.message}`);
         }

@@ -4,8 +4,7 @@
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { describe, jest, test } from '@jest/globals';
-import { In, Not, IsNull } from 'typeorm';
+import { describe, beforeEach, beforeAll, afterEach, afterAll, vi, test, expect } from 'vitest';
 import { uuidv4 as uuidv4 } from 'uuidv7';
 import { UserSearchService } from '@/core/UserSearchService.js';
 import { FollowingsRepository, MiUser, UserProfilesRepository, UsersRepository } from '@/models/_.js';
@@ -96,7 +95,7 @@ describe('UserSearchService', () => {
 				providers: [
 					UserSearchService,
 					{
-						provide: UserEntityService, useFactory: jest.fn(() => ({
+						provide: UserEntityService, useFactory: vi.fn(() => ({
 							// とりあえずIDが返れば確認が出来るので
 							packMany: (value: any) => value,
 						})),

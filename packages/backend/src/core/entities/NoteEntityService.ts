@@ -21,8 +21,7 @@ import { CacheService } from '@/core/CacheService.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { CustomEmojiService } from '../CustomEmojiService.js';
 import type { ReactionService } from '../ReactionService.js';
-import type { UserEntityService } from './UserEntityService.js';
-import type { DriveFileEntityService } from './DriveFileEntityService.js';
+import type { DriveFileEntityServiceLike, UserEntityServiceLike } from './entity-service-contracts.js';
 import * as console from "node:console";
 
 // is-renote.tsとよしなにリンク
@@ -62,8 +61,8 @@ async function nullIfEntityNotFound<T>(promise: Promise<T>): Promise<T | null> {
 
 @Injectable()
 export class NoteEntityService implements OnModuleInit {
-	private userEntityService: UserEntityService;
-	private driveFileEntityService: DriveFileEntityService;
+	private userEntityService: UserEntityServiceLike;
+	private driveFileEntityService: DriveFileEntityServiceLike;
 	private customEmojiService: CustomEmojiService;
 	private reactionService: ReactionService;
 	private reactionsBufferingService: ReactionsBufferingService;
@@ -568,7 +567,7 @@ export class NoteEntityService implements OnModuleInit {
 
 		this.treatVisibility(packed);
 
-		if (!opts.skipHide && await this.shouldHideNote(packed, meId)) {
+		if (!opts.skipHide && (await this.shouldHideNote(packed, meId))) {
 			this.hideNote(packed);
 		}
 
@@ -766,7 +765,11 @@ export class NoteEntityService implements OnModuleInit {
 	private findNoteOrFail(id: string): Promise<MiNote> {
 		return this.notesRepository.findOneOrFail({
 			where: { id },
-			relations: ['user', 'renote', 'reply'],
+			relations: {
+				user: true,
+				renote: true,
+				reply: true,
+			},
 		});
 	}
 

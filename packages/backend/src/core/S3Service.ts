@@ -118,15 +118,17 @@ export class S3Service {
 	}
 
 	@bindThis
-	public async getObjectStream(meta: MiMeta, key: string): Promise<{
+	public async getObjectStream(meta: MiMeta, key: string, range?: string): Promise<{
 		stream: NodeJS.ReadableStream;
 		contentType?: string;
 		contentLength?: number;
+		contentRange?: string;
 	}> {
 		const client = this.getS3Client(meta);
 		const command = new GetObjectCommand({
 			Bucket: meta.objectStorageBucket!,
 			Key: key,
+			Range: range,
 		});
 
 		try {
@@ -140,6 +142,7 @@ export class S3Service {
 				stream: response.Body as NodeJS.ReadableStream,
 				contentType: response.ContentType,
 				contentLength: response.ContentLength,
+				contentRange: response.ContentRange,
 			};
 		} catch (error) {
 			console.error(`[S3Service] Error getting object ${key}:`, error);

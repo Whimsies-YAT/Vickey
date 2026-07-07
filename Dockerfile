@@ -1,6 +1,6 @@
-# syntax = docker/dockerfile:1.20
+# syntax = docker/dockerfile:1.23
 
-ARG NODE_VERSION=24
+ARG NODE_VERSION=26
 
 # build assets & compile TypeScript
 
@@ -89,6 +89,8 @@ FROM node:${NODE_VERSION}-trixie AS runner
 ARG UID="991"
 ARG GID="991"
 
+ENV PNPM_CONFIG_VERIFY_DEPS_BEFORE_RUN=false
+
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
 	ffmpeg tini curl libjemalloc-dev libjemalloc2 \
@@ -112,6 +114,7 @@ COPY --chown=misskey:misskey --from=target-builder /misskey/packages/backend/nod
 COPY --chown=misskey:misskey --from=target-builder /misskey/packages/misskey-js/node_modules ./packages/misskey-js/node_modules
 COPY --chown=misskey:misskey --from=target-builder /misskey/packages/misskey-reversi/node_modules ./packages/misskey-reversi/node_modules
 COPY --chown=misskey:misskey --from=target-builder /misskey/packages/misskey-bubble-game/node_modules ./packages/misskey-bubble-game/node_modules
+COPY --chown=misskey:misskey . ./
 COPY --chown=misskey:misskey --from=native-builder /misskey/built ./built
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/misskey-js/built ./packages/misskey-js/built
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/misskey-reversi/built ./packages/misskey-reversi/built
@@ -119,11 +122,8 @@ COPY --chown=misskey:misskey --from=native-builder /misskey/packages/misskey-bub
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/built ./packages/backend/built
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/lib ./packages/backend/lib
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/native/vickey-native.linux-x64-gnu.node ./packages/backend/native/vickey-native.linux-x64-gnu.node
-COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/native/vickey-native.linux-x64-gnu.node ./packages/backend/built/boot/vickey-native.linux-x64-gnu.node
-COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/src-js ./packages/backend/src-js
+COPY --chown=misskey:misskey --from=native-builder /misskey/packages/backend/native/vickey-native.linux-x64-gnu.node ./packages/backend/built/vickey-native.linux-x64-gnu.node
 COPY --chown=misskey:misskey --from=native-builder /misskey/packages/i18n/built ./packages/i18n/built
-COPY --chown=misskey:misskey --from=native-builder /misskey/fluent-emojis /misskey/fluent-emojis
-COPY --chown=misskey:misskey . ./
 
 ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so
 ENV NODE_ENV=production

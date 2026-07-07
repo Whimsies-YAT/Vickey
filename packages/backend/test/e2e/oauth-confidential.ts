@@ -13,6 +13,7 @@ import {
 } from 'simple-oauth2';
 import pkceChallenge from 'pkce-challenge';
 import * as htmlParser from 'node-html-parser';
+import { beforeAll, beforeEach, describe, test } from 'vitest';
 import { api, port, sendEnvUpdateRequest, signup } from '../utils.js';
 import type * as misskey from 'misskey-js';
 

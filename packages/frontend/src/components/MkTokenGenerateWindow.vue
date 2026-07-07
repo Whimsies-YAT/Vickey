@@ -33,12 +33,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkButton inline @click="enableAll">{{ i18n.ts.enableAll }}</MkButton>
 			</div>
 			<div class="_gaps_s">
-				<MkSwitch v-for="kind in Object.keys(permissionSwitches)" :key="kind" v-model="permissionSwitches[kind as keyof typeof permissionSwitches]">{{ i18n.ts._permissions[kind as keyof typeof permissionSwitches] }}</MkSwitch>
+				<MkSwitch v-for="kind in Object.keys(permissionSwitches)" :key="kind" v-model="permissionSwitches[kind as keyof typeof permissionSwitches]">{{ permissionLabel(kind) }}</MkSwitch>
 			</div>
 			<div v-if="iAmAdmin" :class="$style.adminPermissions">
 				<div :class="$style.adminPermissionsHeader"><b>{{ i18n.ts.adminPermission }}</b></div>
 				<div class="_gaps_s">
-					<MkSwitch v-for="kind in Object.keys(permissionSwitchesForAdmin)" :key="kind" v-model="permissionSwitchesForAdmin[kind as keyof typeof permissionSwitchesForAdmin]">{{ i18n.ts._permissions[kind as keyof typeof permissionSwitchesForAdmin] }}</MkSwitch>
+					<MkSwitch v-for="kind in Object.keys(permissionSwitchesForAdmin)" :key="kind" v-model="permissionSwitchesForAdmin[kind as keyof typeof permissionSwitchesForAdmin]">{{ permissionLabel(kind) }}</MkSwitch>
 				</div>
 			</div>
 		</div>
@@ -56,6 +56,7 @@ import MkInfo from './MkInfo.vue';
 import MkModalWindow from '@/components/MkModalWindow.vue';
 import { i18n } from '@/i18n.js';
 import { iAmAdmin } from '@/i.js';
+import { permissionLabel } from '@/utility/permission-label.js';
 
 const props = withDefaults(defineProps<{
 	title?: string | null;

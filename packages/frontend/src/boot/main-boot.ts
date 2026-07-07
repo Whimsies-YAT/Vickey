@@ -11,7 +11,7 @@ import { common } from './common.js';
 import type { Component } from 'vue';
 import type { Keymap } from '@/utility/hotkey.js';
 import { i18n } from '@/i18n.js';
-import { alert, confirmAdvanced, popup, post } from '@/os.js';
+import { alert, confirm, confirmAdvanced, popup, post } from '@/os.js';
 import { useStream } from '@/stream.js';
 import * as sound from '@/utility/sound.js';
 import { $i } from '@/i.js';
@@ -27,7 +27,6 @@ import { makeHotkey } from '@/utility/hotkey.js';
 import { addCustomEmoji, removeCustomEmojis, updateCustomEmojis } from '@/custom-emojis.js';
 import { prefer } from '@/preferences.js';
 import { updateCurrentAccountPartial } from '@/accounts.js';
-import { migrateOldSettings } from '@/pref-migrate.js';
 import { unisonReload } from '@/utility/unison-reload.js';
 import { checkAndRegenerateToken, silentTokenRefresh } from '@/utility/auto-token-regenerate.js';
 import { isBirthday } from '@/utility/is-birthday.js';
@@ -71,12 +70,15 @@ export async function mainBoot() {
 			closed: () => dispose(),
 		});
 
-		// prefereces migration
-		// TODO: そのうち消す
-		if (lastVersion && (compareVersions('2025.3.2-alpha.0', lastVersion) === 1)) {
+		if (lastVersion && compareVersions('2025.3.2-alpha.0', lastVersion) === 1) {
 			console.log('Preferences migration');
-
-			migrateOldSettings();
+			import('@/preferences/legacy-migrate.js').then(({ migrateOldSettings }) => migrateOldSettings()).then(() => {
+				window.setTimeout(() => {
+					unisonReload();
+				}, 1000);
+			}).catch(err => {
+				console.error('Failed to migrate old settings:', err);
+			});
 		}
 	}
 
@@ -436,8 +438,20 @@ export async function mainBoot() {
 			if ($i == null) return;
 			post();
 		},
-		'd': () => {
-			store.set('darkMode', !store.s.darkMode);
+		'd': async () => {
+			const value = !store.s.darkMode;
+			if (prefer.s.syncDeviceDarkMode) {
+				const { canceled } = await confirm({
+					type: 'question',
+					text: i18n.tsx.switchDarkModeManuallyWhenSyncEnabledConfirm({ x: i18n.ts.syncDeviceDarkMode }),
+				});
+				if (canceled) return;
+
+				prefer.commit('syncDeviceDarkMode', false);
+				store.set('darkMode', value);
+			} else {
+				store.set('darkMode', value);
+			}
 		},
 		's': () => {
 			mainRouter.push('/search');

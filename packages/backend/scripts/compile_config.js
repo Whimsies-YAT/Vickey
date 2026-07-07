@@ -11,7 +11,7 @@
 import fs from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import yaml from 'js-yaml';
+import { loadConfigYaml } from '../../../scripts/config-yaml.mjs';
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
@@ -34,7 +34,7 @@ function yamlToJson(ymlPath) {
 	console.log(`${ymlPath} → ${OUTPUT_PATH}`);
 
 	const yamlContent = fs.readFileSync(ymlPath, 'utf-8');
-	const jsonContent = yaml.load(yamlContent);
+	const jsonContent = loadConfigYaml(yamlContent);
 	if (!fs.existsSync(dirname(OUTPUT_PATH))) {
 		fs.mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
 	}

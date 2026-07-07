@@ -238,8 +238,7 @@ async function generateApiClientJSDoc(
 
 	const endpointOutputLine: string[] = [];
 
-	endpointOutputLine.push(`import type { SwitchCaseResponseType } from '${toImportPath(apiClientFileName)}';`);
-	endpointOutputLine.push(`import type { Endpoints } from '${toImportPath(endpointsFileName)}';`);
+	endpointOutputLine.push(`import type { SwitchCaseResponseType, Endpoints } from '${toImportPath(endpointsFileName)}';`);
 	endpointOutputLine.push('');
 
 	endpointOutputLine.push(`declare module '${toImportPath(apiClientFileName)}' {`);
@@ -414,7 +413,7 @@ async function main() {
 	await generateEndpoints(openApiDocs, typeFileName, entitiesFileName, endpointFileName);
 
 	const apiClientWarningFileName = `${generatePath}/apiClientJSDoc.ts`;
-	await generateApiClientJSDoc(openApiDocs, '../api.ts', endpointFileName, apiClientWarningFileName);
+	await generateApiClientJSDoc(openApiDocs, '../api.ts', '../api.types.ts', apiClientWarningFileName);
 }
 
 main();

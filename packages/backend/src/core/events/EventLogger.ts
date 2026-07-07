@@ -5,7 +5,7 @@
 
 import { bindThis } from '@/decorators.js';
 import type { DomainEvent } from './DomainEvent.js';
-import type { EventHandlerOptions } from './EventBus.js';
+import type { EventHandlerOptions } from './EventBusTypes.js';
 
 /**
  * Logger for EventBus operations

@@ -23,7 +23,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, watch, ref, useTemplateRef } from 'vue';
+import { computed, watch, ref, useTemplateRef, provide } from 'vue';
 import * as Misskey from 'misskey-js';
 import MkStreamingNotesTimeline from '@/components/MkStreamingNotesTimeline.vue';
 import MkButton from '@/components/MkButton.vue';
@@ -42,6 +42,8 @@ const props = defineProps<{
 const antenna = ref<Misskey.entities.Antenna | null>(null);
 const error = ref<'notFound' | 'error' | null>(null);
 const tlEl = useTemplateRef('tlEl');
+
+provide('currentAntenna', antenna);
 
 function settings() {
 	router.push('/my/antennas/:antennaId', {

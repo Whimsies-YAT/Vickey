@@ -5,7 +5,8 @@
 
 import { Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import endpoints from '../endpoints.js';
+import { getEndpointParamDef } from '../endpoint-metadata.js';
+import type { Schema } from '@/misc/json-schema.js';
 
 export const meta = {
 	requireCredential: false,
@@ -43,10 +44,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	constructor(
 	) {
 		super(meta, paramDef, async (ps) => {
-			const ep = endpoints.find(x => x.name === ps.endpoint);
-			if (ep == null) return null;
+			const endpointParamDef: Schema | null = ps.endpoint === 'endpoint'
+				? paramDef
+				: await getEndpointParamDef(ps.endpoint);
+			if (endpointParamDef == null) return null;
+
 			return {
-				params: Object.entries(ep.params.properties ?? {}).map(([k, v]) => ({
+				params: Object.entries(endpointParamDef.properties ?? {}).map(([k, v]) => ({
 					name: k,
 					type: v.type ? v.type.charAt(0).toUpperCase() + v.type.slice(1) : 'string',
 				})),

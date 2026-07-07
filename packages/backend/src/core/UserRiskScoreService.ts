@@ -224,7 +224,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 						isSuspended: false,
 						isDeleted: false,
 				},
-				select: ['id', 'notesCount', 'followersCount', 'followingCount', 'riskScore'],
+				select: { id: true, notesCount: true, followersCount: true, followingCount: true, riskScore: true },
 				take: 2000,
 			});
 
@@ -660,7 +660,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	private async calculateLoginTimePatternScore(userId: string): Promise<number> {
 		const logins = await this.signinsRepository.find({
 			where: { userId },
-			select: ['id'],
+			select: { id: true },
 			take: 100,
 			order: { id: 'DESC' },
 		});
@@ -681,7 +681,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	private async calculateIpChangeFrequencyScore(userId: string): Promise<number> {
 		const sessions = await this.userSessionsRepository.find({
 			where: { userId, isActive: true },
-			select: ['ip', 'lastUsedAt'],
+			select: { ip: true, lastUsedAt: true },
 		});
 
 		if (sessions.length === 0) return 0.5;
@@ -741,7 +741,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	private async calculateDeviceDiversityScore(userId: string): Promise<number> {
 		const sessions = await this.userSessionsRepository.find({
 			where: { userId },
-			select: ['deviceId', 'createdAt', 'lastUsedAt'],
+			select: { deviceId: true, createdAt: true, lastUsedAt: true },
 			take: 100,
 		});
 
@@ -762,7 +762,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	private async calculateSessionDurationScore(userId: string): Promise<number> {
 		const sessions = await this.userSessionsRepository.find({
 			where: { userId },
-			select: ['createdAt', 'lastUsedAt', 'expiresAt', 'isActive'],
+			select: { createdAt: true, lastUsedAt: true, expiresAt: true, isActive: true },
 			take: 50,
 			order: { lastUsedAt: 'DESC' },
 		});
@@ -802,7 +802,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	private async calculatePostingFrequencyScore(userId: string): Promise<number> {
 		const notes = await this.notesRepository.find({
 			where: { userId },
-			select: ['id', 'isDeleted'],
+			select: { id: true, isDeleted: true },
 			order: { id: 'DESC' },
 			take: 1000,
 		});
@@ -861,7 +861,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	private async calculatePostingTimePatternScore(userId: string): Promise<number> {
 		const notes = await this.notesRepository.find({
 			where: { userId },
-			select: ['id'],
+			select: { id: true },
 			take: 100,
 			order: { id: 'DESC' },
 		});
@@ -891,7 +891,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	private async calculateContentDiversityScore(userId: string): Promise<number> {
 		const notes = await this.notesRepository.find({
 			where: { userId },
-			select: ['id', 'text'],
+			select: { id: true, text: true },
 			take: 200,
 			order: { id: 'DESC' },
 		});
@@ -966,7 +966,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 					userId,
 					replyId: Not(IsNull()),
 				},
-				select: ['id'],
+				select: { id: true },
 				take: 500,
 				order: { id: 'DESC' },
 			}),
@@ -975,13 +975,13 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 					userId,
 					renoteId: Not(IsNull()),
 				},
-				select: ['id'],
+				select: { id: true },
 				take: 500,
 				order: { id: 'DESC' },
 			}),
 			this.notesRepository.find({
 				where: { userId },
-				select: ['id'],
+				select: { id: true },
 				take: 1000,
 				order: { id: 'DESC' },
 			}),
@@ -1049,11 +1049,11 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 		const [following, followers] = await Promise.all([
 			this.followingsRepository.find({
 				where: { followerId: userId },
-				select: ['followeeId'],
+				select: { followeeId: true },
 			}),
 			this.followingsRepository.find({
 				where: { followeeId: userId },
-				select: ['followerId'],
+				select: { followerId: true },
 			}),
 		]);
 
@@ -1080,7 +1080,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	private async calculateSocialGraphDensityScore(userId: string): Promise<number> {
 		const following = await this.followingsRepository.find({
 			where: { followerId: userId },
-			select: ['followeeId'],
+			select: { followeeId: true },
 			take: 100,
 		});
 
@@ -1111,7 +1111,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 				userId,
 				replyId: Not(IsNull()),
 			},
-			select: ['id', 'replyId'],
+			select: { id: true, replyId: true },
 			take: 100,
 		});
 
@@ -1120,7 +1120,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 			where: {
 				id: In(replyIds),
 			},
-			select: ['id', 'userId'],
+			select: { id: true, userId: true },
 		}) : [];
 
 		const replyUserIdMap = new Map(replyNotes.map(n => [n.id, n.userId]));
@@ -1129,7 +1129,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 			where: {
 				replyId: In(sentReplies.map(r => r.id)),
 			},
-			select: ['userId'],
+			select: { userId: true },
 			take: 100,
 		});
 
@@ -1156,7 +1156,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	private async calculateAverageNoteLengthScore(userId: string): Promise<number> {
 		const notes = await this.notesRepository.find({
 			where: { userId },
-			select: ['text'],
+			select: { text: true },
 			take: 50,
 			order: { id: 'DESC' },
 		});
@@ -1217,7 +1217,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 	private async calculateUrlUsageScore(userId: string): Promise<number> {
 		const notes = await this.notesRepository.find({
 			where: { userId },
-			select: ['text'],
+			select: { text: true },
 			take: 50,
 			order: { id: 'DESC' },
 		});
@@ -1979,7 +1979,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 						isSuspended: false,
 						isDeleted: false,
 					},
-					select: ['id'],
+					select: { id: true },
 					skip: offset,
 					take: batchSize,
 				});
@@ -1991,7 +1991,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 						const cachedScore = await this.getCachedScore(user.id);
 						const dbUser = await this.usersRepository.findOne({
 							where: { id: user.id },
-							select: ['riskScore', 'riskLevel']
+							select: { riskScore: true, riskLevel: true }
 						});
 
 						const oldScore = cachedScore || (dbUser ? {
@@ -2199,7 +2199,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 						isSuspended: false,
 						isDeleted: false,
 					},
-					select: ['id'],
+					select: { id: true },
 					skip: currentOffset,
 					take: batchSize,
 				});
@@ -2271,7 +2271,7 @@ export class UserRiskScoreService implements OnApplicationShutdown {
 				const cachedScore = await this.getCachedScore(user.id);
 				const dbUser = await this.usersRepository.findOne({
 					where: { id: user.id },
-					select: ['riskScore', 'riskLevel']
+					select: { riskScore: true, riskLevel: true }
 				});
 
 				const oldScore = cachedScore || (dbUser ? {

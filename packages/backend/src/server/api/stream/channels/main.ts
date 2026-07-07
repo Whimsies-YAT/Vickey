@@ -45,6 +45,7 @@ export class MainChannel extends Channel {
 					callId: currentCall.callId,
 					from: currentCall.callerId,
 					mode: currentCall.mode,
+					currentMode: currentCall.currentMode,
 				});
 			} else if (currentCall.status === 'connecting' || currentCall.status === 'connected') {
 				const peerId = currentCall.callerId === this.user!.id ? currentCall.recipientId : currentCall.callerId;
@@ -311,7 +312,7 @@ export class MainChannel extends Channel {
 	}
 
 	@bindThis
-	private async handleVoiceCallSignal(body: { callId: string; signalType: 'iceCandidate'; signalData: any }) {
+	private async handleVoiceCallSignal(body: { callId: string; signalType: 'iceCandidate' | 'offer' | 'answer'; signalData: any }) {
 		await this.voiceCallService.relaySignaling(
 			body.callId,
 			this.user!.id,

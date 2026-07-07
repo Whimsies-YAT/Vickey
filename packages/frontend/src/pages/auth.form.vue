@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div v-if="permissions.length > 0">
 		<p>{{ i18n.tsx._auth.permission({ name }) }}</p>
 		<ul>
-			<li v-for="p in permissions" :key="p">{{ i18n.ts._permissions[p] ?? p }}</li>
+			<li v-for="p in permissions" :key="p">{{ permissionLabel(p) }}</li>
 		</ul>
 	</div>
 	<div>{{ i18n.tsx._auth.shareAccess({ name: `${name} (${app.id})` }) }}</div>
@@ -25,6 +25,7 @@ import * as Misskey from 'misskey-js';
 import MkButton from '@/components/MkButton.vue';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
+import { permissionLabel } from '@/utility/permission-label.js';
 
 const props = defineProps<{
 	session: Misskey.entities.AuthSessionShowResponse;

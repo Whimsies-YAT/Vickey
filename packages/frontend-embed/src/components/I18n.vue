@@ -9,6 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script setup lang="ts" generic="T extends string | ParameterizedString">
 import { computed, h } from 'vue';
+import type { VNodeChild } from 'vue';
 import type { ParameterizedString } from 'i18n';
 
 const props = withDefaults(defineProps<{
@@ -46,6 +47,8 @@ const parsed = computed(() => {
 });
 
 const render = () => {
-	return h(props.tag, parsed.value.map(x => typeof x === 'string' ? (props.textTag ? h(props.textTag, x) : x) : slots[x.arg]()));
+	const slotMap = slots as Record<string, (() => unknown) | undefined>;
+	const children = parsed.value.map(x => typeof x === 'string' ? (props.textTag ? h(props.textTag, x) : x) : slotMap[x.arg]?.()) as VNodeChild[];
+	return h(props.tag, null, children);
 };
 </script>

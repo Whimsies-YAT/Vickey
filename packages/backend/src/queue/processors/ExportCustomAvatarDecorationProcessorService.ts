@@ -8,7 +8,7 @@ import fetch from 'node-fetch';
 import { Inject, Injectable } from '@nestjs/common';
 import { format as dateFormat } from 'date-fns';
 import mime from 'mime-types';
-import archiver from 'archiver';
+import { ZipArchive } from 'archiver';
 import { DI } from '@/di-symbols.js';
 import type { AvatarDecorationsRepository, UsersRepository } from '@/models/_.js';
 import type { Config } from '@/config.js';
@@ -131,7 +131,7 @@ export class ExportCustomAvatarDecorationProcessorService {
 
 		await new Promise<void>((resolve, reject) => {
 			const archiveStream = fs.createWriteStream(archivePath);
-			const archive = archiver('zip', {
+			const archive = new ZipArchive({
 				zlib: { level: 0 },
 			});
 

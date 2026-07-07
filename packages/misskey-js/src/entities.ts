@@ -10,32 +10,12 @@ import {
 	User,
 	UserDetailedNotMe,
 } from './autogen/models.js';
-export type AuthenticationResponseJSON = {
-	id: string;
-	rawId: string;
-	response: {
-		clientDataJSON: string;
-		authenticatorData: string;
-		signature: string;
-		userHandle?: string;
-	};
-	type: 'public-key';
-	clientExtensionResults?: Record<string, unknown>;
-	authenticatorAttachment?: 'platform' | 'cross-platform';
-};
-
-export type PublicKeyCredentialRequestOptionsJSON = {
-	challenge: string;
-	timeout?: number;
-	rpId?: string;
-	allowCredentials?: Array<{
-		id: string;
-		type: 'public-key';
-		transports?: Array<'usb' | 'nfc' | 'ble' | 'internal' | 'hybrid'>;
-	}>;
-	userVerification?: 'required' | 'preferred' | 'discouraged';
-	extensions?: Record<string, unknown>;
-};
+import type {
+	AuthenticationResponseJSON,
+	RegistrationResponseJSON,
+	PublicKeyCredentialCreationOptionsJSON,
+	PublicKeyCredentialRequestOptionsJSON,
+} from '@simplewebauthn/browser';
 
 export * from './autogen/entities.js';
 export * from './autogen/models.js';
@@ -199,6 +179,9 @@ export type ModerationLog = {
 } | {
 	type: 'updateAbuseReportNote';
 	info: ModerationLogPayloads['updateAbuseReportNote'];
+} | {
+	type: 'unsetMfa';
+	info: ModerationLogPayloads['unsetMfa'];
 } | {
 	type: 'unsetUserAvatar';
 	info: ModerationLogPayloads['unsetUserAvatar'];
@@ -381,6 +364,15 @@ export type SigninWithPasskeyInitResponse = {
 
 export type SigninWithPasskeyResponse = {
 	signinResponse: SigninFlowResponse & { finished: true };
+};
+
+export type I2faRegisterKeyResponse = PublicKeyCredentialCreationOptionsJSON;
+
+export type I2faKeyDoneRequest = {
+	password: string;
+	token?: string | null;
+	name: string;
+	credential: RegistrationResponseJSON;
 };
 
 type Values<T extends Record<PropertyKey, unknown>> = T[keyof T];

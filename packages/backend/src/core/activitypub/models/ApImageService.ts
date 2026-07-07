@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { DI } from '@/di-symbols.js';
 import type { DriveFilesRepository, MiMeta } from '@/models/_.js';
 import type { MiRemoteUser } from '@/models/User.js';
@@ -14,26 +15,32 @@ import { DriveService } from '@/core/DriveService.js';
 import type Logger from '@/logger.js';
 import { bindThis } from '@/decorators.js';
 import { checkHttps } from '@/misc/check-https.js';
-import { ApResolverService } from '../ApResolverService.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { isDocument, type IObject } from '../type.js';
+import type { ApResolverServiceLike } from '../ap-service-contracts.js';
 
 @Injectable()
-export class ApImageService {
+export class ApImageService implements OnModuleInit {
 	private logger: Logger;
+	private apResolverService: ApResolverServiceLike;
 
 	constructor(
+		private moduleRef: ModuleRef,
+
 		@Inject(DI.meta)
 		private meta: MiMeta,
 
 		@Inject(DI.driveFilesRepository)
 		private driveFilesRepository: DriveFilesRepository,
 
-		private apResolverService: ApResolverService,
 		private driveService: DriveService,
 		private apLoggerService: ApLoggerService,
 	) {
 		this.logger = this.apLoggerService.logger;
+	}
+
+	onModuleInit(): void {
+		this.apResolverService = this.moduleRef.get('ApResolverService');
 	}
 
 	/**

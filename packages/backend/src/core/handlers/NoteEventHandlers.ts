@@ -146,7 +146,7 @@ export class NoteEventHandlers {
 			where: {
 				followeeId: event.channelId!,
 			},
-			select: ['followerId'],
+			select: { followerId: true },
 		});
 
 		for (const channelFollowing of channelFollowings) {
@@ -166,13 +166,13 @@ export class NoteEventHandlers {
 					followerHost: IsNull(),
 					isFollowerHibernated: false,
 				},
-				select: ['followerId', 'withReplies'],
+				select: { followerId: true, withReplies: true },
 			}),
 			this.userListMembershipsRepository.find({
 				where: {
 					userId: event.userId,
 				},
-				select: ['userListId', 'userListUserId', 'withReplies'],
+				select: { userListId: true, userListUserId: true, withReplies: true },
 			}),
 		]);
 
@@ -294,7 +294,7 @@ export class NoteEventHandlers {
 				id: In(samples.map(x => x.followerId)),
 				lastActiveDate: LessThan(new Date(Date.now() - (1000 * 60 * 60 * 24 * 50))),
 			},
-			select: ['id'],
+			select: { id: true },
 		});
 
 		if (hibernatedUsers.length > 0) {

@@ -14,7 +14,8 @@ import { loadConfig, updateGlobalConfig } from '@/config.js';
 import type { Config } from '@/config.js';
 import { showMachineInfo } from '@/misc/show-machine-info.js';
 import { envOption } from '@/env.js';
-import { jobQueue, server } from './common.js';
+import { initTelemetry } from '@/core/telemetry/telemetry-registry.js';
+import { initExtraThreadPool, jobQueue, server } from './common.js';
 
 const logger = new Logger('core', 'cyan');
 const bootLogger = logger.createSubLogger('boot', 'magenta');
@@ -81,26 +82,9 @@ export async function masterMain() {
 
 	bootLogger.succ('Vickey initialized');
 
-	if (config.sentryForBackend) {
-		const Sentry = await import('@sentry/node');
-		const { nodeProfilingIntegration } = await import('@sentry/profiling-node');
+	initExtraThreadPool(config);
 
-		Sentry.init({
-			integrations: [
-				...(config.sentryForBackend.enableNodeProfiling ? [nodeProfilingIntegration()] : []),
-			],
-
-			// Performance Monitoring
-			tracesSampleRate: 1.0, //  Capture 100% of the transactions
-
-			// Set sampling rate for profiling - this is relative to tracesSampleRate
-			profileSessionSampleRate: 1.0,
-
-			maxBreadcrumbs: 0,
-
-			...config.sentryForBackend.options,
-		});
-	}
+	await initTelemetry(config);
 
 	bootLogger.info(
 		`mode: [disableClustering: ${envOption.disableClustering}, onlyServer: ${envOption.onlyServer}, onlyQueue: ${envOption.onlyQueue}]`,

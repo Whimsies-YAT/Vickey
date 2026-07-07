@@ -319,7 +319,7 @@ export class NoteDeleteService {
 			const mentionedUsers = JSON.parse(note.mentionedRemoteUsers) as IMentionedRemoteUsers;
 			const localMentioned = await this.usersRepository.find({
 				where: { uri: In(mentionedUsers.map(x => x.uri)) },
-				select: ['id'],
+				select: { id: true },
 			});
 			potentialNotificationUsers.push(...localMentioned.map(u => u.id));
 		}

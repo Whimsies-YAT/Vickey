@@ -6,8 +6,8 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import * as yaml from 'js-yaml';
 import { buildTarball } from './tarball.mjs';
+import { loadConfigYaml } from './config-yaml.mjs';
 
 const configDir = fileURLToPath(new URL('../.config', import.meta.url));
 const configPath = process.env.MISSKEY_CONFIG_YML
@@ -21,16 +21,11 @@ async function removeUnusedLocales() {
 }
 
 async function loadConfig() {
-	return fs.readFile(configPath, 'utf-8').then(data => yaml.load(data)).catch(() => null);
-}
-
-async function copyFrontendFonts() {
-	await fs.cp('./packages/frontend/node_modules/three/examples/fonts', './built/_frontend_dist_/fonts', { dereference: true, recursive: true });
+	return fs.readFile(configPath, 'utf-8').then(data => loadConfigYaml(data)).catch(() => null);
 }
 
 async function build() {
 	await Promise.all([
-		copyFrontendFonts(),
 		loadConfig().then(config => config?.publishTarballInsteadOfProvideRepositoryUrl && buildTarball()),
 	]);
 }

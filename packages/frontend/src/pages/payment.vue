@@ -164,14 +164,15 @@ const mountStripeElement = async () => {
 				return;
 			}
 
-			checkoutElement.value = await stripe.value.initEmbeddedCheckout({
+			const checkout = await stripe.value.createEmbeddedCheckoutPage({
 				clientSecret: clientSecret,
-      });
+			});
+			checkoutElement.value = checkout;
 
 			await nextTick();
 			if (paymentElementRef.value) {
 				console.log('Mounting embedded checkout...');
-				checkoutElement.value.mount(paymentElementRef.value);
+				checkout.mount(paymentElementRef.value);
 				paymentElementMounted.value = true;
 			}
 		} else if (paymentData.value.clientSecret) {

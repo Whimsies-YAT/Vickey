@@ -107,7 +107,7 @@ export class CommandService {
 					where: {
 						text: Not(IsNull()),
 					},
-					select: ['id', 'userId', 'userHost', 'channelId', 'cw', 'text', 'tags'],
+					select: { id: true, userId: true, userHost: true, channelId: true, cw: true, text: true, tags: true },
 					order: { id: 'ASC' },
 					take: BATCH_SIZE,
 					skip: offset,

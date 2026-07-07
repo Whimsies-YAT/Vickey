@@ -37,6 +37,11 @@ export class MiAvatarDecoration {
 	})
 	public roleIdsThatCanBeUsedThisDecoration: string[];
 
+	@Column('varchar', {
+		length: 128, nullable: true,
+	})
+	public category: string | null;
+
 	@Column(id())
 	public driveId: string;
 }

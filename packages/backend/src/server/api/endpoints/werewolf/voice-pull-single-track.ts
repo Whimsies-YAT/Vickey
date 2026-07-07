@@ -6,16 +6,28 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { WerewolfService } from '@/core/WerewolfService.js';
-import { WerewolfVoiceService } from '@/core/WerewolfVoiceService.js';
 import { CloudflareCallsService } from '@/core/CloudflareCallsService.js';
 import { DI } from '@/di-symbols.js';
-import type { WerewolfGamesRepository } from '@/models/_.js';
 import type { RTCSessionDescriptionInit } from '@/core/webrtc-types.js';
 
 export const meta = {
 	tags: ['werewolf'],
 	requireCredential: true,
 	secure: true,
+	res: {
+		type: 'object',
+		optional: false, nullable: false,
+		properties: {
+			answer: {
+				type: 'object',
+				optional: false, nullable: true,
+				properties: {
+					type: { type: 'string', optional: false, nullable: false },
+					sdp: { type: 'string', optional: false, nullable: false },
+				},
+			},
+		},
+	},
 	errors: {
 		gameNotFound: {
 			message: 'Game not found or ended',
@@ -63,14 +75,10 @@ export const paramDef = {
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> {
 	constructor(
-		@Inject(DI.werewolfGamesRepository)
-		private werewolfGamesRepository: WerewolfGamesRepository,
-
 		@Inject(DI.redis)
 		private redisClient: any,
 
 		private werewolfService: WerewolfService,
-		private werewolfVoiceService: WerewolfVoiceService,
 		private cloudflareCallsService: CloudflareCallsService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
@@ -97,6 +105,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				throw new Error('Voice not enabled for this game');
 			}
 
+			if (!this.werewolfService.canPlayerHearNow(game, me.id, ps.remoteUserId)) {
+				return { answer: null };
+			}
+
 			// Get voice session
 			const sessionKey = `voicecall:werewolf:${ps.gameId}`;
 			const sessionData = await this.redisClient.get(sessionKey);
@@ -109,6 +121,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			const myState = session.participants[me.id];
 			if (!myState) {
 				console.error('[WerewolfVoice] User not in voice session');
+				return { answer: null };
+			}
+			const remoteState = session.participants[ps.remoteUserId];
+			if (!remoteState || remoteState.sessionId !== ps.remoteSessionId || remoteState.trackName !== ps.trackName) {
+				console.error('[WerewolfVoice] Remote track does not match voice session');
 				return { answer: null };
 			}
 
@@ -142,7 +159,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			console.log('[WerewolfVoice] Successfully pulled single track');
 
 			return {
-				answer: pullResult.sessionDescription,
+				answer: {
+					type: pullResult.sessionDescription.type,
+					sdp: pullResult.sessionDescription.sdp!,
+				},
 			};
 		});
 	}

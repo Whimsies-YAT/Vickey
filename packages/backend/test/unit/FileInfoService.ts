@@ -8,9 +8,9 @@ process.env.NODE_ENV = 'test';
 import * as assert from 'assert';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
-import { ModuleMocker } from 'jest-mock';
 import { Test } from '@nestjs/testing';
-import { afterAll, beforeAll, describe, test } from '@jest/globals';
+import { afterAll, beforeAll, describe, test } from 'vitest';
+import { mockDeep } from 'vitest-mock-extended';
 import { GlobalModule } from '@/GlobalModule.js';
 import { FileInfo, FileInfoService } from '@/core/FileInfoService.js';
 import { AiService } from '@/core/AiService.js';
@@ -18,13 +18,10 @@ import { LoggerService } from '@/core/LoggerService.js';
 import { DI } from '@/di-symbols.js';
 import { MiMeta } from '@/models/Meta.js';
 import type { TestingModule } from '@nestjs/testing';
-import type { MockMetadata } from 'jest-mock';
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
 const resources = `${_dirname}/../resources`;
-
-const moduleMocker = new ModuleMocker(global);
 
 describe('FileInfoService', () => {
 	let app: TestingModule;
@@ -61,9 +58,7 @@ describe('FileInfoService', () => {
 					} as MiMeta;
 				}
 				if (typeof token === 'function') {
-					const mockMetadata = moduleMocker.getMetadata(token) as MockMetadata<any, any>;
-					const Mock = moduleMocker.generateFromMetadata(mockMetadata);
-					return new Mock();
+					return mockDeep<typeof token>();
 				}
 			})
 			.compile();

@@ -730,6 +730,7 @@ function clear() {
 	quoteId.value = null;
 	locationInfo.value = null;
 	scheduledAt.value = null;
+	uploader.reset();
 }
 
 function onKeydown(ev: KeyboardEvent) {

@@ -202,6 +202,7 @@ import { StripeWebhookService } from './StripeWebhookService.js';
 import { CloudflareCallsService } from './CloudflareCallsService.js';
 import { VoiceCallService } from './VoiceCallService.js';
 import { WerewolfVoiceService } from './WerewolfVoiceService.js';
+import { TelemetryService } from './telemetry/TelemetryService.js';
 
 // EventBus infrastructure (NEW - for gradual migration)
 import { NoteEventHandlers } from './handlers/NoteEventHandlers.js';
@@ -250,7 +251,7 @@ const serviceClasses = [
 	ApMfmService, ApRendererService, ApRequestService, ApResolverService, JsonLdService,
 	RemoteLoggerService, RemoteUserResolveService, WebfingerService, ApImageService, ApMentionService,
 	ApNoteService, ApPersonService, ApQuestionService, QueueService, StripeService, StripeSubscriptionService,
-	StripeWebhookService, CloudflareCallsService, VoiceCallService, WerewolfVoiceService, Resolver,
+	StripeWebhookService, CloudflareCallsService, VoiceCallService, WerewolfVoiceService, Resolver, TelemetryService,
 	// EventBus infrastructure (NEW)
 	EventBus, EventMetrics,
 	// Event handlers (NEW)

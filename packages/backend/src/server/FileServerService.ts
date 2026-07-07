@@ -4,11 +4,10 @@
  */
 
 import * as fs from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
+import { resolve } from 'node:path';
 import { Inject, Injectable } from '@nestjs/common';
 import type { Config } from '@/config.js';
-import type { DriveFilesRepository } from '@/models/_.js';
+import type { DriveFilesRepository, MiMeta } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
 import { StatusError } from '@/misc/status-error.js';
 import type Logger from '@/logger.js';
@@ -26,11 +25,6 @@ import { FileServerFileResolver } from './file/FileServerFileResolver.js';
 import { FileServerProxyHandler } from './file/FileServerProxyHandler.js';
 import type { FastifyInstance, FastifyRequest, FastifyReply, FastifyPluginOptions } from 'fastify';
 
-const _filename = fileURLToPath(import.meta.url);
-const _dirname = dirname(_filename);
-
-const assets = `${_dirname}/../../server/file/assets/`;
-
 @Injectable()
 export class FileServerService {
 	private logger: Logger;
@@ -38,12 +32,17 @@ export class FileServerService {
 	private proxyHandler: FileServerProxyHandler;
 	private fileResolver: FileServerFileResolver;
 
+	private readonly assets: string;
+
 	constructor(
 		@Inject(DI.config)
 		private config: Config,
 
 		@Inject(DI.driveFilesRepository)
 		private driveFilesRepository: DriveFilesRepository,
+
+		@Inject(DI.meta)
+		private meta: MiMeta,
 
 		private fileInfoService: FileInfoService,
 		private downloadService: DownloadService,
@@ -54,22 +53,25 @@ export class FileServerService {
 		private loggerService: LoggerService,
 	) {
 		this.logger = this.loggerService.getLogger('server', 'gray');
+		this.assets = resolve(this.config.rootDir, 'packages/backend/src/server/file/assets');
 		this.fileResolver = new FileServerFileResolver(
 			this.driveFilesRepository,
+			this.meta,
 			this.fileInfoService,
 			this.downloadService,
 			this.internalStorageService,
+			this.s3Service,
 		);
 		this.driveHandler = new FileServerDriveHandler(
 			this.config,
 			this.fileResolver,
-			assets,
+			this.assets,
 			this.videoProcessingService,
 		);
 		this.proxyHandler = new FileServerProxyHandler(
 			this.config,
 			this.fileResolver,
-			assets,
+			this.assets,
 			this.imageProcessingService,
 		);
 
@@ -89,7 +91,7 @@ export class FileServerService {
 		fastify.register((fastify, options, done) => {
 			fastify.addHook('onRequest', handleRequestRedirectToOmitSearch);
 			fastify.get('/files/app-default.jpg', (request, reply) => {
-				const file = fs.createReadStream(`${_dirname}/assets/dummy.png`);
+				const file = fs.createReadStream(`${this.assets}/dummy.png`);
 				reply.header('Content-Type', 'image/jpeg');
 				reply.header('Cache-Control', 'max-age=31536000, immutable');
 				return reply.send(file);
@@ -122,7 +124,7 @@ export class FileServerService {
 		reply.header('Cache-Control', 'max-age=300');
 
 		if (request.query && 'fallback' in request.query) {
-			return reply.sendFile('/dummy.png', assets);
+			return reply.sendFile('/dummy.png', this.assets);
 		}
 
 		if (err instanceof StatusError && (err.statusCode === 302 || err.isClientError)) {

@@ -165,6 +165,10 @@ export class CloudflareCallsService {
 			});
 
 			const data = await response.json() as any;
+			if (!data?.sessionId) {
+				console.error('Invalid response from Cloudflare Calls session create:', JSON.stringify(data));
+				return null;
+			}
 
 			return {
 				sessionId: data.sessionId,
@@ -325,6 +329,10 @@ export class CloudflareCallsService {
 			});
 
 			const data = await response.json() as any;
+			if (!data?.sessionDescription?.type || !data?.sessionDescription?.sdp) {
+				console.error('Invalid response from Cloudflare Calls renegotiate:', JSON.stringify(data));
+				return null;
+			}
 
 			return {
 				sessionDescription: data.sessionDescription,

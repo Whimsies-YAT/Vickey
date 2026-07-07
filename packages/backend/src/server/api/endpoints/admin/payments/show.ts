@@ -84,7 +84,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		super(meta, paramDef, async (ps) => {
 			const payment = await this.stripePaymentsRepository.findOne({
 				where: { id: ps.paymentId },
-				relations: ['user'],
+				relations: { user: true },
 			});
 
 			if (!payment) {

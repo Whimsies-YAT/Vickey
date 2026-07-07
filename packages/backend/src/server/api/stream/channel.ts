@@ -11,14 +11,16 @@ import { isChannelRelated } from '@/misc/is-channel-related.js';
 import type { Awaitable } from '@/types.js';
 import type { Packed } from '@/misc/json-schema.js';
 import type { JsonObject, JsonValue } from '@/misc/json-value.js';
-import type Connection from './Connection.js';
+import type { GlobalEvents, StreamEventEmitter } from '@/core/GlobalEventService.js';
+import type { MiFollowing, MiUserProfile } from '@/models/_.js';
+import type { MiUser } from '@/models/User.js';
 
 /**
  * Stream channel
  */
 // eslint-disable-next-line import/no-default-export
 export default abstract class Channel {
-	protected connection: Connection;
+	protected connection: ChannelConnection;
 	public id: string;
 	public abstract readonly chName: string;
 	public static readonly shouldShare: boolean;
@@ -158,7 +160,7 @@ export default abstract class Channel {
 
 export interface ChannelRequest {
 	id: string,
-	connection: Connection,
+	connection: ChannelConnection,
 }
 
 export interface ChannelConstructor<T extends boolean> {
@@ -166,4 +168,18 @@ export interface ChannelConstructor<T extends boolean> {
 	shouldShare: boolean;
 	requireCredential: T;
 	kind: T extends true ? string : string | null | undefined;
+}
+
+export interface ChannelConnection {
+	user?: MiUser;
+	userProfile: MiUserProfile | null;
+	following: Record<string, Pick<MiFollowing, 'withReplies'> | undefined>;
+	followingChannels: Set<string>;
+	mutingChannels: Set<string>;
+	userIdsWhoMeMuting: Set<string>;
+	userIdsWhoBlockingMe: Set<string>;
+	userIdsWhoMeMutingRenotes: Set<string>;
+	userMutedInstances: Set<string>;
+	subscriber: StreamEventEmitter;
+	sendMessageToWs(type: string, payload: JsonObject): void;
 }

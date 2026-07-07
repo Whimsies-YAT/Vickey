@@ -237,6 +237,7 @@ export class WerewolfVoiceService {
 		gameId: MiWerewolfGame['id'],
 		userId: MiUser['id'],
 		currentOffer: RTCSessionDescriptionInit,
+		allowedSpeakerIds?: Set<MiUser['id']>,
 	): Promise<RTCSessionDescriptionInit | null> {
 		const session = await this.getVoiceSession(gameId);
 		if (!session) {
@@ -258,6 +259,7 @@ export class WerewolfVoiceService {
 
 		for (const [otherUserId, otherState] of Object.entries(session.participants)) {
 			if (otherUserId === userId) continue;
+			if (allowedSpeakerIds && !allowedSpeakerIds.has(otherUserId)) continue;
 
 			try {
 				const sessionInfo = await this.cloudflareCallsService.getSessionInfo(

@@ -65,7 +65,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 
 			const note = await this.notesRepository.findOne({
 				where: { id: ps.noteId },
-				relations: ['user', 'reply', 'renote', 'reply.user', 'renote.user'],
+				relations: { user: true, reply: true, renote: true },
 			});
 
 			if (note == null) {

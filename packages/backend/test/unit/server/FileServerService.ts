@@ -7,7 +7,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import fastifyStatic from '@fastify/static';
 import Fastify, { type FastifyInstance } from 'fastify';
-import { describe, expect, test } from '@jest/globals';
+import { describe, expect, test, beforeAll, afterAll, afterEach } from 'vitest';
 import sharp from 'sharp';
 import { DataSource, type Repository } from 'typeorm';
 import { initTestDb, randomString } from '../../utils.js';
@@ -24,6 +24,7 @@ import { S3Service } from '@/core/S3Service.js';
 import { VideoProcessingService } from '@/core/VideoProcessingService.js';
 import { loadConfig, type Config } from '@/config.js';
 import { MiDriveFile } from '@/models/DriveFile.js';
+import type { MiMeta } from '@/models/Meta.js';
 import { FileServerService } from '@/server/FileServerService.js';
 
 const dummyPath = path.resolve('test/resources/dummy-for-file-server-service.png');
@@ -151,6 +152,7 @@ describe('FileServerService', () => {
 		const loggerService = new LoggerService();
 		const aiService = {
 			detectSensitive: async () => null,
+			detectSensitiveMany: async (sources: Buffer[]) => sources.map(() => null),
 		} as unknown as AiService;
 		const fileInfoService = new FileInfoService(aiService, loggerService);
 		const httpRequestService = new HttpRequestService(config);
@@ -159,11 +161,22 @@ describe('FileServerService', () => {
 		const downloadService = new DownloadService(config, httpRequestService, loggerService, securityCoreService);
 		const imageProcessingService = new ImageProcessingService();
 		const videoProcessingService = new VideoProcessingService(config, fileInfoService, imageProcessingService);
+		const meta = {
+			objectStorageUseSSL: true,
+			objectStorageUseProxy: true,
+			objectStorageEndpoint: null,
+			objectStorageAccessKey: null,
+			objectStorageSecretKey: null,
+			objectStorageRegion: null,
+			objectStorageS3ForcePathStyle: false,
+			objectStorageBucket: null,
+		} as MiMeta;
 		internalStorageService = new InternalStorageService(config);
 		idService = new IdService(config);
 		fileServerService = new FileServerService(
 			config,
 			driveFilesRepository as any,
+			meta,
 			fileInfoService,
 			downloadService,
 			imageProcessingService,
@@ -189,6 +202,7 @@ describe('FileServerService', () => {
 		externalFileServerService = new FileServerService(
 			externalConfig,
 			driveFilesRepository as any,
+			meta,
 			fileInfoService,
 			downloadService,
 			imageProcessingService,
@@ -302,7 +316,7 @@ describe('FileServerService', () => {
 			});
 
 			expect(res.statusCode).toBe(404);
-			expect(res.headers['cache-control']).toBe('max-age=86400');
+			expect(res.headers['cache-control']).toBe('public, max-age=0');
 		});
 
 		test('GET /files/:key 画像配信ヘッダを検証する', async () => {

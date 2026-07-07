@@ -12,6 +12,20 @@ export const meta = {
 	tags: ['werewolf'],
 	requireCredential: true,
 	secure: true,
+	res: {
+		type: 'object',
+		optional: false, nullable: false,
+		properties: {
+			sessionId: { type: 'string', optional: false, nullable: false },
+			otherSessionIds: {
+				type: 'object',
+				optional: false, nullable: false,
+				additionalProperties: {
+					type: 'string',
+				},
+			},
+		},
+	},
 	errors: {
 		gameNotFound: {
 			message: 'Game not found or ended',

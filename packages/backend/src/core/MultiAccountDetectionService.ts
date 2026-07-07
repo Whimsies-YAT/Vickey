@@ -177,12 +177,12 @@ export class MultiAccountDetectionService {
 		const [ips1, ips2] = await Promise.all([
 			this.userIpsRepository.find({
 				where: { userId: userId1 },
-				select: ['ip'],
+				select: { ip: true },
 				take: 100,
 			}),
 			this.userIpsRepository.find({
 				where: { userId: userId2 },
-				select: ['ip'],
+				select: { ip: true },
 				take: 100,
 			}),
 		]);
@@ -240,13 +240,13 @@ export class MultiAccountDetectionService {
 		const [notes1, notes2] = await Promise.all([
 			this.notesRepository.find({
 				where: { userId: userId1 },
-				select: ['id', 'text'],
+				select: { id: true, text: true },
 				take: 100,
 				order: { id: 'DESC' },
 			}),
 			this.notesRepository.find({
 				where: { userId: userId2 },
-				select: ['id', 'text'],
+				select: { id: true, text: true },
 				take: 100,
 				order: { id: 'DESC' },
 			}),
@@ -274,13 +274,13 @@ export class MultiAccountDetectionService {
 		const [notes1, notes2] = await Promise.all([
 			this.notesRepository.find({
 				where: { userId: userId1 },
-				select: ['text'],
+				select: { text: true },
 				take: 50,
 				order: { id: 'DESC' },
 			}),
 			this.notesRepository.find({
 				where: { userId: userId2 },
-				select: ['text'],
+				select: { text: true },
 				take: 50,
 				order: { id: 'DESC' },
 			}),
@@ -309,13 +309,13 @@ export class MultiAccountDetectionService {
 		const [logins1, logins2] = await Promise.all([
 			this.signinsRepository.find({
 				where: { userId: userId1 },
-				select: ['id'],
+				select: { id: true },
 				take: 100,
 				order: { id: 'DESC' },
 			}),
 			this.signinsRepository.find({
 				where: { userId: userId2 },
-				select: ['id'],
+				select: { id: true },
 				take: 100,
 				order: { id: 'DESC' },
 			}),
@@ -349,11 +349,11 @@ export class MultiAccountDetectionService {
 		const [follows1to2, follows2to1] = await Promise.all([
 			this.followingsRepository.findOne({
 				where: { followerId: userId1, followeeId: userId2 },
-				select: ['id'],
+				select: { id: true },
 			}),
 			this.followingsRepository.findOne({
 				where: { followerId: userId2, followeeId: userId1 },
-				select: ['id'],
+				select: { id: true },
 			}),
 		]);
 
@@ -365,12 +365,12 @@ export class MultiAccountDetectionService {
 		const [followers1, followers2] = await Promise.all([
 			this.followingsRepository.find({
 				where: { followeeId: userId1 },
-				select: ['followerId'],
+				select: { followerId: true },
 				take: 200,
 			}),
 			this.followingsRepository.find({
 				where: { followeeId: userId2 },
-				select: ['followerId'],
+				select: { followerId: true },
 				take: 200,
 			}),
 		]);
@@ -394,13 +394,13 @@ export class MultiAccountDetectionService {
 		const [user1Notes, user2Notes] = await Promise.all([
 			this.notesRepository.find({
 				where: { userId: userId1 },
-				select: ['id'],
+				select: { id: true },
 				take: 100,
 				order: { id: 'DESC' },
 			}),
 			this.notesRepository.find({
 				where: { userId: userId2 },
-				select: ['id'],
+				select: { id: true },
 				take: 100,
 				order: { id: 'DESC' },
 			}),
@@ -443,12 +443,12 @@ export class MultiAccountDetectionService {
 		const [following1, following2] = await Promise.all([
 			this.followingsRepository.find({
 				where: { followerId: userId1 },
-				select: ['followeeId'],
+				select: { followeeId: true },
 				take: 200,
 			}),
 			this.followingsRepository.find({
 				where: { followerId: userId2 },
-				select: ['followeeId'],
+				select: { followeeId: true },
 				take: 200,
 			}),
 		]);

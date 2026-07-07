@@ -591,7 +591,7 @@ export class ContentRecommendationService {
 				userId: user.id,
 				id: MoreThan(this.idService.gen(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).getTime())),
 			},
-			relations: ['note'],
+			relations: { note: true },
 			take: 50,
 		});
 
@@ -881,7 +881,7 @@ export class ContentRecommendationService {
 
 		const followings = await this.followingsRepository.find({
 			where: { followerId: userId },
-			select: ['followeeId'],
+			select: { followeeId: true },
 		});
 
 		const followingIds = followings.map(f => f.followeeId);
@@ -899,7 +899,7 @@ export class ContentRecommendationService {
 
 		const mutings = await this.mutingsRepository.find({
 			where: { muterId: userId },
-			select: ['muteeId'],
+			select: { muteeId: true },
 		});
 
 		const mutedIds = mutings.map(m => m.muteeId);
@@ -917,7 +917,7 @@ export class ContentRecommendationService {
 
 		const blockings = await this.blockingsRepository.find({
 			where: { blockerId: userId },
-			select: ['blockeeId'],
+			select: { blockeeId: true },
 		});
 
 		const blockedIds = blockings.map(b => b.blockeeId);

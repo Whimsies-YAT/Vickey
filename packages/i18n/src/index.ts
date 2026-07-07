@@ -8,7 +8,7 @@
  */
 
 import * as fs from 'node:fs';
-import * as yaml from 'js-yaml';
+import { load as loadYaml } from 'js-yaml';
 import { languages, primaries } from './const.js';
 import type { Locale } from './autogen/locale.js';
 import type { ILocale, ParameterizedString } from './types.js';
@@ -48,6 +48,13 @@ export const tryReadFile = (path: URL): string => {
 	}
 };
 
+function loadLocaleYaml(content: string): ILocale {
+	const cleaned = clean(content);
+	if (cleaned.trim() === '') return {};
+
+	return (loadYaml(cleaned) ?? {}) as ILocale;
+}
+
 /**
  * 空文字列が入ることがあり、フォールバックが動作しなくなるのでプロパティごと消す
  */
@@ -68,19 +75,16 @@ function build(): Record<Language, Locale> {
 	// https://github.com/misskey-dev/misskey/pull/14057#issuecomment-2192833785
 	const metaUrl = import.meta.url;
 	const misskeyLocales = languages.reduce<Locales>((a, lang) => {
-		a[lang] = (yaml.load(clean(tryReadFile(new URL(`./locales/${lang}.yml`, metaUrl)))) ?? {}) as ILocale;
+		a[lang] = loadLocaleYaml(tryReadFile(new URL(`./locales/${lang}.yml`, metaUrl)));
 		return a;
 	}, {} as Locales);
 
+	const vkLocaleFallback = loadLocaleYaml(tryReadFile(new URL('../../../vickey-locales/en-US.yml', metaUrl)));
 	const vkLocales = languages.reduce<Locales>((a, c) => {
-		const url = new URL(`../../../vickey-locales/${c}.yml`, metaUrl);
-		const content = clean(tryReadFile(url));
-		if (content) {
-			a[c] = (yaml.load(content) ?? {}) as ILocale;
-		} else {
-			const enContent = clean(tryReadFile(new URL('../../../vickey-locales/en-US.yml', metaUrl)));
-			a[c] = (enContent ? (yaml.load(enContent) ?? {}) : {}) as ILocale;
-		}
+		a[c] = merge<ILocale>(
+			vkLocaleFallback,
+			loadLocaleYaml(tryReadFile(new URL(`../../../vickey-locales/${c}.yml`, metaUrl))),
+		);
 		return a;
 	}, {} as Locales);
 

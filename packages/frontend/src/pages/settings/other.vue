@@ -169,20 +169,19 @@ import { enableStoragePersistence, getStoragePersistenceStatusRef, storagePersis
 import { ensureSignin } from '@/i.js';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
-import FormSection from '@/components/form/section.vue';
 import { prefer } from '@/preferences.js';
 import MkRolePreview from '@/components/MkRolePreview.vue';
 import { signout } from '@/signout.js';
-import { migrateOldSettings } from '@/pref-migrate.js';
 import { hideAllTips as _hideAllTips, resetAllTips as _resetAllTips } from '@/tips.js';
 import { suggestReload } from '@/utility/reload-suggest.js';
 import { cloudBackup } from '@/preferences/utility.js';
+import { migrateOldSettings } from '@/preferences/legacy-migrate.js';
+import { unisonReload } from '@/utility/unison-reload.js';
 
 const $i = ensureSignin();
 
 const storagePersisted = await getStoragePersistenceStatusRef();
 
-const reportError = prefer.model('reportError');
 const enableCondensedLine = prefer.model('enableCondensedLine');
 const skipNoteRender = prefer.model('skipNoteRender');
 const devMode = prefer.model('devMode');
@@ -219,10 +218,6 @@ async function deleteAccount() {
 	await signout();
 }
 
-function migrate() {
-	migrateOldSettings();
-}
-
 function resetAllTips() {
 	_resetAllTips();
 	os.success();
@@ -240,6 +235,24 @@ function readAllChatMessages() {
 async function forceCloudBackup() {
 	await cloudBackup();
 	os.success();
+}
+
+function migrate() {
+	const done = os.waiting({ text: i18n.ts.settingsMigrating });
+
+	migrateOldSettings().then(() => {
+		done({ success: true });
+		window.setTimeout(() => {
+			unisonReload();
+		}, 1000);
+	}).catch(err => {
+		done();
+		console.error('Failed to migrate old settings:', err);
+		os.alert({
+			type: 'error',
+			title: i18n.ts.somethingHappened,
+		});
+	});
 }
 
 const headerActions = computed(() => []);
