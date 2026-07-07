@@ -6,6 +6,7 @@ settings:
 
 overrides:
   '@aiscript-dev/aiscript-languageserver': '-'
+  buffer-equal-constant-time: file:patches/buffer-equal-constant-time
   chokidar: 5.0.0
   lodash: 4.18.1
 
@@ -5808,8 +5809,8 @@ packages:
     resolution: {integrity: sha512-Db1SbgBS/fg/392AblrMJk97KggmvYhr4pB5ZIMTWtaivCPMWLkmb7m21cJvpvgK+J3nsU2CmmixNBZx4vFj/w==}
     engines: {node: '>=8.0.0'}
 
-  buffer-equal-constant-time@1.0.1:
-    resolution: {integrity: sha512-zRpUiDwd/xk6ADqPMATG8vc9VPrkck7T07OIx0gnjmJAnHnTVXNQG3vfvWNuiZIkwu9KrKdA1iJKfsfTVxE6NA==}
+  buffer-equal-constant-time@file:patches/buffer-equal-constant-time:
+    resolution: {directory: patches/buffer-equal-constant-time, type: directory}
 
   buffer-from@1.1.2:
     resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
@@ -15794,7 +15795,7 @@ snapshots:
 
   buffer-crc32@1.0.0: {}
 
-  buffer-equal-constant-time@1.0.1: {}
+  buffer-equal-constant-time@file:patches/buffer-equal-constant-time: {}
 
   buffer-from@1.1.2: {}
 
@@ -18260,7 +18261,7 @@ snapshots:
 
   jwa@2.0.0:
     dependencies:
-      buffer-equal-constant-time: 1.0.1
+      buffer-equal-constant-time: file:patches/buffer-equal-constant-time
       ecdsa-sig-formatter: 1.0.11
       safe-buffer: 5.2.1
 

@@ -14,6 +14,7 @@ import type { MiRemoteUser } from '@/models/User.js';
 import type { MiNote } from '@/models/Note.js';
 import { acquireApObjectLock } from '@/misc/distributed-lock.js';
 import { toArray, toSingle, unique } from '@/misc/prelude/array.js';
+import { bindThis } from '@/decorators.js';
 import type { MiEmoji } from '@/models/Emoji.js';
 import type { MiDriveFile } from '@/models/DriveFile.js';
 import { NoteCreateService } from '@/core/NoteCreateService.js';
@@ -77,12 +78,6 @@ export class ApNoteService implements OnModuleInit {
 		private apLoggerService: ApLoggerService,
 	) {
 		this.logger = this.apLoggerService.logger;
-		this.validateNote = this.validateNote.bind(this);
-		this.fetchNote = this.fetchNote.bind(this);
-		this.createNote = this.createNote.bind(this);
-		this.resolveNote = this.resolveNote.bind(this);
-		this.parseAndValidateGeoShare = this.parseAndValidateGeoShare.bind(this);
-		this.extractEmojis = this.extractEmojis.bind(this);
 	}
 
 	onModuleInit(): void {
@@ -95,6 +90,7 @@ export class ApNoteService implements OnModuleInit {
 		this.apDbResolverService = this.moduleRef.get('ApDbResolverService');
 	}
 
+	@bindThis
 	public validateNote(object: IObject, uri: string, actor?: MiRemoteUser): Error | null {
 		const expectHost = this.utilityService.extractDbHost(uri);
 		const apType = getApType(object);
@@ -132,6 +128,7 @@ export class ApNoteService implements OnModuleInit {
 	 *
 	 * Misskeyに対象のNoteが登録されていればそれを返します。
 	 */
+	@bindThis
 	public async fetchNote(object: string | IObject): Promise<MiNote | null> {
 		return await this.apDbResolverService.getNoteFromApId(object);
 	}
@@ -139,6 +136,7 @@ export class ApNoteService implements OnModuleInit {
 	/**
 	 * Noteを作成します。
 	 */
+	@bindThis
 	public async createNote(value: string | IObject, actor?: MiRemoteUser, resolver?: ApResolverLike, silent = false): Promise<MiNote | null> {
 		// eslint-disable-next-line no-param-reassign
 		if (resolver == null) resolver = await this.apResolverService.createResolver();
@@ -370,6 +368,7 @@ export class ApNoteService implements OnModuleInit {
 	 * Misskeyに対象のNoteが登録されていればそれを返し、そうでなければ
 	 * リモートサーバーからフェッチしてMisskeyに登録しそれを返します。
 	 */
+	@bindThis
 	public async resolveNote(value: string | IObject, options: { sentFrom?: URL, resolver?: ApResolverLike } = {}): Promise<MiNote | null> {
 		const uri = getApId(value);
 
@@ -399,6 +398,7 @@ export class ApNoteService implements OnModuleInit {
 		}
 	}
 
+	@bindThis
 	public parseAndValidateGeoShare(geoShareData: any): string | null {
 		if (!geoShareData) return null;
 
@@ -451,6 +451,7 @@ export class ApNoteService implements OnModuleInit {
 		}
 	}
 
+	@bindThis
 	public async extractEmojis(tags: IObject | IObject[], host: string): Promise<MiEmoji[]> {
 		// eslint-disable-next-line no-param-reassign
 		host = this.utilityService.toPuny(host);
