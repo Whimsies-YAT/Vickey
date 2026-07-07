@@ -97,6 +97,7 @@ export default defineConfig((args) => {
 		're2',
 		'ipaddr.js',
 		'file-type',
+		'web-push',
 		// バンドルするとSentryの自動計装が正しく行われなくなるため外しておく
 		'pg',
 	];

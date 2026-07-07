@@ -61,12 +61,31 @@ function checkBackendBundle() {
 async function checkStartupImports() {
 	const builtDir = path.join(backendRoot, 'built');
 	const apNoteFiles = fs.readdirSync(builtDir).filter(file => /^ApNoteService-.*\.js$/.test(file));
+	const pushNotificationFiles = fs.readdirSync(builtDir).filter(file => /^PushNotificationService-.*\.js$/.test(file));
 
 	if (apNoteFiles.length !== 1) {
 		throw new Error(`Expected exactly one ApNoteService bundle, found ${apNoteFiles.length}: ${apNoteFiles.join(', ')}`);
 	}
 
+	if (pushNotificationFiles.length !== 1) {
+		throw new Error(`Expected exactly one PushNotificationService bundle, found ${pushNotificationFiles.length}: ${pushNotificationFiles.join(', ')}`);
+	}
+
+	const pushNotificationBundle = fs.readFileSync(path.join(builtDir, pushNotificationFiles[0]), 'utf8');
+	const bundledWebPushPatterns = [
+		'function WebPushLib',
+		'jwsSign',
+		'function inherits',
+	];
+
+	for (const pattern of bundledWebPushPatterns) {
+		if (pushNotificationBundle.includes(pattern)) {
+			throw new Error(`PushNotificationService bundle contains bundled web-push code: ${pattern}`);
+		}
+	}
+
 	await import(pathToFileURL(path.join(builtDir, apNoteFiles[0])).href);
+	await import(pathToFileURL(path.join(builtDir, pushNotificationFiles[0])).href);
 }
 
 async function checkLocalAIContentAnalysisDeps() {
