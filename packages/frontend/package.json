@@ -120,7 +120,7 @@
 		"eslint-plugin-vue": "10.9.2",
 		"estree-walker": "3.0.3",
 		"execa": "9.6.1",
-		"happy-dom": "20.10.6",
+		"happy-dom": "20.11.1",
 		"lightningcss": "1.32.0",
 		"magic-string": "0.30.21",
 		"micromatch": "4.0.8",
