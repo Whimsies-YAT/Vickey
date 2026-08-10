@@ -65,7 +65,7 @@
 	"dependencies": {
 		"cld": "2.10.1",
 		"cssnano": "8.0.1",
-		"esbuild": "0.28.1",
+		"esbuild": "0.28.2",
 		"execa": "9.6.1",
 		"file-type": "21.3.0",
 		"ignore-walk": "9.0.0",
