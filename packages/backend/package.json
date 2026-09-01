@@ -166,7 +166,7 @@
 		"uuidv7": "1.1.0",
 		"vary": "1.1.2",
 		"web-push": "3.6.7",
-		"ws": "8.21.0",
+		"ws": "8.21.3",
 		"xev": "3.0.2",
 		"xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
 	},
