@@ -141,7 +141,7 @@
 		"vite": "8.1.0",
 		"vite-plugin-glsl": "1.6.0",
 		"vite-plugin-turbosnap": "1.0.3",
-		"vitest": "4.1.9",
+		"vitest": "5.0.2",
 		"vitest-fetch-mock": "0.4.5",
 		"vue-component-type-helpers": "3.3.5",
 		"vue-eslint-parser": "10.4.1",
